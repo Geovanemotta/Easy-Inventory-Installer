@@ -27,7 +27,8 @@ try {
         Write-Host "[X] O serviço do Docker não está rodando. Inicie o Docker Desktop." -ForegroundColor Red
         exit 1
     }
-} catch {
+}
+catch {
     Write-Host "[X] Falha ao comunicar com o daemon do Docker." -ForegroundColor Red
     exit 1
 }
@@ -93,7 +94,8 @@ while ($true) {
     $plain2 = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr2)
     if ($plain -ne $plain2) {
         Write-Host " [!] As senhas não coincidem. Tente novamente." -ForegroundColor Red
-    } else {
+    }
+    else {
         $adminPass = $plain
         break
     }
@@ -135,7 +137,8 @@ if (-not (Test-Path "frontend/dist/index.html")) {
     Write-Host " [*] Compilando arquivos do frontend via container Node.js isolado..."
     docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
     Write-Host "[✓] Frontend compilado em ./frontend/dist!" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "[✓] Frontend já compilado anteriormente." -ForegroundColor Green
 }
 
@@ -150,10 +153,12 @@ if ($existingVol) {
     if (-not $resetDb -or $resetDb -notmatch '^[Nn]') {
         Write-Host " [*] Resetando banco para instalação limpa..."
         docker compose down -v 2>$null
-    } else {
+    }
+    else {
         docker compose down 2>$null
     }
-} else {
+}
+else {
     docker compose down 2>$null
 }
 
@@ -175,7 +180,8 @@ docker compose exec -T backend alembic upgrade head
 Write-Host " [*] Criando empresa, perfis e usuário administrador inicial..."
 if ($noSitesFlag) {
     docker compose exec -T backend python -m app.seeds.seed_turnkey --company-name "$companyName" --company-slug "$companySlug" --admin-username "$adminUser" --admin-fullname "$adminFullname" --admin-email "$adminEmail" --admin-password "$adminPass" --no-default-sites
-} else {
+}
+else {
     docker compose exec -T backend python -m app.seeds.seed_turnkey --company-name "$companyName" --company-slug "$companySlug" --admin-username "$adminUser" --admin-fullname "$adminFullname" --admin-email "$adminEmail" --admin-password "$adminPass"
 }
 
