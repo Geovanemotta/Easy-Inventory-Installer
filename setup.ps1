@@ -141,7 +141,22 @@ if (-not (Test-Path "frontend/dist/index.html")) {
 
 # 5. Inicialização dos Containers
 Write-Host "[5/6] Construindo e iniciando containers Docker..." -ForegroundColor Yellow
-docker compose down 2>$null
+
+$existingVol = docker volume ls -q 2>$null | Select-String "postgres_data"
+if ($existingVol) {
+    Write-Host " [!] Foi detectado um volume de banco de dados pré-existente." -ForegroundColor Yellow
+    Write-Host "     Para garantir que as novas credenciais sejam aplicadas com sucesso:"
+    $resetDb = Read-Host "     Deseja recriar o banco de dados do zero? [S/n]"
+    if (-not $resetDb -or $resetDb -notmatch '^[Nn]') {
+        Write-Host " [*] Resetando banco para instalação limpa..."
+        docker compose down -v 2>$null
+    } else {
+        docker compose down 2>$null
+    }
+} else {
+    docker compose down 2>$null
+}
+
 docker compose up -d --build
 
 Write-Host " [*] Aguardando o banco de dados PostgreSQL ficar pronto para conexões..."

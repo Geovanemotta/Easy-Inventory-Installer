@@ -1,8 +1,7 @@
+import os
 from logging.config import fileConfig
 
-# pyrefly: ignore [missing-import]
 from sqlalchemy import engine_from_config
-# pyrefly: ignore [missing-import]
 from sqlalchemy import pool
 
 from alembic import context
@@ -13,16 +12,19 @@ from app.models import Company
 
 config = context.config
 
-
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Sobrescreve com a variável de ambiente DATABASE_URL do container/host
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
 
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
+    url = database_url or config.get_main_option("sqlalchemy.url")
 
     context.configure(
         url=url,
@@ -37,8 +39,12 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    section = config.get_section(config.config_ini_section, {})
+    if database_url:
+        section["sqlalchemy.url"] = database_url
+
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
@@ -58,3 +64,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+

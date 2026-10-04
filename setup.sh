@@ -185,7 +185,23 @@ fi
 # 5. Inicialização dos Containers e Migrações
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[5/6] Construindo e iniciando containers Docker...${NC}"
-$DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
+
+# Detecta se existe volume antigo de banco de dados
+if docker volume ls -q 2>/dev/null | grep -E "postgres_data" &>/dev/null; then
+    echo -e "${YELLOW} [!] Foi detectado um volume de banco de dados pré-existente.${NC}"
+    echo "     Para garantir que as novas credenciais sejam aplicadas com sucesso:"
+    read -p "     Deseja recriar o banco de dados do zero? [S/n]: " RESET_DB
+    RESET_DB=${RESET_DB:-"S"}
+    if [[ ! "$RESET_DB" =~ ^[Nn] ]]; then
+        echo " [*] Resetando banco para instalação limpa..."
+        $DOCKER_COMPOSE down -v --remove-orphans 2>/dev/null || true
+    else
+        $DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
+    fi
+else
+    $DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
+fi
+
 $DOCKER_COMPOSE up -d --build
 
 echo " [*] Aguardando o banco de dados PostgreSQL ficar pronto para conexões..."
