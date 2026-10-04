@@ -1590,7 +1590,7 @@ tbody tr.row:hover {
   justify-content: center;
   gap: 10px;
   background: var(--brand);
-  color: #fd0000;
+  color: #fff;
   border: 0;
   border-radius: 9px;
   font-size: 14px;
