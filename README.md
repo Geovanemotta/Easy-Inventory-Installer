@@ -22,7 +22,7 @@ Apenas o **Docker** precisa estar instalado no servidor:
 
 ```bash
 # Clone ou descompacte o projeto:
-git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git inventory-app
+git clone https://github.com/Geovanemotta/Easy-Inventory-Installer.git inventory-app
 cd inventory-app
 
 # Execute o instalador interativo:
