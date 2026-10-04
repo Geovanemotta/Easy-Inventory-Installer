@@ -1590,13 +1590,13 @@ tbody tr.row:hover {
   justify-content: center;
   gap: 10px;
   background: var(--brand);
-  color: #fff;
+  color: #fd0000;
   border: 0;
   border-radius: 9px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.28);
+  box-shadow: 0 4px 14px rgba(236, 237, 241, 0.28);
   transition: background 0.15s, transform 0.05s;
 }
 
