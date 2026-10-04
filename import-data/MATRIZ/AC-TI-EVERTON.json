@@ -1,0 +1,184 @@
+{
+    "hostname": "AC-TI-EVERTON",
+    "loja": "",
+    "ip": "192.168.80.12",
+    "ip_secundario": "54.232.189.113",
+    "mac": "18-C0-4D-F2-A4-54",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-8400 CPU @ 2.80GHz",
+    "ram_total": "19.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "201 GB",
+    "disco_livre": "21.7 GB",
+    "disco_percentual": "90%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "everton.alexandre",
+                "tamanho": "79.58 GB",
+                "pastas": [
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\everton.alexandre\\Downloads",
+                        "tamanho": "50.16 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\everton.alexandre\\AppData",
+                        "tamanho": "23.02 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\everton.alexandre\\Documents",
+                        "tamanho": "2.97 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\everton.alexandre\\Desktop",
+                        "tamanho": "2.92 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\everton.alexandre\\Pictures",
+                        "tamanho": "0.47 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "hiago.felisberto",
+                "tamanho": "1.78 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\hiago.felisberto\\AppData",
+                        "tamanho": "1.78 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\hiago.felisberto\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\hiago.felisberto\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\hiago.felisberto\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\hiago.felisberto\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "eduardo.miranda",
+                "tamanho": "1.39 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\eduardo.miranda\\AppData",
+                        "tamanho": "1.38 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\eduardo.miranda\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\eduardo.miranda\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\eduardo.miranda\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\eduardo.miranda\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "claudenir.serafim",
+                "tamanho": "1.34 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\claudenir.serafim\\AppData",
+                        "tamanho": "1.33 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\claudenir.serafim\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\claudenir.serafim\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\claudenir.serafim\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\claudenir.serafim\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "geovane.silva",
+                "tamanho": "0.74 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\geovane.silva\\AppData",
+                        "tamanho": "0.74 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\geovane.silva\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\geovane.silva\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\geovane.silva\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\geovane.silva\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M M.2 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\everton.alexandre",
+    "data_coleta": "2026-10-02 13:11:38"
+}

@@ -1,0 +1,184 @@
+{
+    "hostname": "AC-IMOB-69679",
+    "loja": "",
+    "ip": "192.168.91.144",
+    "ip_secundario": "",
+    "mac": "0C-CC-47-EE-B7-5B",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i5-12450H",
+    "ram_total": "15.7 GB",
+    "disco_total": "237.5 GB",
+    "disco_usado": "236.4 GB",
+    "disco_livre": "1.1 GB",
+    "disco_percentual": "100%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "luiz.maciel",
+                "tamanho": "126.05 GB",
+                "pastas": [
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\luiz.maciel\\Desktop",
+                        "tamanho": "120.12 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\luiz.maciel\\AppData",
+                        "tamanho": "5.26 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\luiz.maciel\\Documents",
+                        "tamanho": "0.64 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\luiz.maciel\\Downloads",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\luiz.maciel\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "243299",
+                "tamanho": "4.49 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\243299\\AppData",
+                        "tamanho": "4.49 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\243299\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\243299\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\243299\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\243299\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "1.52 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "1.52 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ti\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ti\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\ti\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Favorites",
+                        "caminho": "C:\\Users\\ti\\Favorites",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "Default",
+                "tamanho": "0 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Default\\AppData",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\Default\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\Default\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\Default\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\Default\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "230124",
+                "tamanho": "0 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\230124\\AppData",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\230124\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\230124\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\230124\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\230124\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "133085019",
+    "fabricante": "Acer",
+    "modelo": "Aspire A515-57",
+    "serial": "NXKNFAL00650602E129Z00",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\luiz.maciel",
+    "data_coleta": "2026-10-02 13:26:56"
+}

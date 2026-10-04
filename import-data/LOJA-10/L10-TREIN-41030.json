@@ -1,0 +1,3220 @@
+{
+    "hostname": "L10-TREIN-41030",
+    "loja": "10",
+    "ip": "192.168.19.16",
+    "mac": "74:56:3c:f2:56:81",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "23G",
+    "disco_livre": "81G",
+    "disco_percentual": "23%",
+    "rustdesk_id": "485643905",
+    "aplicativos": [
+        {
+            "id": "kinfocenter",
+            "nome": "About this System",
+            "pacotes": [
+                {
+                    "pacote": "kinfocenter",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-desktop",
+            "nome": "Accessibility",
+            "pacotes": [
+                {
+                    "pacote": "plasma-desktop",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "signon-ui-x11",
+            "nome": "Account authentication",
+            "pacotes": [
+                {
+                    "pacote": "signon-ui-x11",
+                    "versao": "0.17+18.04.20171027+really20160406-0ubuntu7"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "powerdevil",
+            "nome": "Activity Power Settings",
+            "pacotes": [
+                {
+                    "pacote": "powerdevil",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "software-properties-qt",
+            "nome": "Additional Drivers",
+            "pacotes": [
+                {
+                    "pacote": "software-properties-qt",
+                    "versao": "0.99.49.4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "appcontroller",
+            "nome": "AppController",
+            "pacotes": [
+                {
+                    "pacote": "appcontroller:i386",
+                    "versao": "6.4-186"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "ark",
+            "nome": "Ark",
+            "pacotes": [
+                {
+                    "pacote": "ark",
+                    "versao": "4:23.08.5-0ubuntu5"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-pa",
+            "nome": "Audio",
+            "pacotes": [
+                {
+                    "pacote": "plasma-pa",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kio-audiocd",
+            "nome": "Audio CDs",
+            "pacotes": [
+                {
+                    "pacote": "kio-audiocd",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-workspace",
+            "nome": "Autostart",
+            "pacotes": [
+                {
+                    "pacote": "plasma-workspace",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "bluedevil",
+            "nome": "Bluetooth",
+            "pacotes": [
+                {
+                    "pacote": "bluedevil",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-plymouth",
+            "nome": "Boot Splash Screen",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-plymouth",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "cid",
+            "nome": "CID",
+            "pacotes": [
+                {
+                    "pacote": "cid",
+                    "versao": "1:1.2.6-1~ubuntu1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-nm",
+            "nome": "Connections",
+            "pacotes": [
+                {
+                    "pacote": "plasma-nm",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "drkonqi",
+            "nome": "Crashed Processes Viewer",
+            "pacotes": [
+                {
+                    "pacote": "drkonqi",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kwin-data",
+            "nome": "Desktop Effects",
+            "pacotes": [
+                {
+                    "pacote": "kwin-data",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-discover",
+            "nome": "Discover",
+            "pacotes": [
+                {
+                    "pacote": "plasma-discover",
+                    "versao": "5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-discover-backend-snap",
+            "nome": "Discover",
+            "pacotes": [
+                {
+                    "pacote": "plasma-discover-backend-snap",
+                    "versao": "5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-discover-notifier",
+            "nome": "Discover",
+            "pacotes": [
+                {
+                    "pacote": "plasma-discover-notifier",
+                    "versao": "5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kscreen",
+            "nome": "Display Configuration",
+            "pacotes": [
+                {
+                    "pacote": "kscreen",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "dolphin",
+            "nome": "Dolphin",
+            "pacotes": [
+                {
+                    "pacote": "dolphin",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "elisa",
+            "nome": "Elisa",
+            "pacotes": [
+                {
+                    "pacote": "elisa",
+                    "versao": "23.08.5-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-cli-tools",
+            "nome": "File Associations",
+            "pacotes": [
+                {
+                    "pacote": "kde-cli-tools",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "firefox",
+            "nome": "Firefox",
+            "pacotes": [
+                {
+                    "pacote": "firefox",
+                    "versao": "1:1snap1-0ubuntu5"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "firefox-esr",
+            "nome": "Firefox Web Browser",
+            "pacotes": [
+                {
+                    "pacote": "firefox-esr",
+                    "versao": "140.17.0esr+build1-0ubuntu0.22.04.1~mt1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-firewall",
+            "nome": "Firewall",
+            "pacotes": [
+                {
+                    "pacote": "plasma-firewall",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "gufw",
+            "nome": "Firewall Configuration",
+            "pacotes": [
+                {
+                    "pacote": "gufw",
+                    "versao": "24.04.0-2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "gimp",
+            "nome": "GNU Image Manipulation Program",
+            "pacotes": [
+                {
+                    "pacote": "gimp",
+                    "versao": "2.10.36-3ubuntu0.24.04.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "google-chrome",
+            "nome": "Google Chrome",
+            "pacotes": [
+                {
+                    "pacote": "google-chrome-stable",
+                    "versao": "154.0.8037.92-1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "gwenview",
+            "nome": "Gwenview",
+            "pacotes": [
+                {
+                    "pacote": "gwenview",
+                    "versao": "4:23.08.5-0ubuntu5"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "haruna",
+            "nome": "Haruna Media Player",
+            "pacotes": [
+                {
+                    "pacote": "haruna",
+                    "versao": "0.12.3-1build4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "khelpcenter",
+            "nome": "Help",
+            "pacotes": [
+                {
+                    "pacote": "khelpcenter",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "icedtea-netx",
+            "nome": "IcedTea Web Start",
+            "pacotes": [
+                {
+                    "pacote": "icedtea-netx",
+                    "versao": "1.8.8-2ubuntu1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "im-config",
+            "nome": "Input Method",
+            "pacotes": [
+                {
+                    "pacote": "im-config",
+                    "versao": "0.57-2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kcalc",
+            "nome": "KCalc",
+            "pacotes": [
+                {
+                    "pacote": "kcalc",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kcharselect",
+            "nome": "KCharSelect",
+            "pacotes": [
+                {
+                    "pacote": "kcharselect",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kdeconnect",
+            "nome": "KDE Connect",
+            "pacotes": [
+                {
+                    "pacote": "kdeconnect",
+                    "versao": "23.08.5-0ubuntu5"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "partitionmanager",
+            "nome": "KDE Partition Manager",
+            "pacotes": [
+                {
+                    "pacote": "partitionmanager",
+                    "versao": "23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "systemsettings",
+            "nome": "KDE System Settings",
+            "pacotes": [
+                {
+                    "pacote": "systemsettings",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kwalletmanager",
+            "nome": "KDE Wallet Management Tool",
+            "pacotes": [
+                {
+                    "pacote": "kwalletmanager",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "krdc",
+            "nome": "KRDC",
+            "pacotes": [
+                {
+                    "pacote": "krdc",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "ksystemlog",
+            "nome": "KSystemLog",
+            "pacotes": [
+                {
+                    "pacote": "ksystemlog",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kate",
+            "nome": "Kate",
+            "pacotes": [
+                {
+                    "pacote": "kate",
+                    "versao": "4:23.08.5-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "konsole",
+            "nome": "Konsole",
+            "pacotes": [
+                {
+                    "pacote": "konsole",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "konversation",
+            "nome": "Konversation",
+            "pacotes": [
+                {
+                    "pacote": "konversation",
+                    "versao": "23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-sddm",
+            "nome": "Login Screen (SDDM)",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-sddm",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kmenuedit",
+            "nome": "Menu Editor",
+            "pacotes": [
+                {
+                    "pacote": "kmenuedit",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "microsoft-edge-stable",
+            "nome": "Microsoft Edge",
+            "pacotes": [
+                {
+                    "pacote": "microsoft-edge-stable",
+                    "versao": "146.0.3856.97-1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "neochat",
+            "nome": "NeoChat",
+            "pacotes": [
+                {
+                    "pacote": "neochat",
+                    "versao": "23.08.5-0ubuntu4.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "obs-studio",
+            "nome": "OBS Studio",
+            "pacotes": [
+                {
+                    "pacote": "obs-studio",
+                    "versao": "30.0.2+dfsg-3build1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "okular",
+            "nome": "Okular",
+            "pacotes": [
+                {
+                    "pacote": "okular",
+                    "versao": "4:23.08.5-0ubuntu5"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "okular-extra-backends",
+            "nome": "Okular",
+            "pacotes": [
+                {
+                    "pacote": "okular-extra-backends",
+                    "versao": "4:23.08.5-0ubuntu5"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kaccounts-integration",
+            "nome": "Online Accounts",
+            "pacotes": [
+                {
+                    "pacote": "kaccounts-integration",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-browser-integration",
+            "nome": "Plasma Browser Integration Host",
+            "pacotes": [
+                {
+                    "pacote": "plasma-browser-integration",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "polkit-kde-agent-1",
+            "nome": "PolicyKit Authentication Agent",
+            "pacotes": [
+                {
+                    "pacote": "polkit-kde-agent-1",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "xdg-desktop-portal-gtk",
+            "nome": "Portal",
+            "pacotes": [
+                {
+                    "pacote": "xdg-desktop-portal-gtk",
+                    "versao": "1.15.1-1build2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "xdg-desktop-portal-kde",
+            "nome": "Portal",
+            "pacotes": [
+                {
+                    "pacote": "xdg-desktop-portal-kde",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "print-manager",
+            "nome": "Printers",
+            "pacotes": [
+                {
+                    "pacote": "print-manager",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "pavucontrol-qt",
+            "nome": "PulseAudio Volume Control",
+            "pacotes": [
+                {
+                    "pacote": "pavucontrol-qt",
+                    "versao": "1.4.0-0ubuntu6"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "qapt-deb-installer",
+            "nome": "QApt Package Installer",
+            "pacotes": [
+                {
+                    "pacote": "qapt-deb-installer",
+                    "versao": "3.0.5-2build3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "apport-kde",
+            "nome": "Report a problem...",
+            "pacotes": [
+                {
+                    "pacote": "apport-kde",
+                    "versao": "2.28.3-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "rustdesk-giassi",
+            "nome": "RustDesk Giassi Cliente",
+            "pacotes": [
+                {
+                    "pacote": "rustdesk-giassi-cliente-li",
+                    "versao": "1.4.6"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-screenlocker",
+            "nome": "Screen Locking",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-screenlocker",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "skanlite",
+            "nome": "Skanlite",
+            "pacotes": [
+                {
+                    "pacote": "skanlite",
+                    "versao": "23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "skanpage",
+            "nome": "Skanpage",
+            "pacotes": [
+                {
+                    "pacote": "skanpage",
+                    "versao": "23.08.5-0ubuntu6"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "snapd",
+            "nome": "Snapd User Session Agent",
+            "pacotes": [
+                {
+                    "pacote": "snapd",
+                    "versao": "2.76.3+ubuntu24.04"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-updates",
+            "nome": "Software Update",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-updates",
+                    "versao": "5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-spectacle",
+            "nome": "Spectacle",
+            "pacotes": [
+                {
+                    "pacote": "kde-spectacle",
+                    "versao": "23.08.5-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "usb-creator-kde",
+            "nome": "Startup Disk Creator",
+            "pacotes": [
+                {
+                    "pacote": "usb-creator-kde",
+                    "versao": "0.3.17"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-systemmonitor",
+            "nome": "System Monitor",
+            "pacotes": [
+                {
+                    "pacote": "plasma-systemmonitor",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-thunderbolt",
+            "nome": "Thunderbolt",
+            "pacotes": [
+                {
+                    "pacote": "plasma-thunderbolt",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kio",
+            "nome": "Trash",
+            "pacotes": [
+                {
+                    "pacote": "kio",
+                    "versao": "5.115.0-0ubuntu6"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "vlc",
+            "nome": "VLC media player",
+            "pacotes": [
+                {
+                    "pacote": "vlc",
+                    "versao": "3.0.20-3build6"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-tablet",
+            "nome": "Wacom Tablet finder",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-tablet",
+                    "versao": "3.2.0-5build2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-welcome",
+            "nome": "Welcome Center",
+            "pacotes": [
+                {
+                    "pacote": "plasma-welcome",
+                    "versao": "5.27.11-0ubuntu3.2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        }
+    ],
+    "agentes": [
+        {
+            "id": "wazuh-agent",
+            "nome": "Wazuh Agent",
+            "pacotes": [
+                {
+                    "pacote": "wazuh-agent",
+                    "versao": "4.14.1-1"
+                }
+            ],
+            "tipo": "agente",
+            "origem": "apt"
+        },
+        {
+            "id": "zabbix-agent2",
+            "nome": "Zabbix Agent 2",
+            "pacotes": [
+                {
+                    "pacote": "zabbix-agent2",
+                    "versao": "1:7.0.4-1+ubuntu22.04"
+                },
+                {
+                    "pacote": "zabbix-agent2-plugin-postgresql",
+                    "versao": "1:7.0.4-1+ubuntu22.04"
+                }
+            ],
+            "tipo": "agente",
+            "origem": "apt"
+        }
+    ],
+    "runtimes": [],
+    "ferramentas": [
+        {
+            "id": "chrony",
+            "nome": "Chrony",
+            "pacotes": [
+                {
+                    "pacote": "chrony",
+                    "versao": "4.5-1ubuntu4.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gcc",
+            "nome": "GNU Compiler Collection",
+            "pacotes": [
+                {
+                    "pacote": "gcc",
+                    "versao": "4:13.2.0-7ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "screen",
+            "nome": "GNU Screen",
+            "pacotes": [
+                {
+                    "pacote": "screen",
+                    "versao": "4.9.1-1ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "locate",
+            "nome": "Locate",
+            "pacotes": [
+                {
+                    "pacote": "locate",
+                    "versao": "4.9.0-5build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ntpdate",
+            "nome": "NTPDate",
+            "pacotes": [
+                {
+                    "pacote": "ntpdate",
+                    "versao": "1:4.2.8p15+dfsg-2~1.2.2+dfsg1-4build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "net-tools",
+            "nome": "Net-tools",
+            "pacotes": [
+                {
+                    "pacote": "net-tools",
+                    "versao": "2.10-0.1ubuntu4.4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ssh",
+            "nome": "OpenSSH",
+            "pacotes": [
+                {
+                    "pacote": "ssh",
+                    "versao": "1:9.6p1-3ubuntu13.19"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "python3-pip",
+            "nome": "Python PIP",
+            "pacotes": [
+                {
+                    "pacote": "python3-pip",
+                    "versao": "24.0+dfsg-1ubuntu1.3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "snmp",
+            "nome": "SNMP",
+            "pacotes": [
+                {
+                    "pacote": "snmp",
+                    "versao": "5.9.4+dfsg-1.1ubuntu3.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "unrar",
+            "nome": "UnRAR",
+            "pacotes": [
+                {
+                    "pacote": "unrar",
+                    "versao": "1:7.0.7-1build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "vim",
+            "nome": "Vim",
+            "pacotes": [
+                {
+                    "pacote": "vim",
+                    "versao": "2:9.1.0016-1ubuntu7.20"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "alsa-base",
+            "nome": "alsa-base",
+            "pacotes": [
+                {
+                    "pacote": "alsa-base",
+                    "versao": "1.0.25+dfsg-0ubuntu7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "alsa-utils",
+            "nome": "alsa-utils",
+            "pacotes": [
+                {
+                    "pacote": "alsa-utils",
+                    "versao": "1.2.9-1ubuntu5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "anacron",
+            "nome": "anacron",
+            "pacotes": [
+                {
+                    "pacote": "anacron",
+                    "versao": "2.3-39ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "appstream",
+            "nome": "appstream",
+            "pacotes": [
+                {
+                    "pacote": "appstream",
+                    "versao": "1.0.2-1build6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "apt-xapian-index",
+            "nome": "apt-xapian-index",
+            "pacotes": [
+                {
+                    "pacote": "apt-xapian-index",
+                    "versao": "0.54ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "aptitude",
+            "nome": "aptitude",
+            "pacotes": [
+                {
+                    "pacote": "aptitude",
+                    "versao": "0.8.13-5ubuntu5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "avahi-autoipd",
+            "nome": "avahi-autoipd",
+            "pacotes": [
+                {
+                    "pacote": "avahi-autoipd",
+                    "versao": "0.8-13ubuntu6.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "avahi-daemon",
+            "nome": "avahi-daemon",
+            "pacotes": [
+                {
+                    "pacote": "avahi-daemon",
+                    "versao": "0.8-13ubuntu6.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "baloo-kf5",
+            "nome": "baloo-kf5",
+            "pacotes": [
+                {
+                    "pacote": "baloo-kf5",
+                    "versao": "5.115.0-0ubuntu5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "bc",
+            "nome": "bc",
+            "pacotes": [
+                {
+                    "pacote": "bc",
+                    "versao": "1.07.1-3ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "bluez",
+            "nome": "bluez",
+            "pacotes": [
+                {
+                    "pacote": "bluez",
+                    "versao": "5.72-0ubuntu5.5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "bluez-cups",
+            "nome": "bluez-cups",
+            "pacotes": [
+                {
+                    "pacote": "bluez-cups",
+                    "versao": "5.72-0ubuntu5.5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "breeze",
+            "nome": "breeze",
+            "pacotes": [
+                {
+                    "pacote": "breeze",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "breeze-gtk-theme",
+            "nome": "breeze-gtk-theme",
+            "pacotes": [
+                {
+                    "pacote": "breeze-gtk-theme",
+                    "versao": "5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "breeze-icon-theme",
+            "nome": "breeze-icon-theme",
+            "pacotes": [
+                {
+                    "pacote": "breeze-icon-theme",
+                    "versao": "4:5.115.0-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cdrdao",
+            "nome": "cdrdao",
+            "pacotes": [
+                {
+                    "pacote": "cdrdao",
+                    "versao": "1:1.2.4-3build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cryptsetup",
+            "nome": "cryptsetup",
+            "pacotes": [
+                {
+                    "pacote": "cryptsetup",
+                    "versao": "2:2.7.0-1ubuntu4.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cups",
+            "nome": "cups",
+            "pacotes": [
+                {
+                    "pacote": "cups",
+                    "versao": "2.4.7-1.2ubuntu7.14"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cups-bsd",
+            "nome": "cups-bsd",
+            "pacotes": [
+                {
+                    "pacote": "cups-bsd",
+                    "versao": "2.4.7-1.2ubuntu7.14"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cups-client",
+            "nome": "cups-client",
+            "pacotes": [
+                {
+                    "pacote": "cups-client",
+                    "versao": "2.4.7-1.2ubuntu7.14"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cups-filters",
+            "nome": "cups-filters",
+            "pacotes": [
+                {
+                    "pacote": "cups-filters",
+                    "versao": "2.0.0-0ubuntu4.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "curl",
+            "nome": "curl",
+            "pacotes": [
+                {
+                    "pacote": "curl",
+                    "versao": "8.5.0-2ubuntu10.15"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "desktop-file-utils",
+            "nome": "desktop-file-utils",
+            "pacotes": [
+                {
+                    "pacote": "desktop-file-utils",
+                    "versao": "0.27-2build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "dolphin-plugins",
+            "nome": "dolphin-plugins",
+            "pacotes": [
+                {
+                    "pacote": "dolphin-plugins",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "fastboot",
+            "nome": "fastboot",
+            "pacotes": [
+                {
+                    "pacote": "fastboot",
+                    "versao": "1:34.0.4-1build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ffmpegthumbnailer",
+            "nome": "ffmpegthumbnailer",
+            "pacotes": [
+                {
+                    "pacote": "ffmpegthumbnailer",
+                    "versao": "2.2.2+git20240104+dfsg-1build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ffmpegthumbs",
+            "nome": "ffmpegthumbs",
+            "pacotes": [
+                {
+                    "pacote": "ffmpegthumbs",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "firefox-esr-locale-pt",
+            "nome": "firefox-esr-locale-pt",
+            "pacotes": [
+                {
+                    "pacote": "firefox-esr-locale-pt",
+                    "versao": "140.17.0esr+build1-0ubuntu0.22.04.1~mt1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "fontconfig",
+            "nome": "fontconfig",
+            "pacotes": [
+                {
+                    "pacote": "fontconfig",
+                    "versao": "2.15.0-1.1ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "foomatic-db-compressed-ppds",
+            "nome": "foomatic-db-compressed-ppds",
+            "pacotes": [
+                {
+                    "pacote": "foomatic-db-compressed-ppds",
+                    "versao": "20230202-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "fortune-mod",
+            "nome": "fortune-mod",
+            "pacotes": [
+                {
+                    "pacote": "fortune-mod",
+                    "versao": "1:1.99.1-7.3build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "frameworkintegration",
+            "nome": "frameworkintegration",
+            "pacotes": [
+                {
+                    "pacote": "frameworkintegration",
+                    "versao": "5.115.0-0ubuntu7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "fwupd",
+            "nome": "fwupd",
+            "pacotes": [
+                {
+                    "pacote": "fwupd",
+                    "versao": "2.0.20-1ubuntu2~24.04.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "fwupd-signed",
+            "nome": "fwupd-signed",
+            "pacotes": [
+                {
+                    "pacote": "fwupd-signed",
+                    "versao": "1.52+1.4-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "genisoimage",
+            "nome": "genisoimage",
+            "pacotes": [
+                {
+                    "pacote": "genisoimage",
+                    "versao": "9:1.1.11-3.5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ghostscript",
+            "nome": "ghostscript",
+            "pacotes": [
+                {
+                    "pacote": "ghostscript",
+                    "versao": "10.02.1~dfsg1-0ubuntu7.9"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gir1.2-gtop-2.0",
+            "nome": "gir1.2-gtop-2.0",
+            "pacotes": [
+                {
+                    "pacote": "gir1.2-gtop-2.0",
+                    "versao": "2.41.3-1ubuntu0.24.04.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gnupg-agent",
+            "nome": "gnupg-agent",
+            "pacotes": [
+                {
+                    "pacote": "gnupg-agent",
+                    "versao": "2.4.4-2ubuntu17.6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "go-mtpfs",
+            "nome": "go-mtpfs",
+            "pacotes": [
+                {
+                    "pacote": "go-mtpfs",
+                    "versao": "1.0.0+git20200111.42254b1-1ubuntu0.24.04.3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gpg-agent",
+            "nome": "gpg-agent",
+            "pacotes": [
+                {
+                    "pacote": "gpg-agent",
+                    "versao": "2.4.4-2ubuntu17.6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gpgsm",
+            "nome": "gpgsm",
+            "pacotes": [
+                {
+                    "pacote": "gpgsm",
+                    "versao": "2.4.4-2ubuntu17.6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "grub2-common",
+            "nome": "grub2-common",
+            "pacotes": [
+                {
+                    "pacote": "grub2-common",
+                    "versao": "2.12-1ubuntu7.3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gstreamer-qapt",
+            "nome": "gstreamer-qapt",
+            "pacotes": [
+                {
+                    "pacote": "gstreamer-qapt",
+                    "versao": "3.0.5-2build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gstreamer1.0-pipewire",
+            "nome": "gstreamer1.0-pipewire",
+            "pacotes": [
+                {
+                    "pacote": "gstreamer1.0-pipewire",
+                    "versao": "1.0.5-1ubuntu3.3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "hplip",
+            "nome": "hplip",
+            "pacotes": [
+                {
+                    "pacote": "hplip",
+                    "versao": "3.23.12+dfsg0-0ubuntu5.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "iio-sensor-proxy",
+            "nome": "iio-sensor-proxy",
+            "pacotes": [
+                {
+                    "pacote": "iio-sensor-proxy",
+                    "versao": "3.5-1build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "imagemagick",
+            "nome": "imagemagick",
+            "pacotes": [
+                {
+                    "pacote": "imagemagick",
+                    "versao": "8:6.9.12.98+dfsg1-5.2build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "inotify-tools",
+            "nome": "inotify-tools",
+            "pacotes": [
+                {
+                    "pacote": "inotify-tools",
+                    "versao": "3.22.6.0-4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "inputattach",
+            "nome": "inputattach",
+            "pacotes": [
+                {
+                    "pacote": "inputattach",
+                    "versao": "1:1.8.1-2build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "jq",
+            "nome": "jq",
+            "pacotes": [
+                {
+                    "pacote": "jq",
+                    "versao": "1.7.1-3ubuntu0.24.04.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kaccounts-providers",
+            "nome": "kaccounts-providers",
+            "pacotes": [
+                {
+                    "pacote": "kaccounts-providers",
+                    "versao": "4:23.08.5-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kactivitymanagerd",
+            "nome": "kactivitymanagerd",
+            "pacotes": [
+                {
+                    "pacote": "kactivitymanagerd",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-gtk-style",
+            "nome": "kde-config-gtk-style",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-gtk-style",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-gtk-style-preview",
+            "nome": "kde-config-gtk-style-preview",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-gtk-style-preview",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-config-whoopsie",
+            "nome": "kde-config-whoopsie",
+            "pacotes": [
+                {
+                    "pacote": "kde-config-whoopsie",
+                    "versao": "15.10ubuntu6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kde-style-oxygen-qt5",
+            "nome": "kde-style-oxygen-qt5",
+            "pacotes": [
+                {
+                    "pacote": "kde-style-oxygen-qt5",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kdegraphics-thumbnailers",
+            "nome": "kdegraphics-thumbnailers",
+            "pacotes": [
+                {
+                    "pacote": "kdegraphics-thumbnailers",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kdenetwork-filesharing",
+            "nome": "kdenetwork-filesharing",
+            "pacotes": [
+                {
+                    "pacote": "kdenetwork-filesharing",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kerneloops",
+            "nome": "kerneloops",
+            "pacotes": [
+                {
+                    "pacote": "kerneloops",
+                    "versao": "0.12+git20140509-6ubuntu8"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kgamma5",
+            "nome": "kgamma5",
+            "pacotes": [
+                {
+                    "pacote": "kgamma5",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "khotkeys",
+            "nome": "khotkeys",
+            "pacotes": [
+                {
+                    "pacote": "khotkeys",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kimageformat-plugins",
+            "nome": "kimageformat-plugins",
+            "pacotes": [
+                {
+                    "pacote": "kimageformat-plugins",
+                    "versao": "5.115.0-0ubuntu7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kio-admin",
+            "nome": "kio-admin",
+            "pacotes": [
+                {
+                    "pacote": "kio-admin",
+                    "versao": "23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kio-extras",
+            "nome": "kio-extras",
+            "pacotes": [
+                {
+                    "pacote": "kio-extras",
+                    "versao": "4:23.08.5-0ubuntu5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kio-fuse",
+            "nome": "kio-fuse",
+            "pacotes": [
+                {
+                    "pacote": "kio-fuse",
+                    "versao": "5.1.0-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kio-gdrive",
+            "nome": "kio-gdrive",
+            "pacotes": [
+                {
+                    "pacote": "kio-gdrive",
+                    "versao": "23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ksshaskpass",
+            "nome": "ksshaskpass",
+            "pacotes": [
+                {
+                    "pacote": "ksshaskpass",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ksystemstats",
+            "nome": "ksystemstats",
+            "pacotes": [
+                {
+                    "pacote": "ksystemstats",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kubuntu-settings-desktop",
+            "nome": "kubuntu-settings-desktop",
+            "pacotes": [
+                {
+                    "pacote": "kubuntu-settings-desktop",
+                    "versao": "1:24.04.13"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kubuntu-wallpapers",
+            "nome": "kubuntu-wallpapers",
+            "pacotes": [
+                {
+                    "pacote": "kubuntu-wallpapers",
+                    "versao": "24.04.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kubuntu-web-shortcuts",
+            "nome": "kubuntu-web-shortcuts",
+            "pacotes": [
+                {
+                    "pacote": "kubuntu-web-shortcuts",
+                    "versao": "17.04ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kwayland-integration",
+            "nome": "kwayland-integration",
+            "pacotes": [
+                {
+                    "pacote": "kwayland-integration",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kwin-addons",
+            "nome": "kwin-addons",
+            "pacotes": [
+                {
+                    "pacote": "kwin-addons",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kwin-common",
+            "nome": "kwin-common",
+            "pacotes": [
+                {
+                    "pacote": "kwin-common",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kwin-decoration-oxygen",
+            "nome": "kwin-decoration-oxygen",
+            "pacotes": [
+                {
+                    "pacote": "kwin-decoration-oxygen",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kwin-wayland",
+            "nome": "kwin-wayland",
+            "pacotes": [
+                {
+                    "pacote": "kwin-wayland",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kwin-x11",
+            "nome": "kwin-x11",
+            "pacotes": [
+                {
+                    "pacote": "kwin-x11",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "kwrited",
+            "nome": "kwrited",
+            "pacotes": [
+                {
+                    "pacote": "kwrited",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "language-selector-common",
+            "nome": "language-selector-common",
+            "pacotes": [
+                {
+                    "pacote": "language-selector-common",
+                    "versao": "0.225"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "laptop-detect",
+            "nome": "laptop-detect",
+            "pacotes": [
+                {
+                    "pacote": "laptop-detect",
+                    "versao": "0.16"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "layer-shell-qt",
+            "nome": "layer-shell-qt",
+            "pacotes": [
+                {
+                    "pacote": "layer-shell-qt",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "memtest86+",
+            "nome": "memtest86+",
+            "pacotes": [
+                {
+                    "pacote": "memtest86+",
+                    "versao": "7.00-1build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "milou",
+            "nome": "milou",
+            "pacotes": [
+                {
+                    "pacote": "milou",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "mobile-broadband-provider-info",
+            "nome": "mobile-broadband-provider-info",
+            "pacotes": [
+                {
+                    "pacote": "mobile-broadband-provider-info",
+                    "versao": "20230416-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "modemmanager",
+            "nome": "modemmanager",
+            "pacotes": [
+                {
+                    "pacote": "modemmanager",
+                    "versao": "1.23.4-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "network-manager",
+            "nome": "network-manager",
+            "pacotes": [
+                {
+                    "pacote": "network-manager",
+                    "versao": "1.46.0-1ubuntu2.8"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "network-manager-openconnect",
+            "nome": "network-manager-openconnect",
+            "pacotes": [
+                {
+                    "pacote": "network-manager-openconnect",
+                    "versao": "1.2.10-3build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "network-manager-pptp",
+            "nome": "network-manager-pptp",
+            "pacotes": [
+                {
+                    "pacote": "network-manager-pptp",
+                    "versao": "1.2.12-3build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "openprinting-ppds",
+            "nome": "openprinting-ppds",
+            "pacotes": [
+                {
+                    "pacote": "openprinting-ppds",
+                    "versao": "20230202-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "orca",
+            "nome": "orca",
+            "pacotes": [
+                {
+                    "pacote": "orca",
+                    "versao": "46.1-1ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "os-prober",
+            "nome": "os-prober",
+            "pacotes": [
+                {
+                    "pacote": "os-prober",
+                    "versao": "1.81ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "oxygen-sounds",
+            "nome": "oxygen-sounds",
+            "pacotes": [
+                {
+                    "pacote": "oxygen-sounds",
+                    "versao": "4:5.27.11-0ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "packagekit",
+            "nome": "packagekit",
+            "pacotes": [
+                {
+                    "pacote": "packagekit",
+                    "versao": "1.2.8-2ubuntu1.5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "pastebinit",
+            "nome": "pastebinit",
+            "pacotes": [
+                {
+                    "pacote": "pastebinit",
+                    "versao": "1.6.2-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "pcmciautils",
+            "nome": "pcmciautils",
+            "pacotes": [
+                {
+                    "pacote": "pcmciautils",
+                    "versao": "018-14build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "phonon4qt5-backend-gstreamer",
+            "nome": "phonon4qt5-backend-gstreamer",
+            "pacotes": [
+                {
+                    "pacote": "phonon4qt5-backend-gstreamer",
+                    "versao": "4:4.10.0-2build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "phonon4qt5-backend-vlc",
+            "nome": "phonon4qt5-backend-vlc",
+            "pacotes": [
+                {
+                    "pacote": "phonon4qt5-backend-vlc",
+                    "versao": "0.12.0-3build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "phonon4qt5settings",
+            "nome": "phonon4qt5settings",
+            "pacotes": [
+                {
+                    "pacote": "phonon4qt5settings",
+                    "versao": "4:4.12.0-3.1build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "pinentry-qt",
+            "nome": "pinentry-qt",
+            "pacotes": [
+                {
+                    "pacote": "pinentry-qt",
+                    "versao": "1.2.1-3ubuntu5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "pipewire",
+            "nome": "pipewire",
+            "pacotes": [
+                {
+                    "pacote": "pipewire",
+                    "versao": "1.0.5-1ubuntu3.3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "pipewire-pulse",
+            "nome": "pipewire-pulse",
+            "pacotes": [
+                {
+                    "pacote": "pipewire-pulse",
+                    "versao": "1.0.5-1ubuntu3.3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-calendar-addons",
+            "nome": "plasma-calendar-addons",
+            "pacotes": [
+                {
+                    "pacote": "plasma-calendar-addons",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-dataengines-addons",
+            "nome": "plasma-dataengines-addons",
+            "pacotes": [
+                {
+                    "pacote": "plasma-dataengines-addons",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-desktop-data",
+            "nome": "plasma-desktop-data",
+            "pacotes": [
+                {
+                    "pacote": "plasma-desktop-data",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-disks",
+            "nome": "plasma-disks",
+            "pacotes": [
+                {
+                    "pacote": "plasma-disks",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-distro-release-notifier",
+            "nome": "plasma-distro-release-notifier",
+            "pacotes": [
+                {
+                    "pacote": "plasma-distro-release-notifier",
+                    "versao": "20220915-0ubuntu6.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-integration",
+            "nome": "plasma-integration",
+            "pacotes": [
+                {
+                    "pacote": "plasma-integration",
+                    "versao": "5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-runners-addons",
+            "nome": "plasma-runners-addons",
+            "pacotes": [
+                {
+                    "pacote": "plasma-runners-addons",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-theme-oxygen",
+            "nome": "plasma-theme-oxygen",
+            "pacotes": [
+                {
+                    "pacote": "plasma-theme-oxygen",
+                    "versao": "4:5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-vault",
+            "nome": "plasma-vault",
+            "pacotes": [
+                {
+                    "pacote": "plasma-vault",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-wallpapers-addons",
+            "nome": "plasma-wallpapers-addons",
+            "pacotes": [
+                {
+                    "pacote": "plasma-wallpapers-addons",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-widgets-addons",
+            "nome": "plasma-widgets-addons",
+            "pacotes": [
+                {
+                    "pacote": "plasma-widgets-addons",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-workspace-data",
+            "nome": "plasma-workspace-data",
+            "pacotes": [
+                {
+                    "pacote": "plasma-workspace-data",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plasma-workspace-wallpapers",
+            "nome": "plasma-workspace-wallpapers",
+            "pacotes": [
+                {
+                    "pacote": "plasma-workspace-wallpapers",
+                    "versao": "4:5.27.11-0ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plocate",
+            "nome": "plocate",
+            "pacotes": [
+                {
+                    "pacote": "plocate",
+                    "versao": "1.1.19-2ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plymouth-theme-breeze",
+            "nome": "plymouth-theme-breeze",
+            "pacotes": [
+                {
+                    "pacote": "plymouth-theme-breeze",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plymouth-theme-kubuntu-logo",
+            "nome": "plymouth-theme-kubuntu-logo",
+            "pacotes": [
+                {
+                    "pacote": "plymouth-theme-kubuntu-logo",
+                    "versao": "1:24.04.13"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "plymouth-theme-kubuntu-text",
+            "nome": "plymouth-theme-kubuntu-text",
+            "pacotes": [
+                {
+                    "pacote": "plymouth-theme-kubuntu-text",
+                    "versao": "1:24.04.13"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "policykit-desktop-privileges",
+            "nome": "policykit-desktop-privileges",
+            "pacotes": [
+                {
+                    "pacote": "policykit-desktop-privileges",
+                    "versao": "0.22"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "power-profiles-daemon",
+            "nome": "power-profiles-daemon",
+            "pacotes": [
+                {
+                    "pacote": "power-profiles-daemon",
+                    "versao": "0.21-1ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ppa-purge",
+            "nome": "ppa-purge",
+            "pacotes": [
+                {
+                    "pacote": "ppa-purge",
+                    "versao": "0.2.8+bzr63-0ubuntu2.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-brlaser",
+            "nome": "printer-driver-brlaser",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-brlaser",
+                    "versao": "6-3build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-c2esp",
+            "nome": "printer-driver-c2esp",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-c2esp",
+                    "versao": "27-11ubuntu7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-escpr",
+            "nome": "printer-driver-escpr",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-escpr",
+                    "versao": "1.7.17-4build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-foo2zjs",
+            "nome": "printer-driver-foo2zjs",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-foo2zjs",
+                    "versao": "20200505dfsg0-2ubuntu6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-gutenprint",
+            "nome": "printer-driver-gutenprint",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-gutenprint",
+                    "versao": "5.3.4.20220624T01008808d602-1build4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-m2300w",
+            "nome": "printer-driver-m2300w",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-m2300w",
+                    "versao": "0.51-15build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-min12xxw",
+            "nome": "printer-driver-min12xxw",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-min12xxw",
+                    "versao": "0.0.9-11build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-pnm2ppa",
+            "nome": "printer-driver-pnm2ppa",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-pnm2ppa",
+                    "versao": "1.13+nondbs-0ubuntu10"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-ptouch",
+            "nome": "printer-driver-ptouch",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-ptouch",
+                    "versao": "1.7-1build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-pxljr",
+            "nome": "printer-driver-pxljr",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-pxljr",
+                    "versao": "1.4+repack0-6build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-sag-gdi",
+            "nome": "printer-driver-sag-gdi",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-sag-gdi",
+                    "versao": "0.1-8"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "printer-driver-splix",
+            "nome": "printer-driver-splix",
+            "pacotes": [
+                {
+                    "pacote": "printer-driver-splix",
+                    "versao": "2.0.0+svn315-7fakesync1ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "pulseaudio",
+            "nome": "pulseaudio",
+            "pacotes": [
+                {
+                    "pacote": "pulseaudio",
+                    "versao": "1:16.1+dfsg1-2ubuntu10.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "python3-launchpadlib",
+            "nome": "python3-launchpadlib",
+            "pacotes": [
+                {
+                    "pacote": "python3-launchpadlib",
+                    "versao": "1.11.0-6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qml-module-org-kde-ksysguard",
+            "nome": "qml-module-org-kde-ksysguard",
+            "pacotes": [
+                {
+                    "pacote": "qml-module-org-kde-ksysguard",
+                    "versao": "4:5.27.11-0ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qml-module-org-kde-pipewire",
+            "nome": "qml-module-org-kde-pipewire",
+            "pacotes": [
+                {
+                    "pacote": "qml-module-org-kde-pipewire",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qml-module-org-kde-qqc2breezestyle",
+            "nome": "qml-module-org-kde-qqc2breezestyle",
+            "pacotes": [
+                {
+                    "pacote": "qml-module-org-kde-qqc2breezestyle",
+                    "versao": "5.27.11-0ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qml-module-org-kde-qqc2desktopstyle",
+            "nome": "qml-module-org-kde-qqc2desktopstyle",
+            "pacotes": [
+                {
+                    "pacote": "qml-module-org-kde-qqc2desktopstyle",
+                    "versao": "5.115.0-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qml-module-qtgraphicaleffects",
+            "nome": "qml-module-qtgraphicaleffects",
+            "pacotes": [
+                {
+                    "pacote": "qml-module-qtgraphicaleffects",
+                    "versao": "5.15.13-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qml-module-qtquick-xmllistmodel",
+            "nome": "qml-module-qtquick-xmllistmodel",
+            "pacotes": [
+                {
+                    "pacote": "qml-module-qtquick-xmllistmodel",
+                    "versao": "5.15.13-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qt5-image-formats-plugins",
+            "nome": "qt5-image-formats-plugins",
+            "pacotes": [
+                {
+                    "pacote": "qt5-image-formats-plugins",
+                    "versao": "5.15.13-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "qttranslations5-l10n",
+            "nome": "qttranslations5-l10n",
+            "pacotes": [
+                {
+                    "pacote": "qttranslations5-l10n",
+                    "versao": "5.15.13-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "rdesktop",
+            "nome": "rdesktop",
+            "pacotes": [
+                {
+                    "pacote": "rdesktop",
+                    "versao": "1.9.0-2build4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "rfkill",
+            "nome": "rfkill",
+            "pacotes": [
+                {
+                    "pacote": "rfkill",
+                    "versao": "2.39.3-9ubuntu6.6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "samba",
+            "nome": "samba",
+            "pacotes": [
+                {
+                    "pacote": "samba",
+                    "versao": "2:4.19.5+dfsg-4ubuntu9.7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "sddm",
+            "nome": "sddm",
+            "pacotes": [
+                {
+                    "pacote": "sddm",
+                    "versao": "0.20.0-2ubuntu4.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "sddm-theme-breeze",
+            "nome": "sddm-theme-breeze",
+            "pacotes": [
+                {
+                    "pacote": "sddm-theme-breeze",
+                    "versao": "4:5.27.12-0ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "sendmail",
+            "nome": "sendmail",
+            "pacotes": [
+                {
+                    "pacote": "sendmail",
+                    "versao": "8.18.1-2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "signon-kwallet-extension",
+            "nome": "signon-kwallet-extension",
+            "pacotes": [
+                {
+                    "pacote": "signon-kwallet-extension",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "signon-plugin-oauth2",
+            "nome": "signon-plugin-oauth2",
+            "pacotes": [
+                {
+                    "pacote": "signon-plugin-oauth2",
+                    "versao": "0.25-2build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "signon-ui-service",
+            "nome": "signon-ui-service",
+            "pacotes": [
+                {
+                    "pacote": "signon-ui-service",
+                    "versao": "0.17+18.04.20171027+really20160406-0ubuntu7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "spice-vdagent",
+            "nome": "spice-vdagent",
+            "pacotes": [
+                {
+                    "pacote": "spice-vdagent",
+                    "versao": "0.22.1-4ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "switcheroo-control",
+            "nome": "switcheroo-control",
+            "pacotes": [
+                {
+                    "pacote": "switcheroo-control",
+                    "versao": "2.6-2build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ttf-mscorefonts-installer",
+            "nome": "ttf-mscorefonts-installer",
+            "pacotes": [
+                {
+                    "pacote": "ttf-mscorefonts-installer",
+                    "versao": "3.8.1ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ubuntu-drivers-common",
+            "nome": "ubuntu-drivers-common",
+            "pacotes": [
+                {
+                    "pacote": "ubuntu-drivers-common",
+                    "versao": "1:0.9.7.6ubuntu3.7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ubuntu-release-upgrader-qt",
+            "nome": "ubuntu-release-upgrader-qt",
+            "pacotes": [
+                {
+                    "pacote": "ubuntu-release-upgrader-qt",
+                    "versao": "1:24.04.29"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ubuntu-restricted-extras",
+            "nome": "ubuntu-restricted-extras",
+            "pacotes": [
+                {
+                    "pacote": "ubuntu-restricted-extras",
+                    "versao": "67"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "udisks2",
+            "nome": "udisks2",
+            "pacotes": [
+                {
+                    "pacote": "udisks2",
+                    "versao": "2.10.1-6ubuntu1.5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "unclutter",
+            "nome": "unclutter",
+            "pacotes": [
+                {
+                    "pacote": "unclutter",
+                    "versao": "8-25"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "unzip",
+            "nome": "unzip",
+            "pacotes": [
+                {
+                    "pacote": "unzip",
+                    "versao": "6.0-28ubuntu4.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "upower",
+            "nome": "upower",
+            "pacotes": [
+                {
+                    "pacote": "upower",
+                    "versao": "1.90.3-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "usb-modeswitch",
+            "nome": "usb-modeswitch",
+            "pacotes": [
+                {
+                    "pacote": "usb-modeswitch",
+                    "versao": "2.6.1-3ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "util-linux-extra",
+            "nome": "util-linux-extra",
+            "pacotes": [
+                {
+                    "pacote": "util-linux-extra",
+                    "versao": "2.39.3-9ubuntu6.6"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "whoopsie",
+            "nome": "whoopsie",
+            "pacotes": [
+                {
+                    "pacote": "whoopsie",
+                    "versao": "0.2.77ubuntu0.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wine",
+            "nome": "wine",
+            "pacotes": [
+                {
+                    "pacote": "wine",
+                    "versao": "9.0~repack-4build3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wireless-tools",
+            "nome": "wireless-tools",
+            "pacotes": [
+                {
+                    "pacote": "wireless-tools",
+                    "versao": "30~pre9-16.1ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wireplumber",
+            "nome": "wireplumber",
+            "pacotes": [
+                {
+                    "pacote": "wireplumber",
+                    "versao": "0.4.17-1ubuntu4.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wpasupplicant",
+            "nome": "wpa_supplicant",
+            "pacotes": [
+                {
+                    "pacote": "wpasupplicant",
+                    "versao": "2:2.10-21ubuntu0.4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wvdial",
+            "nome": "wvdial",
+            "pacotes": [
+                {
+                    "pacote": "wvdial",
+                    "versao": "1.61-7build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "x11-utils",
+            "nome": "x11-utils",
+            "pacotes": [
+                {
+                    "pacote": "x11-utils",
+                    "versao": "7.7+6build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xdg-utils",
+            "nome": "xdg-utils",
+            "pacotes": [
+                {
+                    "pacote": "xdg-utils",
+                    "versao": "1.1.3-4.1ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xdotool",
+            "nome": "xdotool",
+            "pacotes": [
+                {
+                    "pacote": "xdotool",
+                    "versao": "1:3.20160805.1-5build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xorg",
+            "nome": "xorg",
+            "pacotes": [
+                {
+                    "pacote": "xorg",
+                    "versao": "1:7.7+23ubuntu3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xprintidle",
+            "nome": "xprintidle",
+            "pacotes": [
+                {
+                    "pacote": "xprintidle",
+                    "versao": "0.2.5-2build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xsettingsd",
+            "nome": "xsettingsd",
+            "pacotes": [
+                {
+                    "pacote": "xsettingsd",
+                    "versao": "1.0.2-1build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "zip",
+            "nome": "zip",
+            "pacotes": [
+                {
+                    "pacote": "zip",
+                    "versao": "3.0-13ubuntu0.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "zsh",
+            "nome": "zsh",
+            "pacotes": [
+                {
+                    "pacote": "zsh",
+                    "versao": "5.9-6ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        }
+    ],
+    "data_coleta": "2026-10-02 08:18:15"
+}

@@ -1,0 +1,184 @@
+{
+    "hostname": "L06-CARTA-18974",
+    "loja": "06",
+    "ip": "192.168.12.36",
+    "ip_secundario": "",
+    "mac": "74-56-3C-F0-41-0D",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "11.8 GB",
+    "disco_total": "222.5 GB",
+    "disco_usado": "157.7 GB",
+    "disco_livre": "64.7 GB",
+    "disco_percentual": "71%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "fernanda.lima",
+                "tamanho": "18.78 GB",
+                "pastas": [
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\fernanda.lima\\Desktop",
+                        "tamanho": "11.64 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\fernanda.lima\\AppData",
+                        "tamanho": "6.66 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\fernanda.lima\\Documents",
+                        "tamanho": "0.36 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\fernanda.lima\\Downloads",
+                        "tamanho": "0.12 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\fernanda.lima\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "manoela.balduino",
+                "tamanho": "5.57 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\manoela.balduino\\AppData",
+                        "tamanho": "4.11 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\manoela.balduino\\Documents",
+                        "tamanho": "1.34 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\manoela.balduino\\Downloads",
+                        "tamanho": "0.1 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\manoela.balduino\\Desktop",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\manoela.balduino\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "denise.bitencourt",
+                "tamanho": "4.02 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\denise.bitencourt\\AppData",
+                        "tamanho": "3.28 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\denise.bitencourt\\Downloads",
+                        "tamanho": "0.6 GB"
+                    },
+                    {
+                        "pasta": "bkp denise",
+                        "caminho": "C:\\Users\\denise.bitencourt\\bkp denise",
+                        "tamanho": "0.09 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\denise.bitencourt\\Desktop",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\denise.bitencourt\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "simone.floriano",
+                "tamanho": "3.89 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\simone.floriano\\AppData",
+                        "tamanho": "3.88 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\simone.floriano\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\simone.floriano\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\simone.floriano\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\simone.floriano\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "jose.cardoso",
+                "tamanho": "3.71 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\jose.cardoso\\AppData",
+                        "tamanho": "3.7 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\jose.cardoso\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\jose.cardoso\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\jose.cardoso\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\jose.cardoso\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "485507341",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\fernanda.lima",
+    "data_coleta": "2026-10-02 13:12:01"
+}

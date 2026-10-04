@@ -1,0 +1,184 @@
+{
+    "hostname": "LJ11-NEPOS",
+    "loja": "11",
+    "ip": "192.168.20.190",
+    "ip_secundario": "",
+    "mac": "B4-2E-99-F5-70-AC",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz",
+    "ram_total": "15.9 GB",
+    "disco_total": "465 GB",
+    "disco_usado": "369.6 GB",
+    "disco_livre": "95.4 GB",
+    "disco_percentual": "79%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "nepos.lj11",
+                "tamanho": "19.46 GB",
+                "pastas": [
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\nepos.lj11\\Downloads",
+                        "tamanho": "6.85 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\nepos.lj11\\Documents",
+                        "tamanho": "6.67 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\nepos.lj11\\AppData",
+                        "tamanho": "3.58 GB"
+                    },
+                    {
+                        "pasta": "VirtualBox VMs",
+                        "caminho": "C:\\Users\\nepos.lj11\\VirtualBox VMs",
+                        "tamanho": "1.32 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\nepos.lj11\\Desktop",
+                        "tamanho": "1.04 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "maicon.coelho",
+                "tamanho": "0.39 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\maicon.coelho\\AppData",
+                        "tamanho": "0.38 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\maicon.coelho\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\maicon.coelho\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\maicon.coelho\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\maicon.coelho\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "0.17 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.17 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ti\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ti\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\ti\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Favorites",
+                        "caminho": "C:\\Users\\ti\\Favorites",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "geovane.silva",
+                "tamanho": "0.15 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\geovane.silva\\AppData",
+                        "tamanho": "0.15 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\geovane.silva\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\geovane.silva\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\geovane.silva\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\geovane.silva\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ramon.silva",
+                "tamanho": "0.04 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ramon.silva\\AppData",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ramon.silva\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\ramon.silva\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\ramon.silva\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\ramon.silva\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "435515564",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M S2P 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\nepos.lj11",
+    "data_coleta": "2026-10-02 13:11:41"
+}

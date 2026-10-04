@@ -1,0 +1,184 @@
+{
+    "hostname": "L16-SUB-34301",
+    "loja": "16",
+    "ip": "192.168.31.14",
+    "ip_secundario": "",
+    "mac": "18-C0-4D-F0-48-B4",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.8 GB",
+    "disco_usado": "166.2 GB",
+    "disco_livre": "56.6 GB",
+    "disco_percentual": "75%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "denilson.fiusa",
+                "tamanho": "16.28 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\denilson.fiusa\\AppData",
+                        "tamanho": "14.52 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\denilson.fiusa\\Downloads",
+                        "tamanho": "1.75 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\denilson.fiusa\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\denilson.fiusa\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\denilson.fiusa\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "252038",
+                "tamanho": "5.55 GB",
+                "pastas": [
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\252038\\Downloads",
+                        "tamanho": "5.18 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\252038\\AppData",
+                        "tamanho": "0.37 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\252038\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\252038\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\252038\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ana.damasceno",
+                "tamanho": "4.51 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ana.damasceno\\AppData",
+                        "tamanho": "4.48 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\ana.damasceno\\Downloads",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ana.damasceno\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ana.damasceno\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ana.damasceno\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "3.21 GB",
+                "pastas": [
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\ti\\Documents",
+                        "tamanho": "2.47 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.72 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\ti\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ti\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ti\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "max.almeida",
+                "tamanho": "3.15 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\max.almeida\\AppData",
+                        "tamanho": "3.15 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\max.almeida\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\max.almeida\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\max.almeida\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\max.almeida\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "233851060",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M M.2 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\josielma.andrade",
+    "data_coleta": "2026-10-02 13:31:10"
+}

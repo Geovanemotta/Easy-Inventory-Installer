@@ -1,0 +1,28 @@
+{
+    "hostname": "L16-TESOU-34312",
+    "loja": "16",
+    "ip": "192.168.31.10",
+    "ip_secundario": "",
+    "mac": "18-C0-4D-F0-48-DF",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "111.5 GB",
+    "disco_livre": "111.1 GB",
+    "disco_percentual": "50%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "233851103",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M M.2 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\antonia.sousa",
+    "data_coleta": "2026-10-02 13:19:33"
+}

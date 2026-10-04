@@ -1,0 +1,184 @@
+{
+    "hostname": "L11-TI-379",
+    "loja": "11",
+    "ip": "192.168.20.2",
+    "ip_secundario": "",
+    "mac": "D8-5E-D3-F4-02-3F",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.4 GB",
+    "disco_usado": "169.1 GB",
+    "disco_livre": "53.3 GB",
+    "disco_percentual": "76%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "danilo.bernardo",
+                "tamanho": "4.76 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\danilo.bernardo\\AppData",
+                        "tamanho": "4.24 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\danilo.bernardo\\Downloads",
+                        "tamanho": "0.47 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\danilo.bernardo\\Documents",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\danilo.bernardo\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\danilo.bernardo\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "beatriz.felisberto",
+                "tamanho": "4.67 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\beatriz.felisberto\\AppData",
+                        "tamanho": "4.12 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\beatriz.felisberto\\Downloads",
+                        "tamanho": "0.55 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\beatriz.felisberto\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\beatriz.felisberto\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\beatriz.felisberto\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "jenifer.assis",
+                "tamanho": "4.03 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\jenifer.assis\\AppData",
+                        "tamanho": "2.81 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\jenifer.assis\\Downloads",
+                        "tamanho": "0.87 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\jenifer.assis\\Desktop",
+                        "tamanho": "0.35 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\jenifer.assis\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\jenifer.assis\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "larissa.borges",
+                "tamanho": "3.07 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\larissa.borges\\AppData",
+                        "tamanho": "3.06 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\larissa.borges\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\larissa.borges\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\larissa.borges\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\larissa.borges\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "carlos.souza",
+                "tamanho": "2.78 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\carlos.souza\\AppData",
+                        "tamanho": "2.77 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\carlos.souza\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\carlos.souza\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\carlos.souza\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\carlos.souza\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "334758463",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\beatriz.carnin",
+    "data_coleta": "2026-10-02 13:26:08"
+}

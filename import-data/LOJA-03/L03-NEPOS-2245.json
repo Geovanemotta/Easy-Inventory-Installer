@@ -1,0 +1,184 @@
+{
+    "hostname": "L03-NEPOS-2245",
+    "loja": "03",
+    "ip": "192.168.8.180",
+    "ip_secundario": "",
+    "mac": "10-FF-E0-46-86-F8",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "15.8 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "168.8 GB",
+    "disco_livre": "53.9 GB",
+    "disco_percentual": "76%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "nepos.lj03",
+                "tamanho": "14.41 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\nepos.lj03\\AppData",
+                        "tamanho": "13.36 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\nepos.lj03\\Desktop",
+                        "tamanho": "1.03 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\nepos.lj03\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\nepos.lj03\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\nepos.lj03\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "0.78 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.78 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ti\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ti\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ti\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Favorites",
+                        "caminho": "C:\\Users\\ti\\Favorites",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "218518",
+                "tamanho": "0.09 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\218518\\AppData",
+                        "tamanho": "0.08 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\218518\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\218518\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\218518\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\218518\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "99635",
+                "tamanho": "0.03 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\99635\\AppData",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\99635\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\99635\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\99635\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\99635\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "DefaultAppPool",
+                "tamanho": "0 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\DefaultAppPool\\AppData",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\DefaultAppPool\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\DefaultAppPool\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\DefaultAppPool\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\DefaultAppPool\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "4622072",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H V2",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\nepos.lj03",
+    "data_coleta": "2026-10-02 13:15:23"
+}

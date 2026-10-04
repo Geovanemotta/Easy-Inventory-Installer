@@ -1,0 +1,184 @@
+{
+    "hostname": "L02-TI-35034",
+    "loja": "02",
+    "ip": "192.168.4.2",
+    "ip_secundario": "",
+    "mac": "C8-7F-54-D0-D8-EC",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.5 GB",
+    "disco_usado": "172.5 GB",
+    "disco_livre": "50 GB",
+    "disco_percentual": "78%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "michel.tavares",
+                "tamanho": "12.66 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\michel.tavares\\AppData",
+                        "tamanho": "8.24 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\michel.tavares\\Downloads",
+                        "tamanho": "3.43 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\michel.tavares\\Desktop",
+                        "tamanho": "0.97 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\michel.tavares\\Pictures",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\michel.tavares\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "leonardo.jesus",
+                "tamanho": "4.35 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\leonardo.jesus\\AppData",
+                        "tamanho": "4.31 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\leonardo.jesus\\Desktop",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\leonardo.jesus\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\leonardo.jesus\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\leonardo.jesus\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "marcio.arcenego",
+                "tamanho": "4.27 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\marcio.arcenego\\AppData",
+                        "tamanho": "4.21 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\marcio.arcenego\\Downloads",
+                        "tamanho": "0.05 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\marcio.arcenego\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\marcio.arcenego\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\marcio.arcenego\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "tamires.polla",
+                "tamanho": "3.4 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\tamires.polla\\AppData",
+                        "tamanho": "3.39 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\tamires.polla\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\tamires.polla\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\tamires.polla\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\tamires.polla\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "carlos.hespanhol",
+                "tamanho": "3.29 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\carlos.hespanhol\\AppData",
+                        "tamanho": "3.27 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\carlos.hespanhol\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\carlos.hespanhol\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\carlos.hespanhol\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\carlos.hespanhol\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "349231340",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\michel.tavares",
+    "data_coleta": "2026-10-02 13:12:30"
+}

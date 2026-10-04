@@ -1,0 +1,28 @@
+{
+    "hostname": "CD-CHECKOUT1",
+    "loja": "",
+    "ip": "192.168.94.109",
+    "ip_secundario": "",
+    "mac": "74-56-3C-F0-CE-C8",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "88.2 GB",
+    "disco_livre": "134.5 GB",
+    "disco_percentual": "40%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "485543624",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\etiquetas",
+    "data_coleta": "2026-10-02 13:28:12"
+}

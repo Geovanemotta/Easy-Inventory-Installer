@@ -1,0 +1,184 @@
+{
+    "hostname": "C03-RADIO-22276",
+    "loja": "03",
+    "ip": "192.168.30.24",
+    "ip_secundario": "",
+    "mac": "2C-FD-A1-C7-E1-C9",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "179.9 GB",
+    "disco_livre": "42.7 GB",
+    "disco_percentual": "81%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "everson.rosa",
+                "tamanho": "15.18 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\everson.rosa\\AppData",
+                        "tamanho": "15.17 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\everson.rosa\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\everson.rosa\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\everson.rosa\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\everson.rosa\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "anna.silva",
+                "tamanho": "12.47 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\anna.silva\\AppData",
+                        "tamanho": "12.46 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\anna.silva\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\anna.silva\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\anna.silva\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\anna.silva\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "kainy.silva",
+                "tamanho": "8.08 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\kainy.silva\\AppData",
+                        "tamanho": "8.07 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\kainy.silva\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\kainy.silva\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\kainy.silva\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\kainy.silva\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "maiara.rodrigues",
+                "tamanho": "6.19 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\maiara.rodrigues\\AppData",
+                        "tamanho": "6.17 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\maiara.rodrigues\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\maiara.rodrigues\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\maiara.rodrigues\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\maiara.rodrigues\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "edna.haubert",
+                "tamanho": "5.36 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\edna.haubert\\AppData",
+                        "tamanho": "5.36 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\edna.haubert\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\edna.haubert\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\edna.haubert\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\edna.haubert\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "29876681",
+    "fabricante": "System manufacturer",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\anna.silva",
+    "data_coleta": "2026-10-02 13:22:37"
+}

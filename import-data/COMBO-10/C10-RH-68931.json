@@ -1,0 +1,28 @@
+{
+    "hostname": "C10-RH-68931",
+    "loja": "10",
+    "ip": "192.168.88.111",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-57-B5",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i3-12100",
+    "ram_total": "7.7 GB",
+    "disco_total": "223.3 GB",
+    "disco_usado": "41.9 GB",
+    "disco_livre": "181.3 GB",
+    "disco_percentual": "19%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "1991189983",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": null,
+    "data_coleta": "2026-10-02 13:13:41"
+}

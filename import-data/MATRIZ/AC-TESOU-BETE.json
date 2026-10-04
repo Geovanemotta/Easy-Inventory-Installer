@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-TESOU-BETE",
+    "loja": "",
+    "ip": "192.168.91.130",
+    "ip_secundario": "54.232.189.113",
+    "mac": "02-00-4C-4F-4F-50",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 10 Pro",
+    "build": "19045",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-4460  CPU @ 3.20GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.5 GB",
+    "disco_usado": "145.5 GB",
+    "disco_livre": "77.1 GB",
+    "disco_percentual": "65%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "351995906",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H81M-S1",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\elizabete.alano",
+    "data_coleta": "2026-10-02 09:24:11"
+}

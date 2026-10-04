@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ03-NUTRI01",
+    "loja": "03",
+    "ip": "192.168.8.11",
+    "mac": "e0:d5:5e:f1:98:e4",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "28G",
+    "disco_livre": "76G",
+    "disco_percentual": "27%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "519149796",
+    "data_coleta": "2026-10-01 16:59:27"
+}

@@ -1,0 +1,28 @@
+{
+    "hostname": "L12-NEPOS-39958",
+    "loja": "12",
+    "ip": "192.168.22.180",
+    "ip_secundario": "",
+    "mac": "60-CF-84-D0-59-42",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "7.7 GB",
+    "disco_total": "464.9 GB",
+    "disco_usado": "109.6 GB",
+    "disco_livre": "355.3 GB",
+    "disco_percentual": "24%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "80763202",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\nepos.lj12",
+    "data_coleta": "2026-10-02 13:31:21"
+}

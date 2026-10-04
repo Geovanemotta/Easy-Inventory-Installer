@@ -1,0 +1,184 @@
+{
+    "hostname": "LJ09-SPP-S",
+    "loja": "09",
+    "ip": "192.168.18.8",
+    "ip_secundario": "",
+    "mac": "74-56-3C-F0-DD-C3",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "162.8 GB",
+    "disco_livre": "59.8 GB",
+    "disco_percentual": "73%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "Osmar.Saraiva",
+                "tamanho": "25.7 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Osmar.Saraiva\\AppData",
+                        "tamanho": "22.13 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Osmar.Saraiva\\Desktop",
+                        "tamanho": "1.53 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\Osmar.Saraiva\\Documents",
+                        "tamanho": "1.47 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\Osmar.Saraiva\\Pictures",
+                        "tamanho": "0.31 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\Osmar.Saraiva\\Downloads",
+                        "tamanho": "0.13 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "Milthon.rosa",
+                "tamanho": "2.56 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Milthon.rosa\\AppData",
+                        "tamanho": "2.53 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\Milthon.rosa\\Downloads",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\Milthon.rosa\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Milthon.rosa\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\Milthon.rosa\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "sidnei.oliveira",
+                "tamanho": "1.48 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\sidnei.oliveira\\AppData",
+                        "tamanho": "1.48 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\sidnei.oliveira\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\sidnei.oliveira\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\sidnei.oliveira\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\sidnei.oliveira\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "jhonatan.cabreira",
+                "tamanho": "0.91 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\jhonatan.cabreira\\AppData",
+                        "tamanho": "0.58 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\jhonatan.cabreira\\Downloads",
+                        "tamanho": "0.33 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\jhonatan.cabreira\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\jhonatan.cabreira\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\jhonatan.cabreira\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "0.56 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.56 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ti\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ti\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ti\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ti\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "485547459",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sidnei.oliveira",
+    "data_coleta": "2026-10-02 13:12:05"
+}

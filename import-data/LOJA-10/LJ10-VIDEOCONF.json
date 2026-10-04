@@ -1,0 +1,17 @@
+{
+    "hostname": "LJ10-VIDEOCONF",
+    "loja": "10",
+    "ip": "192.168.19.97",
+    "mac": "18:c0:4d:f0:48:cf",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "59G",
+    "disco_livre": "46G",
+    "disco_percentual": "57%",
+    "rustdesk_id": "233851087",
+    "data_coleta": "2026-09-30 16:49:35"
+}

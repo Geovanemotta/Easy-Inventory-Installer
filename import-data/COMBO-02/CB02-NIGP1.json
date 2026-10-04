@@ -1,0 +1,17 @@
+{
+    "hostname": "CB02-NIGP1",
+    "loja": "",
+    "ip": "192.168.29.4",
+    "mac": "2c:fd:a1:c7:e3:ca",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-6100 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "69G",
+    "disco_livre": "35G",
+    "disco_percentual": "67%",
+    "rustdesk_id": "1186461278",
+    "data_coleta": "2026-09-29 16:06:21"
+}

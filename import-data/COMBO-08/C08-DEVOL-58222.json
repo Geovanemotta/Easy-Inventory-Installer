@@ -1,0 +1,20 @@
+{
+    "hostname": "C08-DEVOL-58222",
+    "loja": "",
+    "ip": "192.168.37.13",
+    "mac": "10:ff:e0:46:0e:ae",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "32G",
+    "disco_livre": "73G",
+    "disco_percentual": "31%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "4591278",
+    "data_coleta": "2026-10-01 14:45:21"
+}

@@ -1,0 +1,20 @@
+{
+    "hostname": "CB05-DEVOLUCAO",
+    "loja": "",
+    "ip": "192.168.33.13",
+    "mac": "18:c0:4d:cb:d5:84",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "61G",
+    "disco_livre": "44G",
+    "disco_percentual": "59%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "231462276",
+    "data_coleta": "2026-10-01 15:14:22"
+}

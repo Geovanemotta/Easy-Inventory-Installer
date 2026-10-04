@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-GC-PETTERSON",
+    "loja": "",
+    "ip": "192.168.84.43",
+    "ip_secundario": "",
+    "mac": "B4-2E-99-F0-AD-48",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 10 Pro",
+    "build": "19045",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "16 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "153.8 GB",
+    "disco_livre": "68.9 GB",
+    "disco_percentual": "69%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "435203400",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2V",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\petterson.castro",
+    "data_coleta": "2026-10-02 09:28:00"
+}

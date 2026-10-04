@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ06-DEP-RECE2",
+    "loja": "06",
+    "ip": "192.168.12.26",
+    "mac": "d8:5e:d3:f1:1c:fc",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "44G",
+    "disco_livre": "61G",
+    "disco_percentual": "42%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "334568700",
+    "data_coleta": "2026-10-01 16:05:08"
+}

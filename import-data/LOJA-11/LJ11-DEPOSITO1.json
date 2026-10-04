@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ11-DEPOSITO1",
+    "loja": "11",
+    "ip": "192.168.20.27",
+    "mac": "fc:aa:14:f5:00:74",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G2030 @ 3.00GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "219G",
+    "disco_usado": "39G",
+    "disco_livre": "169G",
+    "disco_percentual": "19%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "351600756",
+    "data_coleta": "2026-10-01 16:32:15"
+}

@@ -1,0 +1,184 @@
+{
+    "hostname": "DC-LOG-5658",
+    "loja": "",
+    "ip": "192.168.94.180",
+    "ip_secundario": "",
+    "mac": "74-56-3C-F0-D7-09",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "15.8 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "216 GB",
+    "disco_livre": "6.6 GB",
+    "disco_percentual": "97%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "alisson.castanhetti",
+                "tamanho": "13.43 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\alisson.castanhetti\\AppData",
+                        "tamanho": "11.38 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\alisson.castanhetti\\Documents",
+                        "tamanho": "1.93 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\alisson.castanhetti\\Pictures",
+                        "tamanho": "0.07 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\alisson.castanhetti\\Desktop",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\alisson.castanhetti\\Downloads",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "valderi.isidoro",
+                "tamanho": "5.7 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\valderi.isidoro\\AppData",
+                        "tamanho": "5.51 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\valderi.isidoro\\Documents",
+                        "tamanho": "0.15 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\valderi.isidoro\\Pictures",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\valderi.isidoro\\Desktop",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\valderi.isidoro\\Downloads",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "alberto.fernandes",
+                "tamanho": "2.49 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\alberto.fernandes\\AppData",
+                        "tamanho": "2.48 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\alberto.fernandes\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\alberto.fernandes\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\alberto.fernandes\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\alberto.fernandes\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "0.44 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.44 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ti\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ti\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ti\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ti\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "243299",
+                "tamanho": "0.03 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\243299\\AppData",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Favorites",
+                        "caminho": "C:\\Users\\243299\\Favorites",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\243299\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\243299\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\243299\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "485545737",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\valderi.isidoro",
+    "data_coleta": "2026-10-02 13:21:57"
+}

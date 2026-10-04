@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ02-COMPRAS1",
+    "loja": "02",
+    "ip": "192.168.4.28",
+    "mac": "1c:1b:0d:f3:18:51",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G3260 @ 3.30GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "50G",
+    "disco_livre": "159G",
+    "disco_percentual": "24%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "234035281",
+    "data_coleta": "2026-10-01 14:18:19"
+}

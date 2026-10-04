@@ -1,0 +1,184 @@
+{
+    "hostname": "LJ17-RH",
+    "loja": "17",
+    "ip": "192.168.34.4",
+    "ip_secundario": "",
+    "mac": "D8-5E-D3-DF-55-B0",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "110.9 GB",
+    "disco_usado": "99.4 GB",
+    "disco_livre": "11.5 GB",
+    "disco_percentual": "90%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "simone.silva",
+                "tamanho": "19.3 GB",
+                "pastas": [
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\simone.silva\\Downloads",
+                        "tamanho": "10.83 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\simone.silva\\AppData",
+                        "tamanho": "8.35 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\simone.silva\\Desktop",
+                        "tamanho": "0.09 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\simone.silva\\Pictures",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\simone.silva\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "cauan.feuser",
+                "tamanho": "3.83 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\cauan.feuser\\AppData",
+                        "tamanho": "3.78 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\cauan.feuser\\Downloads",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\cauan.feuser\\Documents",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\cauan.feuser\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\cauan.feuser\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "230124",
+                "tamanho": "1.79 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\230124\\AppData",
+                        "tamanho": "1.44 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\230124\\Downloads",
+                        "tamanho": "0.35 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\230124\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\230124\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\230124\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "maiara.jacinto",
+                "tamanho": "1.4 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\maiara.jacinto\\AppData",
+                        "tamanho": "1.39 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\maiara.jacinto\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\maiara.jacinto\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\maiara.jacinto\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\maiara.jacinto\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "jose.vasconcelos",
+                "tamanho": "1.1 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\jose.vasconcelos\\AppData",
+                        "tamanho": "1.1 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\jose.vasconcelos\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\jose.vasconcelos\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\jose.vasconcelos\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\jose.vasconcelos\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "333403568",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\simone.silva",
+    "data_coleta": "2026-10-02 13:15:21"
+}

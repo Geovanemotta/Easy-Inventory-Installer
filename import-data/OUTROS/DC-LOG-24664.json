@@ -1,0 +1,28 @@
+{
+    "hostname": "DC-LOG-24664",
+    "loja": "",
+    "ip": "192.168.94.148",
+    "ip_secundario": "",
+    "mac": "74-56-3C-F0-D1-64",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "144.2 GB",
+    "disco_livre": "78.4 GB",
+    "disco_percentual": "65%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "485544292",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\edinaldo.ventura",
+    "data_coleta": "2026-10-02 13:17:37"
+}

@@ -1,0 +1,184 @@
+{
+    "hostname": "DC-LOG-VIVI",
+    "loja": "",
+    "ip": "192.168.94.140",
+    "ip_secundario": "",
+    "mac": "7C-8A-E1-DA-DD-F9",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz",
+    "ram_total": "11.8 GB",
+    "disco_total": "110.8 GB",
+    "disco_usado": "95.5 GB",
+    "disco_livre": "15.3 GB",
+    "disco_percentual": "86%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "viviane.frello",
+                "tamanho": "7.82 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\viviane.frello\\AppData",
+                        "tamanho": "7.46 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\viviane.frello\\Documents",
+                        "tamanho": "0.26 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\viviane.frello\\Videos",
+                        "tamanho": "0.05 GB"
+                    },
+                    {
+                        "pasta": "OneDrive",
+                        "caminho": "C:\\Users\\viviane.frello\\OneDrive",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\viviane.frello\\Downloads",
+                        "tamanho": "0.01 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "rai.souza",
+                "tamanho": "0.92 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\rai.souza\\AppData",
+                        "tamanho": "0.89 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\rai.souza\\Desktop",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\rai.souza\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\rai.souza\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\rai.souza\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "sergio.capeller",
+                "tamanho": "0.59 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\sergio.capeller\\AppData",
+                        "tamanho": "0.58 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\sergio.capeller\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\sergio.capeller\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\sergio.capeller\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\sergio.capeller\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "0.14 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.14 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ti\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ti\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ti\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ti\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "everton.alexandre",
+                "tamanho": "0.1 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\everton.alexandre\\AppData",
+                        "tamanho": "0.1 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\everton.alexandre\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\everton.alexandre\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\everton.alexandre\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\everton.alexandre\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "31120889",
+    "fabricante": "Acer",
+    "modelo": "Aspire A315-54",
+    "serial": "NXHU3AL0050290BAE19501",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\viviane.frello",
+    "data_coleta": "2026-10-02 13:31:17"
+}

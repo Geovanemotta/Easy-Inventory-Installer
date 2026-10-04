@@ -1,0 +1,20 @@
+{
+    "hostname": "L19-SESMT-68993",
+    "loja": "19",
+    "ip": "192.168.39.4",
+    "mac": "30:c5:99:33:9f:3b",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i3-12100F",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "19G",
+    "disco_livre": "85G",
+    "disco_percentual": "19%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "422813499",
+    "data_coleta": "2026-10-01 14:37:05"
+}

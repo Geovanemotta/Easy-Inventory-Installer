@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ08-NUTRICAO",
+    "loja": "08",
+    "ip": "192.168.16.15",
+    "mac": "fc:aa:14:f5:91:5b",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G2030 @ 3.00GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "33G",
+    "disco_livre": "72G",
+    "disco_percentual": "32%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1956322725",
+    "data_coleta": "2026-10-01 14:36:32"
+}

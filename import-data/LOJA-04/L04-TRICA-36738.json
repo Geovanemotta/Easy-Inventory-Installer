@@ -1,0 +1,184 @@
+{
+    "hostname": "L04-TRICA-36738",
+    "loja": "04",
+    "ip": "192.168.9.13",
+    "ip_secundario": "",
+    "mac": "74-56-3C-F2-5E-9B",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.5 GB",
+    "disco_usado": "155.8 GB",
+    "disco_livre": "66.7 GB",
+    "disco_percentual": "70%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "gustavo.borba",
+                "tamanho": "10.01 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\gustavo.borba\\AppData",
+                        "tamanho": "9.82 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\gustavo.borba\\Documents",
+                        "tamanho": "0.09 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\gustavo.borba\\Videos",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\gustavo.borba\\Pictures",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\gustavo.borba\\Downloads",
+                        "tamanho": "0.02 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "andre.pagliari",
+                "tamanho": "6.15 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\andre.pagliari\\AppData",
+                        "tamanho": "6.11 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\andre.pagliari\\Downloads",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\andre.pagliari\\Desktop",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\andre.pagliari\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\andre.pagliari\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "cleber.cunha",
+                "tamanho": "4.37 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\cleber.cunha\\AppData",
+                        "tamanho": "4.32 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\cleber.cunha\\Downloads",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\cleber.cunha\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\cleber.cunha\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\cleber.cunha\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "FABIANO.BOZELLO",
+                "tamanho": "4.16 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\FABIANO.BOZELLO\\AppData",
+                        "tamanho": "4.14 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\FABIANO.BOZELLO\\Videos",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\FABIANO.BOZELLO\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\FABIANO.BOZELLO\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\FABIANO.BOZELLO\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "weslley.oliveira",
+                "tamanho": "3.46 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\weslley.oliveira\\AppData",
+                        "tamanho": "3.45 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\weslley.oliveira\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\weslley.oliveira\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\weslley.oliveira\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\weslley.oliveira\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "485645979",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\andre.pagliari",
+    "data_coleta": "2026-10-02 09:09:42"
+}

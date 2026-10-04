@@ -1,0 +1,17 @@
+{
+    "hostname": "L17-MEDIC-51741",
+    "loja": "17",
+    "ip": "192.168.34.21",
+    "mac": "e0:d5:5e:f1:9a:be",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "16G",
+    "disco_livre": "89G",
+    "disco_percentual": "15%",
+    "rustdesk_id": "1106181911",
+    "data_coleta": "2026-09-29 15:52:09"
+}

@@ -1,0 +1,28 @@
+{
+    "hostname": "C03-VIGIL-22281",
+    "loja": "03",
+    "ip": "192.168.30.25",
+    "ip_secundario": "",
+    "mac": "2C-FD-A1-C7-EC-FE",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "15.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "99 GB",
+    "disco_livre": "123.5 GB",
+    "disco_percentual": "45%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "1893528878",
+    "fabricante": "System manufacturer",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\portaria.cb03",
+    "data_coleta": "2026-10-02 13:11:11"
+}

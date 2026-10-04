@@ -1,0 +1,184 @@
+{
+    "hostname": "L16-NIGP-31864",
+    "loja": "16",
+    "ip": "192.168.31.21",
+    "ip_secundario": "",
+    "mac": "B4-2E-99-F2-CE-1B",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7350K CPU @ 4.20GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "199.4 GB",
+    "disco_livre": "23.1 GB",
+    "disco_percentual": "90%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "marlon.santos",
+                "tamanho": "15.47 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\marlon.santos\\AppData",
+                        "tamanho": "15.03 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\marlon.santos\\Downloads",
+                        "tamanho": "0.37 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\marlon.santos\\Documents",
+                        "tamanho": "0.06 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\marlon.santos\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\marlon.santos\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "marcos.antonio",
+                "tamanho": "13.55 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\marcos.antonio\\AppData",
+                        "tamanho": "13.5 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\marcos.antonio\\Downloads",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\marcos.antonio\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\marcos.antonio\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\marcos.antonio\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "francisco.barbosa",
+                "tamanho": "12.93 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\francisco.barbosa\\AppData",
+                        "tamanho": "12.87 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\francisco.barbosa\\Downloads",
+                        "tamanho": "0.06 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\francisco.barbosa\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\francisco.barbosa\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\francisco.barbosa\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "gabriel.nogarolli",
+                "tamanho": "8.75 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\gabriel.nogarolli\\AppData",
+                        "tamanho": "8.74 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\gabriel.nogarolli\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\gabriel.nogarolli\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\gabriel.nogarolli\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\gabriel.nogarolli\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "rodrigo.sacavem",
+                "tamanho": "8.04 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\rodrigo.sacavem\\AppData",
+                        "tamanho": "8.04 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\rodrigo.sacavem\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\rodrigo.sacavem\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\rodrigo.sacavem\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\rodrigo.sacavem\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "435342875",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\marlon.santos",
+    "data_coleta": "2026-10-02 13:15:04"
+}

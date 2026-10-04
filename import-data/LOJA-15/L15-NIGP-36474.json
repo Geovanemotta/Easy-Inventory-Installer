@@ -1,0 +1,20 @@
+{
+    "hostname": "L15-NIGP-36474",
+    "loja": "15",
+    "ip": "192.168.26.14",
+    "mac": "74:56:3c:f0:d1:16",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "45G",
+    "disco_livre": "163G",
+    "disco_percentual": "22%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "485544214",
+    "data_coleta": "2026-10-01 15:01:18"
+}

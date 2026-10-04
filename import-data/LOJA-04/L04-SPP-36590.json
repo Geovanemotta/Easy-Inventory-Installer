@@ -1,0 +1,28 @@
+{
+    "hostname": "L04-SPP-36590",
+    "loja": "04",
+    "ip": "10.0.4.60",
+    "ip_secundario": "",
+    "mac": "18-C0-4D-F2-A1-49",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-8400 CPU @ 2.80GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "91.9 GB",
+    "disco_livre": "130.7 GB",
+    "disco_percentual": "41%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "234004809",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M M.2 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.lj04",
+    "data_coleta": "2026-10-02 13:47:32"
+}

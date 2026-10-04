@@ -1,0 +1,184 @@
+{
+    "hostname": "CP02-PROD1",
+    "loja": "",
+    "ip": "192.168.95.139",
+    "ip_secundario": "192.168.89.18",
+    "mac": "00-07-32-C7-08-32",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) N97",
+    "ram_total": "7.8 GB",
+    "disco_total": "57.4 GB",
+    "disco_usado": "57 GB",
+    "disco_livre": "0.5 GB",
+    "disco_percentual": "99%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "Admin",
+                "tamanho": "1.97 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Admin\\AppData",
+                        "tamanho": "1.97 GB"
+                    },
+                    {
+                        "pasta": "Intel",
+                        "caminho": "C:\\Users\\Admin\\Intel",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\Admin\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\Admin\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Admin\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "producao.cp02",
+                "tamanho": "1.09 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\producao.cp02\\AppData",
+                        "tamanho": "1.08 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\producao.cp02\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\producao.cp02\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\producao.cp02\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\producao.cp02\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "243299",
+                "tamanho": "0 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\243299\\AppData",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\243299\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\243299\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\243299\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\243299\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "230124",
+                "tamanho": "0 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\230124\\AppData",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\230124\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\230124\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\230124\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\230124\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "99635",
+                "tamanho": "0 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\99635\\AppData",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\99635\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\99635\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\99635\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\99635\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "315033650",
+    "fabricante": "AAEON",
+    "modelo": "uCOM-ADN",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\producao.cp02",
+    "data_coleta": "2026-10-02 13:27:19"
+}

@@ -1,0 +1,17 @@
+{
+    "hostname": "LJ06-GERENCIA",
+    "loja": "06",
+    "ip": "192.168.12.11",
+    "mac": "74:56:3c:f0:d1:67",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "31G",
+    "disco_livre": "177G",
+    "disco_percentual": "15%",
+    "rustdesk_id": "485544295",
+    "data_coleta": "2026-09-29 13:39:13"
+}

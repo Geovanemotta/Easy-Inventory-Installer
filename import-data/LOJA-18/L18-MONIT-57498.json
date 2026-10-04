@@ -1,0 +1,28 @@
+{
+    "hostname": "L18-MONIT-57498",
+    "loja": "18",
+    "ip": "192.168.38.21",
+    "ip_secundario": "",
+    "mac": "60-CF-84-D0-2A-64",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "15.7 GB",
+    "disco_total": "446.3 GB",
+    "disco_usado": "174 GB",
+    "disco_livre": "272.3 GB",
+    "disco_percentual": "39%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "80751204",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.lj18",
+    "data_coleta": "2026-10-02 13:30:41"
+}

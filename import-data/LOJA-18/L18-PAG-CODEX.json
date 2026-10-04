@@ -1,0 +1,184 @@
+{
+    "hostname": "L18-PAG-CODEX",
+    "loja": "18",
+    "ip": "192.168.38.193",
+    "ip_secundario": "",
+    "mac": "D0-C1-B5-80-D0-D8",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-14100",
+    "ram_total": "7.7 GB",
+    "disco_total": "235.3 GB",
+    "disco_usado": "225.6 GB",
+    "disco_livre": "9.7 GB",
+    "disco_percentual": "96%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "antony.lima",
+                "tamanho": "13.48 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\antony.lima\\AppData",
+                        "tamanho": "12.92 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\antony.lima\\Documents",
+                        "tamanho": "0.52 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\antony.lima\\Downloads",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\antony.lima\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\antony.lima\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "yasmin.nunes",
+                "tamanho": "9.16 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\yasmin.nunes\\AppData",
+                        "tamanho": "8.94 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\yasmin.nunes\\Downloads",
+                        "tamanho": "0.2 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\yasmin.nunes\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\yasmin.nunes\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\yasmin.nunes\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "gabriely.marques",
+                "tamanho": "4.69 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\gabriely.marques\\AppData",
+                        "tamanho": "4.67 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\gabriely.marques\\Videos",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\gabriely.marques\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\gabriely.marques\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\gabriely.marques\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "Andrea.pracanica",
+                "tamanho": "4.31 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Andrea.pracanica\\AppData",
+                        "tamanho": "4.29 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\Andrea.pracanica\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\Andrea.pracanica\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\Andrea.pracanica\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Andrea.pracanica\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "caixa",
+                "tamanho": "4.07 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\caixa\\AppData",
+                        "tamanho": "2.44 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\caixa\\Desktop",
+                        "tamanho": "1.45 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\caixa\\Downloads",
+                        "tamanho": "0.16 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\caixa\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\caixa\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "360763608",
+    "fabricante": "Dell Inc.",
+    "modelo": "Dell Pro Slim QCS1250",
+    "serial": "GDK1DD4",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\anaurelys.barreto",
+    "data_coleta": "2026-10-02 13:20:24"
+}

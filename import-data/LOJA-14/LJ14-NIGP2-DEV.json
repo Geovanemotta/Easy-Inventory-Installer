@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ14-NIGP2-DEV",
+    "loja": "14",
+    "ip": "192.168.24.20",
+    "mac": "94:de:80:f1:17:a7",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G2030 @ 3.00GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "35G",
+    "disco_livre": "69G",
+    "disco_percentual": "34%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "15800231",
+    "data_coleta": "2026-10-01 15:37:25"
+}

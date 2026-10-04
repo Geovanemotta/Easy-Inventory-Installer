@@ -1,0 +1,20 @@
+{
+    "hostname": "CB02-DEPOSITO2",
+    "loja": "",
+    "ip": "192.168.29.11",
+    "mac": "e0:d5:5e:f2:a4:fb",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-7350K CPU @ 4.20GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "219G",
+    "disco_usado": "55G",
+    "disco_livre": "154G",
+    "disco_percentual": "27%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "519218427",
+    "data_coleta": "2026-10-01 16:39:19"
+}

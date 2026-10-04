@@ -1,0 +1,17 @@
+{
+    "hostname": "L08-VENDA-34320",
+    "loja": "08",
+    "ip": "192.168.16.49",
+    "mac": "18:c0:4d:f1:d2:f4",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "69G",
+    "disco_livre": "36G",
+    "disco_percentual": "66%",
+    "rustdesk_id": "233951988",
+    "data_coleta": "2026-10-01 09:46:17"
+}

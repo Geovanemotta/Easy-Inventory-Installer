@@ -1,0 +1,20 @@
+{
+    "hostname": "C08-NUTRI-58224",
+    "loja": "",
+    "ip": "192.168.37.5",
+    "mac": "10:ff:e0:46:0e:b2",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "15Gi",
+    "disco_total": "110G",
+    "disco_usado": "52G",
+    "disco_livre": "53G",
+    "disco_percentual": "50%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "4591282",
+    "data_coleta": "2026-10-01 15:28:15"
+}

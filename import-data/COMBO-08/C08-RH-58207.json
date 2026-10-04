@@ -1,0 +1,184 @@
+{
+    "hostname": "C08-RH-58207",
+    "loja": "08",
+    "ip": "192.168.37.21",
+    "ip_secundario": "",
+    "mac": "10-FF-E0-46-0F-5C",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "177.8 GB",
+    "disco_livre": "44.8 GB",
+    "disco_percentual": "80%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "ALEXANDRA.PERUZZO",
+                "tamanho": "7.95 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ALEXANDRA.PERUZZO\\AppData",
+                        "tamanho": "5.72 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\ALEXANDRA.PERUZZO\\Downloads",
+                        "tamanho": "2.12 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\ALEXANDRA.PERUZZO\\Pictures",
+                        "tamanho": "0.06 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ALEXANDRA.PERUZZO\\Desktop",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\ALEXANDRA.PERUZZO\\Videos",
+                        "tamanho": "0.01 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "roselane.manoel",
+                "tamanho": "6.71 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\roselane.manoel\\AppData",
+                        "tamanho": "6.31 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\roselane.manoel\\Downloads",
+                        "tamanho": "0.35 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\roselane.manoel\\Desktop",
+                        "tamanho": "0.04 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\roselane.manoel\\Pictures",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\roselane.manoel\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "simone.schneider",
+                "tamanho": "4.23 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\simone.schneider\\AppData",
+                        "tamanho": "2.08 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\simone.schneider\\Downloads",
+                        "tamanho": "1.19 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\simone.schneider\\Desktop",
+                        "tamanho": "0.96 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\simone.schneider\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\simone.schneider\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "julia.fernandes",
+                "tamanho": "2.8 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\julia.fernandes\\AppData",
+                        "tamanho": "2.43 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\julia.fernandes\\Documents",
+                        "tamanho": "0.26 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\julia.fernandes\\Downloads",
+                        "tamanho": "0.11 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\julia.fernandes\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\julia.fernandes\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "vanessa.nascimento",
+                "tamanho": "1.35 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\vanessa.nascimento\\AppData",
+                        "tamanho": "1.34 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\vanessa.nascimento\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\vanessa.nascimento\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\vanessa.nascimento\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\vanessa.nascimento\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "4591452",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H V2",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\roselane.manoel",
+    "data_coleta": "2026-10-02 13:15:32"
+}

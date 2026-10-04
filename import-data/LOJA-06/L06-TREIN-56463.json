@@ -1,0 +1,20 @@
+{
+    "hostname": "L06-TREIN-56463",
+    "loja": "06",
+    "ip": "192.168.12.14",
+    "mac": "e0:d5:5e:f2:9f:d6",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "38G",
+    "disco_livre": "66G",
+    "disco_percentual": "37%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "519217110",
+    "data_coleta": "2026-10-01 14:13:36"
+}

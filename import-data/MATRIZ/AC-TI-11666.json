@@ -1,0 +1,184 @@
+{
+    "hostname": "AC-TI-11666",
+    "loja": "",
+    "ip": "192.168.80.13",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-8A-8D",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i3-12100",
+    "ram_total": "15.7 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "165.5 GB",
+    "disco_livre": "57.1 GB",
+    "disco_percentual": "74%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "milena.izabel",
+                "tamanho": "29.92 GB",
+                "pastas": [
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\milena.izabel\\Documents",
+                        "tamanho": "14.76 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\milena.izabel\\AppData",
+                        "tamanho": "14.33 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\milena.izabel\\Desktop",
+                        "tamanho": "0.36 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\milena.izabel\\Downloads",
+                        "tamanho": "0.26 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\milena.izabel\\Pictures",
+                        "tamanho": "0.13 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "0.36 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.35 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\ti\\Documents",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ti\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ti\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\ti\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "218518",
+                "tamanho": "0.02 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\218518\\AppData",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "OneDrive",
+                        "caminho": "C:\\Users\\218518\\OneDrive",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\218518\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\218518\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\218518\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "99635",
+                "tamanho": "0.01 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\99635\\AppData",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": ".oracle_jre_usage",
+                        "caminho": "C:\\Users\\99635\\.oracle_jre_usage",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "OneDrive",
+                        "caminho": "C:\\Users\\99635\\OneDrive",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\99635\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\99635\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "232696",
+                "tamanho": "0.01 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\232696\\AppData",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "OneDrive",
+                        "caminho": "C:\\Users\\232696\\OneDrive",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\232696\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\232696\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\232696\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\milena.izabel",
+    "data_coleta": "2026-10-02 13:31:24"
+}

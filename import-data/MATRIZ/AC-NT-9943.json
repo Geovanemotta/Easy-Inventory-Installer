@@ -1,0 +1,17 @@
+{
+    "hostname": "AC-NT-9943",
+    "loja": "",
+    "ip": "192.168.7.33",
+    "mac": "20:7c:8f:4b:48:6f",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-3317U CPU @ 1.70GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "219G",
+    "disco_usado": "25G",
+    "disco_livre": "183G",
+    "disco_percentual": "12%",
+    "rustdesk_id": "99111936",
+    "data_coleta": "2026-09-29 20:48:14"
+}

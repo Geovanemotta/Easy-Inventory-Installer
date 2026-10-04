@@ -1,0 +1,28 @@
+{
+    "hostname": "L15-IFOOD-24689",
+    "loja": "15",
+    "ip": "192.168.26.27",
+    "ip_secundario": "",
+    "mac": "10-FF-E0-46-86-2F",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.8 GB",
+    "disco_usado": "125.2 GB",
+    "disco_livre": "97.6 GB",
+    "disco_percentual": "56%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "4621871",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H V2",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\debora.machado",
+    "data_coleta": "2026-10-02 09:16:43"
+}

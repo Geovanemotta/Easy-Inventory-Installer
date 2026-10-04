@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-CR-24600",
+    "loja": "",
+    "ip": "192.168.91.121",
+    "ip_secundario": "54.232.189.113",
+    "mac": "B4-2E-99-F0-41-5F",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "142.8 GB",
+    "disco_livre": "79.8 GB",
+    "disco_percentual": "64%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "435175775",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2H DDR3",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\silvana.izidoro",
+    "data_coleta": "2026-10-02 09:21:18"
+}

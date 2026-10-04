@@ -1,0 +1,17 @@
+{
+    "hostname": "L10-BAZAR-41555",
+    "loja": "10",
+    "ip": "192.168.19.108",
+    "mac": "10:ff:e0:46:13:ac",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "44G",
+    "disco_livre": "60G",
+    "disco_percentual": "43%",
+    "rustdesk_id": "4592556",
+    "data_coleta": "2026-09-30 08:04:17"
+}

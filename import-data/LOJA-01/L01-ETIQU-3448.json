@@ -1,0 +1,20 @@
+{
+    "hostname": "L01-ETIQU-3448",
+    "loja": "01",
+    "ip": "192.168.11.3",
+    "mac": "2c:fd:a1:c7:d8:3b",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "23G",
+    "disco_livre": "81G",
+    "disco_percentual": "23%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "29874235",
+    "data_coleta": "2026-10-01 14:53:26"
+}

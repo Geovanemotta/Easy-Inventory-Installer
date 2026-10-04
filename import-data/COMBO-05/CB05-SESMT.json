@@ -1,0 +1,17 @@
+{
+    "hostname": "CB05-SESMT",
+    "loja": "",
+    "ip": "192.168.33.4",
+    "mac": "18:c0:4d:cb:d5:d2",
+    "sistema": "ubuntu",
+    "versao": "20.04",
+    "status": "OUTRO",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "36G",
+    "disco_livre": "69G",
+    "disco_percentual": "35%",
+    "rustdesk_id": "231462354",
+    "data_coleta": "2026-09-30 01:28:13"
+}

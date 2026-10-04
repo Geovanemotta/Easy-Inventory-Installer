@@ -1,0 +1,28 @@
+{
+    "hostname": "L10-SPP-65294",
+    "loja": "10",
+    "ip": "10.1.10.171",
+    "ip_secundario": "",
+    "mac": "30-C5-99-A5-4F-46",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "AMD Ryzen 7 7800X3D 8-Core Processor           ",
+    "ram_total": "15.2 GB",
+    "disco_total": "953.6 GB",
+    "disco_usado": "113.6 GB",
+    "disco_livre": "839.9 GB",
+    "disco_percentual": "12%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "430264134",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\rodrigo.campo",
+    "data_coleta": "2026-10-02 13:29:36"
+}

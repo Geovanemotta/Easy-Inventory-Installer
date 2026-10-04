@@ -1,0 +1,28 @@
+{
+    "hostname": "L05-PROMO-15295",
+    "loja": "05",
+    "ip": "192.168.10.5",
+    "ip_secundario": "",
+    "mac": "E0-D5-5E-F1-9A-B5",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "124.9 GB",
+    "disco_livre": "97.7 GB",
+    "disco_percentual": "56%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "519150261",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\portaria.lj05",
+    "data_coleta": "2026-10-02 13:16:01"
+}

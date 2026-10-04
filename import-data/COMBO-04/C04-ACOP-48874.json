@@ -1,0 +1,28 @@
+{
+    "hostname": "C04-ACOP-48874",
+    "loja": "04",
+    "ip": "192.168.32.25",
+    "ip_secundario": "",
+    "mac": "D8-5E-D3-F1-2B-DA",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "113.3 GB",
+    "disco_livre": "109.3 GB",
+    "disco_percentual": "51%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "334572506",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.cb04",
+    "data_coleta": "2026-10-02 13:31:43"
+}

@@ -1,0 +1,184 @@
+{
+    "hostname": "L14-PROMO-15289",
+    "loja": "14",
+    "ip": "192.168.24.5",
+    "ip_secundario": "",
+    "mac": "E0-D5-5E-F1-9A-B7",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "181.3 GB",
+    "disco_livre": "41.5 GB",
+    "disco_percentual": "81%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "abraao.coimbra",
+                "tamanho": "11.31 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\abraao.coimbra\\AppData",
+                        "tamanho": "11.29 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\abraao.coimbra\\Downloads",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\abraao.coimbra\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\abraao.coimbra\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\abraao.coimbra\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "guilherme.souza.GIASSISUPER",
+                "tamanho": "8.19 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\guilherme.souza.GIASSISUPER\\AppData",
+                        "tamanho": "8.18 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\guilherme.souza.GIASSISUPER\\Desktop",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\guilherme.souza.GIASSISUPER\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\guilherme.souza.GIASSISUPER\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\guilherme.souza.GIASSISUPER\\Downloads",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "lidiane.machado.GIASSISUPER",
+                "tamanho": "5.76 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\lidiane.machado.GIASSISUPER\\AppData",
+                        "tamanho": "4.71 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\lidiane.machado.GIASSISUPER\\Desktop",
+                        "tamanho": "1.05 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\lidiane.machado.GIASSISUPER\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\lidiane.machado.GIASSISUPER\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\lidiane.machado.GIASSISUPER\\Videos",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "230124",
+                "tamanho": "5.72 GB",
+                "pastas": [
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\230124\\Downloads",
+                        "tamanho": "5.18 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\230124\\AppData",
+                        "tamanho": "0.54 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\230124\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\230124\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\230124\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "gabriel.henschel.GIASSISUPER",
+                "tamanho": "5.28 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\gabriel.henschel.GIASSISUPER\\AppData",
+                        "tamanho": "4.8 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\gabriel.henschel.GIASSISUPER\\Downloads",
+                        "tamanho": "0.48 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\gabriel.henschel.GIASSISUPER\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\gabriel.henschel.GIASSISUPER\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\gabriel.henschel.GIASSISUPER\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "519150263",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\dijalma.oliveira",
+    "data_coleta": "2026-10-02 09:16:53"
+}

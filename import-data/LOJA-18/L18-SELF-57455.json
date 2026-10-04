@@ -1,0 +1,28 @@
+{
+    "hostname": "L18-SELF-57455",
+    "loja": "18",
+    "ip": "192.168.38.15",
+    "ip_secundario": "",
+    "mac": "60-CF-84-D0-55-54",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "7.7 GB",
+    "disco_total": "222.5 GB",
+    "disco_usado": "101.2 GB",
+    "disco_livre": "121.3 GB",
+    "disco_percentual": "45%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "80762196",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\selfmonitor.lj18",
+    "data_coleta": "2026-10-02 13:20:31"
+}

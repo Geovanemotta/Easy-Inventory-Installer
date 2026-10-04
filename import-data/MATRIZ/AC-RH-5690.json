@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-RH-5690",
+    "loja": "",
+    "ip": "192.168.85.4",
+    "ip_secundario": "",
+    "mac": "30-C5-99-A8-F5-E1",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "AMD Ryzen 5 8500G w\/ Radeon 740M Graphics      ",
+    "ram_total": "7.2 GB",
+    "disco_total": "223.3 GB",
+    "disco_usado": "79.1 GB",
+    "disco_livre": "144.2 GB",
+    "disco_percentual": "35%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "430503393",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\hemelly.costa",
+    "data_coleta": "2026-10-02 13:27:41"
+}

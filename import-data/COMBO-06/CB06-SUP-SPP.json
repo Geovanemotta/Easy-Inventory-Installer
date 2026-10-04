@@ -1,0 +1,17 @@
+{
+    "hostname": "CB06-SUP-SPP",
+    "loja": "",
+    "ip": "192.168.35.9",
+    "mac": "74:56:3c:f0:28:4f",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "38G",
+    "disco_livre": "66G",
+    "disco_percentual": "37%",
+    "rustdesk_id": "485501007",
+    "data_coleta": "2026-10-01 13:28:21"
+}

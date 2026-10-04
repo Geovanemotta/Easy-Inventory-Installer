@@ -1,0 +1,28 @@
+{
+    "hostname": "L07-NUTRI-35560",
+    "loja": "07",
+    "ip": "192.168.13.32",
+    "ip_secundario": "",
+    "mac": "88-D7-F6-1A-0C-6C",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "148 GB",
+    "disco_livre": "74.5 GB",
+    "disco_percentual": "67%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "370805868",
+    "fabricante": "System manufacturer",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\francesca.gonzales",
+    "data_coleta": "2026-10-02 13:59:29"
+}

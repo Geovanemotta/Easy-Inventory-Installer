@@ -1,0 +1,28 @@
+{
+    "hostname": "C01-RH-17216",
+    "loja": "01",
+    "ip": "192.168.27.21",
+    "ip_secundario": "",
+    "mac": "E0-D5-5E-F1-A2-AB",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "120.6 GB",
+    "disco_livre": "102.1 GB",
+    "disco_percentual": "54%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "519152299",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\laila.daniel",
+    "data_coleta": "2026-10-02 09:07:34"
+}

@@ -1,0 +1,206 @@
+{
+    "hostname": "LJ03-BACKUP1",
+    "loja": "03",
+    "ip": "192.168.8.36",
+    "mac": "90:2b:34:f9:ac:1f",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G2030 @ 3.00GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "79G",
+    "disco_livre": "26G",
+    "disco_percentual": "76%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "tatiane.souza",
+                "tamanho": "2,7GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/tatiane.souza\/.cache",
+                        "tamanho": "1,8GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/tatiane.souza\/.config",
+                        "tamanho": "829MB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/tatiane.souza\/.local",
+                        "tamanho": "96MB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "\/home\/tatiane.souza\/Downloads",
+                        "tamanho": "21MB"
+                    },
+                    {
+                        "pasta": ".mozilla",
+                        "caminho": "\/home\/tatiane.souza\/.mozilla",
+                        "tamanho": "364KB"
+                    }
+                ]
+            },
+            {
+                "usuario": "jordana.rosa",
+                "tamanho": "2,5GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/jordana.rosa\/.cache",
+                        "tamanho": "1,7GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/jordana.rosa\/.config",
+                        "tamanho": "776MB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/jordana.rosa\/.local",
+                        "tamanho": "20MB"
+                    },
+                    {
+                        "pasta": ".mozilla",
+                        "caminho": "\/home\/jordana.rosa\/.mozilla",
+                        "tamanho": "14MB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "\/home\/jordana.rosa\/Downloads",
+                        "tamanho": "12MB"
+                    }
+                ]
+            },
+            {
+                "usuario": "daniel.poester",
+                "tamanho": "2,3GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/daniel.poester\/.cache",
+                        "tamanho": "2,0GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/daniel.poester\/.config",
+                        "tamanho": "341MB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/daniel.poester\/.local",
+                        "tamanho": "672KB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "\/home\/daniel.poester\/Downloads",
+                        "tamanho": "552KB"
+                    },
+                    {
+                        "pasta": "Área de Trabalho",
+                        "caminho": "\/home\/daniel.poester\/Área de Trabalho",
+                        "tamanho": "236KB"
+                    }
+                ]
+            },
+            {
+                "usuario": "talita.santos",
+                "tamanho": "2,2GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/talita.santos\/.cache",
+                        "tamanho": "1,6GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/talita.santos\/.config",
+                        "tamanho": "519MB"
+                    },
+                    {
+                        "pasta": "snap",
+                        "caminho": "\/home\/talita.santos\/snap",
+                        "tamanho": "34MB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/talita.santos\/.local",
+                        "tamanho": "9,8MB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "\/home\/talita.santos\/Downloads",
+                        "tamanho": "2,7MB"
+                    }
+                ]
+            },
+            {
+                "usuario": "carmen.costa",
+                "tamanho": "2,2GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/carmen.costa\/.cache",
+                        "tamanho": "1,4GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/carmen.costa\/.config",
+                        "tamanho": "758MB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/carmen.costa\/.local",
+                        "tamanho": "9,0MB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "\/home\/carmen.costa\/Downloads",
+                        "tamanho": "2,1MB"
+                    },
+                    {
+                        "pasta": ".pki",
+                        "caminho": "\/home\/carmen.costa\/.pki",
+                        "tamanho": "256KB"
+                    }
+                ]
+            }
+        ],
+        "var_log": {
+            "top_itens": [
+                {
+                    "nome": "journal",
+                    "caminho": "\/var\/log\/journal",
+                    "tamanho": "2,1GB"
+                },
+                {
+                    "nome": "atera-agent",
+                    "caminho": "\/var\/log\/atera-agent",
+                    "tamanho": "71MB"
+                },
+                {
+                    "nome": "anydesk_ad_fb31137f.trace",
+                    "caminho": "\/var\/log\/anydesk_ad_fb31137f.trace",
+                    "tamanho": "34MB"
+                },
+                {
+                    "nome": "syslog.1",
+                    "caminho": "\/var\/log\/syslog.1",
+                    "tamanho": "16MB"
+                },
+                {
+                    "nome": "mail.log.1",
+                    "caminho": "\/var\/log\/mail.log.1",
+                    "tamanho": "14MB"
+                }
+            ]
+        }
+    },
+    "rustdesk_id": "351906847",
+    "data_coleta": "2026-10-01 15:14:04"
+}

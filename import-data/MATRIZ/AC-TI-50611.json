@@ -1,0 +1,941 @@
+{
+    "hostname": "AC-TI-50611",
+    "loja": "",
+    "ip": "192.168.80.29",
+    "mac": "94:c6:91:c5:1b:bc",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Celeron(R) CPU  J1800  @ 2.41GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "13G",
+    "disco_livre": "91G",
+    "disco_percentual": "13%",
+    "rustdesk_id": "298130364",
+    "aplicativos": [
+        {
+            "id": "cid",
+            "nome": "CID",
+            "pacotes": [
+                {
+                    "pacote": "cid",
+                    "versao": "1:1.2.6-1~ubuntu1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "pcmanfm",
+            "nome": "Desktop Preferences",
+            "pacotes": [
+                {
+                    "pacote": "pcmanfm",
+                    "versao": "1.3.2-4build2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "feh",
+            "nome": "Feh",
+            "pacotes": [
+                {
+                    "pacote": "feh",
+                    "versao": "3.10.1-1ubuntu0.1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "firefox",
+            "nome": "Firefox",
+            "pacotes": [
+                {
+                    "pacote": "firefox",
+                    "versao": "151.0.1~build1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "gimp",
+            "nome": "GNU Image Manipulation Program",
+            "pacotes": [
+                {
+                    "pacote": "gimp",
+                    "versao": "3.2.2-1+zorin2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "gnome-paint",
+            "nome": "Gnome Paint Drawing Editor",
+            "pacotes": [
+                {
+                    "pacote": "gnome-paint",
+                    "versao": "0.4.0-9ubuntu1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "google-chrome",
+            "nome": "Google Chrome",
+            "pacotes": [
+                {
+                    "pacote": "google-chrome-stable",
+                    "versao": "152.0.7977.82-1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "ibus-libpinyin",
+            "nome": "IBus LibBopomofo Preferences",
+            "pacotes": [
+                {
+                    "pacote": "ibus-libpinyin",
+                    "versao": "1.15.7-1build2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "ubiquity-frontend-gtk",
+            "nome": "Install RELEASE",
+            "pacotes": [
+                {
+                    "pacote": "ubiquity-frontend-gtk",
+                    "versao": "24.04.5+zorin2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "krdc",
+            "nome": "KRDC",
+            "pacotes": [
+                {
+                    "pacote": "krdc",
+                    "versao": "4:23.08.5-0ubuntu4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "openbox",
+            "nome": "Openbox",
+            "pacotes": [
+                {
+                    "pacote": "openbox",
+                    "versao": "3.6.1-12build5"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "rustdesk-giassi",
+            "nome": "RustDesk Giassi Cliente",
+            "pacotes": [
+                {
+                    "pacote": "rustdesk-giassi-cliente-li",
+                    "versao": "1.4.6"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "vlc",
+            "nome": "VLC media player",
+            "pacotes": [
+                {
+                    "pacote": "vlc",
+                    "versao": "3.0.20-3build6"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "boot-repair",
+            "nome": "boot-repair",
+            "pacotes": [
+                {
+                    "pacote": "boot-repair",
+                    "versao": "4ppa2081-zorin1"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "gparted",
+            "nome": "gparted",
+            "pacotes": [
+                {
+                    "pacote": "gparted",
+                    "versao": "1.5.0-1build4"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "ibus-chewing",
+            "nome": "ibus-chewing",
+            "pacotes": [
+                {
+                    "pacote": "ibus-chewing",
+                    "versao": "2.0.0-1build2"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        },
+        {
+            "id": "mozc-utils-gui",
+            "nome": "mozc-utils-gui",
+            "pacotes": [
+                {
+                    "pacote": "mozc-utils-gui",
+                    "versao": "2.28.4715.102+dfsg-2.2build7"
+                }
+            ],
+            "tipo": "aplicativo",
+            "origem": "apt"
+        }
+    ],
+    "agentes": [
+        {
+            "id": "wazuh-agent",
+            "nome": "Wazuh Agent",
+            "pacotes": [
+                {
+                    "pacote": "wazuh-agent",
+                    "versao": "4.7.5-1"
+                }
+            ],
+            "tipo": "agente",
+            "origem": "apt"
+        },
+        {
+            "id": "zabbix-agent2",
+            "nome": "Zabbix Agent 2",
+            "pacotes": [
+                {
+                    "pacote": "zabbix-agent2",
+                    "versao": "1:7.0.4-1+ubuntu24.04"
+                },
+                {
+                    "pacote": "zabbix-agent2-plugin-postgresql",
+                    "versao": "1:7.0.4-1+ubuntu24.04"
+                }
+            ],
+            "tipo": "agente",
+            "origem": "apt"
+        }
+    ],
+    "runtimes": [
+        {
+            "id": "java-8",
+            "nome": "OpenJDK Java 8 Runtime",
+            "pacotes": [
+                {
+                    "pacote": "openjdk-8-jre",
+                    "versao": "8u482-ga~us1-0ubuntu1~24.04"
+                }
+            ],
+            "tipo": "runtime",
+            "origem": "apt"
+        }
+    ],
+    "ferramentas": [
+        {
+            "id": "chrony",
+            "nome": "Chrony",
+            "pacotes": [
+                {
+                    "pacote": "chrony",
+                    "versao": "4.5-1ubuntu4.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gcc",
+            "nome": "GNU Compiler Collection",
+            "pacotes": [
+                {
+                    "pacote": "gcc",
+                    "versao": "4:13.2.0-7ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "screen",
+            "nome": "GNU Screen",
+            "pacotes": [
+                {
+                    "pacote": "screen",
+                    "versao": "4.9.1-1ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "gnupg",
+            "nome": "GnuPG",
+            "pacotes": [
+                {
+                    "pacote": "gnupg",
+                    "versao": "2.4.4-2ubuntu17.4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "hplip",
+            "nome": "HPLIP",
+            "pacotes": [
+                {
+                    "pacote": "hplip-gui",
+                    "versao": "3.23.12+dfsg0-0ubuntu5"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "locate",
+            "nome": "Locate",
+            "pacotes": [
+                {
+                    "pacote": "locate",
+                    "versao": "4.9.0-5build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ntpdate",
+            "nome": "NTPDate",
+            "pacotes": [
+                {
+                    "pacote": "ntpdate",
+                    "versao": "1:4.2.8p15+dfsg-2~1.2.2+dfsg1-4build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "net-tools",
+            "nome": "Net-tools",
+            "pacotes": [
+                {
+                    "pacote": "net-tools",
+                    "versao": "2.10-0.1ubuntu4.4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ssh",
+            "nome": "OpenSSH",
+            "pacotes": [
+                {
+                    "pacote": "ssh",
+                    "versao": "1:9.6p1-3ubuntu13.16"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "python3-pip",
+            "nome": "Python PIP",
+            "pacotes": [
+                {
+                    "pacote": "python3-pip",
+                    "versao": "24.0+dfsg-1ubuntu1.3"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "snmp",
+            "nome": "SNMP",
+            "pacotes": [
+                {
+                    "pacote": "snmp",
+                    "versao": "5.9.4+dfsg-1.1ubuntu3.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "unrar",
+            "nome": "UnRAR",
+            "pacotes": [
+                {
+                    "pacote": "unrar",
+                    "versao": "1:7.0.7-1build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "vim",
+            "nome": "Vim",
+            "pacotes": [
+                {
+                    "pacote": "vim",
+                    "versao": "2:9.1.0016-1ubuntu7.13"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "adcli",
+            "nome": "adcli",
+            "pacotes": [
+                {
+                    "pacote": "adcli",
+                    "versao": "0.9.2-1ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "apparmor-zorin-live",
+            "nome": "apparmor-zorin-live",
+            "pacotes": [
+                {
+                    "pacote": "apparmor-zorin-live",
+                    "versao": "1.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "bcache-tools",
+            "nome": "bcache-tools",
+            "pacotes": [
+                {
+                    "pacote": "bcache-tools",
+                    "versao": "1.0.8-5build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "btrfs-progs",
+            "nome": "btrfs-progs",
+            "pacotes": [
+                {
+                    "pacote": "btrfs-progs",
+                    "versao": "6.6.3-1.1build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "casper",
+            "nome": "casper",
+            "pacotes": [
+                {
+                    "pacote": "casper",
+                    "versao": "1.498+zorin2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cifs-utils",
+            "nome": "cifs-utils",
+            "pacotes": [
+                {
+                    "pacote": "cifs-utils",
+                    "versao": "2:7.0-2ubuntu0.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "cryptsetup",
+            "nome": "cryptsetup",
+            "pacotes": [
+                {
+                    "pacote": "cryptsetup",
+                    "versao": "2:2.7.0-1ubuntu4.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "dmraid",
+            "nome": "dmraid",
+            "pacotes": [
+                {
+                    "pacote": "dmraid",
+                    "versao": "1.0.0.rc16-12ubuntu2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "hw-probe",
+            "nome": "hw-probe",
+            "pacotes": [
+                {
+                    "pacote": "hw-probe",
+                    "versao": "1.6.5-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ibus-mozc",
+            "nome": "ibus-mozc",
+            "pacotes": [
+                {
+                    "pacote": "ibus-mozc",
+                    "versao": "2.28.4715.102+dfsg-2.2build7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ibus-table-cangjie3",
+            "nome": "ibus-table-cangjie3",
+            "pacotes": [
+                {
+                    "pacote": "ibus-table-cangjie3",
+                    "versao": "1.8.12-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ibus-table-cangjie5",
+            "nome": "ibus-table-cangjie5",
+            "pacotes": [
+                {
+                    "pacote": "ibus-table-cangjie5",
+                    "versao": "1.8.12-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ibus-table-quick-classic",
+            "nome": "ibus-table-quick-classic",
+            "pacotes": [
+                {
+                    "pacote": "ibus-table-quick-classic",
+                    "versao": "1.8.12-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ibus-table-wubi",
+            "nome": "ibus-table-wubi",
+            "pacotes": [
+                {
+                    "pacote": "ibus-table-wubi",
+                    "versao": "1.8.12-1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "jfsutils",
+            "nome": "jfsutils",
+            "pacotes": [
+                {
+                    "pacote": "jfsutils",
+                    "versao": "1.1.15-5build4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "jq",
+            "nome": "jq",
+            "pacotes": [
+                {
+                    "pacote": "jq",
+                    "versao": "1.7.1-3ubuntu0.24.04.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "keyutils",
+            "nome": "keyutils",
+            "pacotes": [
+                {
+                    "pacote": "keyutils",
+                    "versao": "1.6.3-3build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "lvm2",
+            "nome": "lvm2",
+            "pacotes": [
+                {
+                    "pacote": "lvm2",
+                    "versao": "2.03.16-3ubuntu3.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "mdadm",
+            "nome": "mdadm",
+            "pacotes": [
+                {
+                    "pacote": "mdadm",
+                    "versao": "4.3-1ubuntu2.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "mtools",
+            "nome": "mtools",
+            "pacotes": [
+                {
+                    "pacote": "mtools",
+                    "versao": "4.0.43-1build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "nvidia-zorin-live",
+            "nome": "nvidia-zorin-live",
+            "pacotes": [
+                {
+                    "pacote": "nvidia-zorin-live",
+                    "versao": "2.4.7"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "open-iscsi",
+            "nome": "open-iscsi",
+            "pacotes": [
+                {
+                    "pacote": "open-iscsi",
+                    "versao": "2.1.9-3ubuntu5.4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "python-apt-common",
+            "nome": "python-apt-common",
+            "pacotes": [
+                {
+                    "pacote": "python-apt-common",
+                    "versao": "2.7.7ubuntu5.2+zorin1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "python3-apt",
+            "nome": "python3-apt",
+            "pacotes": [
+                {
+                    "pacote": "python3-apt",
+                    "versao": "2.7.7ubuntu5.2+zorin1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "rdesktop",
+            "nome": "rdesktop",
+            "pacotes": [
+                {
+                    "pacote": "rdesktop",
+                    "versao": "1.9.0-2build4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "realmd",
+            "nome": "realmd",
+            "pacotes": [
+                {
+                    "pacote": "realmd",
+                    "versao": "0.17.1-3build2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "reiserfsprogs",
+            "nome": "reiserfsprogs",
+            "pacotes": [
+                {
+                    "pacote": "reiserfsprogs",
+                    "versao": "1:3.6.27-7.1build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "sssd",
+            "nome": "sssd",
+            "pacotes": [
+                {
+                    "pacote": "sssd",
+                    "versao": "2.9.4-1.1ubuntu6.4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ubiquity-slideshow-zorin-os",
+            "nome": "ubiquity-slideshow-zorin-os",
+            "pacotes": [
+                {
+                    "pacote": "ubiquity-slideshow-zorin-os",
+                    "versao": "2.5.2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "ubiquity-ubuntu-artwork",
+            "nome": "ubiquity-ubuntu-artwork",
+            "pacotes": [
+                {
+                    "pacote": "ubiquity-ubuntu-artwork",
+                    "versao": "24.04.5+zorin2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "unclutter",
+            "nome": "unclutter",
+            "pacotes": [
+                {
+                    "pacote": "unclutter",
+                    "versao": "8-25"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "user-setup",
+            "nome": "user-setup",
+            "pacotes": [
+                {
+                    "pacote": "user-setup",
+                    "versao": "1.95ubuntu1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wfrench",
+            "nome": "wfrench",
+            "pacotes": [
+                {
+                    "pacote": "wfrench",
+                    "versao": "1.2.7-2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "witalian",
+            "nome": "witalian",
+            "pacotes": [
+                {
+                    "pacote": "witalian",
+                    "versao": "1.10"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wngerman",
+            "nome": "wngerman",
+            "pacotes": [
+                {
+                    "pacote": "wngerman",
+                    "versao": "20161207-12"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wogerman",
+            "nome": "wogerman",
+            "pacotes": [
+                {
+                    "pacote": "wogerman",
+                    "versao": "1:2-39"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wpasupplicant",
+            "nome": "wpa_supplicant",
+            "pacotes": [
+                {
+                    "pacote": "wpasupplicant",
+                    "versao": "2:2.10-21ubuntu0.4"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wspanish",
+            "nome": "wspanish",
+            "pacotes": [
+                {
+                    "pacote": "wspanish",
+                    "versao": "1.0.30"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "wswiss",
+            "nome": "wswiss",
+            "pacotes": [
+                {
+                    "pacote": "wswiss",
+                    "versao": "20161207-12"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xbindkeys",
+            "nome": "xbindkeys",
+            "pacotes": [
+                {
+                    "pacote": "xbindkeys",
+                    "versao": "1.8.7-2"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xdotool",
+            "nome": "xdotool",
+            "pacotes": [
+                {
+                    "pacote": "xdotool",
+                    "versao": "1:3.20160805.1-5build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xfsprogs",
+            "nome": "xfsprogs",
+            "pacotes": [
+                {
+                    "pacote": "xfsprogs",
+                    "versao": "6.6.0-1ubuntu2.1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        },
+        {
+            "id": "xprintidle",
+            "nome": "xprintidle",
+            "pacotes": [
+                {
+                    "pacote": "xprintidle",
+                    "versao": "0.2.5-2build1"
+                }
+            ],
+            "tipo": "ferramenta",
+            "origem": "apt"
+        }
+    ],
+    "data_coleta": "2026-10-02 09:54:08"
+}

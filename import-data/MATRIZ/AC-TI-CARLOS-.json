@@ -1,0 +1,184 @@
+{
+    "hostname": "AC-TI-CARLOS-",
+    "loja": "",
+    "ip": "192.168.80.16",
+    "ip_secundario": "",
+    "mac": "18-C0-4D-F2-A0-9B",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 10 Pro",
+    "build": "19045",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-8400 CPU @ 2.80GHz",
+    "ram_total": "15.9 GB",
+    "disco_total": "223 GB",
+    "disco_usado": "180.5 GB",
+    "disco_livre": "42.5 GB",
+    "disco_percentual": "81%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "carlos.vianna",
+                "tamanho": "28.56 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\carlos.vianna\\AppData",
+                        "tamanho": "25.32 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\carlos.vianna\\Downloads",
+                        "tamanho": "3.19 GB"
+                    },
+                    {
+                        "pasta": ".vscode",
+                        "caminho": "C:\\Users\\carlos.vianna\\.vscode",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\carlos.vianna\\Desktop",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": ".cache",
+                        "caminho": "C:\\Users\\carlos.vianna\\.cache",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "eduardo.lima",
+                "tamanho": "23.71 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\eduardo.lima\\AppData",
+                        "tamanho": "22.1 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\eduardo.lima\\Desktop",
+                        "tamanho": "1.37 GB"
+                    },
+                    {
+                        "pasta": ".vscode",
+                        "caminho": "C:\\Users\\eduardo.lima\\.vscode",
+                        "tamanho": "0.18 GB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "C:\\Users\\eduardo.lima\\.local",
+                        "tamanho": "0.06 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\eduardo.lima\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "joao.felipe",
+                "tamanho": "1.32 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\joao.felipe\\AppData",
+                        "tamanho": "1.2 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\joao.felipe\\Documents",
+                        "tamanho": "0.09 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\joao.felipe\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\joao.felipe\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\joao.felipe\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "maria.mota",
+                "tamanho": "1.28 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\maria.mota\\AppData",
+                        "tamanho": "1.27 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\maria.mota\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\maria.mota\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\maria.mota\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\maria.mota\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ti",
+                "tamanho": "1.14 GB",
+                "pastas": [
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\ti\\Downloads",
+                        "tamanho": "0.63 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ti\\AppData",
+                        "tamanho": "0.51 GB"
+                    },
+                    {
+                        "pasta": "Oracle",
+                        "caminho": "C:\\Users\\ti\\Oracle",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ti\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ti\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M M.2 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\eduardo.lima",
+    "data_coleta": "2026-10-02 13:14:55"
+}

@@ -1,0 +1,184 @@
+{
+    "hostname": "DC-LOG-BRUNO",
+    "loja": "",
+    "ip": "192.168.94.150",
+    "ip_secundario": "",
+    "mac": "18-C0-4D-F0-36-64",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "163.5 GB",
+    "disco_livre": "59.1 GB",
+    "disco_percentual": "73%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "bruno.teixeira",
+                "tamanho": "18.35 GB",
+                "pastas": [
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\bruno.teixeira\\Desktop",
+                        "tamanho": "6.88 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\bruno.teixeira\\Documents",
+                        "tamanho": "5.84 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\bruno.teixeira\\AppData",
+                        "tamanho": "3.92 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\bruno.teixeira\\Downloads",
+                        "tamanho": "1.71 GB"
+                    },
+                    {
+                        "pasta": ".cache",
+                        "caminho": "C:\\Users\\bruno.teixeira\\.cache",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "Sirlei.silva",
+                "tamanho": "15.13 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Sirlei.silva\\AppData",
+                        "tamanho": "14.49 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\Sirlei.silva\\Downloads",
+                        "tamanho": "0.51 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\Sirlei.silva\\Pictures",
+                        "tamanho": "0.07 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Sirlei.silva\\Desktop",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\Sirlei.silva\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "davi.torquato",
+                "tamanho": "8.1 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\davi.torquato\\AppData",
+                        "tamanho": "4.02 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\davi.torquato\\Downloads",
+                        "tamanho": "3.1 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\davi.torquato\\Desktop",
+                        "tamanho": "0.96 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\davi.torquato\\Pictures",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\davi.torquato\\Documents",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "manuela.mazzucco",
+                "tamanho": "2.04 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\manuela.mazzucco\\AppData",
+                        "tamanho": "2.03 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\manuela.mazzucco\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\manuela.mazzucco\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\manuela.mazzucco\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\manuela.mazzucco\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ariane.mendonca",
+                "tamanho": "2 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ariane.mendonca\\AppData",
+                        "tamanho": "1.98 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\ariane.mendonca\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\ariane.mendonca\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ariane.mendonca\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ariane.mendonca\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "233846372",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M M.2 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sirlei.silva",
+    "data_coleta": "2026-10-02 13:34:08"
+}

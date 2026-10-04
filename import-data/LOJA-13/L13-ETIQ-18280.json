@@ -1,0 +1,20 @@
+{
+    "hostname": "L13-ETIQ-18280",
+    "loja": "13",
+    "ip": "192.168.23.3",
+    "mac": "18:c0:4d:f2:a0:8b",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "16G",
+    "disco_livre": "88G",
+    "disco_percentual": "16%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "234004619",
+    "data_coleta": "2026-10-01 15:00:26"
+}

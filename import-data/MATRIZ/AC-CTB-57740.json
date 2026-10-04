@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-CTB-57740",
+    "loja": "",
+    "ip": "192.168.91.55",
+    "ip_secundario": "54.232.189.113",
+    "mac": "02-00-4C-4F-4F-50",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "15.7 GB",
+    "disco_total": "446.3 GB",
+    "disco_usado": "212.7 GB",
+    "disco_livre": "233.6 GB",
+    "disco_percentual": "48%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "422794767",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\vagner.savaris",
+    "data_coleta": "2026-10-02 13:14:53"
+}

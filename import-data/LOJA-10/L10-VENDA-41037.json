@@ -1,0 +1,20 @@
+{
+    "hostname": "L10-VENDA-41037",
+    "loja": "10",
+    "ip": "192.168.19.40",
+    "mac": "18:c0:4d:f4:ac:de",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "18G",
+    "disco_livre": "87G",
+    "disco_percentual": "17%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "234138846",
+    "data_coleta": "2026-10-01 16:01:17"
+}

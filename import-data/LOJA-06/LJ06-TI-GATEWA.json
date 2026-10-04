@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ06-TI-GATEWA",
+    "loja": "06",
+    "ip": "192.168.12.12",
+    "mac": "d8:5e:d3:f4:5e:4c",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "65G",
+    "disco_livre": "40G",
+    "disco_percentual": "63%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "334782028",
+    "data_coleta": "2026-10-01 15:17:15"
+}

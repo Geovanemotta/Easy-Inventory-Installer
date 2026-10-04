@@ -1,0 +1,28 @@
+{
+    "hostname": "L10-MANU-42071",
+    "loja": "10",
+    "ip": "192.168.19.15",
+    "ip_secundario": "",
+    "mac": "B4-2E-99-F0-AD-75",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7350K CPU @ 4.20GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "113.9 GB",
+    "disco_livre": "108.7 GB",
+    "disco_percentual": "51%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "435203445",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2V",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\silas.mira",
+    "data_coleta": "2026-10-02 13:43:52"
+}

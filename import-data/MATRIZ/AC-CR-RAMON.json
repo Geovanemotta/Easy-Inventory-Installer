@@ -1,0 +1,184 @@
+{
+    "hostname": "AC-CR-RAMON",
+    "loja": "",
+    "ip": "192.168.91.123",
+    "ip_secundario": "54.232.189.113",
+    "mac": "02-00-4C-4F-4F-50",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "185.3 GB",
+    "disco_livre": "37.4 GB",
+    "disco_percentual": "83%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "Kayron.teixeira",
+                "tamanho": "6.82 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Kayron.teixeira\\AppData",
+                        "tamanho": "6.8 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\Kayron.teixeira\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\Kayron.teixeira\\Documents",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": ".bethaSistemas",
+                        "caminho": "C:\\Users\\Kayron.teixeira\\.bethaSistemas",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Kayron.teixeira\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ANA.BERNADINO",
+                "tamanho": "4.56 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ANA.BERNADINO\\AppData",
+                        "tamanho": "4.52 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\ANA.BERNADINO\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": ".bethaSistemas",
+                        "caminho": "C:\\Users\\ANA.BERNADINO\\.bethaSistemas",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\ANA.BERNADINO\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\ANA.BERNADINO\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "stefany.maximiano",
+                "tamanho": "4.46 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\stefany.maximiano\\AppData",
+                        "tamanho": "4.37 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\stefany.maximiano\\Downloads",
+                        "tamanho": "0.03 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\stefany.maximiano\\Pictures",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": ".bethaSistemas",
+                        "caminho": "C:\\Users\\stefany.maximiano\\.bethaSistemas",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\stefany.maximiano\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ramon.borges",
+                "tamanho": "4.33 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ramon.borges\\AppData",
+                        "tamanho": "3.3 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\ramon.borges\\Downloads",
+                        "tamanho": "1 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ramon.borges\\Desktop",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\ramon.borges\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Application Data",
+                        "caminho": "C:\\Users\\ramon.borges\\Application Data",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "beatriz.fernandes",
+                "tamanho": "3.25 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\beatriz.fernandes\\AppData",
+                        "tamanho": "3.22 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\beatriz.fernandes\\Downloads",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\beatriz.fernandes\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": ".bethaSistemas",
+                        "caminho": "C:\\Users\\beatriz.fernandes\\.bethaSistemas",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\beatriz.fernandes\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "234002783",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M M.2 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\kayron.teixeira",
+    "data_coleta": "2026-10-02 13:14:38"
+}

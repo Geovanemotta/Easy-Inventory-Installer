@@ -1,0 +1,20 @@
+{
+    "hostname": "FLV-GERAIS",
+    "loja": "",
+    "ip": "192.168.97.197",
+    "mac": "b4:2e:99:f2:d7:b5",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "217G",
+    "disco_usado": "40G",
+    "disco_livre": "167G",
+    "disco_percentual": "20%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "435345333",
+    "data_coleta": "2026-10-01 15:59:20"
+}

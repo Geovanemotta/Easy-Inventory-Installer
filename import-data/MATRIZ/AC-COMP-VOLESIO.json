@@ -1,0 +1,184 @@
+{
+    "hostname": "AC-COMP-VOLESIO",
+    "loja": "",
+    "ip": "192.168.84.35",
+    "ip_secundario": "",
+    "mac": "FC-AA-14-FB-59-1F",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "22631",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "223.1 GB",
+    "disco_usado": "185.1 GB",
+    "disco_livre": "37.9 GB",
+    "disco_percentual": "83%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "volesio",
+                "tamanho": "24.3 GB",
+                "pastas": [
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\volesio\\Desktop",
+                        "tamanho": "13.6 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\volesio\\AppData",
+                        "tamanho": "10.23 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\volesio\\Downloads",
+                        "tamanho": "0.43 GB"
+                    },
+                    {
+                        "pasta": "MicrosoftEdgeBackups",
+                        "caminho": "C:\\Users\\volesio\\MicrosoftEdgeBackups",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\volesio\\Documents",
+                        "tamanho": "0.01 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "amanda.flor",
+                "tamanho": "5.74 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\amanda.flor\\AppData",
+                        "tamanho": "5.25 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\amanda.flor\\Downloads",
+                        "tamanho": "0.48 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\amanda.flor\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\amanda.flor\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\amanda.flor\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "218518",
+                "tamanho": "0.63 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\218518\\AppData",
+                        "tamanho": "0.63 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\218518\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\218518\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\218518\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\218518\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "ramon.silva",
+                "tamanho": "0.19 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\ramon.silva\\AppData",
+                        "tamanho": "0.18 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\ramon.silva\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\ramon.silva\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\ramon.silva\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\ramon.silva\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "Default",
+                "tamanho": "0 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Default\\AppData",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\Default\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Music",
+                        "caminho": "C:\\Users\\Default\\Music",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\Default\\Videos",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Saved Games",
+                        "caminho": "C:\\Users\\Default\\Saved Games",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "352016671",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H81M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\volesio.fernandes",
+    "data_coleta": "2026-10-02 13:23:27"
+}

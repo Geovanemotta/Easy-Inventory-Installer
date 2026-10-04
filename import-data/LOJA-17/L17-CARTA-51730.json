@@ -1,0 +1,28 @@
+{
+    "hostname": "L17-CARTA-51730",
+    "loja": "17",
+    "ip": "192.168.34.8",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-59-7F",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i3-12100",
+    "ram_total": "7.7 GB",
+    "disco_total": "222.5 GB",
+    "disco_usado": "142.9 GB",
+    "disco_livre": "79.6 GB",
+    "disco_percentual": "64%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\eduardo.roque",
+    "data_coleta": "2026-10-02 13:18:15"
+}

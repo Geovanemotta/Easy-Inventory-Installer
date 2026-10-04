@@ -1,0 +1,17 @@
+{
+    "hostname": "L02-COMP-57745",
+    "loja": "02",
+    "ip": "192.168.4.25",
+    "mac": "30:c5:99:33:ce:e2",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i3-12100F",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "13G",
+    "disco_livre": "195G",
+    "disco_percentual": "6%",
+    "rustdesk_id": "1159890063",
+    "data_coleta": "2026-10-01 10:26:04"
+}

@@ -1,0 +1,20 @@
+{
+    "hostname": "L18-APOI-57489",
+    "loja": "18",
+    "ip": "192.168.38.41",
+    "mac": "10:ff:e0:46:0e:20",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "51G",
+    "disco_livre": "54G",
+    "disco_percentual": "49%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "4591136",
+    "data_coleta": "2026-10-01 15:26:31"
+}

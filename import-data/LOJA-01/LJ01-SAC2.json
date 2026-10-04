@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ01-SAC2",
+    "loja": "01",
+    "ip": "192.168.11.24",
+    "mac": "30:85:a9:36:85:99",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G620 @ 2.60GHz",
+    "ram_total": "3,5Gi",
+    "disco_total": "109G",
+    "disco_usado": "31G",
+    "disco_livre": "73G",
+    "disco_percentual": "30%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "154568089",
+    "data_coleta": "2026-10-01 16:37:50"
+}

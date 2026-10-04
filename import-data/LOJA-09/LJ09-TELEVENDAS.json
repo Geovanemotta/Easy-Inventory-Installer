@@ -1,0 +1,17 @@
+{
+    "hostname": "LJ09-TELEVENDAS",
+    "loja": "09",
+    "ip": "192.168.18.16",
+    "mac": "d8:5e:d3:f4:5d:e8",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "30G",
+    "disco_livre": "74G",
+    "disco_percentual": "29%",
+    "rustdesk_id": "334781928",
+    "data_coleta": "2026-09-29 15:56:28"
+}

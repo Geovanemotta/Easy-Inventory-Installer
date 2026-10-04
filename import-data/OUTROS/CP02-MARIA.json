@@ -1,0 +1,20 @@
+{
+    "hostname": "CP02-MARIA",
+    "loja": "",
+    "ip": "192.168.95.199",
+    "mac": "e0:d5:5e:f2:b3:5a",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "43G",
+    "disco_livre": "61G",
+    "disco_percentual": "42%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "519222106",
+    "data_coleta": "2026-10-01 16:34:22"
+}

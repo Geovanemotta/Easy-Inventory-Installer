@@ -1,0 +1,184 @@
+{
+    "hostname": "LJ16-NEPOS",
+    "loja": "16",
+    "ip": "192.168.56.2",
+    "ip_secundario": "192.168.31.180",
+    "mac": "B4-2E-99-F5-70-9F",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 10 Pro",
+    "build": "19045",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz",
+    "ram_total": "15.9 GB",
+    "disco_total": "446.5 GB",
+    "disco_usado": "428.6 GB",
+    "disco_livre": "17.9 GB",
+    "disco_percentual": "96%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "nepos.lj16",
+                "tamanho": "14.48 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\nepos.lj16\\AppData",
+                        "tamanho": "6.57 GB"
+                    },
+                    {
+                        "pasta": "VirtualBox VMs",
+                        "caminho": "C:\\Users\\nepos.lj16\\VirtualBox VMs",
+                        "tamanho": "3.37 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\nepos.lj16\\Documents",
+                        "tamanho": "3.1 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\nepos.lj16\\Desktop",
+                        "tamanho": "0.92 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\nepos.lj16\\Downloads",
+                        "tamanho": "0.51 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "Nielson.silva",
+                "tamanho": "1.09 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\Nielson.silva\\AppData",
+                        "tamanho": "1.09 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\Nielson.silva\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Nielson.silva\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\Nielson.silva\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\Nielson.silva\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "GIASSI",
+                "tamanho": "0.36 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\GIASSI\\AppData",
+                        "tamanho": "0.36 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\GIASSI\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\GIASSI\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\GIASSI\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\GIASSI\\Pictures",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "fabricio.leite",
+                "tamanho": "0.33 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\fabricio.leite\\AppData",
+                        "tamanho": "0.33 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\fabricio.leite\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\fabricio.leite\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\fabricio.leite\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\fabricio.leite\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "jackson.martins",
+                "tamanho": "0.28 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\jackson.martins\\AppData",
+                        "tamanho": "0.27 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\jackson.martins\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\jackson.martins\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\jackson.martins\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\jackson.martins\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "289803881",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M S2P 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\nepos.lj16",
+    "data_coleta": "2026-10-02 13:49:14"
+}

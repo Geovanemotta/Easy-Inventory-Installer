@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-TI-24592",
+    "loja": "",
+    "ip": "192.168.80.19",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-58-EC",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "31.7 GB",
+    "disco_total": "464.9 GB",
+    "disco_usado": "162.3 GB",
+    "disco_livre": "302.6 GB",
+    "disco_percentual": "35%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\joao.felipe",
+    "data_coleta": "2026-10-02 13:17:22"
+}

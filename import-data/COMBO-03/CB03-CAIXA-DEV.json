@@ -1,0 +1,17 @@
+{
+    "hostname": "CB03-CAIXA-DEV",
+    "loja": "",
+    "ip": "192.168.30.6",
+    "mac": "2c:fd:a1:c7:ea:01",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "45G",
+    "disco_livre": "60G",
+    "disco_percentual": "43%",
+    "rustdesk_id": "29878785",
+    "data_coleta": "2026-09-29 11:15:09"
+}

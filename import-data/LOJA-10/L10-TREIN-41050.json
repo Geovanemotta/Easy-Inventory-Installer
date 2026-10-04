@@ -1,0 +1,20 @@
+{
+    "hostname": "L10-TREIN-41050",
+    "loja": "10",
+    "ip": "192.168.19.6",
+    "mac": "e0:d5:5e:f0:e2:9b",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "24G",
+    "disco_livre": "80G",
+    "disco_percentual": "23%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "519103131",
+    "data_coleta": "2026-10-01 15:25:19"
+}

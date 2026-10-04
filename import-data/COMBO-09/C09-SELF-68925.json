@@ -1,0 +1,28 @@
+{
+    "hostname": "C09-SELF-68925",
+    "loja": "09",
+    "ip": "192.168.40.30",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-9D-F3",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "7.7 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "105.2 GB",
+    "disco_livre": "117.5 GB",
+    "disco_percentual": "47%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "422813171",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\selfmonitor.cb09",
+    "data_coleta": "2026-10-02 13:14:55"
+}

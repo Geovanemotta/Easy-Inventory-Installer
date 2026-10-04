@@ -1,0 +1,45 @@
+# Environment and Secrets
+.env
+*.env
+dados.txt
+
+# Database dumps and local data
+*.sql
+*.sqlite
+*.sqlite3
+import-data/*.json
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+build/
+.npm/
+
+# Python
+__pycache__/
+*.py[cod]
+*.log
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# SSL Certificates & Private Keys
+nginx/certs/*.key
+nginx/certs/*.crt
+nginx/certs/*.pfx
+nginx/certs/*.pem
+!nginx/certs/README.md
+!nginx/certs/import_pfx.sh
+!nginx/certs/import_pfx.ps1
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

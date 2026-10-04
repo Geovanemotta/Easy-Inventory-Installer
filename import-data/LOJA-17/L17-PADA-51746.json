@@ -1,0 +1,17 @@
+{
+    "hostname": "L17-PADA-51746",
+    "loja": "17",
+    "ip": "192.168.34.15",
+    "mac": "d8:5e:d3:df:57:82",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "16G",
+    "disco_livre": "192G",
+    "disco_percentual": "8%",
+    "rustdesk_id": "1034942890",
+    "data_coleta": "2026-09-29 15:56:07"
+}

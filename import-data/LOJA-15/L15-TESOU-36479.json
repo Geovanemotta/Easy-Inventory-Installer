@@ -1,0 +1,28 @@
+{
+    "hostname": "L15-TESOU-36479",
+    "loja": "15",
+    "ip": "192.168.26.7",
+    "ip_secundario": "54.232.189.113",
+    "mac": "1C-1B-0D-F3-19-16",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G3260 @ 3.30GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "120.8 GB",
+    "disco_livre": "101.8 GB",
+    "disco_percentual": "54%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "1461784920",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H81M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\gabriela.paula",
+    "data_coleta": "2026-10-02 13:23:56"
+}

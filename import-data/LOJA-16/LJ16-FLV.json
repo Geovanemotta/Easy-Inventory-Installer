@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ16-FLV",
+    "loja": "16",
+    "ip": "192.168.31.27",
+    "mac": "18:c0:4d:f0:4c:99",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "67G",
+    "disco_livre": "37G",
+    "disco_percentual": "65%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "233852057",
+    "data_coleta": "2026-10-01 15:54:27"
+}

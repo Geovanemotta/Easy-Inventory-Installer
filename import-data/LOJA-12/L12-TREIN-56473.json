@@ -1,0 +1,20 @@
+{
+    "hostname": "L12-TREIN-56473",
+    "loja": "12",
+    "ip": "192.168.22.44",
+    "mac": "d8:5e:d3:f7:07:a9",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "25G",
+    "disco_livre": "184G",
+    "disco_percentual": "12%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "334956457",
+    "data_coleta": "2026-10-01 14:41:32"
+}

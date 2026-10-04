@@ -1,0 +1,206 @@
+{
+    "hostname": "CB04-TELEVENDA2",
+    "loja": "",
+    "ip": "192.168.32.14",
+    "mac": "d8:5e:d3:f4:01:f2",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "79G",
+    "disco_livre": "25G",
+    "disco_percentual": "77%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "luciana.lima",
+                "tamanho": "6,0GB",
+                "pastas": [
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/luciana.lima\/.config",
+                        "tamanho": "2,8GB"
+                    },
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/luciana.lima\/.cache",
+                        "tamanho": "2,4GB"
+                    },
+                    {
+                        "pasta": "fileserver",
+                        "caminho": "\/home\/luciana.lima\/fileserver",
+                        "tamanho": "1,2GB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/luciana.lima\/.local",
+                        "tamanho": "662MB"
+                    },
+                    {
+                        "pasta": ".mozilla",
+                        "caminho": "\/home\/luciana.lima\/.mozilla",
+                        "tamanho": "88MB"
+                    }
+                ]
+            },
+            {
+                "usuario": "vitor.souza",
+                "tamanho": "5,1GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/vitor.souza\/.cache",
+                        "tamanho": "2,4GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/vitor.souza\/.config",
+                        "tamanho": "2,2GB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/vitor.souza\/.local",
+                        "tamanho": "549MB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "\/home\/vitor.souza\/Downloads",
+                        "tamanho": "20MB"
+                    },
+                    {
+                        "pasta": ".mozilla",
+                        "caminho": "\/home\/vitor.souza\/.mozilla",
+                        "tamanho": "18MB"
+                    }
+                ]
+            },
+            {
+                "usuario": "maria.machado",
+                "tamanho": "4,8GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/maria.machado\/.cache",
+                        "tamanho": "1,6GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "\/home\/maria.machado\/Downloads",
+                        "tamanho": "1,6GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/maria.machado\/.config",
+                        "tamanho": "1,2GB"
+                    },
+                    {
+                        "pasta": "Área de Trabalho",
+                        "caminho": "\/home\/maria.machado\/Área de Trabalho",
+                        "tamanho": "238MB"
+                    },
+                    {
+                        "pasta": "teamviewerqs",
+                        "caminho": "\/home\/maria.machado\/teamviewerqs",
+                        "tamanho": "141MB"
+                    }
+                ]
+            },
+            {
+                "usuario": "guilherme.damazio",
+                "tamanho": "4,6GB",
+                "pastas": [
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/guilherme.damazio\/.config",
+                        "tamanho": "2,4GB"
+                    },
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/guilherme.damazio\/.cache",
+                        "tamanho": "2,2GB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/guilherme.damazio\/.local",
+                        "tamanho": "69MB"
+                    },
+                    {
+                        "pasta": "teamviewerqs",
+                        "caminho": "\/home\/guilherme.damazio\/teamviewerqs",
+                        "tamanho": "29MB"
+                    },
+                    {
+                        "pasta": ".mozilla",
+                        "caminho": "\/home\/guilherme.damazio\/.mozilla",
+                        "tamanho": "364KB"
+                    }
+                ]
+            },
+            {
+                "usuario": "matheus.alves",
+                "tamanho": "4,4GB",
+                "pastas": [
+                    {
+                        "pasta": ".cache",
+                        "caminho": "\/home\/matheus.alves\/.cache",
+                        "tamanho": "3,3GB"
+                    },
+                    {
+                        "pasta": ".config",
+                        "caminho": "\/home\/matheus.alves\/.config",
+                        "tamanho": "989MB"
+                    },
+                    {
+                        "pasta": ".mozilla",
+                        "caminho": "\/home\/matheus.alves\/.mozilla",
+                        "tamanho": "62MB"
+                    },
+                    {
+                        "pasta": ".local",
+                        "caminho": "\/home\/matheus.alves\/.local",
+                        "tamanho": "42MB"
+                    },
+                    {
+                        "pasta": "teamviewerqs",
+                        "caminho": "\/home\/matheus.alves\/teamviewerqs",
+                        "tamanho": "29MB"
+                    }
+                ]
+            }
+        ],
+        "var_log": {
+            "top_itens": [
+                {
+                    "nome": "journal",
+                    "caminho": "\/var\/log\/journal",
+                    "tamanho": "1,5GB"
+                },
+                {
+                    "nome": "atera-agent",
+                    "caminho": "\/var\/log\/atera-agent",
+                    "tamanho": "55MB"
+                },
+                {
+                    "nome": "anydesk_ad_fb31137f.trace",
+                    "caminho": "\/var\/log\/anydesk_ad_fb31137f.trace",
+                    "tamanho": "33MB"
+                },
+                {
+                    "nome": "soft4ti",
+                    "caminho": "\/var\/log\/soft4ti",
+                    "tamanho": "11MB"
+                },
+                {
+                    "nome": "samba",
+                    "caminho": "\/var\/log\/samba",
+                    "tamanho": "6,8MB"
+                }
+            ]
+        }
+    },
+    "rustdesk_id": "1901900712",
+    "data_coleta": "2026-10-01 15:19:43"
+}

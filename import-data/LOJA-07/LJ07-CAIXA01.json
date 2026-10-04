@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ07-CAIXA01",
+    "loja": "07",
+    "ip": "192.168.13.10",
+    "mac": "d8:5e:d3:f6:8b:a6",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "28G",
+    "disco_livre": "77G",
+    "disco_percentual": "27%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1550610353",
+    "data_coleta": "2026-10-01 14:35:26"
+}

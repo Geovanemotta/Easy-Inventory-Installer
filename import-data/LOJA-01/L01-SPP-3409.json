@@ -1,0 +1,28 @@
+{
+    "hostname": "L01-SPP-3409",
+    "loja": "01",
+    "ip": "10.5.1.60",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-59-7C",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "15.7 GB",
+    "disco_total": "446.1 GB",
+    "disco_usado": "91 GB",
+    "disco_livre": "355.1 GB",
+    "disco_percentual": "20%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "422795644",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.lj01",
+    "data_coleta": "2026-10-02 09:26:43"
+}

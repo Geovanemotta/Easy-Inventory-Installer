@@ -1,0 +1,28 @@
+{
+    "hostname": "L02-CAIXA-35279",
+    "loja": "02",
+    "ip": "192.168.4.8",
+    "ip_secundario": "",
+    "mac": "2C-FD-A1-C7-DC-12",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-6100 CPU @ 3.70GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "151.9 GB",
+    "disco_livre": "70.8 GB",
+    "disco_percentual": "68%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "1735250346",
+    "fabricante": "System manufacturer",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\michel.tavares",
+    "data_coleta": "2026-10-02 13:11:14"
+}

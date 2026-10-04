@@ -1,0 +1,20 @@
+{
+    "hostname": "C08-SUB-58210",
+    "loja": "",
+    "ip": "192.168.37.17",
+    "mac": "10:ff:e0:46:0e:b0",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "23G",
+    "disco_livre": "81G",
+    "disco_percentual": "23%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1531118028",
+    "data_coleta": "2026-10-01 15:02:07"
+}

@@ -1,0 +1,20 @@
+{
+    "hostname": "DC-LOG-ROBERTA",
+    "loja": "",
+    "ip": "192.168.94.195",
+    "mac": "18:c0:4d:f1:d4:6f",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "38G",
+    "disco_livre": "170G",
+    "disco_percentual": "19%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "233952367",
+    "data_coleta": "2026-10-01 15:27:17"
+}

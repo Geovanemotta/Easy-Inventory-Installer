@@ -1,0 +1,28 @@
+{
+    "hostname": "L13-RADIO-18009",
+    "loja": "13",
+    "ip": "192.168.23.15",
+    "ip_secundario": "",
+    "mac": "B4-2E-99-F0-AD-49",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7350K CPU @ 4.20GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "120.4 GB",
+    "disco_livre": "102.3 GB",
+    "disco_percentual": "54%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "435203401",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2V",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\radio.lj13",
+    "data_coleta": "2026-10-02 13:15:27"
+}

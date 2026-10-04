@@ -1,0 +1,20 @@
+{
+    "hostname": "C01-GEREN-17208",
+    "loja": "",
+    "ip": "192.168.27.19",
+    "mac": "e0:d5:5e:f1:a3:25",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "35G",
+    "disco_livre": "173G",
+    "disco_percentual": "17%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "519152421",
+    "data_coleta": "2026-10-01 16:21:18"
+}

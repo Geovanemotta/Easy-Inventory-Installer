@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ04-RH2-PONT",
+    "loja": "04",
+    "ip": "192.168.9.20",
+    "mac": "90:2b:34:f5:52:68",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G2020 @ 2.90GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "32G",
+    "disco_livre": "72G",
+    "disco_percentual": "31%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "351621736",
+    "data_coleta": "2026-10-01 15:44:52"
+}

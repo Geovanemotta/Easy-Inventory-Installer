@@ -1,0 +1,20 @@
+{
+    "hostname": "CB02-SESMIT-2",
+    "loja": "",
+    "ip": "192.168.29.15",
+    "mac": "b4:2e:99:f2:ce:23",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-7350K CPU @ 4.20GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "219G",
+    "disco_usado": "64G",
+    "disco_livre": "145G",
+    "disco_percentual": "31%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "435342883",
+    "data_coleta": "2026-10-01 15:04:33"
+}

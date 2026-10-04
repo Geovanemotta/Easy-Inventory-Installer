@@ -1,0 +1,20 @@
+{
+    "hostname": "AC-TELEFO-11665",
+    "loja": "",
+    "ip": "192.168.91.73",
+    "mac": "e0:d5:5e:f2:b3:4c",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "34G",
+    "disco_livre": "71G",
+    "disco_percentual": "33%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "519222092",
+    "data_coleta": "2026-10-01 14:29:30"
+}

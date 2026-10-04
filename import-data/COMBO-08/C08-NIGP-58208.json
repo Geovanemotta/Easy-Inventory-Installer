@@ -1,0 +1,20 @@
+{
+    "hostname": "C08-NIGP-58208",
+    "loja": "",
+    "ip": "192.168.37.15",
+    "mac": "10:ff:e0:46:0e:a4",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "41G",
+    "disco_livre": "63G",
+    "disco_percentual": "40%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "4591268",
+    "data_coleta": "2026-10-01 15:19:11"
+}

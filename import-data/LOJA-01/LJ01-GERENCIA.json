@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ01-GERENCIA",
+    "loja": "01",
+    "ip": "192.168.11.31",
+    "mac": "1c:1b:0d:f0:49:a9",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G3260 @ 3.30GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "26G",
+    "disco_livre": "78G",
+    "disco_percentual": "25%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "233851305",
+    "data_coleta": "2026-10-01 14:19:28"
+}

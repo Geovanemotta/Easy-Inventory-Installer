@@ -1,0 +1,28 @@
+{
+    "hostname": "C08-SPP-58199",
+    "loja": "08",
+    "ip": "10.0.108.60",
+    "ip_secundario": "",
+    "mac": "60-CF-84-D0-09-A1",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "15.7 GB",
+    "disco_total": "446.2 GB",
+    "disco_usado": "122.5 GB",
+    "disco_livre": "323.7 GB",
+    "disco_percentual": "27%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "80742817",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.cb08",
+    "data_coleta": "2026-10-02 13:18:06"
+}

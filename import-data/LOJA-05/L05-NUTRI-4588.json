@@ -1,0 +1,28 @@
+{
+    "hostname": "L05-NUTRI-4588",
+    "loja": "05",
+    "ip": "192.168.10.37",
+    "ip_secundario": "",
+    "mac": "10-FF-E0-46-83-10",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "223.3 GB",
+    "disco_usado": "46.2 GB",
+    "disco_livre": "177 GB",
+    "disco_percentual": "21%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "1218111713",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H V2",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\manuela.borges",
+    "data_coleta": "2026-10-02 13:11:26"
+}

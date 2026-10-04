@@ -1,0 +1,184 @@
+{
+    "hostname": "LJ07-SPP-M",
+    "loja": "07",
+    "ip": "10.0.7.60",
+    "ip_secundario": "",
+    "mac": "10-FF-E0-46-13-AF",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "22631",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i7-10700F CPU @ 2.90GHz",
+    "ram_total": "15.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "186.3 GB",
+    "disco_livre": "36.3 GB",
+    "disco_percentual": "84%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "sppmonitor.lj07",
+                "tamanho": "52.95 GB",
+                "pastas": [
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\sppmonitor.lj07\\Pictures",
+                        "tamanho": "27.42 GB"
+                    },
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\sppmonitor.lj07\\AppData",
+                        "tamanho": "23.46 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\sppmonitor.lj07\\Documents",
+                        "tamanho": "1.43 GB"
+                    },
+                    {
+                        "pasta": "Videos",
+                        "caminho": "C:\\Users\\sppmonitor.lj07\\Videos",
+                        "tamanho": "0.37 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\sppmonitor.lj07\\Desktop",
+                        "tamanho": "0.23 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "rai.souza",
+                "tamanho": "2.79 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\rai.souza\\AppData",
+                        "tamanho": "1.94 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\rai.souza\\Downloads",
+                        "tamanho": "0.85 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\rai.souza\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\rai.souza\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\rai.souza\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "juliano.cesar",
+                "tamanho": "1.83 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\juliano.cesar\\AppData",
+                        "tamanho": "1.59 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\juliano.cesar\\Desktop",
+                        "tamanho": "0.13 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\juliano.cesar\\Downloads",
+                        "tamanho": "0.1 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\juliano.cesar\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\juliano.cesar\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "LJ07-SPP-M",
+                "tamanho": "0.42 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\LJ07-SPP-M\\AppData",
+                        "tamanho": "0.41 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\LJ07-SPP-M\\Downloads",
+                        "tamanho": "0.01 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\LJ07-SPP-M\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\LJ07-SPP-M\\Searches",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\LJ07-SPP-M\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "Public",
+                "tamanho": "0.38 GB",
+                "pastas": [
+                    {
+                        "pasta": "Defense IA Client",
+                        "caminho": "C:\\Users\\Public\\Defense IA Client",
+                        "tamanho": "0.36 GB"
+                    },
+                    {
+                        "pasta": "Intelbras Defense IA Client",
+                        "caminho": "C:\\Users\\Public\\Intelbras Defense IA Client",
+                        "tamanho": "0.02 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\Public\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\Public\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Libraries",
+                        "caminho": "C:\\Users\\Public\\Libraries",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "4592559",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H V2",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.lj07",
+    "data_coleta": "2026-10-02 13:34:40"
+}

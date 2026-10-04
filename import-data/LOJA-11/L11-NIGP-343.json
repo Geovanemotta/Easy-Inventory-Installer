@@ -1,0 +1,20 @@
+{
+    "hostname": "L11-NIGP-343",
+    "loja": "11",
+    "ip": "192.168.20.23",
+    "mac": "2c:fd:a1:c8:76:df",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "48G",
+    "disco_livre": "57G",
+    "disco_percentual": "46%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1842627039",
+    "data_coleta": "2026-10-01 14:56:10"
+}

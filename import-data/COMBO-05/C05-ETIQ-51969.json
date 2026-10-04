@@ -1,0 +1,20 @@
+{
+    "hostname": "C05-ETIQ-51969",
+    "loja": "",
+    "ip": "192.168.33.3",
+    "mac": "18:c0:4d:cb:d5:a0",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "24G",
+    "disco_livre": "80G",
+    "disco_percentual": "23%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "231462304",
+    "data_coleta": "2026-10-01 16:25:18"
+}

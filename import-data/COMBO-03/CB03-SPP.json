@@ -1,0 +1,20 @@
+{
+    "hostname": "CB03-SPP",
+    "loja": "",
+    "ip": "192.168.30.7",
+    "mac": "2c:fd:a1:c7:fc:a7",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "42G",
+    "disco_livre": "63G",
+    "disco_percentual": "40%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "29883559",
+    "data_coleta": "2026-10-01 14:48:27"
+}

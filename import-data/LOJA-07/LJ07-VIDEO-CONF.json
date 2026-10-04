@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ07-VIDEO-CONF",
+    "loja": "07",
+    "ip": "192.168.13.97",
+    "mac": "b4:2e:99:f5:74:bd",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "61G",
+    "disco_livre": "44G",
+    "disco_percentual": "59%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "435516605",
+    "data_coleta": "2026-10-01 16:07:25"
+}

@@ -1,0 +1,28 @@
+{
+    "hostname": "DC-SPP-8253",
+    "loja": "",
+    "ip": "192.168.93.198",
+    "ip_secundario": "",
+    "mac": "60-CF-84-D0-09-8C",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "15.7 GB",
+    "disco_total": "222.8 GB",
+    "disco_usado": "121.2 GB",
+    "disco_livre": "101.7 GB",
+    "disco_percentual": "54%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "80742796",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.cd",
+    "data_coleta": "2026-10-02 13:24:06"
+}

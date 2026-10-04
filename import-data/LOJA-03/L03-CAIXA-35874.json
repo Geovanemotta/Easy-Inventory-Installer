@@ -1,0 +1,20 @@
+{
+    "hostname": "L03-CAIXA-35874",
+    "loja": "03",
+    "ip": "192.168.8.14",
+    "mac": "d0:50:99:ae:cd:0d",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G2030 @ 3.00GHz",
+    "ram_total": "7,5Gi",
+    "disco_total": "110G",
+    "disco_usado": "50G",
+    "disco_livre": "54G",
+    "disco_percentual": "49%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "430886157",
+    "data_coleta": "2026-10-01 16:45:29"
+}

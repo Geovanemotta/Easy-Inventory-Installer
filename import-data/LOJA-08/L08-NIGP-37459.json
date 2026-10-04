@@ -1,0 +1,20 @@
+{
+    "hostname": "L08-NIGP-37459",
+    "loja": "08",
+    "ip": "192.168.16.43",
+    "mac": "fc:aa:14:f5:44:30",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G3250 @ 3.20GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "19G",
+    "disco_livre": "86G",
+    "disco_percentual": "18%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1575683116",
+    "data_coleta": "2026-10-01 16:40:07"
+}

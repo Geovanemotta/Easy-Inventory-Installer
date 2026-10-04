@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ15-ECOMMERCE2",
+    "loja": "15",
+    "ip": "192.168.26.39",
+    "mac": "d8:5e:d3:f3:64:a7",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "32G",
+    "disco_livre": "73G",
+    "disco_percentual": "31%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "334718119",
+    "data_coleta": "2026-10-01 15:14:18"
+}

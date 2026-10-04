@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ10-NIGP7",
+    "loja": "10",
+    "ip": "192.168.19.38",
+    "mac": "d8:cb:8a:30:8b:cd",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G3250 @ 3.20GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "34G",
+    "disco_livre": "70G",
+    "disco_percentual": "33%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "170953677",
+    "data_coleta": "2026-10-01 16:04:20"
+}

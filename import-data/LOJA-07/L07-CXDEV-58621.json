@@ -1,0 +1,20 @@
+{
+    "hostname": "L07-CXDEV-58621",
+    "loja": "07",
+    "ip": "192.168.13.6",
+    "mac": "74:56:3c:f2:62:2b",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "31G",
+    "disco_livre": "177G",
+    "disco_percentual": "15%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1961543291",
+    "data_coleta": "2026-10-01 14:20:31"
+}

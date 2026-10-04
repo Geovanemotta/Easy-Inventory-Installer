@@ -1,0 +1,28 @@
+{
+    "hostname": "L15-SPP-42317",
+    "loja": "15",
+    "ip": "10.0.15.60",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-C8-CC",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i7-12700",
+    "ram_total": "15.7 GB",
+    "disco_total": "446.2 GB",
+    "disco_usado": "137.2 GB",
+    "disco_livre": "309 GB",
+    "disco_percentual": "31%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "422824140",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\sppmonitor.lj15",
+    "data_coleta": "2026-10-02 09:13:11"
+}

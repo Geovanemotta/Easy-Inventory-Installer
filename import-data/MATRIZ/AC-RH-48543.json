@@ -1,0 +1,20 @@
+{
+    "hostname": "AC-RH-48543",
+    "loja": "",
+    "ip": "192.168.85.34",
+    "mac": "18:c0:4d:f2:99:60",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i5-8400 CPU @ 2.80GHz",
+    "ram_total": "15Gi",
+    "disco_total": "219G",
+    "disco_usado": "19G",
+    "disco_livre": "189G",
+    "disco_percentual": "9%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "234002784",
+    "data_coleta": "2026-10-01 16:05:04"
+}

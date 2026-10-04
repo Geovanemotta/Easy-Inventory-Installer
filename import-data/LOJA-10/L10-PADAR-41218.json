@@ -1,0 +1,20 @@
+{
+    "hostname": "L10-PADAR-41218",
+    "loja": "10",
+    "ip": "192.168.19.29",
+    "mac": "74:56:3c:f0:29:63",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "219G",
+    "disco_usado": "25G",
+    "disco_livre": "184G",
+    "disco_percentual": "12%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "485501283",
+    "data_coleta": "2026-10-01 15:13:04"
+}

@@ -1,0 +1,20 @@
+{
+    "hostname": "L05-GEREN-51716",
+    "loja": "05",
+    "ip": "192.168.10.8",
+    "mac": "c8:7f:54:d0:d6:e0",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "26G",
+    "disco_livre": "78G",
+    "disco_percentual": "25%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "349230816",
+    "data_coleta": "2026-10-01 15:42:19"
+}

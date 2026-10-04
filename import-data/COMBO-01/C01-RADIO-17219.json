@@ -1,0 +1,28 @@
+{
+    "hostname": "C01-RADIO-17219",
+    "loja": "01",
+    "ip": "192.168.27.4",
+    "ip_secundario": "",
+    "mac": "E0-D5-5E-F1-A3-44",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "111.1 GB",
+    "disco_livre": "111.7 GB",
+    "disco_percentual": "50%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "519152452",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\portaria.cb01",
+    "data_coleta": "2026-10-02 09:18:11"
+}

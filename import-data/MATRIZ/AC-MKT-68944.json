@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-MKT-68944",
+    "loja": "",
+    "ip": "192.168.78.104",
+    "ip_secundario": "",
+    "mac": "30-C5-99-5A-69-4A",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "AMD Ryzen 5 7600 6-Core Processor              ",
+    "ram_total": "31.2 GB",
+    "disco_total": "446.8 GB",
+    "disco_usado": "121 GB",
+    "disco_livre": "325.9 GB",
+    "disco_percentual": "27%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "425355594",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\lucas.ezequiel",
+    "data_coleta": "2026-10-02 13:36:07"
+}

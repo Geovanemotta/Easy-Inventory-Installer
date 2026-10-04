@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-TESOU-5505",
+    "loja": "",
+    "ip": "192.168.91.135",
+    "ip_secundario": "54.232.189.113",
+    "mac": "2C-FD-A1-C8-75-5E",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "105.3 GB",
+    "disco_livre": "117.3 GB",
+    "disco_percentual": "47%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "1595780420",
+    "fabricante": "System manufacturer",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\tamires.patricio",
+    "data_coleta": "2026-10-02 13:31:54"
+}

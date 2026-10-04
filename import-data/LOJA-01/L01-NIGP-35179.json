@@ -1,0 +1,184 @@
+{
+    "hostname": "L01-NIGP-35179",
+    "loja": "01",
+    "ip": "192.168.11.35",
+    "ip_secundario": "",
+    "mac": "E0-D5-5E-F2-A5-31",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7350K CPU @ 4.20GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "197.5 GB",
+    "disco_livre": "25.1 GB",
+    "disco_percentual": "89%",
+    "analise_disco": {
+        "executada": true,
+        "top_usuarios": [
+            {
+                "usuario": "mariana.dagostin",
+                "tamanho": "17.28 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\mariana.dagostin\\AppData",
+                        "tamanho": "11.5 GB"
+                    },
+                    {
+                        "pasta": "Documents",
+                        "caminho": "C:\\Users\\mariana.dagostin\\Documents",
+                        "tamanho": "5.5 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\mariana.dagostin\\Desktop",
+                        "tamanho": "0.13 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\mariana.dagostin\\Downloads",
+                        "tamanho": "0.12 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\mariana.dagostin\\Pictures",
+                        "tamanho": "0.02 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "julio.tibincoski",
+                "tamanho": "14.23 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\julio.tibincoski\\AppData",
+                        "tamanho": "14 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\julio.tibincoski\\Desktop",
+                        "tamanho": "0.13 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\julio.tibincoski\\Downloads",
+                        "tamanho": "0.08 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\julio.tibincoski\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\julio.tibincoski\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "joao.novack",
+                "tamanho": "6.3 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\joao.novack\\AppData",
+                        "tamanho": "6.29 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\joao.novack\\Downloads",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\joao.novack\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\joao.novack\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\joao.novack\\Links",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "tais.eusebio",
+                "tamanho": "6.1 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\tais.eusebio\\AppData",
+                        "tamanho": "5.81 GB"
+                    },
+                    {
+                        "pasta": "Downloads",
+                        "caminho": "C:\\Users\\tais.eusebio\\Downloads",
+                        "tamanho": "0.13 GB"
+                    },
+                    {
+                        "pasta": "Hamster-DX-III-Windows-Driver-1.6.0.0",
+                        "caminho": "C:\\Users\\tais.eusebio\\Hamster-DX-III-Windows-Driver-1.6.0.0",
+                        "tamanho": "0.07 GB"
+                    },
+                    {
+                        "pasta": "Pictures",
+                        "caminho": "C:\\Users\\tais.eusebio\\Pictures",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\tais.eusebio\\Desktop",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            },
+            {
+                "usuario": "marcelo.teixeira",
+                "tamanho": "4.21 GB",
+                "pastas": [
+                    {
+                        "pasta": "AppData",
+                        "caminho": "C:\\Users\\marcelo.teixeira\\AppData",
+                        "tamanho": "4.2 GB"
+                    },
+                    {
+                        "pasta": "IntelGraphicsProfiles",
+                        "caminho": "C:\\Users\\marcelo.teixeira\\IntelGraphicsProfiles",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Desktop",
+                        "caminho": "C:\\Users\\marcelo.teixeira\\Desktop",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Links",
+                        "caminho": "C:\\Users\\marcelo.teixeira\\Links",
+                        "tamanho": "0 GB"
+                    },
+                    {
+                        "pasta": "Searches",
+                        "caminho": "C:\\Users\\marcelo.teixeira\\Searches",
+                        "tamanho": "0 GB"
+                    }
+                ]
+            }
+        ]
+    },
+    "rustdesk_id": "519218481",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H110M-S2PH",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\tais.eusebio",
+    "data_coleta": "2026-10-02 14:04:19"
+}

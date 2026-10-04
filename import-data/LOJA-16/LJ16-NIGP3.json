@@ -1,0 +1,17 @@
+{
+    "hostname": "LJ16-NIGP3",
+    "loja": "16",
+    "ip": "192.168.31.22",
+    "mac": "18:c0:4d:f0:4c:3e",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "43G",
+    "disco_livre": "62G",
+    "disco_percentual": "41%",
+    "rustdesk_id": "233851966",
+    "data_coleta": "2026-09-30 15:02:18"
+}

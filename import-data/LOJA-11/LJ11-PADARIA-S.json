@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ11-PADARIA-S",
+    "loja": "11",
+    "ip": "192.168.20.9",
+    "mac": "1c:1b:0d:f3:0f:9d",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G3260 @ 3.30GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "34G",
+    "disco_livre": "70G",
+    "disco_percentual": "33%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1944379008",
+    "data_coleta": "2026-10-01 15:54:10"
+}

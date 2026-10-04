@@ -1,0 +1,20 @@
+{
+    "hostname": "L16-DEP-34317",
+    "loja": "16",
+    "ip": "192.168.31.24",
+    "mac": "18:c0:4d:f0:4c:2e",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "110G",
+    "disco_usado": "33G",
+    "disco_livre": "71G",
+    "disco_percentual": "32%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "233851950",
+    "data_coleta": "2026-10-01 15:50:14"
+}

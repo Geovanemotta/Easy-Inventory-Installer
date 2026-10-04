@@ -1,0 +1,20 @@
+{
+    "hostname": "LJ14-CAIXA-DEV",
+    "loja": "14",
+    "ip": "192.168.24.6",
+    "mac": "94:de:80:f1:17:5f",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Pentium(R) CPU G2030 @ 3.00GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "28G",
+    "disco_livre": "76G",
+    "disco_percentual": "27%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "15800159",
+    "data_coleta": "2026-10-01 14:41:42"
+}

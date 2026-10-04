@@ -1,0 +1,17 @@
+{
+    "hostname": "CB02-DEPOSITO3",
+    "loja": "",
+    "ip": "192.168.29.8",
+    "mac": "2c:fd:a1:c7:f5:b1",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-6100 CPU @ 3.70GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "33G",
+    "disco_livre": "71G",
+    "disco_percentual": "32%",
+    "rustdesk_id": "29881777",
+    "data_coleta": "2026-09-29 15:06:21"
+}

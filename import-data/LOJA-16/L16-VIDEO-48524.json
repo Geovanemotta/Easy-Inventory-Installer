@@ -1,0 +1,20 @@
+{
+    "hostname": "L16-VIDEO-48524",
+    "loja": "16",
+    "ip": "192.168.31.97",
+    "mac": "18:c0:4d:f1:d2:f3",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "52G",
+    "disco_livre": "52G",
+    "disco_percentual": "50%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1937556909",
+    "data_coleta": "2026-10-01 16:51:24"
+}

@@ -1,0 +1,17 @@
+{
+    "hostname": "LJ04-NIGP6",
+    "loja": "04",
+    "ip": "192.168.9.10",
+    "mac": "90:2b:34:f5:52:58",
+    "sistema": "ubuntu",
+    "versao": "20.04",
+    "status": "OUTRO",
+    "processador": "Intel(R) Pentium(R) CPU G2020 @ 2.90GHz",
+    "ram_total": "7,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "64G",
+    "disco_livre": "40G",
+    "disco_percentual": "62%",
+    "rustdesk_id": "1100214214",
+    "data_coleta": "2026-09-29 13:31:41"
+}

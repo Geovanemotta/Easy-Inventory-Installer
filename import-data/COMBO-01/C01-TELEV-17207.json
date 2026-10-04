@@ -1,0 +1,20 @@
+{
+    "hostname": "C01-TELEV-17207",
+    "loja": "",
+    "ip": "192.168.88.104",
+    "mac": "10:ff:e0:46:0e:9e",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "11G",
+    "disco_livre": "93G",
+    "disco_percentual": "11%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1596902633",
+    "data_coleta": "2026-10-01 15:58:10"
+}

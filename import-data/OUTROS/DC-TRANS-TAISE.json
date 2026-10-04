@@ -1,0 +1,17 @@
+{
+    "hostname": "DC-TRANS-TAISE",
+    "loja": "",
+    "ip": "192.168.94.146",
+    "mac": "e0:d5:5e:f0:9c:50",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Pentium(R) CPU G4400 @ 3.30GHz",
+    "ram_total": "7,7Gi",
+    "disco_total": "109G",
+    "disco_usado": "39G",
+    "disco_livre": "66G",
+    "disco_percentual": "38%",
+    "rustdesk_id": "519085136",
+    "data_coleta": "2026-09-29 10:54:21"
+}

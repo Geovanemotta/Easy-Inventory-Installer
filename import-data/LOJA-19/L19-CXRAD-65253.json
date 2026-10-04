@@ -1,0 +1,28 @@
+{
+    "hostname": "L19-CXRAD-65253",
+    "loja": "19",
+    "ip": "192.168.39.7",
+    "ip_secundario": "",
+    "mac": "30-C5-99-33-9C-F7",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i3-12100F",
+    "ram_total": "7.8 GB",
+    "disco_total": "223.3 GB",
+    "disco_usado": "86.9 GB",
+    "disco_livre": "136.4 GB",
+    "disco_percentual": "39%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "422812919",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\simone.rocha",
+    "data_coleta": "2026-10-02 13:17:45"
+}

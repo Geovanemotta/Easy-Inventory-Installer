@@ -1,0 +1,20 @@
+{
+    "hostname": "L18-DEPO-57476",
+    "loja": "18",
+    "ip": "192.168.38.17",
+    "mac": "10:ff:e0:46:74:35",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "42G",
+    "disco_livre": "62G",
+    "disco_percentual": "41%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "4617269",
+    "data_coleta": "2026-10-01 15:50:05"
+}

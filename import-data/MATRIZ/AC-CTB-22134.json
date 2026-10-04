@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-CTB-22134",
+    "loja": "",
+    "ip": "192.168.84.58",
+    "ip_secundario": "",
+    "mac": "D0-94-66-B2-45-98",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7020U CPU @ 2.30GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.4 GB",
+    "disco_usado": "146.3 GB",
+    "disco_livre": "76.1 GB",
+    "disco_percentual": "66%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "112346520",
+    "fabricante": "Dell Inc.",
+    "modelo": "Vostro 3481",
+    "serial": "4MYFSY2",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\edenilson.flor",
+    "data_coleta": "2026-10-02 13:20:12"
+}

@@ -1,0 +1,28 @@
+{
+    "hostname": "C02-PROMO-11693",
+    "loja": "02",
+    "ip": "192.168.29.5",
+    "ip_secundario": "",
+    "mac": "2C-FD-A1-C7-E3-E3",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-6100 CPU @ 3.70GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "142.7 GB",
+    "disco_livre": "79.9 GB",
+    "disco_percentual": "64%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "29877219",
+    "fabricante": "System manufacturer",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\portaria.cb02",
+    "data_coleta": "2026-10-02 09:12:03"
+}

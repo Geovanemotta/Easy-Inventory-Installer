@@ -1,0 +1,28 @@
+{
+    "hostname": "L17-RADIO-51732",
+    "loja": "17",
+    "ip": "192.168.34.9",
+    "ip_secundario": "",
+    "mac": "D8-5E-D3-DF-54-23",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz",
+    "ram_total": "7.8 GB",
+    "disco_total": "222.5 GB",
+    "disco_usado": "151.8 GB",
+    "disco_livre": "70.7 GB",
+    "disco_percentual": "68%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "333403171",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H510M H",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\tania.fernandes",
+    "data_coleta": "2026-10-02 13:11:12"
+}

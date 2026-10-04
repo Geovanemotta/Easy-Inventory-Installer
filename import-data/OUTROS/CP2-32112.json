@@ -1,0 +1,28 @@
+{
+    "hostname": "CP2-32112",
+    "loja": "",
+    "ip": "192.168.95.198",
+    "ip_secundario": "",
+    "mac": "B4-2E-99-F5-70-A1",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ram_total": "11.9 GB",
+    "disco_total": "222.7 GB",
+    "disco_usado": "136.9 GB",
+    "disco_livre": "85.9 GB",
+    "disco_percentual": "61%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "435515553",
+    "fabricante": "Gigabyte Technology Co., Ltd.",
+    "modelo": "H310M S2P 2.0",
+    "serial": "",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\fabricio.zilli",
+    "data_coleta": "2026-10-02 13:27:51"
+}

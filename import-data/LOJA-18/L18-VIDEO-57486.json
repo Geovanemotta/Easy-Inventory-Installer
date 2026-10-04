@@ -1,0 +1,20 @@
+{
+    "hostname": "L18-VIDEO-57486",
+    "loja": "18",
+    "ip": "192.168.38.97",
+    "mac": "10:ff:e0:46:0e:13",
+    "sistema": "ubuntu",
+    "versao": "24.04",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "110G",
+    "disco_usado": "33G",
+    "disco_livre": "72G",
+    "disco_percentual": "32%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "4591123",
+    "data_coleta": "2026-10-01 15:27:19"
+}

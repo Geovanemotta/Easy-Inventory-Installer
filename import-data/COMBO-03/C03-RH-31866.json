@@ -1,0 +1,28 @@
+{
+    "hostname": "C03-RH-31866",
+    "loja": "03",
+    "ip": "192.168.30.22",
+    "ip_secundario": "",
+    "mac": "2C-FD-A1-C7-E3-0A",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26100",
+    "status": "OK",
+    "processador": "Intel(R) Core(TM) i3-7100 CPU @ 3.90GHz",
+    "ram_total": "7.9 GB",
+    "disco_total": "222.6 GB",
+    "disco_usado": "147.3 GB",
+    "disco_livre": "75.3 GB",
+    "disco_percentual": "66%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "29877002",
+    "fabricante": "System manufacturer",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\juliana.oliveira",
+    "data_coleta": "2026-10-02 13:31:42"
+}

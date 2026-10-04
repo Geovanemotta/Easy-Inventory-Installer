@@ -1,0 +1,17 @@
+{
+    "hostname": "AC-AUD-NOVO",
+    "loja": "",
+    "ip": "192.168.91.98",
+    "mac": "74:56:3c:f0:d1:09",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz",
+    "ram_total": "7,6Gi",
+    "disco_total": "109G",
+    "disco_usado": "41G",
+    "disco_livre": "63G",
+    "disco_percentual": "40%",
+    "rustdesk_id": "485544201",
+    "data_coleta": "2026-09-30 16:38:23"
+}

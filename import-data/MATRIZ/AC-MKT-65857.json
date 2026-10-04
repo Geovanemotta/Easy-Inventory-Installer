@@ -1,0 +1,28 @@
+{
+    "hostname": "AC-MKT-65857",
+    "loja": "",
+    "ip": "192.168.78.114",
+    "ip_secundario": "",
+    "mac": "30-C5-99-13-C7-04",
+    "sistema": "Windows",
+    "versao": "Microsoft Windows 11 Pro",
+    "build": "26200",
+    "status": "OK",
+    "processador": "AMD Ryzen 9 9950X3D 16-Core Processor          ",
+    "ram_total": "61.7 GB",
+    "disco_total": "931.2 GB",
+    "disco_usado": "247.2 GB",
+    "disco_livre": "684 GB",
+    "disco_percentual": "27%",
+    "analise_disco": {
+        "executada": false,
+        "top_usuarios": []
+    },
+    "rustdesk_id": "420726532",
+    "fabricante": "ASUS",
+    "modelo": "System Product Name",
+    "serial": "System Serial Number",
+    "dominio": "giassisuper.corp",
+    "usuario": "GIASSISUPER\\diego.matos",
+    "data_coleta": "2026-10-02 13:30:19"
+}

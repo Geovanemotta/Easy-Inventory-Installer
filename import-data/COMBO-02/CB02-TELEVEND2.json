@@ -1,0 +1,20 @@
+{
+    "hostname": "CB02-TELEVEND2",
+    "loja": "",
+    "ip": "192.168.29.13",
+    "mac": "2c:fd:a1:c7:dc:eb",
+    "sistema": "ubuntu",
+    "versao": "22.04",
+    "status": "UPGRADE_REQUIRED",
+    "processador": "Intel(R) Core(TM) i3-6100 CPU @ 3.70GHz",
+    "ram_total": "3,7Gi",
+    "disco_total": "219G",
+    "disco_usado": "68G",
+    "disco_livre": "141G",
+    "disco_percentual": "33%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "1488325065",
+    "data_coleta": "2026-10-01 15:27:22"
+}

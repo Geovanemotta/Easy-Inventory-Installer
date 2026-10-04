@@ -1,0 +1,20 @@
+{
+    "hostname": "C09-DEPOS-68933",
+    "loja": "",
+    "ip": "192.168.40.19",
+    "mac": "30:c5:99:33:57:d8",
+    "sistema": "zorin",
+    "versao": "18",
+    "status": "OK",
+    "processador": "12th Gen Intel(R) Core(TM) i3-12100",
+    "ram_total": "7,5Gi",
+    "disco_total": "109G",
+    "disco_usado": "29G",
+    "disco_livre": "76G",
+    "disco_percentual": "28%",
+    "analise_disco": {
+        "executada": false
+    },
+    "rustdesk_id": "422795224",
+    "data_coleta": "2026-10-01 14:44:04"
+}
