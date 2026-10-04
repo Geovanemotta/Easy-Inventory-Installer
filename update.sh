@@ -32,7 +32,7 @@ fi
 
 # 2. Puxa atualizações do Git (se for repositório git)
 if [ -d ".git" ]; then
-    echo -e "${YELLOW}[1/4] Baixando novidades do repositório Git...${NC}"
+    echo -e "${YELLOW}[1/4] Baixando updates do repositório Git...${NC}"
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
     echo " [*] Branch atual: $CURRENT_BRANCH"
     git fetch origin "$CURRENT_BRANCH"
