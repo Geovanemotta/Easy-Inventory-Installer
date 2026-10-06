@@ -110,7 +110,8 @@ if [ -f ".env" ]; then
         echo " [*] Aplicando migrações estruturais do banco de dados..."
         $DOCKER_COMPOSE exec -T backend alembic upgrade head
         echo " [*] Sincronizando novos perfis (Operador Matriz) e permissões..."
-        $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles
+        $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles || \
+        $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles || true
 
         echo ""
         echo -e "${CYAN}==================================================================${NC}"
@@ -307,7 +308,8 @@ $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey \
     $CREATE_SITES_FLAG
 
 echo " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
-$DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles
+$DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles || \
+$DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles || true
 
 # ------------------------------------------------------------------------------
 # 7. Conclusão e Resumo da Instalação

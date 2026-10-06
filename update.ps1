@@ -56,7 +56,7 @@ Write-Host "[✓] PostgreSQL pronto para conexões." -ForegroundColor Green
 # 5. Executar migrações pendentes no banco de dados (Alembic) e sincronizar perfis
 Write-Host "[5/5] Aplicando novas migrações e sincronizando perfis no banco..." -ForegroundColor Yellow
 docker compose exec -T backend alembic upgrade head
-docker compose exec -T backend python -m app.seeds.sync_roles
+docker compose exec -T backend python -m app.seeds.seed_turnkey --sync-roles
 Write-Host "[✓] Banco de dados e papéis estruturalmente atualizados sem perda de dados." -ForegroundColor Green
 
 # Limpeza de imagens órfãs antigas
@@ -76,4 +76,5 @@ Write-Host " Status dos serviços:"
 docker compose ps
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ""
+
 

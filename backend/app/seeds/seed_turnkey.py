@@ -251,17 +251,74 @@ def seed_database(
         print("=" * 60)
 
 
+def sync_roles_only():
+    print("=" * 60)
+    print(" [*] Sincronizando papéis (roles) e permissões do sistema...")
+    print("=" * 60)
+    with Session(engine) as session:
+        perm_map = {}
+        for pdata in PERMISSIONS:
+            perm = session.scalar(select(Permission).where(Permission.slug == pdata["slug"]))
+            if perm is None:
+                perm = Permission(
+                    name=pdata["name"],
+                    slug=pdata["slug"],
+                    description=pdata["description"],
+                    active=True,
+                )
+                session.add(perm)
+                session.flush()
+            perm_map[pdata["slug"]] = perm
+        print(f" [+] {len(perm_map)} Permissões do sistema garantidas.")
+
+        for rdata in ROLES:
+            role = session.scalar(select(Role).where(Role.slug == rdata["slug"]))
+            if role is None:
+                role = Role(
+                    name=rdata["name"],
+                    slug=rdata["slug"],
+                    description=rdata["description"],
+                    active=True,
+                )
+                session.add(role)
+                session.flush()
+                print(f" [+] Novo papel criado: {role.slug}")
+            else:
+                role.name = rdata["name"]
+                role.description = rdata["description"]
+                role.active = True
+
+            for pslug in rdata["permissions"]:
+                p_obj = perm_map.get(pslug)
+                if p_obj and p_obj not in role.permissions:
+                    role.permissions.append(p_obj)
+                    print(f" [+] Permissão '{pslug}' vinculada ao papel '{role.slug}'")
+
+        session.commit()
+    print("=" * 60)
+    print(" [✓] Papéis e permissões sincronizados com sucesso!")
+    print("=" * 60)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Seed inicial turnkey para instalação limpa.")
+    parser.add_argument("--sync-roles", action="store_true", help="Apenas sincronizar papéis e permissões sem alterar dados")
     parser.add_argument("--company-name", default="Giassi Supermercados", help="Nome da empresa")
     parser.add_argument("--company-slug", default="giassi", help="Slug único da empresa")
     parser.add_argument("--admin-username", default="admin", help="Nome de usuário do admin")
     parser.add_argument("--admin-fullname", default="Administrador do Sistema", help="Nome completo do admin")
     parser.add_argument("--admin-email", default="admin@giassi.com.br", help="E-mail do admin")
-    parser.add_argument("--admin-password", required=True, help="Senha do admin inicial")
+    parser.add_argument("--admin-password", required=False, help="Senha do admin inicial")
     parser.add_argument("--no-default-sites", action="store_true", help="Não criar lista padrão de lojas/filiais")
 
     args = parser.parse_args()
+
+    if args.sync_roles:
+        sync_roles_only()
+        return
+
+    if not args.admin_password:
+        parser.error("o parâmetro --admin-password é obrigatório para inicialização completa.")
 
     seed_database(
         company_name=args.company_name,

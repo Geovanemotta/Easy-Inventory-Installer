@@ -85,7 +85,7 @@ if (Test-Path ".env") {
         Write-Host " [*] Aplicando migrações estruturais do banco de dados..."
         docker compose exec -T backend alembic upgrade head
         Write-Host " [*] Sincronizando novos perfis (Operador Matriz) e permissões..."
-        docker compose exec -T backend python -m app.seeds.sync_roles
+        docker compose exec -T backend python -m app.seeds.seed_turnkey --sync-roles
 
         Write-Host ""
         Write-Host "==================================================================" -ForegroundColor Cyan
@@ -257,7 +257,7 @@ else {
 }
 
 Write-Host " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
-docker compose exec -T backend python -m app.seeds.sync_roles
+docker compose exec -T backend python -m app.seeds.seed_turnkey --sync-roles
 
 # 7. Conclusão
 Write-Host ""
@@ -286,4 +286,5 @@ Write-Host "     'giassi.crt' e 'giassi.key' na pasta './nginx/certs/'"
 Write-Host "     e execute: docker exec giassi-nginx nginx -s reload"
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ""
+
 

@@ -33,6 +33,7 @@ services:
       DATABASE_URL: "postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}"
+      PYTHONPATH: "/app"
 
     ports:
       - "8000:8000"

@@ -35,8 +35,8 @@ if [ -d ".git" ]; then
     echo -e "${YELLOW}[1/5] Baixando novidades do repositório Git...${NC}"
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
     echo " [*] Branch atual: $CURRENT_BRANCH"
-    git fetch origin "$CURRENT_BRANCH" 2>/dev/null || true
-    git pull origin "$CURRENT_BRANCH" 2>/dev/null || true
+    git fetch origin "$CURRENT_BRANCH"
+    git pull origin "$CURRENT_BRANCH"
     echo -e "${GREEN}[✓] Código-fonte atualizado para a versão mais recente.${NC}"
 else
     echo -e "${YELLOW}[1/5] Diretório não é um clone git. Pulando 'git pull'.${NC}"
@@ -78,7 +78,8 @@ echo -e "${GREEN}[✓] PostgreSQL pronto para conexões.${NC}"
 # 6. Executar migrações estruturais do banco de dados (Alembic) e sincronizar perfis
 echo -e "${YELLOW}[5/5] Aplicando novas migrações e sincronizando perfis no banco...${NC}"
 $DOCKER_COMPOSE exec -T backend alembic upgrade head
-$DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles
+$DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles || \
+$DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles || true
 echo -e "${GREEN}[✓] Banco de dados e papéis estruturalmente atualizados sem perda de dados.${NC}"
 
 # Limpeza de imagens órfãs antigas
