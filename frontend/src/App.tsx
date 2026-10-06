@@ -8,6 +8,7 @@ import ActiveDirectoryPage from './pages/ActiveDirectoryPage'
 import AppsPage from './pages/AppsPage'
 import InventoryPage from './pages/InventoryPage'
 import Login from './pages/Login'
+import NetworkAssetsPage from './pages/NetworkAssetsPage'
 import ReportsPage from './pages/ReportsPage'
 import {
   clearDeviceAlert,
@@ -36,6 +37,7 @@ export default function App() {
     company_id: number
     active: boolean
     is_superadmin: boolean
+    roles?: string[]
   } | null>(() => {
     try {
       const saved = localStorage.getItem('current_user')
@@ -48,7 +50,7 @@ export default function App() {
   const [rawInventory, setRawInventory] = useState<RawInventoryItem[]>([])
   const [loading, setLoading] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<string>('-')
-  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad'>('inv')
+  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net'>('inv')
   const [toast, setToast] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -84,7 +86,7 @@ export default function App() {
     }
   }
 
-  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad') {
+  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net') {
     setView(v)
     window.location.hash = v
   }
@@ -143,6 +145,12 @@ export default function App() {
     } finally {
       setExcluindoDevice(false)
     }
+  }
+
+  function handleUpdateDeviceLocal(updated: Partial<RawInventoryItem> & { id: number }) {
+    setRawInventory((prev) =>
+      prev.map((d) => (d.id === updated.id ? { ...d, ...updated } : d))
+    )
   }
 
   const inventario: EnrichedMachine[] = useMemo(() => {
@@ -258,16 +266,16 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '')
-    if (['rel', 'apps', 'ad'].includes(hash)) {
-      setView(hash as 'inv' | 'rel' | 'apps' | 'ad')
+    if (['rel', 'apps', 'ad', 'net'].includes(hash)) {
+      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net')
     } else {
       setView('inv')
     }
 
     const onHashChange = () => {
       const h = window.location.hash.replace('#', '')
-      if (['rel', 'apps', 'ad'].includes(h)) {
-        setView(h as 'inv' | 'rel' | 'apps' | 'ad')
+      if (['rel', 'apps', 'ad', 'net'].includes(h)) {
+        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net')
       } else {
         setView('inv')
       }
@@ -276,9 +284,10 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
-  // Restrição de perfil de loja: operadores só têm acesso a inventário e relatórios
+  // Restrição de perfis: apenas administradores têm acesso a apps e ad
   useEffect(() => {
-    if (currentUser && !currentUser.is_superadmin && (view === 'apps' || view === 'ad')) {
+    const isAdmin = Boolean(currentUser?.is_superadmin || currentUser?.roles?.includes('admin'))
+    if (currentUser && !isAdmin && (view === 'apps' || view === 'ad')) {
       irPara('inv')
     }
   }, [currentUser, view])
@@ -325,6 +334,7 @@ export default function App() {
               inventario={inventario}
               filiaisOpcoes={filiaisOpcoes}
               isSuperAdmin={Boolean(currentUser?.is_superadmin)}
+              userRoles={currentUser?.roles || []}
               loading={loading}
               historicoMap={historicoMap}
               loadingHistorico={loadingHistorico}
@@ -334,6 +344,8 @@ export default function App() {
               copiarTexto={copiarTexto}
               inventoryTarget={inventoryTarget}
               onClearTarget={() => setInventoryTarget(null)}
+              onUpdateDevice={handleUpdateDeviceLocal}
+              showToast={showToast}
             />
           )}
 
@@ -343,6 +355,15 @@ export default function App() {
               filiaisOpcoes={filiaisOpcoes}
               isSuperAdmin={Boolean(currentUser?.is_superadmin)}
               abrirMaquinaNoInventario={abrirMaquinaNoInventario}
+            />
+          )}
+
+          {view === 'net' && (
+            <NetworkAssetsPage
+              token={localStorage.getItem('access_token') || ''}
+              isSuperAdmin={Boolean(currentUser?.is_superadmin)}
+              userRoles={currentUser?.roles || []}
+              showToast={showToast}
             />
           )}
 

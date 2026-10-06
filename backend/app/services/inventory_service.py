@@ -374,7 +374,10 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
         Device.active.is_(True),
     )
 
-    if not current_user.is_superadmin:
+    role_slugs = [r.slug for r in current_user.roles] if current_user.roles else []
+    is_global = current_user.is_superadmin or "admin" in role_slugs or "operador_matriz" in role_slugs
+
+    if not is_global:
         allowed_sites = (
             select(user_site_access.c.site_id)
             .where(user_site_access.c.user_id == current_user.id)
@@ -431,6 +434,12 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
             "windows_release": d.windows_release or (d.extra_data.get("windows_release") if isinstance(d.extra_data, dict) else "") or "",
             "analise_disco": d.analise_disco or {"executada": False},
             "data_coleta": (d.data_coleta or d.updated_at).strftime("%Y-%m-%d %H:%M:%S") if (d.data_coleta or d.updated_at) else "",
+            "patrimonio": d.patrimonio or "",
+            "firewall_status": d.firewall_status or "",
+            "firewall_solicitado_por": d.firewall_solicitado_por or "",
+            "firewall_solicitado_em": d.firewall_solicitado_em.strftime("%Y-%m-%d %H:%M:%S") if d.firewall_solicitado_em else "",
+            "firewall_confirmado_por": d.firewall_confirmado_por or "",
+            "firewall_confirmado_em": d.firewall_confirmado_em.strftime("%Y-%m-%d %H:%M:%S") if d.firewall_confirmado_em else "",
         }
 
         # Inclui softwares se presentes em extra_data

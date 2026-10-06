@@ -18,3 +18,4 @@ class UserResponse(BaseModel):
     full_name: str
     company_id: int
     is_superadmin: bool
+    roles: list[str] = []

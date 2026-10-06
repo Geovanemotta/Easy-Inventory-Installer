@@ -1,14 +1,15 @@
-# ==============================================================================
+﻿# ==============================================================================
 #  SISTEMA DE INVENTÁRIO - INSTALADOR TURNKEY (WINDOWS / POWERSHELL)
-#  Prepara e inicializa todo o ecossistema Docker do zero em um servidor Windows.
+#  Prepara e inicializa todo o ecossistema Docker do zero ou atualiza
+#  servidores já em execução mantendo 100% dos dados intactos.
 # ==============================================================================
 
 Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Cyan
-Write-Host "   SISTEMA DE INVENTÁRIO CORPORATIVO - INSTALADOR TURNKEY" -ForegroundColor Cyan
+Write-Host "   SISTEMA DE INVENTÁRIO CORPORATIVO - INSTALADOR / ATUALIZADOR" -ForegroundColor Cyan
 Write-Host "==================================================================" -ForegroundColor Cyan
-Write-Host " Este assistente irá configurar o servidor e inicializar todos"
-Write-Host " os serviços em containers Docker de forma 100% automatizada."
+Write-Host " Este assistente configura o servidor e inicializa todos os"
+Write-Host " serviços em containers Docker de forma automatizada e segura."
 Write-Host ""
 
 # 1. Checagem de Pré-requisitos
@@ -36,7 +37,68 @@ catch {
 Write-Host "[✓] Docker operacional." -ForegroundColor Green
 Write-Host ""
 
-# 2. Perguntas Interativas
+# 2. Detecção de Instalação Existente (Modo Upgrade Seguro vs Nova Instalação)
+if (Test-Path ".env") {
+    Write-Host "------------------------------------------------------------------" -ForegroundColor Cyan
+    Write-Host "[!] Foi detectado um arquivo de configuração '.env' pré-existente!" -ForegroundColor Yellow
+    Write-Host "    1) Modo Atualização Segura (Recomendado)" -ForegroundColor Cyan
+    Write-Host "       - Mantém todas as credenciais, usuários e máquinas intactos."
+    Write-Host "       - Atualiza o banco com as novas funcionalidades e migrações."
+    Write-Host "       - Recompila o frontend e reinicia os containers com segurança."
+    Write-Host "    2) Reconfigurar Parâmetros / Nova Instalação"
+    Write-Host "       - Permite alterar credenciais, portas e configurações."
+    Write-Host "------------------------------------------------------------------" -ForegroundColor Cyan
+    $setupChoice = Read-Host " Escolha uma opção [1/2, padrão 1]"
+    if (-not $setupChoice -or $setupChoice -eq "1") {
+        Write-Host ""
+        Write-Host "[✓] Iniciando Atualização Segura (sem perda de dados)..." -ForegroundColor Green
+
+        # Compilar frontend
+        Write-Host "[*] Compilando painel frontend..." -ForegroundColor Yellow
+        $npmCmd = Get-Command "npm.cmd" -ErrorAction SilentlyContinue
+        if ($npmCmd) {
+            Push-Location "frontend"
+            cmd.exe /c "npm install"
+            cmd.exe /c "npm run build"
+            Pop-Location
+        } else {
+            docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine sh -c "npm install; npm run build"
+        }
+        Write-Host "[✓] Frontend compilado com sucesso." -ForegroundColor Green
+
+        # Subir containers mantendo volumes
+        Write-Host "[*] Atualizando e iniciando containers Docker..." -ForegroundColor Yellow
+        docker compose up -d --build
+
+        # Aguardar PostgreSQL
+        Write-Host " [*] Aguardando o banco de dados PostgreSQL estar operacional..."
+        $attempts = 0
+        while ($attempts -lt 30) {
+            docker compose exec -T postgres pg_isready > $null 2>&1
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 1
+            $attempts++
+        }
+        Write-Host "[✓] PostgreSQL operacional." -ForegroundColor Green
+
+        # Aplicar migrações estruturais do banco (Alembic) e papéis
+        Write-Host " [*] Aplicando migrações estruturais do banco de dados..."
+        docker compose exec -T backend alembic upgrade head
+        Write-Host " [*] Sincronizando novos perfis (Operador Matriz) e permissões..."
+        docker compose exec -T backend python -m app.seeds.sync_roles
+
+        Write-Host ""
+        Write-Host "==================================================================" -ForegroundColor Cyan
+        Write-Host "   SISTEMA ATUALIZADO COM SUCESSO! 🚀" -ForegroundColor Green
+        Write-Host "==================================================================" -ForegroundColor Cyan
+        Write-Host " Banco de dados preservado com novas tabelas e perfis." -ForegroundColor Green
+        Write-Host "==================================================================" -ForegroundColor Cyan
+        Write-Host ""
+        exit 0
+    }
+}
+
+# 3. Perguntas Interativas
 Write-Host "[2/6] Coleta de parâmetros da instalação:" -ForegroundColor Yellow
 Write-Host "------------------------------------------------------------------"
 
@@ -108,7 +170,7 @@ if ($defaultSitesInput -match '^[Nn]') {
 }
 
 Write-Host ""
-# 3. Geração do .env
+# 4. Geração do .env
 Write-Host "[3/6] Gerando variáveis de ambiente (.env) e chaves JWT..." -ForegroundColor Yellow
 
 $jwtBytes = New-Object byte[] 32
@@ -131,30 +193,39 @@ PORT_HTTPS=$portHttps
 Set-Content -Path ".env" -Value $envContent -Encoding utf8
 Write-Host "[✓] Arquivo .env gerado com sucesso." -ForegroundColor Green
 
-# 4. Frontend Build
+# 5. Frontend Build
 Write-Host "[4/6] Verificando compilação do painel frontend..." -ForegroundColor Yellow
 if (-not (Test-Path "frontend/dist/index.html")) {
-    Write-Host " [*] Compilando arquivos do frontend via container Node.js isolado..."
-    docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
+    Write-Host " [*] Compilando arquivos do frontend..."
+    $npmCmd = Get-Command "npm.cmd" -ErrorAction SilentlyContinue
+    if ($npmCmd) {
+        Push-Location "frontend"
+        cmd.exe /c "npm install"
+        cmd.exe /c "npm run build"
+        Pop-Location
+    } else {
+        docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine sh -c "npm install; npm run build"
+    }
     Write-Host "[✓] Frontend compilado em ./frontend/dist!" -ForegroundColor Green
 }
 else {
     Write-Host "[✓] Frontend já compilado anteriormente." -ForegroundColor Green
 }
 
-# 5. Inicialização dos Containers
+# 6. Inicialização dos Containers
 Write-Host "[5/6] Construindo e iniciando containers Docker..." -ForegroundColor Yellow
 
 $existingVol = docker volume ls -q 2>$null | Select-String "postgres_data"
 if ($existingVol) {
     Write-Host " [!] Foi detectado um volume de banco de dados pré-existente." -ForegroundColor Yellow
-    Write-Host "     Para garantir que as novas credenciais sejam aplicadas com sucesso:"
-    $resetDb = Read-Host "     Deseja recriar o banco de dados do zero? [S/n]"
-    if (-not $resetDb -or $resetDb -notmatch '^[Nn]') {
+    Write-Host " [ATENÇÃO] Recriar o banco do zero apagará todas as máquinas e dados coletados!" -ForegroundColor Red
+    $resetDb = Read-Host "     Deseja realmente APAGAR o banco de dados existente? [s/N]"
+    if ($resetDb -match '^[Ss]') {
         Write-Host " [*] Resetando banco para instalação limpa..."
         docker compose down -v 2>$null
     }
     else {
+        Write-Host " [*] Preservando volume de banco de dados existente..."
         docker compose down 2>$null
     }
 }
@@ -185,7 +256,10 @@ else {
     docker compose exec -T backend python -m app.seeds.seed_turnkey --company-name "$companyName" --company-slug "$companySlug" --admin-username "$adminUser" --admin-fullname "$adminFullname" --admin-email "$adminEmail" --admin-password "$adminPass"
 }
 
-# 6. Conclusão
+Write-Host " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
+docker compose exec -T backend python -m app.seeds.sync_roles
+
+# 7. Conclusão
 Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host "   INSTALAÇÃO CONCLUÍDA COM SUCESSO! 🚀" -ForegroundColor Green
@@ -212,3 +286,4 @@ Write-Host "     'giassi.crt' e 'giassi.key' na pasta './nginx/certs/'"
 Write-Host "     e execute: docker exec giassi-nginx nginx -s reload"
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ""
+

@@ -1,6 +1,6 @@
 
 type HeaderProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad'
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net'
   lastUpdate: string
   loading: boolean
   isSuperAdmin: boolean
@@ -21,12 +21,14 @@ export default function Header({
       <div>
         <h1>
           {view === 'inv' && 'Inventário de estações'}
+          {view === 'net' && 'Ativos de Rede & Periféricos'}
           {view === 'rel' && 'Relatórios'}
           {view === 'apps' && 'Aplicativos instalados'}
           {view === 'ad' && 'Active Directory & Acessos'}
         </h1>
         <p>
           {view === 'inv' && 'Monitoramento de estações Linux e Windows'}
+          {view === 'net' && 'Monitoramento ativo de impressoras, switches, roteadores e access points'}
           {view === 'rel' &&
             'Consulta por processador, placa-mãe, memória e outros dados'}
           {view === 'apps' && 'Versões e máquinas por aplicativo'}

@@ -16,12 +16,16 @@ type Props = {
   showToast: (msg: string) => void
 }
 
-type Role = 'operator' | 'admin'
+type Role = 'operator' | 'admin' | 'operador_matriz'
 type SiteKind = 'loja' | 'combo' | 'outros'
 type TabId = 'conexao' | 'permissoes' | 'simulador'
 type SiteTab = 'all' | SiteKind
 
-const ROLE_LABEL: Record<Role, string> = { operator: 'Operador', admin: 'Administrador da loja' }
+const ROLE_LABEL: Record<Role, string> = {
+  operator: 'Operador de Loja',
+  admin: 'Administrador da loja',
+  operador_matriz: 'Operador Matriz (Todas as Lojas / Firewall)',
+}
 const KIND_LABEL: Record<SiteKind, string> = { loja: 'Lojas', combo: 'Combos', outros: 'Matriz / Outros' }
 const MAP_CHIPS_COLLAPSED = 8
 
@@ -145,6 +149,7 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
     groups?: string[]
     would_be_superadmin?: boolean
     mapped_sites?: string[]
+    mapped_roles?: string[]
   } | null>(null)
 
   // Input de novos grupos superadmin
@@ -310,7 +315,11 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
       showToast('Informe ou selecione o nome do grupo do Active Directory.')
       return
     }
-    if (mappingSites.length === 0) {
+
+    let finalSites = mappingSites
+    if (mappingRole === 'operador_matriz' && finalSites.length === 0) {
+      finalSites = ['*']
+    } else if (finalSites.length === 0) {
       showToast('Selecione pelo menos uma loja para vincular a este grupo.')
       return
     }
@@ -320,7 +329,7 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
       if (editingGroup && editingGroup !== groupName) {
         delete nextMappings[editingGroup]
       }
-      nextMappings[groupName] = { role: mappingRole, sites: mappingSites }
+      nextMappings[groupName] = { role: mappingRole, sites: finalSites }
       return { ...prev, group_mappings: nextMappings }
     })
 
@@ -887,10 +896,25 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
 
                   <div className="field">
                     <label>Perfil de acesso</label>
-                    <select value={mappingRole} onChange={(e) => setMappingRole(e.target.value as Role)}>
-                      <option value="operator">Operador (visualização da loja)</option>
+                    <select
+                      value={mappingRole}
+                      onChange={(e) => {
+                        const newRole = e.target.value as Role
+                        setMappingRole(newRole)
+                        if (newRole === 'operador_matriz' && mappingSites.length === 0) {
+                          setMappingSites(['*'])
+                        }
+                      }}
+                    >
+                      <option value="operator">Operador de Loja (visualização da filial)</option>
+                      <option value="operador_matriz">Operador Matriz (Acesso Global a Todas as Lojas / Firewall)</option>
                       <option value="admin">Administrador da loja</option>
                     </select>
+                    {mappingRole === 'operador_matriz' && (
+                      <small className="ad-hint" style={{ marginTop: '4px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Icon name="info" size={12} /> O perfil Operador Matriz possui acesso global a todas as lojas para acompanhamento e homologação no firewall.
+                      </small>
+                    )}
                   </div>
                 </div>
 
@@ -1000,7 +1024,8 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
                   </div>
                   <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as 'all' | Role)}>
                     <option value="all">Todos os perfis</option>
-                    <option value="operator">Operador</option>
+                    <option value="operator">Operador de Loja</option>
+                    <option value="operador_matriz">Operador Matriz</option>
                     <option value="admin">Administrador da loja</option>
                   </select>
                 </div>
@@ -1038,7 +1063,9 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
                           <div>
                             <b>{grp}</b>
                             <div className="ad-map-meta">
-                              <span className={`ad-badge ${role === 'admin' ? 'warn' : 'info'}`}>{ROLE_LABEL[role]}</span>
+                              <span className={`ad-badge ${role === 'admin' ? 'warn' : role === 'operador_matriz' ? 'accent' : 'info'}`}>
+                                {ROLE_LABEL[role] || role}
+                              </span>
                               {isAll && <span className="ad-badge ok">Acesso total</span>}
                               {(['loja', 'combo', 'outros'] as const).filter((k) => kinds[k] > 0).map((k) => (
                                 <span key={k} className={`ad-kind k-${k}`}><i />{kinds[k]} {KIND_LABEL[k].toLowerCase()}</span>
@@ -1144,8 +1171,12 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
                       <span>Perfil resultante</span>
                       {testUserResult.would_be_superadmin ? (
                         <b className="ad-text-ok"><Icon name="shield" size={13} /> Superadministrador</b>
+                      ) : testUserResult.mapped_roles?.includes('operador_matriz') ? (
+                        <b className="ad-text-brand" style={{ color: '#d97706' }}>🏢 Operador Matriz (Acesso Global / Firewall)</b>
+                      ) : testUserResult.mapped_roles?.includes('admin') ? (
+                        <b className="ad-text-brand" style={{ color: '#6366f1' }}>👔 Administrador de Loja</b>
                       ) : (
-                        <b className="ad-text-brand">Acesso específico por loja</b>
+                        <b className="ad-text-brand">🏬 Operador de Loja</b>
                       )}
                     </div>
                   </div>

@@ -366,6 +366,10 @@ def authenticate_ldap_user(
                         for s in mapping:
                             allowed_sites.add(str(s).upper().strip())
 
+            # Se for operador matriz, garante acesso global irrestrito a todas as lojas
+            if "operador_matriz" in mapped_roles:
+                allowed_sites.add("*")
+
             # Se o usuário não for superadmin, sincroniza as lojas permitidas
             if not is_superadmin and allowed_sites:
                 db_sites = db.scalars(
@@ -400,11 +404,15 @@ def authenticate_ldap_user(
                             )
                         )
 
-            # Atribui perfis mapeados
-            for r_slug in mapped_roles:
-                role = db.scalar(select(Role).where(Role.slug == r_slug))
-                if role and role not in user.roles:
-                    user.roles.append(role)
+            # Sincroniza perfis mapeados pelo AD
+            if mapped_roles:
+                managed_slugs = {"admin", "operator", "operador_matriz"}
+                # Remove papéis gerenciados antigos para manter em sincronia com o AD
+                user.roles = [r for r in user.roles if r.slug not in managed_slugs or r.slug in mapped_roles]
+                for r_slug in mapped_roles:
+                    role = db.scalar(select(Role).where(Role.slug == r_slug))
+                    if role and role not in user.roles:
+                        user.roles.append(role)
 
         db.commit()
         db.refresh(user)

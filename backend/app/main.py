@@ -10,6 +10,7 @@ from app.api.v1.devices import router as devices_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.sites import router as sites_router
 from app.api.v1.inventory import router as inventory_router
+from app.api.v1.network_assets import router as network_assets_router
 
 app = FastAPI(
     title="Device Inventory API",
@@ -57,6 +58,11 @@ app.include_router(
 
 app.include_router(
     dashboard_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    network_assets_router,
     prefix="/api/v1",
 )
 

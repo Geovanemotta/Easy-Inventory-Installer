@@ -13,6 +13,7 @@ from app.models.device_history import DeviceHistory
 from app.models.software_history import SoftwareHistory
 from app.models.site_identifier import SiteIdentifier
 from app.models.ad_config import ADConfig
+from app.models.network_asset import NetworkAsset
 
 
 __all__ = [
@@ -30,4 +31,5 @@ __all__ = [
     "SoftwareHistory",
     "SiteIdentifier",
     "ADConfig",
+    "NetworkAsset",
 ]

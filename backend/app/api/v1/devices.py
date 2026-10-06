@@ -1,4 +1,7 @@
+from datetime import datetime
+import re
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
@@ -7,6 +10,26 @@ from app.database import engine
 from app.models import Device, User
 from app.models.device_history import DeviceHistory
 from app.models.user_site_access import user_site_access
+
+
+class DevicePatrimonioIn(BaseModel):
+    patrimonio: str
+
+
+class DeviceFirewallSolicitarIn(BaseModel):
+    patrimonio: str | None = None
+
+
+def is_admin_user(user: User) -> bool:
+    if user.is_superadmin:
+        return True
+    roles = [r.slug for r in user.roles] if user.roles else []
+    return "admin" in roles
+
+
+def is_matriz_operator(user: User) -> bool:
+    roles = [r.slug for r in user.roles] if user.roles else []
+    return "operador_matriz" in roles
 
 
 router = APIRouter(
@@ -62,7 +85,12 @@ def list_devices(
         # Controle de acesso por site
         # ---------------------------------------------------------
 
-        if not current_user.is_superadmin:
+        role_slugs = [r.slug for r in current_user.roles] if current_user.roles else []
+        is_global_viewer = current_user.is_superadmin or any(
+            r in ("admin", "operador_matriz") for r in role_slugs
+        )
+
+        if not is_global_viewer:
 
             allowed_sites = (
                 select(user_site_access.c.site_id)
@@ -200,6 +228,12 @@ def list_devices(
                     "disco_percentual": device.disco_percentual,
                     "rustdesk_id": device.rustdesk_id,
                     "data_coleta": device.data_coleta,
+                    "patrimonio": device.patrimonio,
+                    "firewall_status": device.firewall_status,
+                    "firewall_solicitado_por": device.firewall_solicitado_por,
+                    "firewall_solicitado_em": device.firewall_solicitado_em,
+                    "firewall_confirmado_por": device.firewall_confirmado_por,
+                    "firewall_confirmado_em": device.firewall_confirmado_em,
                     "active": device.active,
                     "created_at": device.created_at,
                     "updated_at": device.updated_at,
@@ -262,7 +296,7 @@ def clear_device_alert(
     """
     Limpa o alerta de hardware/MAC pendente de um dispositivo (exclusivo para Administrador).
     """
-    if not current_user.is_superadmin:
+    if not is_admin_user(current_user):
         raise HTTPException(
             status_code=403,
             detail="Apenas administradores podem gerenciar e limpar alertas de hardware.",
@@ -303,7 +337,7 @@ def delete_device(
     """
     Exclui permanentemente um dispositivo e seu histórico do inventário (exclusivo para Administrador).
     """
-    if not current_user.is_superadmin:
+    if not is_admin_user(current_user):
         raise HTTPException(
             status_code=403,
             detail="Apenas administradores podem excluir máquinas do inventário.",
@@ -325,4 +359,176 @@ def delete_device(
         return {
             "status": "ok",
             "message": f"Máquina '{hostname}' excluída com sucesso do inventário.",
+        }
+
+
+@router.patch("/{device_id}/patrimonio")
+def update_device_patrimonio(
+    device_id: int,
+    payload: DevicePatrimonioIn,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Atualiza o campo manual de patrimônio.
+    - Operador matriz pode editar a primeira vez (enquanto não confirmado).
+    - Após confirmação pelo admin, torna-se imutável para operador matriz.
+    - Administradores podem editar a qualquer momento.
+    """
+    with Session(engine) as session:
+        device = session.scalar(
+            select(Device).where(
+                Device.id == device_id,
+                Device.company_id == current_user.company_id,
+            )
+        )
+        if not device:
+            raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
+
+        admin_flag = is_admin_user(current_user)
+        matriz_flag = is_matriz_operator(current_user)
+
+        if not admin_flag and not matriz_flag:
+            raise HTTPException(
+                status_code=403,
+                detail="Você não tem permissão para editar o patrimônio deste equipamento.",
+            )
+
+        if matriz_flag and not admin_flag and device.firewall_status == "confirmado":
+            raise HTTPException(
+                status_code=403,
+                detail="O patrimônio já foi homologado pelo administrador e está bloqueado para alteração.",
+            )
+
+        val = payload.patrimonio.strip()
+        nums = re.sub(r"[^0-9]", "", val)
+        if not nums:
+            raise HTTPException(status_code=400, detail="O patrimônio deve conter dígitos numéricos (ex: pat.35192).")
+        patrimonio_formatado = f"pat.{nums}"
+
+        antigo = device.patrimonio
+        device.patrimonio = patrimonio_formatado
+        device.updated_at = datetime.utcnow()
+
+        if antigo != patrimonio_formatado:
+            session.add(
+                DeviceHistory(
+                    device_id=device.id,
+                    campo="PATRIMONIO",
+                    valor_anterior=antigo or "(vazio)",
+                    valor_novo=patrimonio_formatado,
+                )
+            )
+
+        session.commit()
+        return {
+            "status": "ok",
+            "patrimonio": patrimonio_formatado,
+            "message": "Patrimônio atualizado com sucesso.",
+        }
+
+
+@router.post("/{device_id}/firewall-solicitar")
+def solicitar_firewall(
+    device_id: int,
+    payload: DeviceFirewallSolicitarIn | None = None,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Marca a máquina nova para homologação e cadastro no firewall.
+    Disponível para operador matriz e administradores.
+    """
+    with Session(engine) as session:
+        device = session.scalar(
+            select(Device).where(
+                Device.id == device_id,
+                Device.company_id == current_user.company_id,
+            )
+        )
+        if not device:
+            raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
+
+        if not is_admin_user(current_user) and not is_matriz_operator(current_user):
+            raise HTTPException(
+                status_code=403,
+                detail="Apenas administradores e operadores da matriz podem marcar máquinas para cadastro no firewall.",
+            )
+
+        if payload and payload.patrimonio:
+            nums = re.sub(r"[^0-9]", "", payload.patrimonio.strip())
+            if nums:
+                device.patrimonio = f"pat.{nums}"
+
+        operador_nome = current_user.full_name or current_user.username
+        device.firewall_status = "pendente"
+        device.firewall_solicitado_por = operador_nome
+        device.firewall_solicitado_em = datetime.utcnow()
+        device.updated_at = datetime.utcnow()
+
+        session.add(
+            DeviceHistory(
+                device_id=device.id,
+                campo="FIREWALL_STATUS",
+                valor_anterior=device.firewall_status or "nenhum",
+                valor_novo=f"Pendente - Solicitado por {operador_nome}",
+            )
+        )
+
+        session.commit()
+        return {
+            "status": "ok",
+            "firewall_status": "pendente",
+            "firewall_solicitado_por": operador_nome,
+            "firewall_solicitado_em": device.firewall_solicitado_em.strftime("%Y-%m-%d %H:%M:%S"),
+            "patrimonio": device.patrimonio,
+            "message": "Máquina marcada para cadastro no firewall com sucesso.",
+        }
+
+
+@router.post("/{device_id}/firewall-confirmar")
+def confirmar_firewall(
+    device_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Confirma que a máquina foi cadastrada no firewall.
+    Exclusivo para administradores.
+    """
+    if not is_admin_user(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas administradores podem confirmar a liberação no firewall.",
+        )
+
+    with Session(engine) as session:
+        device = session.scalar(
+            select(Device).where(
+                Device.id == device_id,
+                Device.company_id == current_user.company_id,
+            )
+        )
+        if not device:
+            raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
+
+        admin_nome = current_user.full_name or current_user.username
+        device.firewall_status = "confirmado"
+        device.firewall_confirmado_por = admin_nome
+        device.firewall_confirmado_em = datetime.utcnow()
+        device.updated_at = datetime.utcnow()
+
+        session.add(
+            DeviceHistory(
+                device_id=device.id,
+                campo="FIREWALL_STATUS",
+                valor_anterior="pendente",
+                valor_novo=f"Confirmado por {admin_nome}",
+            )
+        )
+
+        session.commit()
+        return {
+            "status": "ok",
+            "firewall_status": "confirmado",
+            "firewall_confirmado_por": admin_nome,
+            "firewall_confirmado_em": device.firewall_confirmado_em.strftime("%Y-%m-%d %H:%M:%S"),
+            "message": f"Cadastro no firewall confirmado por {admin_nome}.",
         }

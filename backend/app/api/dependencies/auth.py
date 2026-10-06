@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 import jwt
 
@@ -64,7 +64,9 @@ def get_current_user(
     with Session(engine) as session:
 
         user = session.scalar(
-            select(User).where(
+            select(User)
+            .options(selectinload(User.roles))
+            .where(
                 User.id == user_id,
                 User.active.is_(True),
             )

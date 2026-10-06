@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
 #  SISTEMA DE INVENTÁRIO - INSTALADOR TURNKEY (LINUX)
-#  Prepara e inicializa todo o ecossistema Docker do zero em um servidor limpo.
+#  Prepara e inicializa todo o ecossistema Docker do zero ou atualiza
+#  servidores já em execução mantendo 100% dos dados intactos.
 # ==============================================================================
 
 set -e
@@ -16,10 +17,10 @@ NC='\033[0m' # Sem Cor
 
 echo ""
 echo -e "${CYAN}==================================================================${NC}"
-echo -e "${BOLD}${CYAN}   SISTEMA DE INVENTÁRIO CORPORATIVO - INSTALADOR TURNKEY${NC}"
+echo -e "${BOLD}${CYAN}   SISTEMA DE INVENTÁRIO CORPORATIVO - INSTALADOR / ATUALIZADOR${NC}"
 echo -e "${CYAN}==================================================================${NC}"
-echo -e " Este assistente irá configurar o servidor e inicializar todos"
-echo -e " os serviços em containers Docker de forma 100% automatizada."
+echo -e " Este assistente configura o servidor e inicializa todos os"
+echo -e " serviços em containers Docker de forma automatizada e segura."
 echo ""
 
 # ------------------------------------------------------------------------------
@@ -56,7 +57,80 @@ echo -e "${GREEN}[✓] Docker e Docker Compose operacionais.${NC}"
 echo ""
 
 # ------------------------------------------------------------------------------
-# 2. Perguntas Interativas de Configuração
+# 2. Detecção de Instalação Existente (Modo Upgrade Seguro vs Nova Instalação)
+# ------------------------------------------------------------------------------
+if [ -f ".env" ]; then
+    echo -e "${CYAN}------------------------------------------------------------------${NC}"
+    echo -e "${YELLOW}[!] Foi detectado um arquivo de configuração '.env' pré-existente!${NC}"
+    echo -e "    1) ${BOLD}Modo Atualização Segura (Recomendado)${NC}"
+    echo -e "       - Mantém todas as credenciais, usuários e máquinas intactos."
+    echo -e "       - Atualiza o banco com as novas funcionalidades e migrações."
+    echo -e "       - Recompila o frontend e reinicia os containers com segurança."
+    echo -e "    2) ${BOLD}Reconfigurar Parâmetros / Nova Instalação${NC}"
+    echo -e "       - Permite alterar credenciais, portas e configurações."
+    echo -e "${CYAN}------------------------------------------------------------------${NC}"
+    read -p " Escolha uma opção [1/2, padrão=1]: " SETUP_CHOICE
+    SETUP_CHOICE=${SETUP_CHOICE:-"1"}
+
+    if [ "$SETUP_CHOICE" = "1" ]; then
+        echo ""
+        echo -e "${GREEN}[✓] Iniciando Atualização Segura (sem perda de dados)...${NC}"
+
+        # Carrega variáveis do .env existente
+        export $(grep -v '^#' .env | grep -v '^\s*$' | xargs)
+
+        # Compilar frontend
+        echo -e "${YELLOW}[*] Compilando painel frontend...${NC}"
+        if command -v npm &> /dev/null && [ -f "frontend/package.json" ]; then
+            (cd frontend && npm install && npm run build) || docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
+        else
+            docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
+        fi
+        echo -e "${GREEN}[✓] Frontend compilado com sucesso.${NC}"
+
+        # Subir containers mantendo volumes intactos
+        echo -e "${YELLOW}[*] Atualizando e iniciando containers Docker...${NC}"
+        $DOCKER_COMPOSE up -d --build
+
+        # Aguardar PostgreSQL estar pronto
+        echo " [*] Aguardando o banco de dados PostgreSQL estar operacional..."
+        MAX_ATTEMPTS=30
+        ATTEMPT=0
+        until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" &>/dev/null; do
+            ATTEMPT=$((ATTEMPT + 1))
+            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+                echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL.${NC}"
+                exit 1
+            fi
+            sleep 1
+        done
+        echo -e "${GREEN}[✓] PostgreSQL operacional.${NC}"
+
+        # Aplicar migrações estruturais do banco (Alembic) e papéis
+        echo " [*] Aplicando migrações estruturais do banco de dados..."
+        $DOCKER_COMPOSE exec -T backend alembic upgrade head
+        echo " [*] Sincronizando novos perfis (Operador Matriz) e permissões..."
+        $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles
+
+        echo ""
+        echo -e "${CYAN}==================================================================${NC}"
+        echo -e "${BOLD}${GREEN}   SISTEMA ATUALIZADO COM SUCESSO! 🚀${NC}"
+        echo -e "${CYAN}==================================================================${NC}"
+        if [ "$PORT_HTTPS" -eq 443 ] 2>/dev/null; then
+            URL_PAINEL="https://${SERVER_HOST:-localhost}"
+        else
+            URL_PAINEL="https://${SERVER_HOST:-localhost}:${PORT_HTTPS:-443}"
+        fi
+        echo -e " ${BOLD}Painel de Acesso:${NC}     ${GREEN}${URL_PAINEL}${NC}"
+        echo -e " ${BOLD}Banco de Dados:${NC}       ${GREEN}100% preservado com novas tabelas e perfis.${NC}"
+        echo -e "${CYAN}==================================================================${NC}"
+        echo ""
+        exit 0
+    fi
+fi
+
+# ------------------------------------------------------------------------------
+# 3. Perguntas Interativas de Configuração (Modo Nova Instalação ou Reconfiguração)
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[2/6] Coleta de parâmetros da instalação:${NC}"
 echo "------------------------------------------------------------------"
@@ -143,7 +217,7 @@ fi
 
 echo ""
 # ------------------------------------------------------------------------------
-# 3. Geração do Arquivo .env e Configurações de Segurança
+# 4. Geração do Arquivo .env e Configurações de Segurança
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[3/6] Gerando variáveis de ambiente (.env) e chaves JWT...${NC}"
 
@@ -165,12 +239,12 @@ EOF
 echo -e "${GREEN}[✓] Arquivo .env gerado com sucesso.${NC}"
 
 # ------------------------------------------------------------------------------
-# 4. Compilação do Frontend (Via container Node isolado)
+# 5. Compilação do Frontend
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[4/6] Verificando compilação do painel frontend...${NC}"
 
 if [ ! -f "./frontend/dist/index.html" ]; then
-    echo " [*] Compilando arquivos do frontend via container Node.js (não requer Node no servidor)..."
+    echo " [*] Compilando arquivos do frontend via container Node.js..."
     docker run --rm \
         -v "$(pwd)/frontend:/app" \
         -w /app \
@@ -182,20 +256,21 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 5. Inicialização dos Containers e Migrações
+# 6. Inicialização dos Containers e Migrações
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[5/6] Construindo e iniciando containers Docker...${NC}"
 
 # Detecta se existe volume antigo de banco de dados
 if docker volume ls -q 2>/dev/null | grep -E "postgres_data" &>/dev/null; then
     echo -e "${YELLOW} [!] Foi detectado um volume de banco de dados pré-existente.${NC}"
-    echo "     Para garantir que as novas credenciais sejam aplicadas com sucesso:"
-    read -p "     Deseja recriar o banco de dados do zero? [S/n]: " RESET_DB
-    RESET_DB=${RESET_DB:-"S"}
-    if [[ ! "$RESET_DB" =~ ^[Nn] ]]; then
+    echo -e "${RED} [ATENÇÃO] Recriar o banco do zero apagará todas as máquinas e dados coletados!${NC}"
+    read -p "     Deseja realmente APAGAR o banco de dados existente? [s/N]: " RESET_DB
+    RESET_DB=${RESET_DB:-"N"}
+    if [[ "$RESET_DB" =~ ^[Ss] ]]; then
         echo " [*] Resetando banco para instalação limpa..."
         $DOCKER_COMPOSE down -v --remove-orphans 2>/dev/null || true
     else
+        echo " [*] Preservando volume de banco de dados existente..."
         $DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
     fi
 else
@@ -231,8 +306,11 @@ $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey \
     --admin-password "$ADMIN_PASSWORD" \
     $CREATE_SITES_FLAG
 
+echo " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
+$DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles
+
 # ------------------------------------------------------------------------------
-# 6. Conclusão e Resumo da Instalação
+# 7. Conclusão e Resumo da Instalação
 # ------------------------------------------------------------------------------
 echo ""
 echo -e "${CYAN}==================================================================${NC}"

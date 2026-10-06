@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import DonutChart from '../components/DonutChart'
 import { IcoLnx, IconCopy, IcoWin } from '../components/Icons'
-import type {
-  AnaliseUsuario,
-  AppItem,
-  HistoryItem,
-  ItemVarLog,
-  PastaUsuario,
-  UnidadeDisco,
+import {
+  confirmarDeviceFirewall,
+  solicitarDeviceFirewall,
+  updateDevicePatrimonio,
+  type AnaliseUsuario,
+  type AppItem,
+  type HistoryItem,
+  type ItemVarLog,
+  type PastaUsuario,
+  type UnidadeDisco,
 } from '../services/api'
 import {
   CATS,
@@ -36,6 +39,7 @@ type InventoryPageProps = {
   inventario: EnrichedMachine[]
   filiaisOpcoes?: FilialOption[]
   isSuperAdmin: boolean
+  userRoles?: string[]
   loading: boolean
   historicoMap: Record<number, HistoryItem[]>
   loadingHistorico: Record<number, boolean>
@@ -45,11 +49,14 @@ type InventoryPageProps = {
   copiarTexto: (texto: string) => Promise<void>
   inventoryTarget?: string | null
   onClearTarget?: () => void
+  onUpdateDevice?: (updated: Partial<EnrichedMachine> & { id: number }) => void
+  showToast?: (msg: string) => void
 }
 
 export default function InventoryPage({
   inventario,
   isSuperAdmin,
+  userRoles,
   loading,
   historicoMap,
   loadingHistorico,
@@ -59,7 +66,14 @@ export default function InventoryPage({
   copiarTexto,
   inventoryTarget,
   onClearTarget,
+  onUpdateDevice,
+  showToast,
 }: InventoryPageProps) {
+  const canManage = Boolean(isSuperAdmin || userRoles?.includes('admin'))
+  const isOperadorMatriz = Boolean(userRoles?.includes('operador_matriz'))
+  const canRequestFirewall = canManage || isOperadorMatriz
+  const canConfirmFirewall = canManage
+
   // Filtros internos do inventário
   const [tipoAtivo, setTipoAtivo] = useState<string>('')
   const [search, setSearch] = useState<string>('')
@@ -70,11 +84,100 @@ export default function InventoryPage({
   const [selectedDisco, setSelectedDisco] = useState<string>('')
   const [filtroAlerta, setFiltroAlerta] = useState<boolean>(false)
   const [filtroInativas, setFiltroInativas] = useState<boolean>(false)
+  const [filtroFirewall, setFiltroFirewall] = useState<'' | 'pendente'>('')
   const [ordem, setOrdem] = useState<string>('filial')
   const [sortDir, setSortDir] = useState<number>(1)
   const [porPagina, setPorPagina] = useState<number>(50)
   const [paginaAtual, setPaginaAtual] = useState<number>(1)
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
+
+  // Estado para patrimônio e ações de firewall
+  const [patrimonioInputs, setPatrimonioInputs] = useState<Record<number, string>>({})
+  const [salvandoPatrimonio, setSalvandoPatrimonio] = useState<Record<number, boolean>>({})
+  const [solicitandoFirewall, setSolicitandoFirewall] = useState<Record<number, boolean>>({})
+  const [confirmandoFirewall, setConfirmandoFirewall] = useState<Record<number, boolean>>({})
+
+  async function handleSalvarPatrimonio(item: EnrichedMachine) {
+    if (!item.id) return
+    const rawVal =
+      patrimonioInputs[item.id] !== undefined
+        ? patrimonioInputs[item.id]
+        : item.patrimonio
+        ? item.patrimonio.replace(/\D/g, '')
+        : ''
+
+    if (!rawVal.trim()) {
+      alert('Por favor, informe ao menos os números do patrimônio.')
+      return
+    }
+
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+
+    setSalvandoPatrimonio((prev) => ({ ...prev, [item.id!]: true }))
+    try {
+      const res = await updateDevicePatrimonio(token, item.id, rawVal.trim())
+      onUpdateDevice?.({ id: item.id, patrimonio: res.patrimonio })
+      showToast?.(`Patrimônio salvo: ${res.patrimonio}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert(msg)
+    } finally {
+      setSalvandoPatrimonio((prev) => ({ ...prev, [item.id!]: false }))
+    }
+  }
+
+  async function handleSolicitarFirewall(item: EnrichedMachine) {
+    if (!item.id) return
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+
+    const rawVal =
+      patrimonioInputs[item.id] !== undefined
+        ? patrimonioInputs[item.id]
+        : item.patrimonio
+        ? item.patrimonio.replace(/\D/g, '')
+        : ''
+
+    setSolicitandoFirewall((prev) => ({ ...prev, [item.id!]: true }))
+    try {
+      const res = await solicitarDeviceFirewall(token, item.id, rawVal.trim() || undefined)
+      onUpdateDevice?.({
+        id: item.id,
+        firewall_status: 'pendente',
+        patrimonio: rawVal.trim() ? `pat.${rawVal.trim()}` : item.patrimonio,
+        firewall_solicitado_em: new Date().toISOString(),
+      })
+      showToast?.(res.message || 'Máquina marcada para homologação no Firewall!')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert(msg)
+    } finally {
+      setSolicitandoFirewall((prev) => ({ ...prev, [item.id!]: false }))
+    }
+  }
+
+  async function handleConfirmarFirewall(item: EnrichedMachine) {
+    if (!item.id) return
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+
+    setConfirmandoFirewall((prev) => ({ ...prev, [item.id!]: true }))
+    try {
+      const res = await confirmarDeviceFirewall(token, item.id)
+      onUpdateDevice?.({
+        id: item.id,
+        firewall_status: 'confirmado',
+        firewall_confirmado_em: new Date().toISOString(),
+      })
+      showToast?.(res.message || `Máquina ${item.hostname} liberada no Firewall!`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert(msg)
+    } finally {
+      setConfirmandoFirewall((prev) => ({ ...prev, [item.id!]: false }))
+    }
+  }
 
   function limparFiltros() {
     setTipoAtivo('')
@@ -86,6 +189,7 @@ export default function InventoryPage({
     setSelectedDisco('')
     setFiltroAlerta(false)
     setFiltroInativas(false)
+    setFiltroFirewall('')
     setOrdem('filial')
     setSortDir(1)
     setPaginaAtual(1)
@@ -172,6 +276,7 @@ export default function InventoryPage({
 
       if (filtroAlerta && !i.alerta_hardware) return false
       if (filtroInativas && obterStatusConexao(i.data_coleta).status !== 'offline') return false
+      if (filtroFirewall && i.firewall_status !== filtroFirewall) return false
 
       return true
     },
@@ -185,6 +290,7 @@ export default function InventoryPage({
       selectedDisco,
       filtroAlerta,
       filtroInativas,
+      filtroFirewall,
     ]
   )
 
@@ -255,6 +361,14 @@ export default function InventoryPage({
         const c = obterStatusConexao(i.data_coleta)
         return c.status === 'offline'
       }).length,
+    [inventario]
+  )
+
+  const novasFirewallCount = useMemo(
+    () =>
+      inventario.filter(
+        (i: EnrichedMachine) => i.firewall_status === 'pendente'
+      ).length,
     [inventario]
   )
 
@@ -537,10 +651,33 @@ export default function InventoryPage({
           <div className="card-value">{criticoCount}</div>
           <div className="card-sub">uso a partir de 85%</div>
         </div>
+
+        <div
+          className={`card click ${filtroFirewall === 'pendente' ? 'on' : ''}`}
+          role="button"
+          tabIndex={0}
+          title="Clique para filtrar máquinas novas aguardando liberação no Firewall"
+          onClick={() => {
+            setFiltroFirewall((f) => (f === 'pendente' ? '' : 'pendente'))
+            setPaginaAtual(1)
+          }}
+          style={{ '--c': '#f59e0b' } as React.CSSProperties}
+        >
+          <div className="card-title">🛡️ Novas / Firewall</div>
+          <div
+            className="card-value"
+            style={novasFirewallCount > 0 ? { color: '#d97706' } : undefined}
+          >
+            {novasFirewallCount}
+          </div>
+          <div className="card-sub">
+            {novasFirewallCount > 0 ? 'Aguardando liberação' : 'Nenhuma pendente'}
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
-      {isSuperAdmin && (
+      {(isSuperAdmin || userRoles?.includes('admin') || userRoles?.includes('operador_matriz')) && (
         <div className="tabs">
           {[
             { id: '', label: 'Todas', cor: '#94a3b8' },
@@ -1034,6 +1171,27 @@ export default function InventoryPage({
                                       ⚠️ {i.alerta_hardware.includes('Conflito MAC') ? 'Conflito MAC' : 'Alerta HW'}
                                     </span>
                                   )}
+                                  {i.firewall_status === 'pendente' && (
+                                    <span
+                                      className="badge-firewall-pending"
+                                      title={`Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
+                                    >
+                                      🟡 Nova / Firewall
+                                    </span>
+                                  )}
+                                  {i.firewall_status === 'confirmado' && (
+                                    <span
+                                      className="badge-firewall-ok"
+                                      title={`Homologada no Firewall por: ${i.firewall_confirmado_por || 'Admin'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
+                                    >
+                                      🟢 Firewall OK
+                                    </span>
+                                  )}
+                                  {i.patrimonio && (
+                                    <span className="badge-patrimonio" title={`Patrimônio: ${i.patrimonio}`}>
+                                      🏷️ {i.patrimonio}
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </>
@@ -1174,16 +1332,16 @@ export default function InventoryPage({
                                     </small>
                                   </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <button
-                                    type="button"
-                                    className="btn-resolve-alert"
-                                    onClick={() => i.id && onClearAlert(i.id)}
-                                    title="Marcar alerta como resolvido e legitimar este hardware atual"
-                                  >
-                                    ✓ Resolver Alerta
-                                  </button>
-                                  {isSuperAdmin && (
+                                {canManage && (
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <button
+                                      type="button"
+                                      className="btn-resolve-alert"
+                                      onClick={() => i.id && onClearAlert(i.id)}
+                                      title="Marcar alerta como resolvido e legitimar este hardware atual"
+                                    >
+                                      ✓ Resolver Alerta
+                                    </button>
                                     <button
                                       type="button"
                                       className="btn-danger"
@@ -1193,8 +1351,8 @@ export default function InventoryPage({
                                     >
                                       🗑️ Excluir Máquina
                                     </button>
-                                  )}
-                                </div>
+                                  </div>
+                                )}
                               </div>
                             )}
 
@@ -1485,19 +1643,188 @@ export default function InventoryPage({
                                     </div>
                                   )}
                                   {i.usuario && (
-                                    <div className="detail-item">
-                                      <div className="detail-label">
-                                        Último usuário
-                                      </div>
-                                      <div className="detail-value">
-                                        {i.usuario}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
+                                     <div className="detail-item">
+                                       <div className="detail-label">
+                                         Último usuário
+                                       </div>
+                                       <div className="detail-value">
+                                         {i.usuario}
+                                       </div>
+                                     </div>
+                                   )}
+                                 </div>
 
-                                {/* Change History Timeline */}
-                                <div className="detail-sec">
+                                 {/* Seção de Patrimônio & Homologação de Firewall */}
+                                 <div
+                                   className="detail-sec"
+                                   style={{
+                                     display: 'flex',
+                                     alignItems: 'center',
+                                     justifyContent: 'space-between',
+                                     flexWrap: 'wrap',
+                                     gap: '8px',
+                                     marginTop: '16px',
+                                   }}
+                                 >
+                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                     <span>Patrimônio &amp; Homologação de Firewall</span>
+                                     {i.firewall_status === 'pendente' && (
+                                       <span className="badge-firewall-pending">🟡 Pendente de Firewall</span>
+                                     )}
+                                     {i.firewall_status === 'confirmado' && (
+                                       <span className="badge-firewall-ok">🟢 Firewall Homologado</span>
+                                     )}
+                                   </div>
+                                   <small style={{ color: 'var(--muted)', fontSize: '11px' }}>
+                                     Esteira de liberação de máquinas novas na matriz
+                                   </small>
+                                 </div>
+
+                                 {(() => {
+                                   const isLocked = i.firewall_status === 'confirmado' && !canManage
+                                   const currentNum =
+                                     patrimonioInputs[i.id!] !== undefined
+                                       ? patrimonioInputs[i.id!]
+                                       : i.patrimonio
+                                       ? i.patrimonio.replace(/\D/g, '')
+                                       : ''
+                                   const isSavingPat = Boolean(salvandoPatrimonio[i.id!])
+                                   const isSolicitando = Boolean(solicitandoFirewall[i.id!])
+                                   const isConfirmando = Boolean(confirmandoFirewall[i.id!])
+
+                                   return (
+                                     <div className="firewall-homolog-card">
+                                       <div className="firewall-card-grid">
+                                         {/* Coluna 1: Input de Patrimônio */}
+                                         <div className="firewall-field-box">
+                                           <div className="detail-label" style={{ marginBottom: '6px' }}>
+                                             {isLocked ? 'Patrimônio Homologado' : 'Número de Patrimônio'}
+                                           </div>
+                                           <div className="patrimonio-input-group">
+                                             <span className="patrimonio-prefix">pat.</span>
+                                             <input
+                                               type="text"
+                                               className={`patrimonio-input ${isLocked ? 'locked' : ''}`}
+                                               placeholder="00000"
+                                               maxLength={12}
+                                               value={currentNum}
+                                               disabled={isLocked || isSavingPat}
+                                               onChange={(e) => {
+                                                 const digits = e.target.value.replace(/\D/g, '')
+                                                 setPatrimonioInputs((prev) => ({
+                                                   ...prev,
+                                                   [i.id!]: digits,
+                                                 }))
+                                               }}
+                                               onKeyDown={(e) => {
+                                                 if (e.key === 'Enter' && !isLocked) {
+                                                   handleSalvarPatrimonio(i)
+                                                 }
+                                               }}
+                                             />
+                                             {!isLocked && (
+                                               <button
+                                                 type="button"
+                                                 className="btn-save-pat"
+                                                 onClick={() => handleSalvarPatrimonio(i)}
+                                                 disabled={isSavingPat}
+                                                 title="Salvar número de patrimônio"
+                                               >
+                                                 {isSavingPat ? '...' : 'Salvar'}
+                                               </button>
+                                             )}
+                                           </div>
+                                           {isLocked ? (
+                                             <div className="patrimonio-lock-msg">
+                                               🔒 Homologado pelo administrador. Edição bloqueada.
+                                             </div>
+                                           ) : (
+                                             <div className="patrimonio-hint">
+                                               Digite apenas os números. O prefixo <b>pat.</b> é fixo.
+                                             </div>
+                                           )}
+                                         </div>
+
+                                         {/* Coluna 2: Status e Ações do Firewall */}
+                                         <div className="firewall-action-box">
+                                           <div className="detail-label" style={{ marginBottom: '6px' }}>
+                                             Status do Firewall &amp; Esteira
+                                           </div>
+
+                                           <div className="firewall-status-content">
+                                             {i.firewall_status === 'pendente' ? (
+                                               <div className="firewall-status-detail pending">
+                                                 <div className="firewall-status-title">
+                                                   🟡 Aguardando Cadastro no Firewall
+                                                 </div>
+                                                 <div className="firewall-meta">
+                                                   {i.firewall_solicitado_por && (
+                                                     <span>Solicitado por: <b>{i.firewall_solicitado_por}</b></span>
+                                                   )}
+                                                   {i.firewall_solicitado_em && (
+                                                     <span> em {new Date(i.firewall_solicitado_em).toLocaleString('pt-BR')}</span>
+                                                   )}
+                                                 </div>
+                                               </div>
+                                             ) : i.firewall_status === 'confirmado' ? (
+                                               <div className="firewall-status-detail confirmed">
+                                                 <div className="firewall-status-title">
+                                                   🟢 Liberado e Homologado no Firewall
+                                                 </div>
+                                                 <div className="firewall-meta">
+                                                   {i.firewall_confirmado_por && (
+                                                     <span>Confirmado por: <b>{i.firewall_confirmado_por}</b></span>
+                                                   )}
+                                                   {i.firewall_confirmado_em && (
+                                                     <span> em {new Date(i.firewall_confirmado_em).toLocaleString('pt-BR')}</span>
+                                                   )}
+                                                 </div>
+                                               </div>
+                                             ) : (
+                                               <div className="firewall-status-detail regular">
+                                                 <div className="firewall-status-title">
+                                                   ⚪ Máquina Operacional Regular
+                                                 </div>
+                                                 <div className="firewall-meta">
+                                                   Se esta for uma nova máquina preparada na matriz, solicite a liberação no firewall.
+                                                 </div>
+                                               </div>
+                                             )}
+
+                                             <div className="firewall-btn-actions">
+                                               {canRequestFirewall && i.firewall_status !== 'pendente' && (
+                                                 <button
+                                                   type="button"
+                                                   className="btn-solicitar-firewall"
+                                                   onClick={() => handleSolicitarFirewall(i)}
+                                                   disabled={isSolicitando}
+                                                   title="Marcar máquina como nova e enviar para homologação no firewall"
+                                                 >
+                                                   {isSolicitando ? 'Marcando...' : '🏷️ Marcar para Firewall (Nova)'}
+                                                 </button>
+                                               )}
+
+                                               {canConfirmFirewall && i.firewall_status === 'pendente' && (
+                                                 <button
+                                                   type="button"
+                                                   className="btn-confirmar-firewall"
+                                                   onClick={() => handleConfirmarFirewall(i)}
+                                                   disabled={isConfirmando}
+                                                   title="Confirmar cadastro no firewall e travar patrimônio"
+                                                 >
+                                                   {isConfirmando ? 'Confirmando...' : '✓ Confirmar cadastro no Firewall'}
+                                                 </button>
+                                               )}
+                                             </div>
+                                           </div>
+                                         </div>
+                                       </div>
+                                     </div>
+                                   )
+                                 })()}
+
+                                 {/* Change History Timeline */}
+                                 <div className="detail-sec">
                                   Histórico de Alterações / Linha do Tempo
                                   <small>Auditoria contínua de hardware, rede e sistema</small>
                                 </div>
@@ -2004,7 +2331,7 @@ export default function InventoryPage({
                             </div>
 
                             {/* Rodapé da expansão / Canto inferior direito */}
-                            {isSuperAdmin && (
+                            {canManage && (
                               <div
                                 style={{
                                   display: 'flex',

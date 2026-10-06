@@ -65,4 +65,13 @@ def login(data: LoginRequest):
 def me(
     current_user: User = Depends(get_current_user),
 ):
-    return current_user
+    role_slugs = [r.slug for r in current_user.roles] if current_user.roles else []
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "company_id": current_user.company_id,
+        "is_superadmin": current_user.is_superadmin,
+        "roles": role_slugs,
+    }

@@ -165,6 +165,36 @@ class Device(Base):
         nullable=True,
     )
 
+    patrimonio: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    firewall_status: Mapped[str | None] = mapped_column(
+        String(30),
+        nullable=True,
+    )
+
+    firewall_solicitado_por: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    firewall_solicitado_em: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    firewall_confirmado_por: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    firewall_confirmado_em: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,

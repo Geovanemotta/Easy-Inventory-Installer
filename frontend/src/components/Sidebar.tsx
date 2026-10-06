@@ -7,11 +7,12 @@ type UserInfo = {
   company_id: number
   active: boolean
   is_superadmin: boolean
+  roles?: string[]
 }
 
 type SidebarProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad'
-  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad') => void
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net'
+  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad' | 'net') => void
   inventarioCount: number
   currentUser: UserInfo | null
   onLogout: () => void
@@ -24,6 +25,24 @@ export default function Sidebar({
   currentUser,
   onLogout,
 }: SidebarProps) {
+  const isAdmin = Boolean(currentUser?.is_superadmin || currentUser?.roles?.includes('admin'))
+
+  const roleLabel = currentUser?.is_superadmin
+    ? '🛡️ Super Admin'
+    : currentUser?.roles?.includes('admin')
+    ? '👔 Administrador'
+    : currentUser?.roles?.includes('operador_matriz')
+    ? '🏢 Operador Matriz'
+    : '🏬 Operador Loja'
+
+  const roleColor = currentUser?.is_superadmin
+    ? '#3b82f6'
+    : currentUser?.roles?.includes('admin')
+    ? '#6366f1'
+    : currentUser?.roles?.includes('operador_matriz')
+    ? '#f59e0b'
+    : '#10b981'
+
   return (
     <aside className="side">
       <div className="brand">
@@ -50,6 +69,21 @@ export default function Sidebar({
       </button>
 
       <button
+        className={`nav ${view === 'net' ? 'on' : ''}`}
+        onClick={() => irPara('net')}
+        title="Ativos de rede, impressoras e switches"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="3.6" y1="9" x2="20.4" y2="9" />
+          <line x1="3.6" y1="15" x2="20.4" y2="15" />
+          <path d="M11.5 3a17 17 0 0 0 0 18" />
+          <path d="M12.5 3a17 17 0 0 1 0 18" />
+        </svg>
+        <span>Ativos de Rede</span>
+      </button>
+
+      <button
         className={`nav ${view === 'rel' ? 'on' : ''}`}
         onClick={() => irPara('rel')}
       >
@@ -59,7 +93,7 @@ export default function Sidebar({
         <span>Relatórios</span>
       </button>
 
-      {currentUser?.is_superadmin && (
+      {isAdmin && (
         <button
           className={`nav ${view === 'apps' ? 'on' : ''}`}
           onClick={() => irPara('apps')}
@@ -71,7 +105,7 @@ export default function Sidebar({
         </button>
       )}
 
-      {currentUser?.is_superadmin && (
+      {isAdmin && (
         <button
           className={`nav ${view === 'ad' ? 'on' : ''}`}
           onClick={() => irPara('ad')}
@@ -98,11 +132,11 @@ export default function Sidebar({
               <span
                 style={{
                   fontSize: '10px',
-                  color: currentUser.is_superadmin ? '#3b82f6' : '#10b981',
+                  color: roleColor,
                   fontWeight: 600,
                 }}
               >
-                {currentUser.is_superadmin ? '🛡️ Super Admin' : '🏬 Operador Loja'}
+                {roleLabel}
               </span>
             </div>
           </div>

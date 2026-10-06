@@ -55,6 +55,14 @@ ROLES = [
             "sites.view", "inventory.view", "inventory.manage",
         ],
     },
+    {
+        "name": "Operador Matriz",
+        "slug": "operador_matriz",
+        "description": "Visualização do inventário completo, ativos de rede e relatórios com fluxo de homologação no firewall.",
+        "permissions": [
+            "sites.view", "inventory.view",
+        ],
+    },
 ]
 
 

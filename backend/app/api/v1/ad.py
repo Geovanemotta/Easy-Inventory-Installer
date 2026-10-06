@@ -321,21 +321,28 @@ def test_user_authentication(
             is_super = any(g.upper().strip() in super_groups for g in groups)
 
             mapped_site_names = []
+            mapped_roles = []
             if is_super:
                 mapped_site_names = ["Todas as Lojas (Acesso Global de Superadministrador)"]
+                mapped_roles = ["superadmin"]
             elif cfg.group_mappings and isinstance(cfg.group_mappings, dict):
                 allowed_site_keys = set()
                 user_groups_upper = [g.upper().strip() for g in groups]
                 for grp, mapping in cfg.group_mappings.items():
                     if grp.upper().strip() in user_groups_upper:
                         if isinstance(mapping, dict):
+                            r = mapping.get("role")
+                            if r:
+                                mapped_roles.append(str(r))
                             for s in mapping.get("sites", []):
                                 allowed_site_keys.add(str(s).upper().strip())
                         elif isinstance(mapping, list):
                             for s in mapping:
                                 allowed_site_keys.add(str(s).upper().strip())
 
-                if allowed_site_keys:
+                if "operador_matriz" in mapped_roles:
+                    mapped_site_names = ["Todas as Lojas (Acesso Global - Operador Matriz)"]
+                elif allowed_site_keys:
                     db_sites = session.scalars(
                         select(Site).where(
                             Site.company_id == current_user.company_id,
@@ -365,6 +372,7 @@ def test_user_authentication(
                 "groups": groups,
                 "would_be_superadmin": is_super,
                 "mapped_sites": mapped_site_names,
+                "mapped_roles": mapped_roles,
             }
 
         except Exception as e:

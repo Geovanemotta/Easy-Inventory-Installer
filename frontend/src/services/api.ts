@@ -44,6 +44,7 @@ type UserResponse = {
   company_id: number
   active: boolean
   is_superadmin: boolean
+  roles?: string[]
 }
 
 export async function getCurrentUser(
@@ -181,6 +182,12 @@ export type RawInventoryItem = {
   agentes?: AppItem[]
   runtimes?: AppItem[]
   ferramentas?: AppItem[]
+  patrimonio?: string | null
+  firewall_status?: string | null
+  firewall_solicitado_por?: string | null
+  firewall_solicitado_em?: string | null
+  firewall_confirmado_por?: string | null
+  firewall_confirmado_em?: string | null
 }
 
 export type InventoryDataResponse = {
@@ -498,6 +505,7 @@ export async function testADUser(token: string, username: string, password: stri
   groups?: string[]
   would_be_superadmin?: boolean
   mapped_sites?: string[]
+  mapped_roles?: string[]
 }> {
   const response = await fetch(`${API_URL}/ad/test-user`, {
     method: 'POST',
@@ -602,3 +610,307 @@ export async function deleteDevice(
   }
   return response.json()
 }
+
+export async function updateDevicePatrimonio(
+  token: string,
+  deviceId: number,
+  patrimonio: string,
+): Promise<{ status: string; patrimonio: string; message: string }> {
+  const response = await fetch(`${API_URL}/devices/${deviceId}/patrimonio`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ patrimonio }),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao atualizar patrimônio do dispositivo.')
+  }
+  return response.json()
+}
+
+export async function solicitarDeviceFirewall(
+  token: string,
+  deviceId: number,
+  patrimonio?: string,
+): Promise<{ status: string; firewall_status: string; message: string }> {
+  const response = await fetch(
+    `${API_URL}/devices/${deviceId}/firewall-solicitar`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ patrimonio }),
+    },
+  )
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao solicitar liberação no firewall.')
+  }
+  return response.json()
+}
+
+export async function confirmarDeviceFirewall(
+  token: string,
+  deviceId: number,
+): Promise<{ status: string; firewall_status: string; message: string }> {
+  const response = await fetch(
+    `${API_URL}/devices/${deviceId}/firewall-confirmar`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao confirmar cadastro no firewall.')
+  }
+  return response.json()
+}
+
+/* =========================================================
+   NETWORK ASSETS & PERIPHERALS (DESCOBERTA ATIVA)
+   ========================================================= */
+
+export type NetworkAsset = {
+  id: number
+  company_id: number
+  site_id: number | null
+  site_nome: string | null
+  site_codigo: string | null
+  nome: string
+  tipo: string
+  ip: string | null
+  mac: string | null
+  patrimonio: string | null
+  fabricante: string | null
+  modelo: string | null
+  numero_serie: string | null
+  localizacao: string | null
+  status_online: boolean | null
+  ultimo_ping: string | null
+  tempo_resposta_ms: number | null
+  observacoes: string | null
+  origem: string
+  created_at: string
+  updated_at: string
+}
+
+export type NetworkAssetInput = {
+  nome: string
+  tipo?: string
+  site_id?: number | null
+  ip?: string | null
+  mac?: string | null
+  patrimonio?: string | null
+  fabricante?: string | null
+  modelo?: string | null
+  numero_serie?: string | null
+  localizacao?: string | null
+  observacoes?: string | null
+}
+
+export type PingResult = {
+  asset_id: number
+  ip: string
+  online: boolean
+  tempo_resposta_ms: number | null
+  timestamp: string
+}
+
+export type ImportResult = {
+  total_linhas: number
+  criados: number
+  atualizados: number
+  ignorados: number
+  erros: string[]
+}
+
+export async function getNetworkAssets(
+  token: string,
+  params?: {
+    site_id?: number | null
+    tipo?: string | null
+    status_online?: boolean | null
+    search?: string | null
+  },
+): Promise<NetworkAsset[]> {
+  const q = new URLSearchParams()
+  if (params?.site_id) q.set('site_id', String(params.site_id))
+  if (params?.tipo && params.tipo !== 'todos') q.set('tipo', params.tipo)
+  if (params?.status_online !== undefined && params.status_online !== null) {
+    q.set('status_online', String(params.status_online))
+  }
+  if (params?.search && params.search.trim()) q.set('search', params.search.trim())
+
+  const url = `${API_URL}/network-assets${q.toString() ? `?${q.toString()}` : ''}`
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao listar ativos de rede.')
+  }
+  return response.json()
+}
+
+export async function createNetworkAsset(
+  token: string,
+  data: NetworkAssetInput,
+): Promise<NetworkAsset> {
+  const response = await fetch(`${API_URL}/network-assets`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao cadastrar ativo de rede.')
+  }
+  return response.json()
+}
+
+export async function updateNetworkAsset(
+  token: string,
+  id: number,
+  data: Partial<NetworkAssetInput>,
+): Promise<NetworkAsset> {
+  const response = await fetch(`${API_URL}/network-assets/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao atualizar ativo de rede.')
+  }
+  return response.json()
+}
+
+export async function deleteNetworkAsset(
+  token: string,
+  id: number,
+): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_URL}/network-assets/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao excluir ativo de rede.')
+  }
+  return response.json()
+}
+
+export async function bulkDeleteNetworkAssets(
+  token: string,
+  ids: number[],
+): Promise<{ success: boolean; removidos: number }> {
+  const response = await fetch(`${API_URL}/network-assets/bulk-delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ ids }),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao excluir ativos de rede em massa.')
+  }
+  return response.json()
+}
+
+export async function pingNetworkAsset(
+  token: string,
+  id: number,
+): Promise<PingResult> {
+  const response = await fetch(`${API_URL}/network-assets/${id}/ping`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Falha ao testar conectividade do ativo.')
+  }
+  return response.json()
+}
+
+export async function scanNetworkAssetsBatch(
+  token: string,
+  site_id?: number | null,
+): Promise<PingResult[]> {
+  const q = site_id ? `?site_id=${site_id}` : ''
+  const response = await fetch(`${API_URL}/network-assets/scan-batch${q}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Falha ao executar varredura em lote.')
+  }
+  return response.json()
+}
+
+export async function importNetworkAssetsCSV(
+  token: string,
+  file: File,
+): Promise<ImportResult> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${API_URL}/network-assets/import-csv`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao importar planilha CSV.')
+  }
+  return response.json()
+}
+
+export async function downloadNetworkAssetTemplate(token: string): Promise<void> {
+  const response = await fetch(`${API_URL}/network-assets/template-csv`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    throw new Error('Erro ao baixar modelo CSV.')
+  }
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'modelo_ativos_rede.csv'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  window.URL.revokeObjectURL(url)
+}
+
