@@ -242,19 +242,14 @@ echo -e "${GREEN}[✓] Arquivo .env gerado com sucesso.${NC}"
 # ------------------------------------------------------------------------------
 # 5. Compilação do Frontend
 # ------------------------------------------------------------------------------
-echo -e "${YELLOW}[4/6] Verificando compilação do painel frontend...${NC}"
+echo -e "${YELLOW}[4/6] Compilando painel frontend...${NC}"
 
-if [ ! -f "./frontend/dist/index.html" ]; then
-    echo " [*] Compilando arquivos do frontend via container Node.js..."
-    docker run --rm \
-        -v "$(pwd)/frontend:/app" \
-        -w /app \
-        node:20-alpine \
-        sh -c "npm install && npm run build"
-    echo -e "${GREEN}[✓] Frontend compilado em ./frontend/dist!${NC}"
+if command -v npm &> /dev/null && [ -f "frontend/package.json" ]; then
+    (cd frontend && npm install && npm run build) || docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
 else
-    echo -e "${GREEN}[✓] Frontend já compilado anteriormente.${NC}"
+    docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
 fi
+echo -e "${GREEN}[✓] Frontend compilado com sucesso em ./frontend/dist!${NC}"
 
 # ------------------------------------------------------------------------------
 # 6. Inicialização dos Containers e Migrações
