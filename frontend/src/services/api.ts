@@ -857,14 +857,30 @@ export async function pingNetworkAsset(
 
 export async function scanNetworkAssetsBatch(
   token: string,
-  site_id?: number | null,
+  params?: number | null | { asset_ids?: number[]; siteId?: number | null },
 ): Promise<PingResult[]> {
-  const q = site_id ? `?site_id=${site_id}` : ''
-  const response = await fetch(`${API_URL}/network-assets/scan-batch${q}`, {
+  let url = `${API_URL}/network-assets/scan-batch`
+  let body: string | undefined = undefined
+
+  if (typeof params === 'number') {
+    url += `?site_id=${params}`
+  } else if (params && typeof params === 'object') {
+    if (params.siteId && !params.asset_ids) {
+      url += `?site_id=${params.siteId}`
+    }
+    body = JSON.stringify({
+      asset_ids: params.asset_ids || undefined,
+      site_id: params.siteId || undefined,
+    })
+  }
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
+    ...(body ? { body } : {}),
   })
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))

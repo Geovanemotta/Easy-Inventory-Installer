@@ -19,9 +19,29 @@ logger = logging.getLogger(__name__)
 
 
 def extract_cn_from_dn(dn: str) -> str:
-    """Extrai o valor de CN a partir de um Distinguished Name."""
-    m = re.match(r"^CN=([^,]+)", dn, re.IGNORECASE)
-    return m.group(1).strip() if m else dn
+    """Extrai o valor de CN a partir de um Distinguished Name ou nome simples."""
+    s = str(dn).strip()
+    m = re.match(r"^CN=([^,]+)", s, re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
+    if "\\" in s:
+        return s.split("\\", 1)[1].strip()
+    return s
+
+
+def normalize_ad_name(name: str) -> str:
+    """
+    Normaliza nomes de grupos/contas do AD para comparação robusta
+    (remove prefixo CN=, domínio DOMAIN\, sufixo @dominio, espaços extras, maiúsculo).
+    """
+    s = str(name).strip().upper()
+    if s.startswith("CN="):
+        s = extract_cn_from_dn(s).upper()
+    if "\\" in s:
+        s = s.split("\\", 1)[1].strip()
+    if "@" in s:
+        s = s.split("@", 1)[0].strip()
+    return re.sub(r"\s+", " ", s).strip()
 
 
 def test_tcp_connectivity(host: str, port: int, timeout_sec: float = 3.0) -> Tuple[bool, str]:
@@ -167,11 +187,53 @@ def search_user_in_ad(
         return None
 
     entry = conn.entries[0]
-    raw_groups = getattr(entry, "memberOf", None) or []
-    groups = [extract_cn_from_dn(str(g)) for g in raw_groups]
+    user_dn = str(entry.entry_dn)
+    found_groups: set[str] = set()
+
+    # 1. Atributo memberOf da entrada do usuário (com extração de CN e formato original)
+    raw_groups = []
+    if hasattr(entry, "memberOf") and entry.memberOf:
+        if hasattr(entry.memberOf, "values"):
+            raw_groups = list(entry.memberOf.values)
+        elif isinstance(entry.memberOf, (list, tuple, set)):
+            raw_groups = list(entry.memberOf)
+        else:
+            raw_groups = [str(entry.memberOf)]
+
+    for g in raw_groups:
+        g_str = str(g).strip()
+        if g_str:
+            found_groups.add(g_str)
+            cn = extract_cn_from_dn(g_str)
+            if cn:
+                found_groups.add(cn)
+
+    # 2. Busca reversa por grupos no AD onde o usuário é membro
+    try:
+        group_filter = f"(&(objectClass=group)(member={user_dn}))"
+        conn.search(
+            search_base=base_dn,
+            search_filter=group_filter,
+            attributes=["cn", "sAMAccountName", "distinguishedName"],
+            size_limit=200,
+        )
+        for g_entry in conn.entries:
+            cn = str(getattr(g_entry, "cn", "") or "")
+            sam = str(getattr(g_entry, "sAMAccountName", "") or "")
+            dn = str(g_entry.entry_dn)
+            if cn:
+                found_groups.add(cn)
+            if sam:
+                found_groups.add(sam)
+            if dn:
+                found_groups.add(dn)
+    except Exception as e:
+        logger.warning(f"Aviso ao consultar grupos reversos para {user_dn}: {e}")
+
+    groups = sorted(list(found_groups), key=lambda x: x.lower())
 
     return {
-        "dn": str(entry.entry_dn),
+        "dn": user_dn,
         "username": str(getattr(entry, "sAMAccountName", username)),
         "display_name": str(getattr(entry, "displayName", "") or ""),
         "email": str(getattr(entry, "mail", "") or ""),
@@ -300,9 +362,10 @@ def authenticate_ldap_user(
         is_superadmin = False
         super_ad_groups = [g.upper().strip() for g in (config.superadmin_groups or [])]
         user_groups_upper = [g.upper().strip() for g in ad_groups]
+        user_groups_norm = {normalize_ad_name(g) for g in ad_groups if g}
 
         for sag in super_ad_groups:
-            if sag in user_groups_upper:
+            if sag in user_groups_upper or normalize_ad_name(sag) in user_groups_norm:
                 is_superadmin = True
                 break
 
@@ -354,7 +417,8 @@ def authenticate_ldap_user(
             mapped_roles = set()
 
             for grp, mapping in config.group_mappings.items():
-                if grp.upper().strip() in user_groups_upper:
+                grp_norm = normalize_ad_name(grp)
+                if grp.upper().strip() in user_groups_upper or grp_norm in user_groups_norm:
                     if isinstance(mapping, dict):
                         sites_list = mapping.get("sites", [])
                         for s in sites_list:
@@ -387,16 +451,24 @@ def authenticate_ldap_user(
                 for site in db_sites:
                     st_code = site.code.upper().strip()
                     code_num = st_code.lstrip("0") or "0"
+                    st_name = (site.name or "").upper().strip()
                     st_aliases = {
                         st_code,
                         f"LOJA-{st_code}",
                         f"LOJA-{int(code_num):02d}" if code_num.isdigit() else st_code,
+                        f"LOJA {st_code}",
+                        f"LOJA {int(code_num):02d}" if code_num.isdigit() else st_code,
                         f"LJ{st_code}",
                         f"LJ{int(code_num):02d}" if code_num.isdigit() else st_code,
+                        f"LJ {st_code}",
                         f"L{st_code}",
+                        f"L{int(code_num):02d}" if code_num.isdigit() else st_code,
+                        code_num,
+                        f"{int(code_num):02d}" if code_num.isdigit() else st_code,
                         str(site.id),
+                        st_name,
                     }
-                    if "*" in allowed_sites or any(a in allowed_sites for a in st_aliases):
+                    if "*" in allowed_sites or any(a in allowed_sites for a in st_aliases) or any(s in st_aliases for s in allowed_sites):
                         db.execute(
                             user_site_access.insert().values(
                                 user_id=user.id,

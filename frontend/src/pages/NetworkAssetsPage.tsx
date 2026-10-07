@@ -353,15 +353,28 @@ export default function NetworkAssetsPage({
   /* ---------------- Filtros ---------------- */
   const tipoDe = (a: NetworkAsset) => (a.tipo || '').toUpperCase().trim() || 'SEM TIPO'
 
-  function passa(a: NetworkAsset, ignorarStatus = false): boolean {
-    if (filtroSite === 'sem') {
-      if (a.site_id) return false
-    } else if (filtroSite !== 'todos' && String(a.site_id) !== filtroSite) {
-      return false
+  type IgnorarFiltros = {
+    status?: boolean
+    tipo?: boolean
+    site?: boolean
+    grupo?: boolean
+  }
+
+  function passa(a: NetworkAsset, ignorar?: IgnorarFiltros): boolean {
+    if (!ignorar?.site) {
+      if (filtroSite === 'sem') {
+        if (a.site_id) return false
+      } else if (filtroSite !== 'todos' && String(a.site_id) !== filtroSite) {
+        return false
+      }
     }
-    if (filtroTipo !== 'todos' && tipoDe(a) !== filtroTipo.toUpperCase().trim()) return false
-    if (filtroGrupo && !GRUPOS[filtroGrupo].test((a.tipo || '').toUpperCase())) return false
-    if (!ignorarStatus) {
+    if (!ignorar?.tipo) {
+      if (filtroTipo !== 'todos' && tipoDe(a) !== filtroTipo.toUpperCase().trim()) return false
+    }
+    if (!ignorar?.grupo) {
+      if (filtroGrupo && !GRUPOS[filtroGrupo].test((a.tipo || '').toUpperCase())) return false
+    }
+    if (!ignorar?.status) {
       if (filtroStatus === 'online' && a.status_online !== true) return false
       if (filtroStatus === 'offline' && a.status_online !== false) return false
       if (filtroStatus === 'nao_testado' && a.status_online !== null) return false
@@ -397,7 +410,7 @@ export default function NetworkAssetsPage({
 
   // Contagem por status considerando os demais filtros (para os botões de status)
   const statusCounts = useMemo(() => {
-    const base = assets.filter((a) => passa(a, true))
+    const base = assets.filter((a) => passa(a, { status: true }))
     return {
       todos: base.length,
       online: base.filter((a) => a.status_online === true).length,
@@ -407,20 +420,33 @@ export default function NetworkAssetsPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assets, filtroSite, filtroTipo, filtroGrupo, busca])
 
+  // Contagem dinâmica por tipo respeitando os demais filtros aplicados (loja selecionada, busca, status)
   const tipoOpcoes = useMemo(() => {
+    const base = assets.filter((a) => passa(a, { tipo: true }))
     const m = new Map<string, number>()
-    assets.forEach((a) => m.set(tipoDe(a), (m.get(tipoDe(a)) || 0) + 1))
+    base.forEach((a) => m.set(tipoDe(a), (m.get(tipoDe(a)) || 0) + 1))
+    if (filtroTipo !== 'todos' && !m.has(filtroTipo.toUpperCase().trim())) {
+      m.set(filtroTipo.toUpperCase().trim(), 0)
+    }
     return [...m.entries()].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0], 'pt-BR'))
-  }, [assets])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assets, filtroSite, filtroStatus, filtroGrupo, busca, filtroTipo])
+
+  const totalTiposFiltrados = useMemo(() => {
+    return assets.filter((a) => passa(a, { tipo: true })).length
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assets, filtroSite, filtroStatus, filtroGrupo, busca])
 
   const siteOpcoes = useMemo(() => {
+    const base = assets.filter((a) => passa(a, { site: true }))
     const cont = new Map<number, number>()
     let semFilial = 0
-    assets.forEach((a) => (a.site_id ? cont.set(a.site_id, (cont.get(a.site_id) || 0) + 1) : semFilial++))
+    base.forEach((a) => (a.site_id ? cont.set(a.site_id, (cont.get(a.site_id) || 0) + 1) : semFilial++))
     const grupos: Record<SiteKind, { s: Site; n: number }[]> = { loja: [], combo: [], outros: [] }
     sites.forEach((s) => grupos[siteKind(s.code)].push({ s, n: cont.get(s.id) || 0 }))
-    return { grupos, semFilial }
-  }, [assets, sites])
+    return { grupos, semFilial, totalBase: base.length }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assets, sites, filtroTipo, filtroStatus, filtroGrupo, busca])
 
   // KPIs
   const kpis = useMemo(() => {
@@ -643,11 +669,13 @@ export default function NetworkAssetsPage({
 
   async function executarScanLote() {
     setModalConfirmarScan(false)
+    const comIpFiltrados = ativosFiltrados.filter((a) => a.ip && a.ip.trim())
+    const targetIds = comIpFiltrados.map((a) => a.id)
     const siteIdParam = filtroSite !== 'todos' && filtroSite !== 'sem' ? Number(filtroSite) : undefined
     setScanning(true)
-    showToast(`Testando conectividade de ${scanAlvoCount} equipamentos...`)
+    showToast(`Testando conectividade de ${targetIds.length} equipamentos filtrados...`)
     try {
-      const results = await scanNetworkAssetsBatch(token, siteIdParam)
+      const results = await scanNetworkAssetsBatch(token, { asset_ids: targetIds, siteId: siteIdParam })
       const resMap = new Map(results.map((r) => [r.asset_id, r]))
 
       setAssets((prev) =>
@@ -1014,7 +1042,7 @@ export default function NetworkAssetsPage({
           </select>
 
           <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} aria-label="Tipo de equipamento">
-            <option value="todos">Todos os tipos</option>
+            <option value="todos">Todos os tipos ({totalTiposFiltrados})</option>
             {tipoOpcoes.map(([t, n]) => (
               <option key={t} value={t}>{t} ({n})</option>
             ))}
@@ -1475,14 +1503,18 @@ export default function NetworkAssetsPage({
               Será disparado um teste de conectividade (ping) para <b>{scanAlvoCount} equipamentos</b> com endereço IP cadastrado.
             </p>
 
-            {filtroSite !== 'todos' ? (
-              <div className="na-note"><Icon name="store" size={14} /> Filial selecionada: <b>{nomeLojaFiltrada}</b></div>
-            ) : (
-              <div className="na-note warn"><Icon name="alert" size={14} /> <span><b>Atenção:</b> serão testados equipamentos de <b>todas as filiais</b> ao mesmo tempo.</span></div>
-            )}
+            <div className="na-note">
+              <Icon name="bolt" size={14} />
+              <span>
+                Alvo do teste: <b>{scanAlvoCount} equipamentos</b> visíveis nos filtros atuais
+                {filtroSite !== 'todos' ? ` (${nomeLojaFiltrada})` : ''}
+                {filtroTipo !== 'todos' ? ` • Tipo: ${filtroTipo}` : ''}
+                {busca.trim() ? ` • Busca: "${busca.trim()}"` : ''}
+              </span>
+            </div>
 
-            {scanAlvoCount >= 10 && filtroSite === 'todos' && (
-              <p className="na-hint">Para evitar tráfego de rede desnecessário, selecione uma filial específica no filtro antes de iniciar o teste.</p>
+            {scanAlvoCount >= 10 && !filtrosAtivos && (
+              <p className="na-hint">Para evitar tráfego de rede desnecessário, selecione uma filial ou tipo específico no filtro antes de iniciar o teste.</p>
             )}
 
             <div className="na-confirm-actions">

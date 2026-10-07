@@ -13,6 +13,7 @@ from app.schemas.network_asset import (
     NetworkAssetOut,
     NetworkAssetUpdate,
     PingResultOut,
+    ScanBatchIn,
 )
 from app.services.network_asset_service import (
     atualizar_network_asset,
@@ -151,15 +152,19 @@ async def ping_asset(
 
 @router.post("/scan-batch", response_model=List[PingResultOut])
 async def scan_batch(
+    payload: Optional[ScanBatchIn] = None,
     site_id: Optional[int] = Query(default=None, description="Filtra por loja para testar conectividade em lote"),
     current_user: User = Depends(get_current_user),
 ):
     check_admin_write_permission(current_user)
     with Session(engine) as session:
+        effective_asset_ids = payload.asset_ids if payload and payload.asset_ids else None
+        effective_site_id = (payload.site_id if payload and payload.site_id else None) or site_id
         return await scan_assets_batch(
             db=session,
             current_user=current_user,
-            site_id=site_id,
+            site_id=effective_site_id,
+            asset_ids=effective_asset_ids,
         )
 
 

@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.device import Device
@@ -378,11 +378,51 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
     is_global = current_user.is_superadmin or "admin" in role_slugs or "operador_matriz" in role_slugs
 
     if not is_global:
-        allowed_sites = (
-            select(user_site_access.c.site_id)
-            .where(user_site_access.c.user_id == current_user.id)
+        user_sites = db.scalars(
+            select(Site)
+            .join(user_site_access, user_site_access.c.site_id == Site.id)
+            .where(
+                user_site_access.c.user_id == current_user.id,
+                Site.active.is_(True),
+            )
+        ).all()
+
+        if not user_sites:
+            return []
+
+        allowed_site_ids = [s.id for s in user_sites]
+        allowed_loja_terms = set()
+        for s in user_sites:
+            c = s.code.upper().strip()
+            c_num = c.lstrip("0") or "0"
+            allowed_loja_terms.add(c)
+            allowed_loja_terms.add(f"LJ{c}")
+            allowed_loja_terms.add(f"L{c}")
+            allowed_loja_terms.add(f"LOJA-{c}")
+            allowed_loja_terms.add(f"LOJA {c}")
+            if c_num.isdigit():
+                num_int = int(c_num)
+                allowed_loja_terms.add(f"{num_int:02d}")
+                allowed_loja_terms.add(str(num_int))
+                allowed_loja_terms.add(f"LJ{num_int:02d}")
+                allowed_loja_terms.add(f"L{num_int:02d}")
+                allowed_loja_terms.add(f"CB{num_int:02d}")
+                allowed_loja_terms.add(f"C{num_int:02d}")
+                allowed_loja_terms.add(f"COMBO-{num_int:02d}")
+
+        hostname_prefixes = [f"{t}-" for t in allowed_loja_terms if len(t) >= 2]
+        query = query.where(
+            or_(
+                Device.site_id.in_(allowed_site_ids),
+                and_(
+                    Device.site_id.is_(None),
+                    or_(
+                        func.upper(Device.loja).in_(allowed_loja_terms),
+                        *[Device.hostname.ilike(f"{p}%") for p in hostname_prefixes],
+                    ),
+                ),
+            )
         )
-        query = query.where(Device.site_id.in_(allowed_sites))
 
     devices = db.scalars(query.order_by(Device.hostname, Device.updated_at.desc())).all()
 

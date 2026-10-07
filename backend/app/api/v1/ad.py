@@ -9,7 +9,7 @@ from app.database import engine
 from app.models.ad_config import ADConfig
 from app.models.site import Site
 from app.models.user import User
-from app.services.ldap_service import test_ldap_connection, search_user_in_ad
+from app.services.ldap_service import test_ldap_connection, search_user_in_ad, normalize_ad_name
 from ldap3 import ALL, Connection, Server
 
 router = APIRouter(
@@ -317,8 +317,10 @@ def test_user_authentication(
                 }
 
             groups = (user_info and user_info.get("groups")) or []
+            user_groups_upper = [g.upper().strip() for g in groups]
+            user_groups_norm = {normalize_ad_name(g) for g in groups if g}
             super_groups = [g.upper().strip() for g in (cfg.superadmin_groups or [])]
-            is_super = any(g.upper().strip() in super_groups for g in groups)
+            is_super = any(g in super_groups or normalize_ad_name(g) in {normalize_ad_name(sg) for sg in super_groups} for g in groups)
 
             mapped_site_names = []
             mapped_roles = []
@@ -327,9 +329,9 @@ def test_user_authentication(
                 mapped_roles = ["superadmin"]
             elif cfg.group_mappings and isinstance(cfg.group_mappings, dict):
                 allowed_site_keys = set()
-                user_groups_upper = [g.upper().strip() for g in groups]
                 for grp, mapping in cfg.group_mappings.items():
-                    if grp.upper().strip() in user_groups_upper:
+                    norm_grp = normalize_ad_name(grp)
+                    if grp.upper().strip() in user_groups_upper or norm_grp in user_groups_norm:
                         if isinstance(mapping, dict):
                             r = mapping.get("role")
                             if r:
@@ -352,16 +354,24 @@ def test_user_authentication(
                     for site in db_sites:
                         st_code = site.code.upper().strip()
                         code_num = st_code.lstrip("0") or "0"
+                        st_name = (site.name or "").upper().strip()
                         st_aliases = {
                             st_code,
                             f"LOJA-{st_code}",
                             f"LOJA-{int(code_num):02d}" if code_num.isdigit() else st_code,
+                            f"LOJA {st_code}",
+                            f"LOJA {int(code_num):02d}" if code_num.isdigit() else st_code,
                             f"LJ{st_code}",
                             f"LJ{int(code_num):02d}" if code_num.isdigit() else st_code,
+                            f"LJ {st_code}",
                             f"L{st_code}",
+                            f"L{int(code_num):02d}" if code_num.isdigit() else st_code,
+                            code_num,
+                            f"{int(code_num):02d}" if code_num.isdigit() else st_code,
                             str(site.id),
+                            st_name,
                         }
-                        if "*" in allowed_site_keys or any(a in allowed_site_keys for a in st_aliases):
+                        if "*" in allowed_site_keys or any(a in allowed_site_keys for a in st_aliases) or any(s in st_aliases for s in allowed_site_keys):
                             mapped_site_names.append(f"{site.name} ({site.code})")
 
             return {

@@ -296,12 +296,15 @@ async def scan_assets_batch(
     db: Session,
     current_user: User,
     site_id: Optional[int] = None,
+    asset_ids: Optional[List[int]] = None,
 ) -> List[PingResultOut]:
     stmt = select(NetworkAsset).where(
         NetworkAsset.company_id == current_user.company_id,
         NetworkAsset.ip.isnot(None),
     )
-    if site_id:
+    if asset_ids:
+        stmt = stmt.where(NetworkAsset.id.in_(asset_ids))
+    elif site_id:
         stmt = stmt.where(NetworkAsset.site_id == site_id)
 
     assets = db.scalars(stmt).all()

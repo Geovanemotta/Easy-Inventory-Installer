@@ -69,3 +69,8 @@ class ImportResultOut(BaseModel):
 
 class BulkDeleteIn(BaseModel):
     ids: list[int] = Field(..., min_length=1, description="Lista de IDs de ativos para exclusão em massa")
+
+
+class ScanBatchIn(BaseModel):
+    asset_ids: Optional[list[int]] = Field(default=None, description="Lista opcional de IDs de ativos para escanear especificamente")
+    site_id: Optional[int] = Field(default=None, description="Filtra por loja caso asset_ids não seja informado")

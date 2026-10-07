@@ -853,7 +853,7 @@ export default function InventoryPage({
           />
         </div>
 
-        {isSuperAdmin && (
+        {(isSuperAdmin || isOperadorMatriz || (filiaisOpcoes && filiaisOpcoes.length > 1)) && (
           <div className="field">
             <label htmlFor="filial">Filial</label>
             <select
@@ -1153,7 +1153,8 @@ export default function InventoryPage({
                               </div>
                               {(i.alerta_hardware ||
                                 (i.history_count !== undefined && i.history_count > 0) ||
-                                conexao.status === 'offline') && (
+                                conexao.status === 'offline' ||
+                                i.firewall_status === 'pendente') && (
                                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
                                   {conexao.status === 'offline' && (
                                     <span
@@ -1177,19 +1178,6 @@ export default function InventoryPage({
                                       title={`Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
                                     >
                                       🟡 Nova / Firewall
-                                    </span>
-                                  )}
-                                  {i.firewall_status === 'confirmado' && (
-                                    <span
-                                      className="badge-firewall-ok"
-                                      title={`Homologada no Firewall por: ${i.firewall_confirmado_por || 'Admin'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
-                                    >
-                                      🟢 Firewall OK
-                                    </span>
-                                  )}
-                                  {i.patrimonio && (
-                                    <span className="badge-patrimonio" title={`Patrimônio: ${i.patrimonio}`}>
-                                      🏷️ {i.patrimonio}
                                     </span>
                                   )}
                                 </div>
@@ -1548,6 +1536,28 @@ export default function InventoryPage({
                                       </div>
                                     </div>
                                   )}
+                                  {i.patrimonio && (
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Número de Patrimônio
+                                      </div>
+                                      <div
+                                        className="detail-value mono"
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                      >
+                                        <span>{i.patrimonio}</span>
+                                        <button
+                                          type="button"
+                                          className="copy-button"
+                                          onClick={() => copiarTexto(i.patrimonio!)}
+                                          title="Copiar Patrimônio"
+                                          aria-label="Copiar Patrimônio"
+                                        >
+                                          <IconCopy />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="detail-sec">Rede & Acesso</div>
@@ -1733,6 +1743,22 @@ export default function InventoryPage({
                                                  {isSavingPat ? '...' : 'Salvar'}
                                                </button>
                                              )}
+                                              {Boolean(i.patrimonio || currentNum) && (
+                                                <button
+                                                  type="button"
+                                                  className="copy-button"
+                                                  style={{ height: '34px', width: '34px', padding: 0 }}
+                                                  onClick={() =>
+                                                    copiarTexto(
+                                                      i.patrimonio || (currentNum ? `pat.${currentNum}` : '')
+                                                    )
+                                                  }
+                                                  title="Copiar Patrimônio"
+                                                  aria-label="Copiar Patrimônio"
+                                                >
+                                                  <IconCopy />
+                                                </button>
+                                              )}
                                            </div>
                                            {isLocked ? (
                                              <div className="patrimonio-lock-msg">
