@@ -9,7 +9,12 @@ from app.database import engine
 from app.models.ad_config import ADConfig
 from app.models.site import Site
 from app.models.user import User
-from app.services.ldap_service import test_ldap_connection, search_user_in_ad, normalize_ad_name
+from app.services.ldap_service import (
+    test_ldap_connection,
+    search_user_in_ad,
+    normalize_ad_name,
+    get_site_aliases,
+)
 from ldap3 import ALL, Connection, Server
 
 router = APIRouter(
@@ -352,26 +357,8 @@ def test_user_authentication(
                         )
                     ).all()
                     for site in db_sites:
-                        st_code = site.code.upper().strip()
-                        code_num = st_code.lstrip("0") or "0"
-                        st_name = (site.name or "").upper().strip()
-                        st_aliases = {
-                            st_code,
-                            f"LOJA-{st_code}",
-                            f"LOJA-{int(code_num):02d}" if code_num.isdigit() else st_code,
-                            f"LOJA {st_code}",
-                            f"LOJA {int(code_num):02d}" if code_num.isdigit() else st_code,
-                            f"LJ{st_code}",
-                            f"LJ{int(code_num):02d}" if code_num.isdigit() else st_code,
-                            f"LJ {st_code}",
-                            f"L{st_code}",
-                            f"L{int(code_num):02d}" if code_num.isdigit() else st_code,
-                            code_num,
-                            f"{int(code_num):02d}" if code_num.isdigit() else st_code,
-                            str(site.id),
-                            st_name,
-                        }
-                        if "*" in allowed_site_keys or any(a in allowed_site_keys for a in st_aliases) or any(s in st_aliases for s in allowed_site_keys):
+                        st_aliases = get_site_aliases(site)
+                        if "*" in allowed_site_keys or bool(allowed_site_keys & st_aliases):
                             mapped_site_names.append(f"{site.name} ({site.code})")
 
             return {

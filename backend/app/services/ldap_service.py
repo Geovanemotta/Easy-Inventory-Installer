@@ -30,7 +30,7 @@ def extract_cn_from_dn(dn: str) -> str:
 
 
 def normalize_ad_name(name: str) -> str:
-    """
+    r"""
     Normaliza nomes de grupos/contas do AD para comparação robusta
     (remove prefixo CN=, domínio DOMAIN\, sufixo @dominio, espaços extras, maiúsculo).
     """
@@ -42,6 +42,51 @@ def normalize_ad_name(name: str) -> str:
     if "@" in s:
         s = s.split("@", 1)[0].strip()
     return re.sub(r"\s+", " ", s).strip()
+
+
+def get_site_aliases(site: Site) -> set[str]:
+    """
+    Retorna os aliases textuais padronizados de uma loja para comparacao exata
+    com codigos/nomes selecionados nos vinculos de grupos do AD.
+    NUNCA inclui o ID numerico sequencial da tabela do banco de dados para evitar falso-positivo.
+    """
+    st_code = site.code.upper().strip()
+    st_name = (site.name or "").upper().strip()
+    aliases = {st_code, st_name}
+
+    if st_code.isdigit():
+        num = int(st_code)
+        aliases.update([
+            f"{num:02d}",
+            str(num),
+            f"LOJA-{num:02d}",
+            f"LOJA {num:02d}",
+            f"LOJA-{num}",
+            f"LOJA {num}",
+            f"LJ{num:02d}",
+            f"LJ {num:02d}",
+            f"LJ{num}",
+            f"L{num:02d}",
+            f"L{num}",
+        ])
+    elif (st_code.startswith("C") or st_code.startswith("CB")) and any(c.isdigit() for c in st_code):
+        digits = "".join(filter(str.isdigit, st_code))
+        if digits:
+            num = int(digits)
+            aliases.update([
+                f"C{num:02d}",
+                f"C{num}",
+                f"CB{num:02d}",
+                f"CB{num}",
+                f"COMBO-{num:02d}",
+                f"COMBO {num:02d}",
+                f"COMBO-{num}",
+                f"COMBO {num}",
+            ])
+    elif st_code in ("MATRIZ", "MT", "ADM", "AC"):
+        aliases.update(["MATRIZ", "MT", "ADM", "AC"])
+
+    return aliases
 
 
 def test_tcp_connectivity(host: str, port: int, timeout_sec: float = 3.0) -> Tuple[bool, str]:
@@ -449,26 +494,8 @@ def authenticate_ldap_user(
                 )
 
                 for site in db_sites:
-                    st_code = site.code.upper().strip()
-                    code_num = st_code.lstrip("0") or "0"
-                    st_name = (site.name or "").upper().strip()
-                    st_aliases = {
-                        st_code,
-                        f"LOJA-{st_code}",
-                        f"LOJA-{int(code_num):02d}" if code_num.isdigit() else st_code,
-                        f"LOJA {st_code}",
-                        f"LOJA {int(code_num):02d}" if code_num.isdigit() else st_code,
-                        f"LJ{st_code}",
-                        f"LJ{int(code_num):02d}" if code_num.isdigit() else st_code,
-                        f"LJ {st_code}",
-                        f"L{st_code}",
-                        f"L{int(code_num):02d}" if code_num.isdigit() else st_code,
-                        code_num,
-                        f"{int(code_num):02d}" if code_num.isdigit() else st_code,
-                        str(site.id),
-                        st_name,
-                    }
-                    if "*" in allowed_sites or any(a in allowed_sites for a in st_aliases) or any(s in st_aliases for s in allowed_sites):
+                    st_aliases = get_site_aliases(site)
+                    if "*" in allowed_sites or bool(allowed_sites & st_aliases):
                         db.execute(
                             user_site_access.insert().values(
                                 user_id=user.id,
