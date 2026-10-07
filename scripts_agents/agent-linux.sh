@@ -291,6 +291,114 @@ fi
 
 DATA_COLETA=$(date '+%Y-%m-%d %H:%M:%S')
 
+# ----------------------------------------------------------
+# PERIFÉRICOS E DISPOSITIVOS CONECTADOS
+# ----------------------------------------------------------
+PERIFERICOS="[]"
+
+# 1. Monitores conectados via DRM / Sysfs
+for status_file in /sys/class/drm/*/status; do
+    [[ -f "$status_file" ]] || continue
+    if grep -q "^connected" "$status_file" 2>/dev/null; then
+        port_dir=$(dirname "$status_file")
+        port_name=$(basename "$port_dir" | sed 's/^[^-]*-//')
+        edid_file="$port_dir/edid"
+        nome_mon="$port_name"
+        mfg_mon=""
+        serial_mon=""
+
+        if [[ -f "$edid_file" ]] && command -v strings >/dev/null 2>&1; then
+            edid_lines=()
+            while IFS= read -r line; do
+                line_clean=$(echo "$line" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+                case "$line_clean" in
+                    *[@+%,*]*) continue ;;
+                esac
+                if [[ ${#line_clean} -ge 3 ]]; then
+                    edid_lines+=("$line_clean")
+                fi
+            done < <(strings "$edid_file" 2>/dev/null || true)
+
+            if [[ ${#edid_lines[@]} -ge 1 ]]; then
+                nome_mon="${edid_lines[0]}"
+                mfg_mon=$(echo "$nome_mon" | awk '{print $1}')
+            fi
+            if [[ ${#edid_lines[@]} -ge 2 ]]; then
+                serial_mon="${edid_lines[1]}"
+            fi
+        fi
+
+        PERIFERICOS=$(jq -c \
+            --arg tipo "monitor" \
+            --arg nome "$nome_mon" \
+            --arg mfg "$mfg_mon" \
+            --arg serial "$serial_mon" \
+            --arg conexao "$port_name" \
+            '. += [{tipo: $tipo, nome: $nome, fabricante: $mfg, serial: $serial, conexao: $conexao}]' \
+            <<< "$PERIFERICOS")
+    fi
+done
+
+# 2. Periféricos USB (Teclado, Mouse, Smartphone, Webcams, etc.)
+for dev in /sys/bus/usb/devices/*; do
+    [[ -f "$dev/product" ]] || continue
+    prod=$(cat "$dev/product" 2>/dev/null | tr -d '\r\n')
+    [[ -z "$prod" ]] && continue
+    mfg=$(cat "$dev/manufacturer" 2>/dev/null | tr -d '\r\n' || true)
+    serial=$(cat "$dev/serial" 2>/dev/null | tr -d '\r\n' || true)
+
+    prod_lower=$(echo "$prod $mfg" | tr '[:upper:]' '[:lower:]')
+    if [[ "$prod_lower" =~ root[[:space:]]hub || "$prod_lower" =~ host[[:space:]]controller ]]; then
+        continue
+    fi
+
+    tipo="outro"
+    if [[ "$prod_lower" =~ keyboard|teclado ]]; then
+        tipo="teclado"
+    elif [[ "$prod_lower" =~ mouse|optical|trackball|touchpad ]]; then
+        tipo="mouse"
+    elif [[ "$prod_lower" =~ galaxy|android|iphone|xiaomi|motorola|huawei|pixel|phone|celular|mtp ]]; then
+        tipo="smartphone"
+    elif [[ "$prod_lower" =~ storage|flash|cruzer|datatraveler|ultra ]]; then
+        tipo="armazenamento_usb"
+    elif [[ "$prod_lower" =~ printer|impressora|deskjet|laserjet|epson ]]; then
+        tipo="impressora"
+    elif [[ "$prod_lower" =~ camera|webcam ]]; then
+        tipo="webcam"
+    elif [[ "$prod_lower" =~ headset|audio|sound|fone ]]; then
+        tipo="audio"
+    fi
+
+    PERIFERICOS=$(jq -c \
+        --arg tipo "$tipo" \
+        --arg nome "$prod" \
+        --arg mfg "$mfg" \
+        --arg serial "$serial" \
+        --arg conexao "USB" \
+        '. += [{tipo: $tipo, nome: $nome, fabricante: $mfg, serial: $serial, conexao: $conexao}]' \
+        <<< "$PERIFERICOS")
+done
+
+# 3. Discos USB via lsblk
+if command -v lsblk >/dev/null 2>&1; then
+    while read -r name tran size model; do
+        if [[ "$tran" == "usb" && -n "$name" ]]; then
+            model_clean="${model:-"Dispositivo USB"}"
+            ja_tem=$(jq -r --arg n "$model_clean" '.[] | select(.nome == $n) | .nome' <<< "$PERIFERICOS" 2>/dev/null || true)
+            if [[ -z "$ja_tem" ]]; then
+                PERIFERICOS=$(jq -c \
+                    --arg tipo "armazenamento_usb" \
+                    --arg nome "$model_clean" \
+                    --arg mfg "" \
+                    --arg serial "" \
+                    --arg conexao "USB ($size)" \
+                    '. += [{tipo: $tipo, nome: $nome, fabricante: $mfg, serial: $serial, conexao: $conexao}]' \
+                    <<< "$PERIFERICOS")
+            fi
+        fi
+    done < <(lsblk -d -n -o NAME,TRAN,SIZE,MODEL 2>/dev/null || true)
+fi
+
 # ==========================================================
 # APLICATIVOS / AGENTES / RUNTIMES / FERRAMENTAS
 # ==========================================================
@@ -563,6 +671,7 @@ jq -n \
     --arg usuario "$USUARIO" \
     --arg data_coleta "$DATA_COLETA" \
     --argjson analise_disco "$ANALISE_DISCO" \
+    --argjson perifericos "$PERIFERICOS" \
     --argjson aplicativos "$APLICATIVOS" \
     --argjson agentes "$AGENTES" \
     --argjson runtimes "$RUNTIMES" \
@@ -585,6 +694,7 @@ jq -n \
     disco_livre: $disco_livre,
     disco_percentual: $disco_percentual,
     analise_disco: $analise_disco,
+    perifericos: $perifericos,
     rustdesk_id: $rustdesk_id,
     fabricante: $fabricante,
     modelo: $modelo,

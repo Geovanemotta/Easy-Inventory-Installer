@@ -68,6 +68,12 @@ app.include_router(
 
 from app.api.v1.agents import router as agents_router
 from app.api.v1.ad import router as ad_router
+from app.api.v1.terminal import router as terminal_router
+
+app.include_router(
+    terminal_router,
+    prefix="/api/v1",
+)
 
 app.include_router(
     ad_router,

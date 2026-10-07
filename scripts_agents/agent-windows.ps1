@@ -383,6 +383,132 @@ $Agentes = $Agentes | Sort-Object { $_.nome }
 $Runtimes = $Runtimes | Sort-Object { $_.nome }
 $Ferramentas = $Ferramentas | Sort-Object { $_.nome }
 
+# ----------------------------------------------------------
+# PERIFÉRICOS E DISPOSITIVOS CONECTADOS
+# ----------------------------------------------------------
+$Perifericos = @()
+
+# 1. Monitores (WMI / CIM)
+try {
+    $wmiMons = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID -ErrorAction SilentlyContinue
+    foreach ($m in $wmiMons) {
+        $nomeMon = ""
+        $mfgMon = ""
+        $serMon = ""
+        if ($m.UserFriendlyName) {
+            $nomeMon = (($m.UserFriendlyName | Where-Object { $_ -ne 0 } | ForEach-Object { [char]$_ }) -join '').Trim()
+        }
+        if ($m.ManufacturerName) {
+            $mfgMon = (($m.ManufacturerName | Where-Object { $_ -ne 0 } | ForEach-Object { [char]$_ }) -join '').Trim()
+        }
+        if ($m.SerialNumberID) {
+            $serMon = (($m.SerialNumberID | Where-Object { $_ -ne 0 } | ForEach-Object { [char]$_ }) -join '').Trim()
+        }
+        if (-not $nomeMon) {
+            $nomeMon = if ($mfgMon) { "$mfgMon Monitor" } else { "Monitor" }
+        }
+        $Perifericos += [ordered]@{
+            tipo       = "monitor"
+            nome       = $nomeMon
+            fabricante = $mfgMon
+            serial     = $serMon
+            conexao    = "Display"
+        }
+    }
+} catch { }
+
+if (($Perifericos | Where-Object { $_.tipo -eq "monitor" }).Count -eq 0) {
+    try {
+        $dtMons = Get-CimInstance Win32_DesktopMonitor -ErrorAction SilentlyContinue
+        foreach ($dm in $dtMons) {
+            if ($dm.Name -and $dm.Name -notmatch "Default_Monitor") {
+                $Perifericos += [ordered]@{
+                    tipo       = "monitor"
+                    nome       = $dm.Name
+                    fabricante = $dm.MonitorManufacturer
+                    serial     = ""
+                    conexao    = "DesktopMonitor"
+                }
+            }
+        }
+    } catch { }
+}
+
+# 2. Smartphones e Dispositivos Portáteis (WPD - Windows Portable Devices)
+try {
+    $wpdDevs = Get-CimInstance Win32_PnPEntity -ErrorAction SilentlyContinue |
+        Where-Object { $_.PNPClass -eq 'WPD' }
+    foreach ($phone in $wpdDevs) {
+        $Perifericos += [ordered]@{
+            tipo       = "smartphone"
+            nome       = $phone.Name
+            fabricante = $phone.Manufacturer
+            serial     = ""
+            conexao    = "USB (MTP/PTP)"
+        }
+    }
+} catch { }
+
+# 3. Teclados e Mouses
+try {
+    $kbs = Get-CimInstance Win32_Keyboard -ErrorAction SilentlyContinue
+    foreach ($k in $kbs) {
+        if ($k.Name -and $k.Name -notmatch "Terminal Server") {
+            $Perifericos += [ordered]@{
+                tipo       = "teclado"
+                nome       = $k.Name
+                fabricante = $k.Description
+                serial     = ""
+                conexao    = "USB/PS2"
+            }
+        }
+    }
+    $mice = Get-CimInstance Win32_PointingDevice -ErrorAction SilentlyContinue
+    foreach ($mc in $mice) {
+        if ($mc.Name) {
+            $Perifericos += [ordered]@{
+                tipo       = "mouse"
+                nome       = $mc.Name
+                fabricante = $mc.Manufacturer
+                serial     = ""
+                conexao    = "USB/PS2"
+            }
+        }
+    }
+} catch { }
+
+# 4. Dispositivos de Armazenamento USB (Pen drives, HDs externos)
+try {
+    $usbDrives = Get-CimInstance Win32_DiskDrive -ErrorAction SilentlyContinue |
+        Where-Object { $_.InterfaceType -eq 'USB' }
+    foreach ($d in $usbDrives) {
+        $szGB = if ($d.Size) { "$([math]::Round($d.Size / 1GB, 1)) GB" } else { "" }
+        $Perifericos += [ordered]@{
+            tipo       = "armazenamento_usb"
+            nome       = $d.Model
+            fabricante = $d.Manufacturer
+            serial     = $d.SerialNumber
+            capacidade = $szGB
+            conexao    = "USB"
+        }
+    }
+} catch { }
+
+# 5. Impressoras Locais Físicas
+try {
+    $printers = Get-CimInstance Win32_Printer -ErrorAction SilentlyContinue |
+        Where-Object { $_.Local -eq $true -and $_.Name -notmatch "OneNote|PDF|XPS|Fax|Root Print Queue" }
+    foreach ($pr in $printers) {
+        $Perifericos += [ordered]@{
+            tipo       = "impressora"
+            nome       = $pr.Name
+            fabricante = $pr.DriverName
+            serial     = ""
+            conexao    = $pr.PortName
+        }
+    }
+} catch { }
+
 # ==========================================================
 # MONTAGEM DO INVENTÁRIO
 # ==========================================================
@@ -405,6 +531,7 @@ $Inventory = [ordered]@{
     disco_livre      = $DiscoLivre
     disco_percentual = $DiscoPercentualStr
     analise_disco    = $AnaliseDisco
+    perifericos      = $Perifericos
     rustdesk_id      = $RustDeskID
     fabricante       = $Fabricante
     modelo           = $Modelo

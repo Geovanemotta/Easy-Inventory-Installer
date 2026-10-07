@@ -185,6 +185,13 @@ export function enriquecer(i: RawInventoryItem): EnrichedMachine {
   return o
 }
 
+export function isLinuxDevice(m?: { _so?: string; sistema?: string | null } | null): boolean {
+  if (!m) return false
+  if (m._so === 'Linux') return true
+  const s = String(m.sistema || '').toLowerCase()
+  return !s.includes('windows')
+}
+
 export type AppMapEntry = {
   key: string
   nome: string

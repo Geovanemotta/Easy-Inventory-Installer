@@ -182,12 +182,23 @@ export type RawInventoryItem = {
   agentes?: AppItem[]
   runtimes?: AppItem[]
   ferramentas?: AppItem[]
+  perifericos?: PerifericoItem[]
   patrimonio?: string | null
   firewall_status?: string | null
   firewall_solicitado_por?: string | null
   firewall_solicitado_em?: string | null
   firewall_confirmado_por?: string | null
   firewall_confirmado_em?: string | null
+}
+
+export interface PerifericoItem {
+  tipo: 'monitor' | 'smartphone' | 'teclado' | 'mouse' | 'armazenamento_usb' | 'impressora' | 'webcam' | 'audio' | 'outro' | string
+  nome: string
+  fabricante?: string
+  serial?: string
+  conexao?: string
+  capacidade?: string
+  detalhes?: string
 }
 
 export type InventoryDataResponse = {

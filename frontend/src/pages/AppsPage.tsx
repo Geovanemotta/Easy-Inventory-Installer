@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { IcoLnx, IcoWin } from '../components/Icons'
+import { abrirTerminalSshPopup } from '../components/SshTerminalModal'
 import {
   CATS,
   construirAppsMap,
   ipNum,
+  isLinuxDevice,
   ORDEM_TIPO,
   versaoCompleta,
   type AppMapEntry,
@@ -14,11 +16,13 @@ import type { PacoteItem } from '../services/api'
 type AppsPageProps = {
   inventario: EnrichedMachine[]
   abrirMaquinaNoInventario: (hostname: string) => void
+  onOpenSsh?: (device: EnrichedMachine) => void
 }
 
 export default function AppsPage({
   inventario,
   abrirMaquinaNoInventario,
+  onOpenSsh,
 }: AppsPageProps) {
   const [appBusca, setAppBusca] = useState<string>('')
   const [appCat, setAppCat] = useState<string>('')
@@ -29,6 +33,14 @@ export default function AppsPage({
   const [appVerSel, setAppVerSel] = useState<string | null>(null)
   const [appAba, setAppAba] = useState<'com' | 'sem'>('com')
   const [appLimit, setAppLimit] = useState<number>(100)
+
+  const handleOpenSsh = (m: EnrichedMachine) => {
+    if (onOpenSsh) {
+      onOpenSsh(m)
+    } else {
+      abrirTerminalSshPopup(m)
+    }
+  }
 
   const { appsMap, origens: appOrigensDisponiveis } = useMemo(() => {
     return construirAppsMap(inventario)
@@ -498,6 +510,7 @@ export default function AppsPage({
                           <th>Filial</th>
                           <th>Hostname</th>
                           <th>IP</th>
+                          <th style={{ width: '70px', textAlign: 'center' }}>SSH</th>
                           <th>Versão</th>
                           <th>Pacote(s)</th>
                         </tr>
@@ -524,6 +537,20 @@ export default function AppsPage({
                               </a>
                             </td>
                             <td>{r.m.ip || '-'}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              {isLinuxDevice(r.m) && r.m.ip ? (
+                                <button
+                                  type="button"
+                                  className="btn-ssh-table"
+                                  onClick={() => handleOpenSsh(r.m)}
+                                  title={`Conectar via terminal SSH em ${r.m.hostname} (${r.m.ip})`}
+                                >
+                                  🖥️ SSH
+                                </button>
+                              ) : (
+                                <span className="ssh-na">—</span>
+                              )}
+                            </td>
                             <td>
                               {r.ver ? (
                                 <b>{r.ver}</b>

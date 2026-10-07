@@ -7,6 +7,8 @@ pwdlib[argon2]
 PyJWT
 ldap3
 python-multipart
+asyncssh
+cryptography
 
 # Correcoes de Seguranca
 urllib3==2.8.0

@@ -4,6 +4,7 @@ import AgentInstallModal from './components/AgentInstallModal'
 import DeleteDeviceModal from './components/DeleteDeviceModal'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
+import SshTerminalModal, { abrirTerminalSshPopup } from './components/SshTerminalModal'
 import ActiveDirectoryPage from './pages/ActiveDirectoryPage'
 import AppsPage from './pages/AppsPage'
 import InventoryPage from './pages/InventoryPage'
@@ -65,6 +66,50 @@ export default function App() {
   const [showAgentModal, setShowAgentModal] = useState<boolean>(false)
   const [deviceParaExcluir, setDeviceParaExcluir] = useState<EnrichedMachine | null>(null)
   const [excluindoDevice, setExcluindoDevice] = useState<boolean>(false)
+
+  // Terminal SSH: standalone popup e fallback modal
+  const terminalDeviceId = useMemo(() => {
+    const hash = window.location.hash
+    if (hash.startsWith('#terminal')) {
+      const q = hash.includes('?') ? hash.split('?')[1] : hash.includes('&') ? hash.split('&')[1] : ''
+      const params = new URLSearchParams(q)
+      const id = params.get('id')
+      return id ? Number(id) : null
+    }
+    return null
+  }, [])
+
+  const [standaloneDevice, setStandaloneDevice] = useState<EnrichedMachine | null>(() => {
+    if (!terminalDeviceId) return null
+    try {
+      const cached = localStorage.getItem(`terminal_device_${terminalDeviceId}`)
+      if (cached) return JSON.parse(cached)
+    } catch {}
+    return null
+  })
+
+  useEffect(() => {
+    if (terminalDeviceId && !standaloneDevice) {
+      const token = localStorage.getItem('access_token')
+      if (token) {
+        getInventoryData(token).then((data) => {
+          const found = (data.items || []).find((d: RawInventoryItem) => d.id === terminalDeviceId)
+          if (found) {
+            setStandaloneDevice(enriquecer(found))
+          }
+        }).catch(console.error)
+      }
+    }
+  }, [terminalDeviceId, standaloneDevice])
+
+  const [sshModalDevice, setSshModalDevice] = useState<EnrichedMachine | null>(null)
+
+  const handleOpenSsh = useCallback((device: EnrichedMachine) => {
+    const opened = abrirTerminalSshPopup(device)
+    if (!opened) {
+      setSshModalDevice(device)
+    }
+  }, [])
 
   const showToast = useCallback((msg: string, duration = 2400) => {
     if (toastTimerRef.current) {
@@ -302,6 +347,29 @@ export default function App() {
     return () => clearInterval(timer)
   }, [loggedIn])
 
+  if (terminalDeviceId) {
+    if (!loggedIn) {
+      return <Login onLogin={handleLogin} />
+    }
+    if (!standaloneDevice) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#090d16', color: '#94a3b8', fontFamily: 'monospace' }}>
+          <span>Carregando dados da máquina #{terminalDeviceId} para terminal SSH...</span>
+        </div>
+      )
+    }
+    return (
+      <div style={{ width: '100vw', height: '100vh', background: '#090d16', overflow: 'hidden' }}>
+        <SshTerminalModal
+          device={standaloneDevice}
+          token={localStorage.getItem('access_token') || ''}
+          onClose={() => window.close()}
+          standalone={true}
+        />
+      </div>
+    )
+  }
+
   if (!loggedIn) {
     return <Login onLogin={handleLogin} />
   }
@@ -346,6 +414,7 @@ export default function App() {
               onClearTarget={() => setInventoryTarget(null)}
               onUpdateDevice={handleUpdateDeviceLocal}
               showToast={showToast}
+              onOpenSsh={handleOpenSsh}
             />
           )}
 
@@ -371,6 +440,7 @@ export default function App() {
             <AppsPage
               inventario={inventario}
               abrirMaquinaNoInventario={abrirMaquinaNoInventario}
+              onOpenSsh={handleOpenSsh}
             />
           )}
 
@@ -393,6 +463,15 @@ export default function App() {
         onConfirm={handleConfirmarExclusao}
         onCancel={() => setDeviceParaExcluir(null)}
       />
+
+      {/* Modal Fallback de Terminal SSH */}
+      {sshModalDevice && (
+        <SshTerminalModal
+          device={sshModalDevice}
+          token={localStorage.getItem('access_token') || ''}
+          onClose={() => setSshModalDevice(null)}
+        />
+      )}
 
       {/* Notificação Toast Flutuante */}
       {toast && (

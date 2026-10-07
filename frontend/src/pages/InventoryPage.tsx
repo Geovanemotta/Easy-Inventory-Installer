@@ -1,6 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import DonutChart from '../components/DonutChart'
-import { IcoLnx, IconCopy, IcoWin } from '../components/Icons'
+import SshTerminalModal, { abrirTerminalSshPopup } from '../components/SshTerminalModal'
+import {
+  IcoLnx,
+  IconCopy,
+  IconKeyboard,
+  IconMonitor,
+  IconMouse,
+  IconPrinter,
+  IconSmartphone,
+  IconUsb,
+  IcoWin,
+} from '../components/Icons'
 import {
   confirmarDeviceFirewall,
   solicitarDeviceFirewall,
@@ -10,6 +21,7 @@ import {
   type HistoryItem,
   type ItemVarLog,
   type PastaUsuario,
+  type PerifericoItem,
   type UnidadeDisco,
 } from '../services/api'
 import {
@@ -18,6 +30,7 @@ import {
   CORES,
   fmtMB,
   ipNum,
+  isLinuxDevice,
   nivelDisco,
   obterStatusConexao,
   ORDEM_TIPO,
@@ -51,6 +64,7 @@ type InventoryPageProps = {
   onClearTarget?: () => void
   onUpdateDevice?: (updated: Partial<EnrichedMachine> & { id: number }) => void
   showToast?: (msg: string) => void
+  onOpenSsh?: (device: EnrichedMachine) => void
 }
 
 export default function InventoryPage({
@@ -68,6 +82,7 @@ export default function InventoryPage({
   onClearTarget,
   onUpdateDevice,
   showToast,
+  onOpenSsh,
 }: InventoryPageProps) {
   const canManage = Boolean(isSuperAdmin || userRoles?.includes('admin'))
   const isOperadorMatriz = Boolean(userRoles?.includes('operador_matriz'))
@@ -96,6 +111,18 @@ export default function InventoryPage({
   const [salvandoPatrimonio, setSalvandoPatrimonio] = useState<Record<number, boolean>>({})
   const [solicitandoFirewall, setSolicitandoFirewall] = useState<Record<number, boolean>>({})
   const [confirmandoFirewall, setConfirmandoFirewall] = useState<Record<number, boolean>>({})
+  const [sshTargetDevice, setSshTargetDevice] = useState<EnrichedMachine | null>(null)
+
+  const handleOpenTerminal = (dev: EnrichedMachine) => {
+    if (onOpenSsh) {
+      onOpenSsh(dev)
+    } else {
+      const opened = abrirTerminalSshPopup(dev)
+      if (!opened) {
+        setSshTargetDevice(dev)
+      }
+    }
+  }
 
   async function handleSalvarPatrimonio(item: EnrichedMachine) {
     if (!item.id) return
@@ -1081,19 +1108,20 @@ export default function InventoryPage({
               </th>
               <th>Sistema / Versão</th>
               <th>Status</th>
+              <th style={{ width: '85px', textAlign: 'center' }}>Terminal</th>
               <th>Detalhes</th>
             </tr>
           </thead>
           <tbody>
             {loading && filtrados.length === 0 ? (
               <tr>
-                <td colSpan={8} className="loading">
+                <td colSpan={9} className="loading">
                   Carregando inventário...
                 </td>
               </tr>
             ) : filtrados.length === 0 ? (
               <tr>
-                <td colSpan={8} className="loading">
+                <td colSpan={9} className="loading">
                   Nenhuma máquina encontrada. Ajuste ou limpe os filtros.
                 </td>
               </tr>
@@ -1289,6 +1317,26 @@ export default function InventoryPage({
                         </span>
                       </td>
 
+                      <td style={{ textAlign: 'center' }}>
+                        {isLinuxDevice(i) && i.ip ? (
+                          <button
+                            type="button"
+                            className="btn-ssh-table"
+                            onClick={() => handleOpenTerminal(i)}
+                            title={`Conectar via terminal SSH em ${i.hostname} (${i.ip})`}
+                          >
+                            🖥️ SSH
+                          </button>
+                        ) : (
+                          <span
+                            className="ssh-na"
+                            title={i._so === 'Windows' ? 'SSH disponível apenas para Linux' : 'Sem IP configurado'}
+                          >
+                            —
+                          </span>
+                        )}
+                      </td>
+
                       <td>
                         <button
                           className="details-button"
@@ -1302,7 +1350,7 @@ export default function InventoryPage({
                     {/* Accordion Row */}
                     {isExpanded && (
                       <tr className="details-row visible">
-                        <td colSpan={8}>
+                        <td colSpan={9}>
                           <div className="details-content">
                             {/* Alerta de Hardware / Conflito de MAC */}
                             {i.alerta_hardware && (
@@ -1662,6 +1710,18 @@ export default function InventoryPage({
                                        </div>
                                      </div>
                                    )}
+                                   {isLinuxDevice(i) && Boolean(i.ip) && (
+                                     <div className="detail-item" style={{ display: 'flex', alignItems: 'center' }}>
+                                       <button
+                                         type="button"
+                                         className="btn-ssh-open"
+                                         onClick={() => handleOpenTerminal(i)}
+                                         title={`Conectar via terminal SSH em ${i.hostname} (${i.ip})`}
+                                       >
+                                         <span>🖥️</span> Terminal SSH
+                                       </button>
+                                     </div>
+                                   )}
                                  </div>
 
                                  {/* Seção de Patrimônio & Homologação de Firewall */}
@@ -1848,6 +1908,133 @@ export default function InventoryPage({
                                      </div>
                                    )
                                  })()}
+
+                                  {/* Seção de Periféricos & Dispositivos Conectados */}
+                                  <div
+                                    className="detail-sec"
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      flexWrap: 'wrap',
+                                      gap: '8px',
+                                      marginTop: '16px',
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span>Periféricos &amp; Dispositivos Conectados</span>
+                                      {Array.isArray(i.perifericos) && i.perifericos.length > 0 && (
+                                        <span className="perif-badge perif-badge-monitor">
+                                          {i.perifericos.length} conectado{i.perifericos.length > 1 ? 's' : ''}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <small style={{ color: 'var(--muted)', fontSize: '11px' }}>
+                                      Monitores, smartphones, teclados, mouses e mídias USB
+                                    </small>
+                                  </div>
+
+                                  {(() => {
+                                    const listaPerif = Array.isArray(i.perifericos) ? i.perifericos : []
+                                    if (listaPerif.length === 0) {
+                                      return (
+                                        <div className="perif-empty">
+                                          Nenhum periférico detectado ou aguardando próxima coleta do agente nesta máquina.
+                                        </div>
+                                      )
+                                    }
+
+                                    return (
+                                      <div className="perif-grid">
+                                        {listaPerif.map((p: PerifericoItem, pIdx: number) => {
+                                          const tipo = (p.tipo || 'outro').toLowerCase()
+                                          let icon = <IconUsb />
+                                          let iconClass = 'perif-icon-other'
+                                          let badgeClass = 'perif-badge-other'
+                                          let badgeLabel = 'Outro'
+
+                                          if (tipo === 'monitor') {
+                                            icon = <IconMonitor />
+                                            iconClass = 'perif-icon-monitor'
+                                            badgeClass = 'perif-badge-monitor'
+                                            badgeLabel = 'Monitor'
+                                          } else if (tipo === 'smartphone') {
+                                            icon = <IconSmartphone />
+                                            iconClass = 'perif-icon-phone'
+                                            badgeClass = 'perif-badge-phone'
+                                            badgeLabel = 'Celular / MTP'
+                                          } else if (tipo === 'teclado') {
+                                            icon = <IconKeyboard />
+                                            iconClass = 'perif-icon-input'
+                                            badgeClass = 'perif-badge-input'
+                                            badgeLabel = 'Teclado'
+                                          } else if (tipo === 'mouse') {
+                                            icon = <IconMouse />
+                                            iconClass = 'perif-icon-input'
+                                            badgeClass = 'perif-badge-input'
+                                            badgeLabel = 'Mouse'
+                                          } else if (tipo === 'armazenamento_usb') {
+                                            icon = <IconUsb />
+                                            iconClass = 'perif-icon-storage'
+                                            badgeClass = 'perif-badge-storage'
+                                            badgeLabel = 'USB Storage'
+                                          } else if (tipo === 'impressora') {
+                                            icon = <IconPrinter />
+                                            iconClass = 'perif-icon-printer'
+                                            badgeClass = 'perif-badge-printer'
+                                            badgeLabel = 'Impressora'
+                                          }
+
+                                          return (
+                                            <div key={pIdx} className="perif-card">
+                                              <div className={`perif-icon-box ${iconClass}`}>
+                                                {icon}
+                                              </div>
+                                              <div className="perif-info">
+                                                <div className="perif-header">
+                                                  <span className="perif-title" title={p.nome}>
+                                                    {p.nome}
+                                                  </span>
+                                                  <span className={`perif-badge ${badgeClass}`}>
+                                                    {badgeLabel}
+                                                  </span>
+                                                </div>
+                                                <div className="perif-sub">
+                                                  {p.fabricante && <span>{p.fabricante}</span>}
+                                                  {p.conexao && <span>• {p.conexao}</span>}
+                                                  {p.capacidade && <span>• {p.capacidade}</span>}
+                                                </div>
+                                                {p.serial && (
+                                                  <div
+                                                    style={{
+                                                      display: 'inline-flex',
+                                                      alignItems: 'center',
+                                                      gap: '4px',
+                                                      marginTop: '2px',
+                                                    }}
+                                                  >
+                                                    <span className="perif-serial" title="Número de Série">
+                                                      S/N: {p.serial}
+                                                    </span>
+                                                    <button
+                                                      type="button"
+                                                      className="copy-button"
+                                                      style={{ width: '20px', height: '20px', padding: 0 }}
+                                                      onClick={() => copiarTexto(p.serial!)}
+                                                      title="Copiar número de série do periférico"
+                                                      aria-label="Copiar serial"
+                                                    >
+                                                      <IconCopy />
+                                                    </button>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    )
+                                  })()}
 
                                  {/* Change History Timeline */}
                                  <div className="detail-sec">
@@ -2451,6 +2638,14 @@ export default function InventoryPage({
           </div>
         )}
       </div>
+
+      {sshTargetDevice && (
+        <SshTerminalModal
+          device={sshTargetDevice}
+          token={localStorage.getItem('access_token') || ''}
+          onClose={() => setSshTargetDevice(null)}
+        />
+      )}
     </section>
   )
 }

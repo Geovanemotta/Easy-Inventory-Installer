@@ -282,6 +282,8 @@ def upsert_device_from_payload(
 
         if dados.get("analise_disco"):
             device.analise_disco = dados["analise_disco"]
+        if "perifericos" in dados:
+            device.perifericos = dados.get("perifericos") or []
         if software_payload:
             device.extra_data = software_payload
 
@@ -336,6 +338,7 @@ def upsert_device_from_payload(
             ram_tipo=str(dados.get("ram_tipo", "")).strip() or None,
             windows_release=str(dados.get("windows_release", "")).strip() or None,
             analise_disco=dados.get("analise_disco"),
+            perifericos=dados.get("perifericos") or [],
             extra_data=software_payload if software_payload else None,
             data_coleta=data_col,
             active=True,
@@ -473,6 +476,7 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
             "ram_tipo": d.ram_tipo or (d.extra_data.get("ram_tipo") if isinstance(d.extra_data, dict) else "") or "",
             "windows_release": d.windows_release or (d.extra_data.get("windows_release") if isinstance(d.extra_data, dict) else "") or "",
             "analise_disco": d.analise_disco or {"executada": False},
+            "perifericos": d.perifericos or [],
             "data_coleta": (d.data_coleta or d.updated_at).strftime("%Y-%m-%d %H:%M:%S") if (d.data_coleta or d.updated_at) else "",
             "patrimonio": d.patrimonio or "",
             "firewall_status": d.firewall_status or "",
