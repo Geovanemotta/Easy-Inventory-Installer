@@ -249,13 +249,7 @@ export default function ReportsPage({
                         }}
                       />
                     </span>
-                    <b className="w">
-                      {v.length} ·{' '}
-                      {Math.round(
-                        (v.length / (relBaseCount || 1)) * 100
-                      )}
-                      %
-                    </b>
+                    <b className="w">{v.length}</b>
                   </button>
                 )
               })}

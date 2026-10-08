@@ -373,11 +373,20 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
   }
 
   function toggleSite(code: string) {
-    setMappingSites((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]))
+    setMappingSites((prev) => {
+      if (prev.includes('*')) {
+        return sites.map((s) => s.code).filter((c) => c !== code)
+      }
+      return prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    })
   }
 
   function marcarPorTipo(kind: SiteKind | 'all') {
-    setMappingSites(sites.filter((s) => kind === 'all' || siteKind(s.code) === kind).map((s) => s.code))
+    if (kind === 'all') {
+      setMappingSites(['*'])
+      return
+    }
+    setMappingSites(sites.filter((s) => siteKind(s.code) === kind).map((s) => s.code))
   }
 
   /* ---------- Derivados ---------- */
@@ -453,7 +462,11 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
   }
 
   const selectedKinds = { loja: 0, combo: 0, outros: 0 }
-  mappingSites.forEach((c) => { selectedKinds[siteKind(c)]++ })
+  mappingSites.forEach((c) => {
+    if (c !== '*') {
+      selectedKinds[siteKind(c)]++
+    }
+  })
 
   return (
     <div className="ad-page">
@@ -854,7 +867,7 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
                       value={mappingGroup}
                       onChange={(e) => { setMappingGroup(e.target.value); setPickerOpen(true) }}
                       onFocus={() => setPickerOpen(true)}
-                      onBlur={() => setTimeout(() => setPickerOpen(false), 120)}
+                      onBlur={() => setTimeout(() => setPickerOpen(false), 250)}
                       onKeyDown={(e) => { if (e.key === 'Escape') setPickerOpen(false) }}
                     />
                     {pickerOpen && groupSuggestions.length > 0 && (
@@ -919,83 +932,110 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
                 </div>
 
                 {/* Seletor de lojas */}
-                <div className="ad-sites">
-                  <div className="ad-sites-top">
-                    <label>
-                      Lojas permitidas *{' '}
-                      <span className="ad-count">
-                        {mappingSites.length} de {sites.length} selecionada{mappingSites.length === 1 ? '' : 's'}
-                      </span>
-                    </label>
-                    <div className="ad-quick">
-                      <button type="button" onClick={() => setMappingSites((p) => Array.from(new Set([...p, ...filteredSites.map((s) => s.code)])))}>
-                        Marcar visíveis
-                      </button>
-                      <button type="button" onClick={() => marcarPorTipo('all')}>Todas</button>
-                      <button type="button" onClick={() => marcarPorTipo('loja')}>Só lojas</button>
-                      <button type="button" onClick={() => marcarPorTipo('combo')}>Só combos</button>
-                      <button type="button" className="danger" onClick={() => setMappingSites([])}>Limpar</button>
-                    </div>
-                  </div>
-
-                  <div className="ad-sites-filter">
-                    <div className="ad-search">
-                      <Icon name="search" size={14} />
-                      <input
-                        type="text"
-                        placeholder="Filtrar loja por nome ou número..."
-                        value={siteSearchTerm}
-                        onChange={(e) => setSiteSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <div className="tabs sm ad-site-tabs">
-                      {([
-                        ['all', 'Todas', kindCounts.all],
-                        ['loja', 'Lojas', kindCounts.loja],
-                        ['combo', 'Combos', kindCounts.combo],
-                        ['outros', 'Matriz', kindCounts.outros],
-                      ] as const).map(([id, label, n]) => (
-                        <button
-                          key={id}
-                          type="button"
-                          className={`tab ${siteTab === id ? 'active' : ''}`}
-                          onClick={() => setSiteTab(id)}
-                        >
-                          {label} <span>{n}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="ad-site-grid">
-                    {sites.length === 0 && (
-                      <div className="ad-muted ad-pad">Nenhuma loja cadastrada ou não foi possível carregar a lista.</div>
-                    )}
-                    {sites.length > 0 && filteredSites.length === 0 && (
-                      <div className="ad-muted ad-pad">Nenhuma loja encontrada para este filtro.</div>
-                    )}
-                    {filteredSites.map((site) => {
-                      const checked = mappingSites.includes(site.code)
-                      return (
-                        <label key={site.id} className={`ad-site ${checked ? 'on' : ''} k-${siteKind(site.code)}`}>
-                          <input type="checkbox" checked={checked} onChange={() => toggleSite(site.code)} />
-                          <span className="code">{site.code}</span>
-                          <span className="nm">{site.name}</span>
+                {(() => {
+                  const isAllSelected = mappingSites.includes('*') || (sites.length > 0 && sites.every((s) => mappingSites.includes(s.code)))
+                  return (
+                    <div className="ad-sites">
+                      <div className="ad-sites-top">
+                        <label>
+                          Lojas permitidas *{' '}
+                          <span className="ad-count">
+                            {isAllSelected
+                              ? 'Todas as lojas (*) selecionadas'
+                              : `${mappingSites.filter((c) => c !== '*').length} de ${sites.length} selecionadas`}
+                          </span>
                         </label>
-                      )
-                    })}
-                  </div>
+                        <div className="ad-quick">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMappingSites((p) => {
+                                if (p.includes('*')) return p
+                                return Array.from(new Set([...p, ...filteredSites.map((s) => s.code)]))
+                              })
+                            }
+                          >
+                            Marcar visíveis
+                          </button>
+                          <button type="button" onClick={() => marcarPorTipo('all')}>
+                            Todas (*)
+                          </button>
+                          <button type="button" onClick={() => marcarPorTipo('loja')}>
+                            Só lojas
+                          </button>
+                          <button type="button" onClick={() => marcarPorTipo('combo')}>
+                            Só combos
+                          </button>
+                          <button type="button" className="danger" onClick={() => setMappingSites([])}>
+                            Limpar
+                          </button>
+                        </div>
+                      </div>
 
-                  {mappingSites.length > 0 && (
-                    <div className="ad-sel-sum">
-                      Selecionadas:{' '}
-                      {(['loja', 'combo', 'outros'] as const)
-                        .filter((k) => selectedKinds[k] > 0)
-                        .map((k) => `${selectedKinds[k]} ${KIND_LABEL[k].toLowerCase()}`)
-                        .join(' · ')}
+                      <div className="ad-sites-filter">
+                        <div className="ad-search">
+                          <Icon name="search" size={14} />
+                          <input
+                            type="text"
+                            placeholder="Filtrar loja por nome ou número..."
+                            value={siteSearchTerm}
+                            onChange={(e) => setSiteSearchTerm(e.target.value)}
+                          />
+                        </div>
+                        <div className="tabs sm ad-site-tabs">
+                          {([
+                            ['all', 'Todas', kindCounts.all],
+                            ['loja', 'Lojas', kindCounts.loja],
+                            ['combo', 'Combos', kindCounts.combo],
+                            ['outros', 'Matriz', kindCounts.outros],
+                          ] as const).map(([id, label, n]) => (
+                            <button
+                              key={id}
+                              type="button"
+                              className={`tab ${siteTab === id ? 'active' : ''}`}
+                              onClick={() => setSiteTab(id)}
+                            >
+                              {label} <span>{n}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="ad-site-grid">
+                        {sites.length === 0 && (
+                          <div className="ad-muted ad-pad">
+                            Nenhuma loja cadastrada ou não foi possível carregar a lista.
+                          </div>
+                        )}
+                        {sites.length > 0 && filteredSites.length === 0 && (
+                          <div className="ad-muted ad-pad">Nenhuma loja encontrada para este filtro.</div>
+                        )}
+                        {filteredSites.map((site) => {
+                          const checked = isAllSelected || mappingSites.includes(site.code)
+                          return (
+                            <label key={site.id} className={`ad-site ${checked ? 'on' : ''} k-${siteKind(site.code)}`}>
+                              <input type="checkbox" checked={checked} onChange={() => toggleSite(site.code)} />
+                              <span className="code">{site.code}</span>
+                              <span className="nm">{site.name}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
+
+                      {mappingSites.length > 0 && (
+                        <div className="ad-sel-sum">
+                          Selecionadas:{' '}
+                          {isAllSelected
+                            ? 'Todas as lojas e filiais (*)'
+                            : (['loja', 'combo', 'outros'] as const)
+                                .filter((k) => selectedKinds[k] > 0)
+                                .map((k) => `${selectedKinds[k]} ${KIND_LABEL[k].toLowerCase()}`)
+                                .join(' · ')}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  )
+                })()}
 
                 <div className="ad-editor-foot">
                   <button type="button" className="btn" onClick={fecharEditor}>Cancelar</button>

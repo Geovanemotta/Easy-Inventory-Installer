@@ -575,6 +575,138 @@ export default function InventoryPage({
 
   return (
     <section id="view-inv">
+      {/* Interactive Charts Panels */}
+      <div className="charts">
+        {/* 1) Donut: Distribuição por sistema */}
+        <section className="panel">
+          <h2>Distribuição por sistema</h2>
+          <p>Clique em um item para filtrar</p>
+          {totalDistroSistema === 0 ? (
+            <div className="empty">Sem dados para os filtros atuais</div>
+          ) : (
+            <DonutChart
+              items={distroSistema}
+              total={totalDistroSistema}
+              activeItem={selectedVersao}
+              onItemClick={(n) => {
+                if (n === 'Outros') return
+                setSelectedVersao((cur) => (cur === n ? '' : n))
+                setPaginaAtual(1)
+              }}
+            />
+          )}
+        </section>
+
+        {/* 2) Donut: Status das máquinas */}
+        <section className="panel">
+          <h2>Status das máquinas</h2>
+          <p>Clique em um item para filtrar</p>
+          {totalDistroStatus === 0 ? (
+            <div className="empty">Sem dados para os filtros atuais</div>
+          ) : (
+            <DonutChart
+              items={distroStatus}
+              total={totalDistroStatus}
+              modoValor="qtd"
+              activeItem={
+                selectedStatus === 'OK'
+                  ? 'OK'
+                  : selectedStatus === 'UPGRADE_REQUIRED'
+                  ? 'Upgrade necessário'
+                  : selectedStatus === 'OUTRO'
+                  ? 'Outro'
+                  : ''
+              }
+              onItemClick={(label) => {
+                const code =
+                  label === 'OK'
+                    ? 'OK'
+                    : label === 'Upgrade necessário'
+                    ? 'UPGRADE_REQUIRED'
+                    : 'OUTRO'
+                setSelectedStatus((cur) => (cur === code ? '' : code))
+                setPaginaAtual(1)
+              }}
+            />
+          )}
+        </section>
+
+        {/* 3) Disco > 75% */}
+        <section className="panel">
+          <h2>Máquinas com disco acima de 75%</h2>
+          <p>
+            {altasDisco.length} de {filtrados.length} máquinas acima de
+            75%. Clique para filtrar
+          </p>
+          <div>
+            {altasDisco.length === 0 ? (
+              <div className="empty">
+                Nenhuma máquina acima de 75% de uso
+              </div>
+            ) : (
+              <>
+                {altasDisco.slice(0, 7).map((i: EnrichedMachine) => {
+                  const p = i._p ?? 0
+                  const cor = p >= 85 ? '#dc2626' : '#f59e0b'
+                  return (
+                    <button
+                      key={`${i.id ?? i.hostname}-${i.ip ?? ''}`}
+                      className="hb"
+                      onClick={() => {
+                        setSearch((s) =>
+                          s === i.hostname ? '' : i.hostname
+                        )
+                        setPaginaAtual(1)
+                      }}
+                      title={i.hostname}
+                    >
+                      <span
+                        className="hb-n"
+                        style={{
+                          width: '128px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {i.hostname}
+                      </span>
+                      <span className="hb-t">
+                        <span
+                          style={{
+                            width: `${Math.min(p, 100)}%`,
+                            background: cor,
+                          }}
+                        />
+                      </span>
+                      <b>{Math.round(p)}%</b>
+                    </button>
+                  )
+                })}
+                {altasDisco.length > 7 && (
+                  <button
+                    className={`btn ${
+                      selectedDisco === 'gt75' ? 'primary' : ''
+                    }`}
+                    style={{ marginTop: '8px', width: '100%' }}
+                    onClick={() => {
+                      setSelectedDisco((cur) =>
+                        cur === 'gt75' ? '' : 'gt75'
+                      )
+                      setPaginaAtual(1)
+                    }}
+                  >
+                    {selectedDisco === 'gt75'
+                      ? 'Limpar filtro de disco > 75%'
+                      : `Ver todas as ${altasDisco.length} máquinas (> 75%)`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+      </div>
+
       {/* Stat Cards */}
       <div className="cards">
         <div
@@ -733,138 +865,6 @@ export default function InventoryPage({
           ))}
         </div>
       )}
-
-      {/* Interactive Charts Panels */}
-      <div className="charts">
-        {/* 1) Donut: Distribuição por sistema */}
-        <section className="panel">
-          <h2>Distribuição por sistema</h2>
-          <p>Clique em um item para filtrar</p>
-          {totalDistroSistema === 0 ? (
-            <div className="empty">Sem dados para os filtros atuais</div>
-          ) : (
-            <DonutChart
-              items={distroSistema}
-              total={totalDistroSistema}
-              activeItem={selectedVersao}
-              onItemClick={(n) => {
-                if (n === 'Outros') return
-                setSelectedVersao((cur) => (cur === n ? '' : n))
-                setPaginaAtual(1)
-              }}
-            />
-          )}
-        </section>
-
-        {/* 2) Donut: Status das máquinas */}
-        <section className="panel">
-          <h2>Status das máquinas</h2>
-          <p>Clique em um item para filtrar</p>
-          {totalDistroStatus === 0 ? (
-            <div className="empty">Sem dados para os filtros atuais</div>
-          ) : (
-            <DonutChart
-              items={distroStatus}
-              total={totalDistroStatus}
-              modoValor="qtd"
-              activeItem={
-                selectedStatus === 'OK'
-                  ? 'OK'
-                  : selectedStatus === 'UPGRADE_REQUIRED'
-                  ? 'Upgrade necessário'
-                  : selectedStatus === 'OUTRO'
-                  ? 'Outro'
-                  : ''
-              }
-              onItemClick={(label) => {
-                const code =
-                  label === 'OK'
-                    ? 'OK'
-                    : label === 'Upgrade necessário'
-                    ? 'UPGRADE_REQUIRED'
-                    : 'OUTRO'
-                setSelectedStatus((cur) => (cur === code ? '' : code))
-                setPaginaAtual(1)
-              }}
-            />
-          )}
-        </section>
-
-        {/* 3) Disco > 75% */}
-        <section className="panel">
-          <h2>Máquinas com disco acima de 75%</h2>
-          <p>
-            {altasDisco.length} de {filtrados.length} máquinas acima de
-            75%. Clique para filtrar
-          </p>
-          <div>
-            {altasDisco.length === 0 ? (
-              <div className="empty">
-                Nenhuma máquina acima de 75% de uso
-              </div>
-            ) : (
-              <>
-                {altasDisco.slice(0, 7).map((i: EnrichedMachine) => {
-                  const p = i._p ?? 0
-                  const cor = p >= 85 ? '#dc2626' : '#f59e0b'
-                  return (
-                    <button
-                      key={`${i.id ?? i.hostname}-${i.ip ?? ''}`}
-                      className="hb"
-                      onClick={() => {
-                        setSearch((s) =>
-                          s === i.hostname ? '' : i.hostname
-                        )
-                        setPaginaAtual(1)
-                      }}
-                      title={i.hostname}
-                    >
-                      <span
-                        className="hb-n"
-                        style={{
-                          width: '128px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {i.hostname}
-                      </span>
-                      <span className="hb-t">
-                        <span
-                          style={{
-                            width: `${Math.min(p, 100)}%`,
-                            background: cor,
-                          }}
-                        />
-                      </span>
-                      <b>{Math.round(p)}%</b>
-                    </button>
-                  )
-                })}
-                {altasDisco.length > 7 && (
-                  <button
-                    className={`btn ${
-                      selectedDisco === 'gt75' ? 'primary' : ''
-                    }`}
-                    style={{ marginTop: '8px', width: '100%' }}
-                    onClick={() => {
-                      setSelectedDisco((cur) =>
-                        cur === 'gt75' ? '' : 'gt75'
-                      )
-                      setPaginaAtual(1)
-                    }}
-                  >
-                    {selectedDisco === 'gt75'
-                      ? 'Limpar filtro de disco > 75%'
-                      : `Ver todas as ${altasDisco.length} máquinas (> 75%)`}
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </section>
-      </div>
 
       {/* Filters Form */}
       <div className="filters">

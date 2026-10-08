@@ -16,6 +16,8 @@ from app.services.ldap_service import (
     get_site_aliases,
 )
 from ldap3 import ALL, Connection, Server
+from ldap3.core.exceptions import LDAPInvalidCredentialsResult, LDAPInvalidFilterError
+from ldap3.operation.search import parse_filter
 
 router = APIRouter(
     prefix="/ad",
@@ -197,7 +199,17 @@ def save_ad_config(
         if data.bind_password and data.bind_password != "******":
             cfg.bind_password = data.bind_password
 
-        cfg.user_search_filter = data.user_search_filter.strip()
+        filter_val = data.user_search_filter.strip() if data.user_search_filter else "(&(objectClass=user)(sAMAccountName={username}))"
+        if "{username}" not in filter_val:
+            raise HTTPException(status_code=400, detail="O filtro LDAP precisa conter a tag {username} para busca do usuário.")
+        try:
+            parse_filter(filter_val.replace("{username}", "testuser"), None, False, False, None, False)
+        except LDAPInvalidFilterError as e:
+            raise HTTPException(status_code=400, detail=f"Sintaxe do filtro LDAP inválida: {e}")
+        except Exception:
+            pass
+
+        cfg.user_search_filter = filter_val
         cfg.superadmin_groups = [g.strip() for g in data.superadmin_groups if g.strip()]
         cfg.group_mappings = data.group_mappings
         cfg.auto_sync_on_login = data.auto_sync_on_login
@@ -290,7 +302,7 @@ def test_user_authentication(
             user_info = None
             if cfg.bind_user and cfg.bind_password:
                 s_bind = cfg.bind_user
-                if "@" not in s_bind and cfg.domain:
+                if s_bind and "@" not in s_bind and "\\" not in s_bind and cfg.domain and not s_bind.upper().startswith("CN="):
                     s_bind = f"{s_bind}@{cfg.domain}"
 
                 conn = Connection(server, user=s_bind, password=cfg.bind_password, auto_bind=True, auto_referrals=False)
@@ -372,6 +384,16 @@ def test_user_authentication(
                 "mapped_roles": mapped_roles,
             }
 
+        except LDAPInvalidFilterError as e:
+            return {
+                "authenticated": False,
+                "message": f"Filtro LDAP de usuário com erro de sintaxe: {e}. Verifique o campo 'Filtro LDAP de usuário' nas configurações.",
+            }
+        except LDAPInvalidCredentialsResult:
+            return {
+                "authenticated": False,
+                "message": "Credenciais da conta de serviço (Bind User/Password) inválidas no AD.",
+            }
         except Exception as e:
             return {
                 "authenticated": False,

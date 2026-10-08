@@ -29,18 +29,18 @@ export default function Sidebar({
   const roleLabel = currentUser?.is_superadmin
     ? 'Super Admin'
     : currentUser?.roles?.includes('admin')
-    ? 'Administrador'
-    : currentUser?.roles?.includes('operador_matriz')
-    ? 'Operador Matriz'
-    : 'Operador Loja'
+      ? 'Administrador'
+      : currentUser?.roles?.includes('operador_matriz')
+        ? 'Operador Matriz'
+        : 'Operador Loja'
 
   const roleColor = currentUser?.is_superadmin
     ? '#38bdf8'
     : currentUser?.roles?.includes('admin')
-    ? '#818cf8'
-    : currentUser?.roles?.includes('operador_matriz')
-    ? '#fbbf24'
-    : '#34d399'
+      ? '#818cf8'
+      : currentUser?.roles?.includes('operador_matriz')
+        ? '#fbbf24'
+        : '#34d399'
 
   return (
     <aside className="side">
@@ -56,7 +56,7 @@ export default function Sidebar({
         <div className="brand-info">
           <div className="brand-title-wrap">
             <b>INVENTÁRIO</b>
-            <span className="brand-tag">RMM</span>
+            <span className="brand-tag">GIASSI</span>
           </div>
           <span className="brand-sub">Gestão de Ativos &amp; TI</span>
         </div>

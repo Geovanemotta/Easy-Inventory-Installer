@@ -366,9 +366,7 @@ export default function AppsPage({
                         }}
                       />
                     </span>
-                    <b className="w">
-                      {x.ms.length} · {pct}%
-                    </b>
+                    <b className="w">{x.ms.length}</b>
                   </button>
                 )
               })}
@@ -443,13 +441,7 @@ export default function AppsPage({
                           }}
                         />
                       </span>
-                      <b className="w">
-                        {n} ·{' '}
-                        {Math.round(
-                          (n / appSelecionado.ms.length) * 100
-                        )}
-                        %
-                      </b>
+                      <b className="w">{n}</b>
                     </button>
                   )
                 })}

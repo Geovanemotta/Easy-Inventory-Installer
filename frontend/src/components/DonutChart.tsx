@@ -20,7 +20,7 @@ export default function DonutChart({
 
   return (
     <div className="donut">
-      <svg viewBox="0 0 140 140" width="150" height="150" role="img">
+      <svg viewBox="0 0 140 140" width="125" height="125" role="img">
         {items.map(([label, val, color], idx) => {
           const len = total > 0 ? (val / total) * C : 0
           const isSel = activeItem === label
@@ -83,7 +83,7 @@ export default function DonutChart({
               title={`Filtrar por ${label}`}
             >
               <i style={{ background: color }} />
-              {label}
+              <span className="lg-lbl">{label}</span>
               <b>{modoValor === 'qtd' ? `${val} (${pct}%)` : `${pct}%`}</b>
             </button>
           )
