@@ -21,6 +21,11 @@ router = APIRouter(
 
 
 from app.services.ldap_service import authenticate_ldap_user
+from app.core.session_vault import (
+    store_ad_session_cred,
+    has_ad_session_cred,
+    clear_ad_session_cred,
+)
 
 
 @router.post(
@@ -31,6 +36,9 @@ def login(data: LoginRequest):
     with Session(engine) as session:
         # 1. Tenta autenticação via Active Directory (LDAP) se configurado e ativo
         user = authenticate_ldap_user(session, data.username, data.password, company_id=1)
+        if user is not None:
+            # Armazena temporariamente a credencial em memória RAM para SSH nas máquinas
+            store_ad_session_cred(user.id, data.username, data.password)
 
         # 2. Fallback: autenticação local do PostgreSQL (ex: usuário admin local)
         if user is None:
@@ -74,4 +82,14 @@ def me(
         "company_id": current_user.company_id,
         "is_superadmin": current_user.is_superadmin,
         "roles": role_slugs,
+        "has_ad_session": has_ad_session_cred(current_user.id),
     }
+
+
+@router.post("/logout")
+def logout(
+    current_user: User = Depends(get_current_user),
+):
+    clear_ad_session_cred(current_user.id)
+    return {"message": "Sessão encerrada com sucesso."}
+

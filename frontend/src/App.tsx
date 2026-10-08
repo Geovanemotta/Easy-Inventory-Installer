@@ -19,6 +19,7 @@ import {
   getInventoryData,
   type HistoryItem,
   type RawInventoryItem,
+  type UserResponse,
 } from './services/api'
 import {
   enriquecer,
@@ -30,16 +31,7 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(() => {
     return Boolean(localStorage.getItem('access_token'))
   })
-  const [currentUser, setCurrentUser] = useState<{
-    id: number
-    username: string
-    email: string
-    full_name: string
-    company_id: number
-    active: boolean
-    is_superadmin: boolean
-    roles?: string[]
-  } | null>(() => {
+  const [currentUser, setCurrentUser] = useState<UserResponse | null>(() => {
     try {
       const saved = localStorage.getItem('current_user')
       return saved ? JSON.parse(saved) : null
@@ -47,6 +39,14 @@ export default function App() {
       return null
     }
   })
+
+  const canUseSsh = useMemo(() => {
+    return Boolean(
+      currentUser?.is_superadmin ||
+      currentUser?.roles?.includes('admin') ||
+      currentUser?.roles?.includes('operador_matriz')
+    )
+  }, [currentUser])
 
   const [rawInventory, setRawInventory] = useState<RawInventoryItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -105,11 +105,12 @@ export default function App() {
   const [sshModalDevice, setSshModalDevice] = useState<EnrichedMachine | null>(null)
 
   const handleOpenSsh = useCallback((device: EnrichedMachine) => {
+    if (!canUseSsh) return
     const opened = abrirTerminalSshPopup(device)
     if (!opened) {
       setSshModalDevice(device)
     }
-  }, [])
+  }, [canUseSsh])
 
   const showToast = useCallback((msg: string, duration = 2400) => {
     if (toastTimerRef.current) {
@@ -351,6 +352,14 @@ export default function App() {
     if (!loggedIn) {
       return <Login onLogin={handleLogin} />
     }
+    if (!canUseSsh) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#090d16', color: '#f87171', fontFamily: 'sans-serif', textAlign: 'center', padding: '20px' }}>
+          <h2 style={{ marginBottom: '10px' }}>🚫 Acesso Restrito</h2>
+          <p style={{ color: '#94a3b8', maxWidth: '400px' }}>O perfil de Operador de Loja não possui permissão para acessar o Terminal SSH.</p>
+        </div>
+      )
+    }
     if (!standaloneDevice) {
       return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#090d16', color: '#94a3b8', fontFamily: 'monospace' }}>
@@ -365,6 +374,7 @@ export default function App() {
           token={localStorage.getItem('access_token') || ''}
           onClose={() => window.close()}
           standalone={true}
+          currentUser={currentUser}
         />
       </div>
     )
@@ -441,6 +451,7 @@ export default function App() {
               inventario={inventario}
               abrirMaquinaNoInventario={abrirMaquinaNoInventario}
               onOpenSsh={handleOpenSsh}
+              canUseSsh={canUseSsh}
             />
           )}
 
@@ -465,11 +476,12 @@ export default function App() {
       />
 
       {/* Modal Fallback de Terminal SSH */}
-      {sshModalDevice && (
+      {canUseSsh && sshModalDevice && (
         <SshTerminalModal
           device={sshModalDevice}
           token={localStorage.getItem('access_token') || ''}
           onClose={() => setSshModalDevice(null)}
+          currentUser={currentUser}
         />
       )}
 

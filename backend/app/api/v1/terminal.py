@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 import asyncssh
 
 from app.core.config import JWT_ALGORITHM, JWT_SECRET_KEY
+from app.core.session_vault import get_ad_session_cred
 from app.database import engine
 from app.models.device import Device
 from app.models.user import User
@@ -67,6 +68,16 @@ async def websocket_ssh_endpoint(websocket: WebSocket, device_id: int):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
+    # 1.1 Restrição de Perfil: Operador de Loja não possui permissão para Terminal SSH
+    user_roles = [r.slug for r in user.roles] if user.roles else []
+    can_use_ssh = user.is_superadmin or "admin" in user_roles or "operador_matriz" in user_roles
+    if not can_use_ssh:
+        await websocket.send_text(
+            "\r\n\x1b[31;1m[ACESSO RESTRITO]\x1b[0m O perfil de Operador de Loja não possui permissão para acessar o Terminal SSH.\r\n"
+        )
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     # 2. Busca o dispositivo no banco de dados
     with Session(engine) as session:
         device = session.get(Device, device_id)
@@ -104,15 +115,36 @@ async def websocket_ssh_endpoint(websocket: WebSocket, device_id: int):
         await websocket.close()
         return
 
-    username = str(init_data.get("username", "")).strip() or os.getenv("DEFAULT_SSH_USER", "suporte")
+    use_session_cred = bool(init_data.get("use_session_cred", False))
+    raw_username = str(init_data.get("username", "")).strip()
     password = init_data.get("password") or None
+
+    ad_user, ad_pass = get_ad_session_cred(user.id)
+
+    used_session_vault = False
+    if use_session_cred and ad_pass:
+        password = ad_pass
+        username = raw_username or ad_user or user.username
+        used_session_vault = True
+    elif not password and ad_pass and (not raw_username or raw_username.lower() == (ad_user or user.username).lower()):
+        password = ad_pass
+        username = raw_username or ad_user or user.username
+        used_session_vault = True
+    else:
+        username = raw_username or (ad_user or user.username) or os.getenv("DEFAULT_SSH_USER", "suporte")
+
     port = int(init_data.get("port", 22))
     cols = max(20, int(init_data.get("cols", 100)))
     rows = max(5, int(init_data.get("rows", 30)))
 
-    await websocket.send_text(
-        f"\r\n\x1b[36m[*] Conectando a {hostname} ({target_ip}:{port}) como '{username}'...\x1b[0m\r\n"
-    )
+    if used_session_vault:
+        await websocket.send_text(
+            f"\r\n\x1b[36m[*] Conectando a {hostname} ({target_ip}:{port}) utilizando credenciais da sessão AD ('{username}')...\x1b[0m\r\n"
+        )
+    else:
+        await websocket.send_text(
+            f"\r\n\x1b[36m[*] Conectando a {hostname} ({target_ip}:{port}) como '{username}'...\x1b[0m\r\n"
+        )
 
     # 4. Inicia a conexão SSH
     conn = None

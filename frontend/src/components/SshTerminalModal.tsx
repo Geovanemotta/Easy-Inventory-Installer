@@ -3,12 +3,14 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import type { EnrichedMachine } from '../services/inventoryHelpers'
+import type { UserResponse } from '../services/api'
 
 interface SshTerminalModalProps {
   device: EnrichedMachine
   token: string
   onClose: () => void
   standalone?: boolean
+  currentUser?: UserResponse | null
 }
 
 export function abrirTerminalSshPopup(device: EnrichedMachine): boolean {
@@ -38,9 +40,23 @@ export default function SshTerminalModal({
   token,
   onClose,
   standalone = false,
+  currentUser,
 }: SshTerminalModalProps) {
-  const [username, setUsername] = useState('suporte')
+  const effectiveUser = currentUser || (() => {
+    try {
+      const raw = localStorage.getItem('current_user')
+      return raw ? (JSON.parse(raw) as UserResponse) : null
+    } catch {
+      return null
+    }
+  })()
+
+  const defaultUser = effectiveUser?.username || 'suporte'
+  const hasAdSession = Boolean(effectiveUser?.has_ad_session)
+
+  const [username, setUsername] = useState(defaultUser)
   const [password, setPassword] = useState('')
+  const [useSessionCred, setUseSessionCred] = useState(hasAdSession)
   const [port, setPort] = useState(22)
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
@@ -193,7 +209,8 @@ export default function SshTerminalModal({
         JSON.stringify({
           action: 'connect',
           username,
-          password: password || undefined,
+          password: useSessionCred ? undefined : (password || undefined),
+          use_session_cred: useSessionCred,
           port: Number(port) || 22,
           cols,
           rows,
@@ -302,26 +319,69 @@ export default function SshTerminalModal({
               type="text"
               value={username}
               disabled={isConnected || isConnecting}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                setUsername(e.target.value)
+                if (hasAdSession && e.target.value !== effectiveUser?.username) {
+                  setUseSessionCred(false)
+                }
+              }}
               placeholder="ex: suporte"
             />
           </div>
 
           <div className="ssh-field-item">
             <label>Senha:</label>
-            <input
-              type="password"
-              value={password}
-              disabled={isConnected || isConnecting}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Senha SSH (opcional se chave)"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !isConnected && !isConnecting) {
-                  handleConnect()
-                }
-              }}
-            />
+            {useSessionCred ? (
+              <input
+                type="text"
+                value="••••••••••••"
+                disabled={true}
+                title="Autenticando com a senha segura da sessão AD corporativa"
+                style={{
+                  color: '#34d399',
+                  letterSpacing: '2px',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  borderColor: 'rgba(16, 185, 129, 0.4)',
+                  cursor: 'default',
+                  fontWeight: 'bold',
+                }}
+              />
+            ) : (
+              <input
+                type="password"
+                value={password}
+                disabled={isConnected || isConnecting}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Senha SSH (opcional se chave)"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isConnected && !isConnecting) {
+                    handleConnect()
+                  }
+                }}
+              />
+            )}
           </div>
+
+          {hasAdSession && (
+            <label
+              className="ssh-ad-toggle"
+              title="Conecta diretamente utilizando a mesma autenticação do Active Directory da sessão atual"
+            >
+              <input
+                type="checkbox"
+                checked={useSessionCred}
+                disabled={isConnected || isConnecting}
+                onChange={(e) => {
+                  const check = e.target.checked
+                  setUseSessionCred(check)
+                  if (check && effectiveUser?.username) {
+                    setUsername(effectiveUser.username)
+                  }
+                }}
+              />
+              <span>🔒 Sessão AD</span>
+            </label>
+          )}
 
           <div className="ssh-field-item port-field">
             <label>Porta:</label>

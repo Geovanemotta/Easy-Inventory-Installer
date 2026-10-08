@@ -19,3 +19,4 @@ class UserResponse(BaseModel):
     company_id: int
     is_superadmin: bool
     roles: list[str] = []
+    has_ad_session: bool = False

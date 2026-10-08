@@ -36,7 +36,7 @@ export async function login(
   return response.json()
 }
 
-type UserResponse = {
+export type UserResponse = {
   id: number
   username: string
   email: string
@@ -45,6 +45,7 @@ type UserResponse = {
   active: boolean
   is_superadmin: boolean
   roles?: string[]
+  has_ad_session?: boolean
 }
 
 export async function getCurrentUser(

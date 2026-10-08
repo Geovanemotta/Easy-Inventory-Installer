@@ -88,6 +88,7 @@ export default function InventoryPage({
   const isOperadorMatriz = Boolean(userRoles?.includes('operador_matriz'))
   const canRequestFirewall = canManage || isOperadorMatriz
   const canConfirmFirewall = canManage
+  const canUseSsh = Boolean(isSuperAdmin || userRoles?.includes('admin') || userRoles?.includes('operador_matriz'))
 
   // Filtros internos do inventário
   const [tipoAtivo, setTipoAtivo] = useState<string>('')
@@ -114,6 +115,7 @@ export default function InventoryPage({
   const [sshTargetDevice, setSshTargetDevice] = useState<EnrichedMachine | null>(null)
 
   const handleOpenTerminal = (dev: EnrichedMachine) => {
+    if (!canUseSsh) return
     if (onOpenSsh) {
       onOpenSsh(dev)
     } else {
@@ -1108,20 +1110,20 @@ export default function InventoryPage({
               </th>
               <th>Sistema / Versão</th>
               <th>Status</th>
-              <th style={{ width: '85px', textAlign: 'center' }}>Terminal</th>
+              {canUseSsh && <th style={{ width: '85px', textAlign: 'center' }}>Terminal</th>}
               <th>Detalhes</th>
             </tr>
           </thead>
           <tbody>
             {loading && filtrados.length === 0 ? (
               <tr>
-                <td colSpan={9} className="loading">
+                <td colSpan={canUseSsh ? 9 : 8} className="loading">
                   Carregando inventário...
                 </td>
               </tr>
             ) : filtrados.length === 0 ? (
               <tr>
-                <td colSpan={9} className="loading">
+                <td colSpan={canUseSsh ? 9 : 8} className="loading">
                   Nenhuma máquina encontrada. Ajuste ou limpe os filtros.
                 </td>
               </tr>
@@ -1317,25 +1319,27 @@ export default function InventoryPage({
                         </span>
                       </td>
 
-                      <td style={{ textAlign: 'center' }}>
-                        {isLinuxDevice(i) && i.ip ? (
-                          <button
-                            type="button"
-                            className="btn-ssh-table"
-                            onClick={() => handleOpenTerminal(i)}
-                            title={`Conectar via terminal SSH em ${i.hostname} (${i.ip})`}
-                          >
-                            🖥️ SSH
-                          </button>
-                        ) : (
-                          <span
-                            className="ssh-na"
-                            title={i._so === 'Windows' ? 'SSH disponível apenas para Linux' : 'Sem IP configurado'}
-                          >
-                            —
-                          </span>
-                        )}
-                      </td>
+                      {canUseSsh && (
+                        <td style={{ textAlign: 'center' }}>
+                          {isLinuxDevice(i) && i.ip ? (
+                            <button
+                              type="button"
+                              className="btn-ssh-table"
+                              onClick={() => handleOpenTerminal(i)}
+                              title={`Conectar via terminal SSH em ${i.hostname} (${i.ip})`}
+                            >
+                              🖥️ SSH
+                            </button>
+                          ) : (
+                            <span
+                              className="ssh-na"
+                              title={i._so === 'Windows' ? 'SSH disponível apenas para Linux' : 'Sem IP configurado'}
+                            >
+                              —
+                            </span>
+                          )}
+                        </td>
+                      )}
 
                       <td>
                         <button
@@ -1710,7 +1714,7 @@ export default function InventoryPage({
                                        </div>
                                      </div>
                                    )}
-                                   {isLinuxDevice(i) && Boolean(i.ip) && (
+                                   {canUseSsh && isLinuxDevice(i) && Boolean(i.ip) && (
                                      <div className="detail-item" style={{ display: 'flex', alignItems: 'center' }}>
                                        <button
                                          type="button"
@@ -2639,7 +2643,7 @@ export default function InventoryPage({
         )}
       </div>
 
-      {sshTargetDevice && (
+      {canUseSsh && sshTargetDevice && (
         <SshTerminalModal
           device={sshTargetDevice}
           token={localStorage.getItem('access_token') || ''}

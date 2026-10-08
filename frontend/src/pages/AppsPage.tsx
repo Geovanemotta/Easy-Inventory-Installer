@@ -17,12 +17,14 @@ type AppsPageProps = {
   inventario: EnrichedMachine[]
   abrirMaquinaNoInventario: (hostname: string) => void
   onOpenSsh?: (device: EnrichedMachine) => void
+  canUseSsh?: boolean
 }
 
 export default function AppsPage({
   inventario,
   abrirMaquinaNoInventario,
   onOpenSsh,
+  canUseSsh = true,
 }: AppsPageProps) {
   const [appBusca, setAppBusca] = useState<string>('')
   const [appCat, setAppCat] = useState<string>('')
@@ -35,6 +37,7 @@ export default function AppsPage({
   const [appLimit, setAppLimit] = useState<number>(100)
 
   const handleOpenSsh = (m: EnrichedMachine) => {
+    if (!canUseSsh) return
     if (onOpenSsh) {
       onOpenSsh(m)
     } else {
@@ -510,7 +513,7 @@ export default function AppsPage({
                           <th>Filial</th>
                           <th>Hostname</th>
                           <th>IP</th>
-                          <th style={{ width: '70px', textAlign: 'center' }}>SSH</th>
+                          {canUseSsh && <th style={{ width: '70px', textAlign: 'center' }}>SSH</th>}
                           <th>Versão</th>
                           <th>Pacote(s)</th>
                         </tr>
@@ -537,20 +540,22 @@ export default function AppsPage({
                               </a>
                             </td>
                             <td>{r.m.ip || '-'}</td>
-                            <td style={{ textAlign: 'center' }}>
-                              {isLinuxDevice(r.m) && r.m.ip ? (
-                                <button
-                                  type="button"
-                                  className="btn-ssh-table"
-                                  onClick={() => handleOpenSsh(r.m)}
-                                  title={`Conectar via terminal SSH em ${r.m.hostname} (${r.m.ip})`}
-                                >
-                                  🖥️ SSH
-                                </button>
-                              ) : (
-                                <span className="ssh-na">—</span>
-                              )}
-                            </td>
+                            {canUseSsh && (
+                              <td style={{ textAlign: 'center' }}>
+                                {isLinuxDevice(r.m) && r.m.ip ? (
+                                  <button
+                                    type="button"
+                                    className="btn-ssh-table"
+                                    onClick={() => handleOpenSsh(r.m)}
+                                    title={`Conectar via terminal SSH em ${r.m.hostname} (${r.m.ip})`}
+                                  >
+                                    🖥️ SSH
+                                  </button>
+                                ) : (
+                                  <span className="ssh-na">—</span>
+                                )}
+                              </td>
+                            )}
                             <td>
                               {r.ver ? (
                                 <b>{r.ver}</b>
