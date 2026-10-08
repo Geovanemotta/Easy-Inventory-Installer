@@ -48,11 +48,11 @@ export default function DeleteDeviceModal({
           <p
             style={{
               fontSize: '12px',
-              color: '#b91c1c',
-              background: '#fee2e2',
+              color: 'var(--bad)',
+              background: 'var(--bad-bg)',
               padding: '10px 14px',
               borderRadius: '6px',
-              border: '1px solid #fecaca',
+              border: '1px solid var(--bad-border)',
               lineHeight: '1.45',
               marginBottom: '20px',
             }}

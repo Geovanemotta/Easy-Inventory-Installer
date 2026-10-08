@@ -228,8 +228,8 @@ export default function ReportsPage({
                     style={
                       isSel
                         ? {
-                            borderColor: '#2563eb',
-                            background: 'rgba(37, 99, 235, 0.08)',
+                            borderColor: 'var(--brand)',
+                            background: 'var(--brand-soft)',
                           }
                         : undefined
                     }
@@ -245,7 +245,7 @@ export default function ReportsPage({
                       <span
                         style={{
                           width: `${(v.length / maxRelGrupo) * 100}%`,
-                          background: isSel ? '#1d4ed8' : '#2563eb',
+                          background: isSel ? 'var(--brand-hover)' : 'var(--brand)',
                         }}
                       />
                     </span>

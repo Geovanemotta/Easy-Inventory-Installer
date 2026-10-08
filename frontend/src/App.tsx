@@ -40,6 +40,22 @@ export default function App() {
     }
   })
 
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('app_theme')
+    if (saved === 'dark' || saved === 'light') return saved
+    return 'dark'
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('app_theme', theme)
+  }, [theme])
+
+  const handleToggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }, [])
+
+
   const canUseSsh = useMemo(() => {
     return Boolean(
       currentUser?.is_superadmin ||
@@ -385,7 +401,7 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className="app" data-theme={theme}>
       {/* Sidebar de Navegação */}
       <Sidebar
         view={view}
@@ -402,6 +418,8 @@ export default function App() {
           lastUpdate={lastUpdate}
           loading={loading}
           isSuperAdmin={Boolean(currentUser?.is_superadmin)}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
           onRefresh={() => carregarDados()}
           onOpenAgentModal={() => setShowAgentModal(true)}
         />

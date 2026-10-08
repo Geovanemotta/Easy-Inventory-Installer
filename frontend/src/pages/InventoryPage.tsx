@@ -1545,9 +1545,9 @@ export default function InventoryPage({
                                             fontWeight: 600,
                                             padding: '1px 6px',
                                             borderRadius: '4px',
-                                            background: '#f1f5f9',
-                                            color: '#334155',
-                                            border: '1px solid #cbd5e1',
+                                            background: 'var(--bg-alt)',
+                                            color: 'var(--ink)',
+                                            border: '1px solid var(--line)',
                                             display: 'inline-block',
                                             lineHeight: '1.4',
                                           }}

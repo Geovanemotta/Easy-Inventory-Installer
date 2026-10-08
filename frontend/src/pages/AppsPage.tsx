@@ -362,7 +362,7 @@ export default function AppsPage({
                       <span
                         style={{
                           width: `${pct}%`,
-                          background: '#2563eb',
+                          background: 'var(--brand)',
                         }}
                       />
                     </span>
@@ -439,7 +439,7 @@ export default function AppsPage({
                         <span
                           style={{
                             width: `${(n / maxV) * 100}%`,
-                            background: '#7c3aed',
+                            background: 'var(--combo)',
                           }}
                         />
                       </span>

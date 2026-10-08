@@ -55,7 +55,8 @@ export default function DonutChart({
           textAnchor="middle"
           fontSize="22"
           fontWeight="700"
-          fill="#0f172a"
+          className="donut-total"
+          style={{ fill: 'var(--ink)' }}
         >
           {total}
         </text>
@@ -64,7 +65,8 @@ export default function DonutChart({
           y="85"
           textAnchor="middle"
           fontSize="10"
-          fill="#64748b"
+          className="donut-label"
+          style={{ fill: 'var(--muted)' }}
         >
           máquinas
         </text>
