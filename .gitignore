@@ -43,3 +43,7 @@ nginx/certs/*.pem
 .idea/
 .DS_Store
 Thumbs.db
+
+# Firewall audit reports
+firewall_report.txt
+firewall_captured_domains.log
