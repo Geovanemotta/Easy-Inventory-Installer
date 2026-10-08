@@ -1548,8 +1548,8 @@ tbody tr.row:hover { background: var(--table-row-hover);
 }
 
 .c-Ferramenta {
-  background: var(--bg-alt);
-  color: #475569;
+  background: #a6cdc8;
+  color: #000000;
 }
 
 .empty {
@@ -2183,7 +2183,7 @@ tbody tr.row:hover { background: var(--table-row-hover);
 .agent-modal-head h2 {
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
+  color: #0ea5e9;
   margin: 0;
   display: flex;
   align-items: center;
@@ -2249,7 +2249,7 @@ tbody tr.row:hover { background: var(--table-row-hover);
 .agent-step h4 {
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  color: #0ea5e9;
   margin: 0 0 8px 0;
   display: flex;
   align-items: center;
@@ -2272,7 +2272,7 @@ tbody tr.row:hover { background: var(--table-row-hover);
 .code-copy-btn {
   position: absolute;
   right: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #0ea5e9;
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #f8fafc;
   border-radius: 6px;

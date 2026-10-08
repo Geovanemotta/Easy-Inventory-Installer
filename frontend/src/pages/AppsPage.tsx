@@ -326,8 +326,7 @@ export default function AppsPage({
         <section className="panel">
           <h2>Aplicativos</h2>
           <p>
-            {appLista.length} aplicativos. Clique para ver versões e
-            máquinas
+            {appLista.length} aplicativos.
           </p>
           {appLista.length === 0 ? (
             <div className="empty">Sem dados para os filtros atuais</div>

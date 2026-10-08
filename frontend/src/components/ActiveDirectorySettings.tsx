@@ -480,9 +480,9 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
               <i /> {config.enabled ? 'Ativo' : 'Desativado'}
             </span>
           </div>
-          <p>
+          {/* <p>
             Autenticação centralizada dos colaboradores pelo AD corporativo, com visualização restrita por filial e loja.
-          </p>
+          </p> */}
         </div>
 
         <div className="ad-head-actions">
@@ -757,7 +757,7 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
               <input
                 type="text"
                 list="ad-groups-datalist"
-                placeholder="Nome do grupo no AD (ex: Domain Admins ou GG_TI_ADMINS)"
+                placeholder="Nome do grupo no AD (ex: Domain Admins)"
                 value={newGroupInput}
                 onChange={(e) => setNewGroupInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -806,10 +806,6 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
                 <span className="ad-step"><Icon name="users" size={14} /></span>
                 <div>
                   <h3>Grupos por loja</h3>
-                  <p>
-                    Defina quais lojas cada grupo do AD pode visualizar. Quem estiver em <code>loja-01-inventario</code> ou{' '}
-                    <code>G_TI_LJ11</code>, por exemplo, verá só os computadores da respectiva filial.
-                  </p>
                 </div>
               </div>
               <div className="ad-row-actions">
@@ -1161,10 +1157,6 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
             <span className="ad-step"><Icon name="user" size={14} /></span>
             <div>
               <h3>Simulador de autenticação</h3>
-              <p>
-                Teste um usuário real do AD para conferir se as credenciais funcionam e quais lojas e privilégios ele receberá.
-                A senha é usada apenas para este teste.
-              </p>
             </div>
           </div>
 

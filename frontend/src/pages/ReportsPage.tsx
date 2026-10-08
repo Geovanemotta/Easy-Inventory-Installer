@@ -211,7 +211,7 @@ export default function ReportsPage({
           <h2>Máquinas por {relNomeCampo.toLowerCase()}</h2>
           <p>
             {relLista.length} valores diferentes em {relBaseCount}{' '}
-            máquinas. Clique em um valor para ver as máquinas
+            máquinas.
           </p>
           {relLista.length === 0 ? (
             <div className="empty">Sem dados para os filtros atuais</div>
@@ -290,7 +290,7 @@ export default function ReportsPage({
           <p>
             {relMaquinas.length} máquinas
             {relMaquinas.length > 300
-              ? ' (mostrando 300, o CSV traz todas)'
+              ? ' (mostrando 300)'
               : ''}
           </p>
           {relMaquinas.length === 0 ? (

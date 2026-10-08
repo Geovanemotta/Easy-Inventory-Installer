@@ -10,6 +10,7 @@ type HeaderProps = {
 }
 
 export default function Header({
+
   view,
   lastUpdate,
   loading,
@@ -52,13 +53,12 @@ export default function Header({
             {view === 'ad' && 'Active Directory & Acessos'}
           </h1>
         </div>
-        <p>
-          {view === 'inv' && 'Monitoramento contínuo de estações Linux e Windows com auditoria de hardware'}
+        {/* <p>
           {view === 'net' && 'Monitoramento ativo e testes de conectividade para impressoras, switches e APs'}
           {view === 'rel' && 'Visão consolidada por processador, placa-mãe, memória RAM e capacidade de disco'}
           {view === 'apps' && 'Auditoria de softwares instalados, controle de versões e máquinas por pacote'}
           {view === 'ad' && 'Integração LDAP/LDAPS corporativa, mapeamento de grupos e perfis de filial'}
-        </p>
+        </p> */}
       </div>
 
       <div className="header-right">

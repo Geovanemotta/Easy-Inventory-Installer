@@ -950,7 +950,7 @@ export default function NetworkAssetsPage({
         <div>
           <h1>Ativos de rede &amp; periféricos</h1>
           <p>
-            Controle e teste de conectividade de impressoras, switches, balanças, coletores e demais dispositivos.
+            Controle e teste de conectividade de ativos.
             {kpis.ultimoTeste && (
               <span className="na-last"> Último teste: {kpis.ultimoTeste.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
             )}
@@ -1637,8 +1637,7 @@ export default function NetworkAssetsPage({
               </div>
               <ul>
                 <li>Compatível com cópia do <b>Google Planilhas</b> e arquivos <b>.CSV do Excel</b>.</li>
-                <li>A coluna <code>LOCALIZAÇAO</code> com valores como <code>LJ01</code> associa a filial automaticamente e registra o local.</li>
-                <li><b>Atualização inteligente:</b> se o equipamento já existir pelo patrimônio, MAC ou IP, ele é atualizado sem duplicar registros.</li>
+                <li>A coluna <code>LOCALIZAÇAO</code> com valores como <code>LJXX</code> ou <code>CBXX</code> associa a filial automaticamente.</li>
               </ul>
             </div>
 

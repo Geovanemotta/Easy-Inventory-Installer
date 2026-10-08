@@ -96,12 +96,12 @@ export default function AgentInstallModal({
                 </div>
               </div>
 
-              <div className="agent-info-tip">
+              {/* <div className="agent-info-tip">
                 <span>💡</span>
                 <div>
                   O script Linux coleta informações completas de DMI (placa-mãe/fabricante), particionamento de discos, usuário logado, domínio AD, e descobre dinamicamente aplicativos, agentes, runtimes e ferramentas instaladas via <code>apt-mark</code>. Possui controle de cache inteligente (só envia se houver alteração).
                 </div>
-              </div>
+              </div> */}
             </div>
           )}
 

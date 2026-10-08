@@ -580,7 +580,7 @@ export default function InventoryPage({
         {/* 1) Donut: Distribuição por sistema */}
         <section className="panel">
           <h2>Distribuição por sistema</h2>
-          <p>Clique em um item para filtrar</p>
+          <p>Sitemas operacionais cadastrados</p>
           {totalDistroSistema === 0 ? (
             <div className="empty">Sem dados para os filtros atuais</div>
           ) : (
@@ -600,7 +600,7 @@ export default function InventoryPage({
         {/* 2) Donut: Status das máquinas */}
         <section className="panel">
           <h2>Status das máquinas</h2>
-          <p>Clique em um item para filtrar</p>
+          <p></p>
           {totalDistroStatus === 0 ? (
             <div className="empty">Sem dados para os filtros atuais</div>
           ) : (
@@ -636,7 +636,7 @@ export default function InventoryPage({
           <h2>Máquinas com disco acima de 75%</h2>
           <p>
             {altasDisco.length} de {filtrados.length} máquinas acima de
-            75%. Clique para filtrar
+            75%.
           </p>
           <div>
             {altasDisco.length === 0 ? (
@@ -1749,9 +1749,6 @@ export default function InventoryPage({
                                        <span className="badge-firewall-ok">🟢 Firewall Homologado</span>
                                      )}
                                    </div>
-                                   <small style={{ color: 'var(--muted)', fontSize: '11px' }}>
-                                     Esteira de liberação de máquinas novas na matriz
-                                   </small>
                                  </div>
 
                                  {(() => {
@@ -1830,16 +1827,16 @@ export default function InventoryPage({
                                              </div>
                                            ) : (
                                              <div className="patrimonio-hint">
-                                               Digite apenas os números. O prefixo <b>pat.</b> é fixo.
+                                               Digite apenas os números.
                                              </div>
                                            )}
                                          </div>
 
                                          {/* Coluna 2: Status e Ações do Firewall */}
                                          <div className="firewall-action-box">
-                                           <div className="detail-label" style={{ marginBottom: '6px' }}>
+                                           {/* <div className="detail-label" style={{ marginBottom: '6px' }}>
                                              Status do Firewall &amp; Esteira
-                                           </div>
+                                           </div> */}
 
                                            <div className="firewall-status-content">
                                              {i.firewall_status === 'pendente' ? (
@@ -1876,7 +1873,7 @@ export default function InventoryPage({
                                                    ⚪ Máquina Operacional Regular
                                                  </div>
                                                  <div className="firewall-meta">
-                                                   Se esta for uma nova máquina preparada na matriz, solicite a liberação no firewall.
+                                                   Solicitar cadastro novo no firewall.
                                                  </div>
                                                </div>
                                              )}
