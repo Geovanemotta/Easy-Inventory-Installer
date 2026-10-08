@@ -56,9 +56,9 @@ export default function Sidebar({
         <div className="brand-info">
           <div className="brand-title-wrap">
             <b>INVENTÁRIO</b>
-           {/* <span className="brand-tag">GIASSI</span>*/}
+            <span className="brand-tag">GIASSI</span>
           </div>
-          <span className="brand-sub">Grupo Giassi</span>
+          <span className="brand-sub">Gestão de Ativos &amp; TI</span>
         </div>
       </div>
 
@@ -181,6 +181,7 @@ export default function Sidebar({
         </button>
 
         <div className="side-caption">
+          <b>Enterprise Inventory</b>
           <span>v2.6 · Linux &amp; Windows</span>
         </div>
       </div>
