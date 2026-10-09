@@ -434,9 +434,9 @@ export default function InventoryPage({
       else ot++
     })
     const list: [string, number, string][] = []
-    if (ok > 0) list.push(['OK', ok, '#16a34a'])
-    if (up > 0) list.push(['Upgrade necessário', up, '#f59e0b'])
-    if (ot > 0) list.push(['Outro', ot, '#94a3b8'])
+    if (ok > 0) list.push(['Atualizada', ok, '#16a34a'])
+    if (up > 0) list.push(['Atualização Necessária', up, '#f59e0b'])
+    if (ot > 0) list.push(['Não Identificada', ot, '#94a3b8'])
     return list
   }, [inventario, passaFiltro])
 
@@ -552,7 +552,7 @@ export default function InventoryPage({
         i.disco_usado,
         i.disco_total,
         versaoCompleta(i),
-        i.status,
+        i.status === 'OK' ? 'Atualizada' : i.status === 'UPGRADE_REQUIRED' ? 'Atualização Necessária' : 'Não Identificada',
         i.processador,
         i.ram_total,
         i.rustdesk_id,
@@ -580,7 +580,7 @@ export default function InventoryPage({
         {/* 1) Donut: Distribuição por sistema */}
         <section className="panel">
           <h2>Distribuição por sistema</h2>
-          <p>Sitemas operacionais cadastrados</p>
+          <p>Sistemas operacionais cadastrados</p>
           {totalDistroSistema === 0 ? (
             <div className="empty">Sem dados para os filtros atuais</div>
           ) : (
@@ -600,7 +600,7 @@ export default function InventoryPage({
         {/* 2) Donut: Status das máquinas */}
         <section className="panel">
           <h2>Status das máquinas</h2>
-          <p></p>
+          <p>Condição de conformidade e versão</p>
           {totalDistroStatus === 0 ? (
             <div className="empty">Sem dados para os filtros atuais</div>
           ) : (
@@ -610,20 +610,22 @@ export default function InventoryPage({
               modoValor="qtd"
               activeItem={
                 selectedStatus === 'OK'
-                  ? 'OK'
+                  ? 'Atualizada'
                   : selectedStatus === 'UPGRADE_REQUIRED'
-                  ? 'Upgrade necessário'
+                  ? 'Atualização Necessária'
                   : selectedStatus === 'OUTRO'
-                  ? 'Outro'
+                  ? 'Não Identificada'
                   : ''
               }
               onItemClick={(label) => {
                 const code =
-                  label === 'OK'
+                  label === 'Atualizada'
                     ? 'OK'
-                    : label === 'Upgrade necessário'
+                    : label === 'Atualização Necessária'
                     ? 'UPGRADE_REQUIRED'
-                    : 'OUTRO'
+                    : label === 'Não Identificada'
+                    ? 'OUTRO'
+                    : ''
                 setSelectedStatus((cur) => (cur === code ? '' : code))
                 setPaginaAtual(1)
               }}
@@ -949,9 +951,9 @@ export default function InventoryPage({
             }}
           >
             <option value="">Todos os status</option>
-            <option value="OK">OK</option>
-            <option value="UPGRADE_REQUIRED">Upgrade necessário</option>
-            <option value="OUTRO">Outro</option>
+            <option value="OK">Atualizada</option>
+            <option value="UPGRADE_REQUIRED">Atualização Necessária</option>
+            <option value="OUTRO">Não Identificada</option>
           </select>
         </div>
 
@@ -1140,10 +1142,10 @@ export default function InventoryPage({
                     : 'status-other'
                 const statusTxt =
                   i.status === 'OK'
-                    ? 'OK'
+                    ? 'Atualizada'
                     : i.status === 'UPGRADE_REQUIRED'
-                    ? 'UPGRADE NECESSÁRIO'
-                    : i.status || 'OUTRO'
+                    ? 'Atualização Necessária'
+                    : 'Não Identificada'
 
                 return (
                   <React.Fragment key={`${i.id ?? i.hostname}-${i.ip ?? ''}`}>

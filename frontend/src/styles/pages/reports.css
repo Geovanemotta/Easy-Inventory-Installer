@@ -1,0 +1,271 @@
+/* =========================================================
+   REPORTS PAGE STYLESHEET (ReportsPage.tsx)
+   Estilização dedicada para o módulo de relatórios analíticos
+   e agrupamentos dinâmicos de hardware, sistema e filiais.
+   Totalmente integrado ao Design System e Dark/Light Mode.
+   ========================================================= */
+
+/* Container Raiz da Página */
+#view-rel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* =========================================================
+   1. BARRA SUPERIOR DE FILTROS E AGRUPAMENTO DE RELATÓRIO
+   ========================================================= */
+#view-rel .relbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-xs);
+}
+
+#view-rel .relbar .field {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#view-rel .relbar label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+#view-rel .relbar input,
+#view-rel .relbar select {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--input-border, var(--line));
+  background: var(--input-bg, var(--surface));
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#view-rel .relbar input:focus,
+#view-rel .relbar select:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+#view-rel .relbar .btn {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  border: none;
+  background: var(--brand);
+  color: #ffffff;
+  transition: background 0.15s ease;
+}
+
+#view-rel .relbar .btn:hover {
+  background: var(--brand-hover);
+}
+
+/* =========================================================
+   2. LAYOUT EM GRID DE 2 COLUNAS (GRUPOS + MÁQUINAS)
+   ========================================================= */
+#view-rel .rel-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(420px, 1.4fr);
+  gap: 16px;
+  align-items: start;
+}
+
+#view-rel .panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-xs);
+  min-width: 0;
+}
+
+#view-rel .panel h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+#view-rel .panel p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+#view-rel .scroll {
+  max-height: 580px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* =========================================================
+   3. BARRAS HORIZONTAIS DE PROPORÇÃO POR GRUPO
+   ========================================================= */
+#view-rel .hb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  font: 500 13px 'Inter', sans-serif;
+  color: var(--ink);
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.12s ease;
+  margin-bottom: 3px;
+}
+
+#view-rel .hb:hover {
+  background: var(--brand-soft) !important;
+  color: var(--brand) !important;
+  border-color: var(--brand-border) !important;
+}
+
+#view-rel .hb.sel {
+  background: var(--brand-soft) !important;
+  color: var(--brand) !important;
+  border-color: var(--brand-border) !important;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#view-rel .hb-n {
+  flex: 0 1 45%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+
+#view-rel .hb-t {
+  flex: 1;
+  min-width: 50px;
+  height: 8px;
+  background: var(--bg-alt);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#view-rel .hb-t span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+#view-rel .hb b {
+  min-width: 36px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   4. TABELA DE MÁQUINAS DO GRUPO SELECIONADO
+   ========================================================= */
+#view-rel .mini {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+#view-rel .mini th,
+#view-rel .mini td {
+  padding: 8px 10px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+
+#view-rel .mini th {
+  background: var(--table-head-bg);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+  border-bottom: 1px solid var(--line);
+  border-top: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+#view-rel .mini tbody tr:hover {
+  background: var(--table-row-hover);
+}
+
+#view-rel .mini a {
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+#view-rel .mini a:hover {
+  text-decoration: underline;
+}
+
+#view-rel .ico {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  margin-right: 6px;
+  flex: none;
+}
+
+#view-rel .ico svg {
+  width: 100%;
+  height: 100%;
+}
+
+#view-rel .empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 32px 0;
+  text-align: center;
+}
+
+/* =========================================================
+   5. RESPONSIVIDADE
+   ========================================================= */
+@media (max-width: 1100px) {
+  #view-rel .rel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  #view-rel .relbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

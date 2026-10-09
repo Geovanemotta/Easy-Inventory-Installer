@@ -20,6 +20,8 @@
 /* 4. Estilos Específicos por Página */
 @import './styles/pages/login.css';
 @import './styles/pages/inventory.css';
+@import './styles/pages/apps.css';
+@import './styles/pages/reports.css';
 @import './styles/pages/network-assets.css';
 @import './styles/pages/active-directory.css';
 

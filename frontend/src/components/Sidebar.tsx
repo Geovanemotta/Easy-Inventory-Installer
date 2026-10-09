@@ -55,8 +55,8 @@ export default function Sidebar({
         </div>
         <div className="brand-info">
           <div className="brand-title-wrap">
-            <b>INVENTÁRIO</b>
-            <span className="brand-tag">GIASSI</span>
+            <b>Grupo Giassi</b>
+            <span className="brand-tag">Inventário</span>
           </div>
           <span className="brand-sub">Gestão de Ativos &amp; TI</span>
         </div>

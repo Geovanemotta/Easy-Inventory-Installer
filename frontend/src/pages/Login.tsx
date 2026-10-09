@@ -1,36 +1,31 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { login } from '../services/api'
+import logoGiassi from '../assets/logo_giassi.png'
+import '../styles/pages/login.css'
 
 type LoginProps = {
   onLogin: (token: string) => void
-  /** Mensagem opcional exibida acima do formulário (ex.: "Sua sessão expirou. Entre novamente.") */
   notice?: string
 }
 
 const USER_KEY = 'last_username'
 
 function lerUsuarioSalvo(): string {
-  try {
-    return localStorage.getItem(USER_KEY) || ''
-  } catch {
-    return ''
-  }
+  try { return localStorage.getItem(USER_KEY) || '' } catch { return '' }
 }
 
 function gravarUsuario(valor: string | null) {
   try {
     if (valor) localStorage.setItem(USER_KEY, valor)
     else localStorage.removeItem(USER_KEY)
-  } catch {
-    /* ignora */
-  }
+  } catch {}
 }
 
 function traduzirErro(err: unknown): string {
   const msg = err instanceof Error ? err.message : ''
   if (!msg) return 'Erro ao realizar login.'
   if (/failed to fetch|networkerror|load failed|network request failed/i.test(msg)) {
-    return 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+    return 'Não foi possível conectar ao servidor. Verifique sua conexão.'
   }
   return msg
 }
@@ -47,17 +42,7 @@ const ICONS = {
 
 function Icon({ name, size = 18 }: { name: keyof typeof ICONS; size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={ICONS[name]} />
     </svg>
   )
@@ -113,122 +98,114 @@ export default function Login({ onLogin, notice }: LoginProps) {
   }
 
   return (
-    <div className="login-page-centered">
-      <div className="login-card-box">
-        {/* Logo & Header */}
-        <div className="login-card-head">
-          <div className="login-card-icon">
-            <Icon name="bolt" size={24} />
+    <div className="login-container">
+      <div className="login-card">
+        
+        {/* Coluna da Esquerda: Formulário */}
+        <div className="login-form-section">
+          <div className="login-header">
+            <span className="login-badge">Grupo Giassi</span>
+            <h2>Inventário e Ativos de Rede</h2>
+            <p>Insira suas credenciais abaixo para o acesso ao sistema.</p>
           </div>
-          <div className="login-brand-meta">
-            <span className="login-pill-badge">SISTEMA CORPORATIVO</span>
-            <h2>INVENTÁRIO TI</h2>
-            <p>Acesso e gestão de ativos de TI &amp; Active Directory</p>
-          </div>
-        </div>
 
-        {notice && (
-          <div className="login-notice" role="status">
-            <Icon name="info" size={16} />
-            <span>{notice}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate className="login-form">
-          <div className="login-field">
-            <label htmlFor="username">Usuário (Active Directory)</label>
-            <div className="login-input">
-              <span className="ic"><Icon name="user" size={16} /></span>
-              <input
-                ref={userRef}
-                id="username"
-                type="text"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="nome.sobrenome"
-                autoComplete="username"
-                autoCapitalize="none"
-                spellCheck={false}
-                disabled={loading}
-                aria-invalid={!!error}
-                required
-              />
+          {notice && (
+            <div className="login-notice" role="status">
+              <Icon name="info" size={16} />
+              <span>{notice}</span>
             </div>
-          </div>
+          )}
 
-          <div className="login-field">
-            <label htmlFor="password">Senha de Rede</label>
-            <div className="login-input">
-              <span className="ic"><Icon name="lock" size={16} /></span>
-              <input
-                ref={passRef}
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                onKeyDown={atualizarCaps}
-                onKeyUp={atualizarCaps}
-                onBlur={() => setCapsOn(false)}
-                placeholder="Digite sua senha"
-                autoComplete="current-password"
-                disabled={loading}
-                aria-invalid={!!error}
-                required
-              />
-              <button
-                type="button"
-                className="login-eye"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                aria-pressed={showPassword}
-                tabIndex={-1}
-              >
-                <Icon name={showPassword ? 'eyeOff' : 'eye'} size={16} />
-              </button>
-            </div>
-
-            {capsOn && (
-              <div className="login-caps" role="status">
-                <Icon name="alert" size={13} /> Caps Lock está ativado
+          <form onSubmit={handleSubmit} noValidate className="login-form">
+            <div className="login-field">
+              <label htmlFor="username">Usuário</label>
+              <div className="login-input-wrapper">
+                <span className="input-icon"><Icon name="user" size={16} /></span>
+                <input
+                  ref={userRef}
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
+                  disabled={loading}
+                  aria-invalid={!!error}
+                  required
+                />
               </div>
-            )}
-          </div>
+            </div>
 
-          <label className="login-remember">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(event) => setRemember(event.target.checked)}
-              disabled={loading}
-            />
-            <span>Lembrar meu usuário neste computador</span>
-          </label>
+            <div className="login-field">
+              <label htmlFor="password">Senha</label>
+              <div className="login-input-wrapper">
+                <span className="input-icon"><Icon name="lock" size={16} /></span>
+                <input
+                  ref={passRef}
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={atualizarCaps}
+                  onKeyUp={atualizarCaps}
+                  onBlur={() => setCapsOn(false)}
+                  autoComplete="current-password"
+                  disabled={loading}
+                  aria-invalid={!!error}
+                  required
+                />
+                <button
+                  type="button"
+                  className="btn-eye"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  <Icon name={showPassword ? 'eyeOff' : 'eye'} size={16} />
+                </button>
+              </div>
+              {capsOn && (
+                <div className="login-caps"><Icon name="alert" size={13} /> Caps Lock ativado</div>
+              )}
+            </div>
 
-          <div aria-live="assertive">
+            <label className="login-remember">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                disabled={loading}
+              />
+              <span>Lembrar meu usuário neste computador</span>
+            </label>
+
             {error && (
               <div className="login-error" role="alert">
                 <Icon name="alert" size={16} />
                 <span>{error}</span>
               </div>
             )}
+
+            <button type="submit" className="login-button" disabled={loading}>
+              {loading ? (
+                <><span className="spinner" /> Autenticando...</>
+              ) : (
+                'Entrar no Sistema'
+              )}
+            </button>
+          </form>
+
+          <div className="login-footer">
+            <span className="dot-live" />
+            <span>Conexão Segura Criptografada SSL/TLS</span>
           </div>
-
-          <button type="submit" className="login-button" disabled={loading}>
-            {loading ? (
-              <>
-                <span className="login-spinner" />
-                <span>Autenticando no servidor...</span>
-              </>
-            ) : (
-              <span>Entrar no Sistema</span>
-            )}
-          </button>
-        </form>
-
-        <div className="login-foot-status">
-          <span className="login-dot-live" />
-          <span>Conexão Segura Criptografada SSL/TLS · Active Directory Sync</span>
         </div>
+
+        {/* Coluna da Direita: Identidade Visual / Imagem */}
+        <div className="login-image-section">
+          <div className="brand-logo-container">
+            <img src={logoGiassi} alt="Giassi Supermercados" className="brand-logo-img" />
+          </div>
+        </div>
+
       </div>
     </div>
   )

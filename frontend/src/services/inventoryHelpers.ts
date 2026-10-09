@@ -357,10 +357,10 @@ export const CAMPOS: Record<
     'Status',
     (i: EnrichedMachine) =>
       i.status === 'OK'
-        ? 'OK'
+        ? 'Atualizada'
         : i.status === 'UPGRADE_REQUIRED'
-        ? 'Upgrade necessário'
-        : i.status || 'Outro',
+        ? 'Atualização Necessária'
+        : 'Não Identificada',
   ],
   ram_tipo: [
     'Tipo de memória RAM',

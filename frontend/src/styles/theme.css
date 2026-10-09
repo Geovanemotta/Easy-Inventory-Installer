@@ -177,3 +177,21 @@ main {
   padding: 24px 32px;
 }
 
+/* Ícones de Sistema Operacional (Windows / Linux) */
+.ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  margin-right: 6px;
+  flex: none;
+}
+
+.ico svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
