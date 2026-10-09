@@ -41,7 +41,8 @@ usage() {
     echo ""
     echo -e "${BOLD}Uso:${NC} $0 [opções]"
     echo ""
-    echo -e "  ${CYAN}--test, -t${NC}                Testa a conectividade com todos os domínios necessários (Padrão)"
+    echo -e "  ${CYAN}--test, -t${NC}                Testa conectividade TCP e validação de certificados SSL (Padrão)"
+    echo -e "  ${CYAN}--fix-ca${NC}                  Converte certificados .pem/.cer corporativos em .crt e atualiza o Docker"
     echo -e "  ${CYAN}--monitor <cmd>, -m <cmd>${NC} Executa um comando (ex: ./update.sh) gravando todas as requisições"
     echo -e "                            DNS em tempo real para capturar os domínios exatos acessados."
     echo -e "  ${CYAN}--help, -h${NC}                Exibe esta ajuda"
@@ -49,8 +50,49 @@ usage() {
     echo "Exemplos:"
     echo "  $0"
     echo "  $0 --test"
+    echo "  sudo $0 --fix-ca"
     echo "  sudo $0 --monitor ./update.sh"
     echo "  sudo $0 --monitor ./setup.sh"
+    echo ""
+}
+
+fix_corporate_ca() {
+    echo ""
+    echo -e "${CYAN}==================================================================${NC}"
+    echo -e "${BOLD}${CYAN}   ATUALIZAÇÃO DE CERTIFICADOS CORPORATIVOS (CA)${NC}"
+    echo -e "${CYAN}==================================================================${NC}"
+
+    if [ "$EUID" -ne 0 ]; then
+        echo -e "${RED}[X] Esta ação requer privilégios de root (sudo).${NC}"
+        echo "    Execute: sudo $0 --fix-ca"
+        exit 1
+    fi
+
+    local count=0
+    if [ -d "/usr/local/share/ca-certificates" ]; then
+        for f in /usr/local/share/ca-certificates/*.cer /usr/local/share/ca-certificates/*.pem; do
+            if [ -f "$f" ]; then
+                local base="${f%.*}"
+                if [ ! -f "${base}.crt" ]; then
+                    echo " [*] Convertendo $(basename "$f") para $(basename "${base}.crt")..."
+                    cp "$f" "${base}.crt"
+                    count=$((count + 1))
+                fi
+            fi
+        done
+    fi
+
+    if [ $count -gt 0 ]; then
+        echo " [*] Executando update-ca-certificates..."
+        update-ca-certificates
+        if systemctl is-active docker &>/dev/null; then
+            echo " [*] Reiniciando serviço do Docker para recarregar certificados..."
+            systemctl restart docker
+        fi
+        echo -e "${GREEN}[✓] $count certificado(s) configurado(s) com sucesso no sistema e Docker!${NC}"
+    else
+        echo -e "${YELLOW}[i] Nenhum certificado pendente de conversão em /usr/local/share/ca-certificates/.${NC}"
+    fi
     echo ""
 }
 
@@ -58,39 +100,85 @@ test_single_target() {
     local host="$1"
     local port="$2"
 
-    # Usa python se disponível para teste preciso de socket TCP
-    if command -v python3 &>/dev/null; then
-        python3 -c "
-import socket, sys
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.settimeout(2.5)
+    python3 - "$host" "$port" << 'EOF'
+import socket, ssl, sys
+
+host = sys.argv[1]
+port = int(sys.argv[2])
+
 try:
-    s.connect(('$host', int('$port')))
-    s.close()
-    sys.exit(0)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(2.5)
+    s.connect((host, port))
 except socket.gaierror:
-    sys.exit(2) # Erro de DNS
-except Exception:
-    sys.exit(1) # Bloqueio / Timeout
-" 2>/dev/null
-        return $?
+    print("DNS_FAIL|Falha na resolução de nome DNS")
+    sys.exit(2)
+except Exception as e:
+    print(f"TCP_BLOCKED|Bloqueio TCP / Timeout ({e})")
+    sys.exit(1)
+
+if port == 443:
+    try:
+        ctx = ssl.create_default_context()
+        ss = ctx.wrap_socket(s, server_hostname=host)
+        cert = ss.getpeercert()
+        issuer = dict(x[0] for x in cert.get('issuer', []))
+        org = issuer.get('organizationName') or issuer.get('commonName') or 'Confiável'
+        print(f"OK|SSL Válido ({org})")
+        sys.exit(0)
+    except ssl.SSLCertVerificationError as e:
+        # Pega o emissor do certificado não confiável
+        issuer_str = "Desconhecido"
+        try:
+            import subprocess
+            res = subprocess.run(
+                ["openssl", "s_client", "-connect", f"{host}:{port}", "-servername", host],
+                input="", capture_output=True, text=True, timeout=2.0
+            )
+            for line in res.stdout.splitlines():
+                if "issuer=" in line:
+                    issuer_str = line.split("issuer=", 1)[1].strip()
+                    break
+        except Exception:
+            pass
+        print(f"SSL_UNTRUSTED|Certificado não confiável / Interceptado pelo Firewall ({issuer_str})")
+        sys.exit(3)
+    except Exception as e:
+        print(f"SSL_ERROR|Erro no handshake SSL ({e})")
+        sys.exit(3)
+
+print("OK|Porta acessível")
+sys.exit(0)
+EOF
+}
+
+check_local_ca_files() {
+    local unconfigured=()
+    if [ -d "/usr/local/share/ca-certificates" ]; then
+        for f in /usr/local/share/ca-certificates/*.cer /usr/local/share/ca-certificates/*.pem; do
+            if [ -f "$f" ]; then
+                local base="${f%.*}"
+                if [ ! -f "${base}.crt" ]; then
+                    unconfigured+=("$(basename "$f")")
+                fi
+            fi
+        done
     fi
 
-    # Fallback para curl
-    if command -v curl &>/dev/null; then
-        if curl -s --connect-timeout 3 "http://$host:$port" &>/dev/null || [ $? -eq 52 ] || [ $? -eq 56 ]; then
-            return 0
-        fi
+    if [ ${#unconfigured[@]} -gt 0 ]; then
+        echo -e "${YELLOW}------------------------------------------------------------------${NC}"
+        echo -e "${BOLD}${YELLOW}[ALERTA DE CERTIFICADOS LOCAIS NÃO ATIVADOS]${NC}"
+        echo -e " Foram encontrados certificados corporativos que não estão com extensão .crt:"
+        for f in "${unconfigured[@]}"; do
+            echo -e "   • /usr/local/share/ca-certificates/${BOLD}$f${NC}"
+        done
+        echo ""
+        echo -e " O Linux e o Docker ignoram arquivos .cer/.pem até serem renomeados para .crt."
+        echo -e " Para corrigir e fazer o sistema e o Docker confiarem no Firewall, execute:"
+        echo -e "   ${BOLD}${CYAN}sudo $0 --fix-ca${NC}"
+        echo -e "${YELLOW}------------------------------------------------------------------${NC}"
+        echo ""
     fi
-
-    # Fallback para nc
-    if command -v nc &>/dev/null; then
-        if nc -z -w 3 "$host" "$port" &>/dev/null; then
-            return 0
-        fi
-    fi
-
-    return 1
 }
 
 run_diagnostics() {
@@ -98,12 +186,15 @@ run_diagnostics() {
     echo -e "${CYAN}==================================================================${NC}"
     echo -e "${BOLD}${CYAN}   SISTEMA DE INVENTÁRIO - AUDITORIA DE REGRAS DE FIREWALL${NC}"
     echo -e "${CYAN}==================================================================${NC}"
-    echo -e " Testando conectividade com domínios necessários para setup e update..."
+    echo -e " Testando conectividade TCP e validação de certificados SSL..."
     echo ""
+
+    check_local_ca_files
 
     local total=${#TARGETS[@]}
     local ok_count=0
     local fail_count=0
+    local ssl_fail_count=0
     local dns_fail_count=0
 
     # Inicializa cabeçalho do relatório em arquivo
@@ -114,8 +205,8 @@ run_diagnostics() {
         echo "   Servidor:  $(hostname) ($(hostname -I 2>/dev/null | awk '{print $1}'))"
         echo "=================================================================="
         echo ""
-        printf "%-35s %-8s %-12s %-25s %s\n" "DOMÍNIO (FQDN)" "PORTA" "STATUS" "CATEGORIA" "FINALIDADE"
-        echo "----------------------------------------------------------------------------------------------------------------"
+        printf "%-35s %-8s %-16s %-22s %s\n" "DOMÍNIO (FQDN)" "PORTA" "STATUS" "CATEGORIA" "DETALHES"
+        echo "------------------------------------------------------------------------------------------------------------------------"
     } > "$REPORT_FILE"
 
     local current_cat=""
@@ -128,43 +219,66 @@ run_diagnostics() {
             current_cat="$cat"
         fi
 
-        test_single_target "$host" "$port"
-        local res=$?
+        set +e
+        raw_res=$(test_single_target "$host" "$port" 2>/dev/null)
+        local status_code=$?
+        set -e
 
-        if [ $res -eq 0 ]; then
-            echo -e "  [${GREEN}LIBERADO${NC}]   ${BOLD}$host${NC}:$port - $desc"
-            printf "%-35s %-8s %-12s %-25s %s\n" "$host" "$port" "LIBERADO" "$cat" "$desc" >> "$REPORT_FILE"
+        IFS="|" read -r status_tag detail <<< "$raw_res"
+        [ -z "$detail" ] && detail="$desc"
+
+        if [ $status_code -eq 0 ]; then
+            echo -e "  [${GREEN}LIBERADO${NC}]       ${BOLD}$host${NC}:$port - $detail"
+            printf "%-35s %-8s %-16s %-22s %s\n" "$host" "$port" "LIBERADO" "$cat" "$detail" >> "$REPORT_FILE"
             ok_count=$((ok_count + 1))
-        elif [ $res -eq 2 ]; then
-            echo -e "  [${YELLOW}DNS FALHOU${NC}] $host:$port - Falha na resolução de nomes (DNS bloqueado?)"
-            printf "%-35s %-8s %-12s %-25s %s\n" "$host" "$port" "FALHA DNS" "$cat" "$desc" >> "$REPORT_FILE"
+        elif [ $status_code -eq 3 ]; then
+            echo -e "  [${YELLOW}FALHA SSL${NC}]      ${BOLD}$host${NC}:$port - $detail"
+            printf "%-35s %-8s %-16s %-22s %s\n" "$host" "$port" "FALHA_SSL" "$cat" "$detail" >> "$REPORT_FILE"
+            ssl_fail_count=$((ssl_fail_count + 1))
+        elif [ $status_code -eq 2 ]; then
+            echo -e "  [${YELLOW}FALHA DNS${NC}]      $host:$port - $detail"
+            printf "%-35s %-8s %-16s %-22s %s\n" "$host" "$port" "FALHA_DNS" "$cat" "$detail" >> "$REPORT_FILE"
             dns_fail_count=$((dns_fail_count + 1))
         else
-            echo -e "  [${RED}BLOQUEADO${NC}]  ${BOLD}$host${NC}:$port - $desc"
-            printf "%-35s %-8s %-12s %-25s %s\n" "$host" "$port" "BLOQUEADO" "$cat" "$desc" >> "$REPORT_FILE"
+            echo -e "  [${RED}BLOQUEADO${NC}]      ${BOLD}$host${NC}:$port - $detail"
+            printf "%-35s %-8s %-16s %-22s %s\n" "$host" "$port" "BLOQUEADO" "$cat" "$detail" >> "$REPORT_FILE"
             fail_count=$((fail_count + 1))
         fi
     done
 
     {
-        echo "----------------------------------------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------------------------------------------"
         echo ""
         echo "RESUMO GERAL:"
         echo "  Total de destinos verificados: $total"
-        echo "  Liberados:                     $ok_count"
-        echo "  Bloqueados / Sem resposta:     $fail_count"
-        echo "  Falha na resolução de DNS:     $dns_fail_count"
+        echo "  Liberados com SSL válido:      $ok_count"
+        echo "  Bloqueados (Porta fechada):    $fail_count"
+        echo "  Falhas de Certificado SSL:     $ssl_fail_count"
+        echo "  Falhas na resolução de DNS:    $dns_fail_count"
         echo ""
-        echo "RECOMENDAÇÃO PARA O TIME DE FIREWALL:"
-        echo "  Para permitir a instalação e atualização contínua deste servidor,"
-        echo "  libere conexões TCP de saída (Egress) para os domínios listados acima nas portas indicadas."
+        echo "DIAGNÓSTICO E RECOMENDAÇÕES:"
+        if [ $fail_count -gt 0 ]; then
+            echo "  * Bloqueios TCP detectados: Solicite à equipe de Firewall a liberação de saída (Egress) nas portas 80/443."
+        fi
+        if [ $ssl_fail_count -gt 0 ]; then
+            echo "  * Falhas de SSL detectadas: O firewall está fazendo Inspeção Profunda (DPI/SSL Inspection)."
+            echo "    Para resolver, instale o certificado raiz da CA do firewall no Linux (.crt) ou crie bypass para os domínios."
+        fi
     } >> "$REPORT_FILE"
 
     echo ""
     echo -e "${CYAN}==================================================================${NC}"
-    echo -e " ${BOLD}Resumo:${NC} ${GREEN}$ok_count liberados${NC} | ${RED}$fail_count bloqueados${NC} | ${YELLOW}$dns_fail_count erros de DNS${NC}"
+    echo -e " ${BOLD}Resumo:${NC} ${GREEN}$ok_count liberados${NC} | ${RED}$fail_count bloqueados${NC} | ${YELLOW}$ssl_fail_count falhas SSL${NC} | ${YELLOW}$dns_fail_count erros de DNS${NC}"
     echo -e " Relatório salvo com sucesso em: ${BOLD}${GREEN}$REPORT_FILE${NC}"
     echo -e "${CYAN}==================================================================${NC}"
+
+    if [ $ssl_fail_count -gt 0 ]; then
+        echo ""
+        echo -e "${YELLOW}[!] DICA IMPORTANTE SOBRE FALHAS SSL:${NC}"
+        echo -e "    O firewall está interceptando as conexões HTTPS."
+        echo -e "    O Docker e o NPM falharão se não confiarem na CA do firewall."
+        echo -e "    Para corrigir automaticamente: ${BOLD}${CYAN}sudo $0 --fix-ca${NC}"
+    fi
     echo ""
 }
 
@@ -263,6 +377,8 @@ EOF
 # Tratamento de argumentos
 if [ $# -eq 0 ] || [ "$1" = "--test" ] || [ "$1" = "-t" ]; then
     run_diagnostics
+elif [ "$1" = "--fix-ca" ]; then
+    fix_corporate_ca
 elif [ "$1" = "--monitor" ] || [ "$1" = "-m" ]; then
     shift
     run_monitor "$@"

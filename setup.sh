@@ -24,6 +24,42 @@ echo -e " serviços em containers Docker de forma automatizada e segura."
 echo ""
 
 # ------------------------------------------------------------------------------
+# 0. Verificação e Adaptação para Certificados de Firewall Corporativo (DPI/SSL)
+# ------------------------------------------------------------------------------
+check_corporate_ca() {
+    local need_ca_update=false
+    if [ -d "/usr/local/share/ca-certificates" ]; then
+        for f in /usr/local/share/ca-certificates/*.cer /usr/local/share/ca-certificates/*.pem; do
+            if [ -f "$f" ]; then
+                local base="${f%.*}"
+                if [ ! -f "${base}.crt" ]; then
+                    echo " [*] Detectado certificado corporativo sem extensão .crt: $(basename "$f")"
+                    echo "     Convertendo para .crt para que o Linux e o Docker o reconheçam..."
+                    cp "$f" "${base}.crt" 2>/dev/null || true
+                    need_ca_update=true
+                fi
+            fi
+        done
+    fi
+
+    if [ "$need_ca_update" = true ]; then
+        echo " [*] Atualizando base de certificados do sistema..."
+        update-ca-certificates 2>/dev/null || true
+        if systemctl is-active docker &>/dev/null; then
+            echo " [*] Reiniciando serviço do Docker para carregar a CA corporativa..."
+            systemctl restart docker 2>/dev/null || true
+        fi
+        echo -e "${GREEN}[✓] Certificados corporativos configurados no sistema e no Docker.${NC}"
+    fi
+
+    if [ -f "/etc/ssl/certs/ca-certificates.crt" ]; then
+        export NODE_EXTRA_CA_CERTS="/etc/ssl/certs/ca-certificates.crt"
+    fi
+}
+
+check_corporate_ca
+
+# ------------------------------------------------------------------------------
 # 1. Checagem de Pré-requisitos
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[1/6] Verificando pré-requisitos do sistema...${NC}"
@@ -56,6 +92,68 @@ fi
 echo -e "${GREEN}[✓] Docker e Docker Compose operacionais.${NC}"
 echo ""
 
+# Função reutilizável para compilação garantida do frontend
+compile_frontend() {
+    echo -e "${YELLOW}[*] Compilando painel frontend...${NC}"
+
+    local CA_VOLUME=""
+    if [ -f "/etc/ssl/certs/ca-certificates.crt" ]; then
+        CA_VOLUME="-v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro -e NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt"
+    fi
+
+    local NODE_VER="0"
+    if command -v node &> /dev/null; then
+        NODE_VER=$(node -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+    fi
+
+    local COMPILED=false
+
+    # O Vite 8 / Rolldown exige Node.js 20+. Se o Node local for anterior (ex: Node 18 ao rodar com sudo),
+    # usa direto o container isolado node:20-alpine para evitar avisos EBADENGINE e SyntaxError: styleText
+    if [ "$NODE_VER" -ge 20 ] 2>/dev/null && [ -f "frontend/package.json" ]; then
+        echo " [*] Usando Node.js local do servidor (v$(node -v))..."
+        if (cd frontend && npm install --no-audit --no-fund && npm run build); then
+            COMPILED=true
+        else
+            echo -e "${YELLOW} [!] Compilação local falhou. Tentando via container Node.js 20...${NC}"
+        fi
+    elif [ "$NODE_VER" -gt 0 ] 2>/dev/null; then
+        echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é anterior ao v20 (Vite 8 requer Node 20+)."
+        echo "     Usando container isolado 'node:20-alpine' para compilação garantida..."
+    fi
+
+    # Se não compilou localmente, compila via container node:20-alpine com a CA do firewall montada
+    if [ "$COMPILED" = false ]; then
+        echo " [*] Compilando via container Node.js 20..."
+        if docker run --rm -v "$(pwd)/frontend:/app" $CA_VOLUME -w /app node:20-alpine sh -c "npm install --no-audit --no-fund && npm run build"; then
+            COMPILED=true
+        fi
+    fi
+
+    if [ "$COMPILED" = false ]; then
+        echo ""
+        echo -e "${RED}==================================================================${NC}"
+        echo -e "${BOLD}${RED}[X] FALHA NA COMPILAÇÃO DO FRONTEND${NC}"
+        echo -e "${RED}==================================================================${NC}"
+        echo " Possíveis causas e como resolver:"
+        echo ""
+        echo -e " 1) ${BOLD}Erro de Certificado SSL (SELF_SIGNED_CERT_IN_CHAIN):${NC}"
+        echo "    O firewall corporativo está interceptando o download de pacotes NPM."
+        echo "    Execute: sudo ./check-firewall.sh --fix-ca para habilitar a CA corporativa."
+        echo ""
+        echo -e " 2) ${BOLD}Bloqueio de Firewall no repositório NPM:${NC}"
+        echo "    Certifique-se de que 'registry.npmjs.org' (porta 443 TCP) está liberado."
+        echo ""
+        echo -e " 3) ${BOLD}Versão do Node.js:${NC}"
+        echo "    O Vite 8 exige Node.js 20+. O instalador tentou usar o container 'node:20-alpine'."
+        echo "    Verifique se o Docker consegue baixar imagens do Docker Hub."
+        echo -e "${RED}==================================================================${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}[✓] Frontend compilado com sucesso em ./frontend/dist!${NC}"
+}
+
 # ------------------------------------------------------------------------------
 # 2. Detecção de Instalação Existente (Modo Upgrade Seguro vs Nova Instalação)
 # ------------------------------------------------------------------------------
@@ -80,17 +178,37 @@ if [ -f ".env" ]; then
         export $(grep -v '^#' .env | grep -v '^\s*$' | xargs)
 
         # Compilar frontend
-        echo -e "${YELLOW}[*] Compilando painel frontend...${NC}"
-        if command -v npm &> /dev/null && [ -f "frontend/package.json" ]; then
-            (cd frontend && npm install && npm run build) || docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
-        else
-            docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
-        fi
-        echo -e "${GREEN}[✓] Frontend compilado com sucesso.${NC}"
+        compile_frontend
 
         # Subir containers mantendo volumes intactos
         echo -e "${YELLOW}[*] Atualizando e iniciando containers Docker...${NC}"
-        $DOCKER_COMPOSE up -d --build
+        if ! $DOCKER_COMPOSE up -d --build; then
+            echo ""
+            echo -e "${RED}==================================================================${NC}"
+            echo -e "${BOLD}${RED}[X] FALHA NA RECONSTRUÇÃO DOS CONTAINERS DOCKER${NC}"
+            echo -e "${RED}==================================================================${NC}"
+            echo " Diagnóstico do erro:"
+            echo ""
+            echo -e " 1) ${BOLD}Erro de Certificado SSL / Firewall DPI (x509: certificate signed by unknown authority):${NC}"
+            echo "    O Docker não conseguiu validar o certificado SSL ao consultar o Docker Hub."
+            echo "    Causa: O firewall corporativo (DPI / Inspeção SSL) está interceptando HTTPS."
+            echo ""
+            echo -e "    ${BOLD}Como resolver:${NC}"
+            echo "    - Certifique-se de que a CA do firewall está em: /usr/local/share/ca-certificates/<nome>.crt"
+            echo "    - Execute:"
+            echo "      sudo ./check-firewall.sh --fix-ca"
+            echo "    - Em seguida, execute o ./setup.sh novamente."
+            echo ""
+            echo -e " 2) ${BOLD}Bloqueio de Firewall nos Registros do Docker Hub:${NC}"
+            echo "    Solicite à equipe de segurança a liberação das seguintes portas/domínios:"
+            echo "    - registry-1.docker.io (porta 443 TCP)"
+            echo "    - auth.docker.io (porta 443 TCP)"
+            echo "    - production.cloudflare.docker.com (porta 443 TCP)"
+            echo ""
+            echo -e " Dica: Execute ${CYAN}./check-firewall.sh${NC} para auditar o status das regras e certificados."
+            echo -e "${RED}==================================================================${NC}"
+            exit 1
+        fi
 
         # Aguardar PostgreSQL estar pronto
         echo " [*] Aguardando o banco de dados PostgreSQL estar operacional..."
@@ -99,7 +217,8 @@ if [ -f ".env" ]; then
         until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" &>/dev/null; do
             ATTEMPT=$((ATTEMPT + 1))
             if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-                echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL.${NC}"
+                echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL responder na porta 5432.${NC}"
+                $DOCKER_COMPOSE logs --tail 20 postgres
                 exit 1
             fi
             sleep 1
@@ -110,8 +229,8 @@ if [ -f ".env" ]; then
         echo " [*] Aplicando migrações estruturais do banco de dados..."
         $DOCKER_COMPOSE exec -T backend alembic upgrade head
         echo " [*] Sincronizando novos perfis (Operador Matriz) e permissões..."
-        $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles || \
-        $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles || true
+        $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
+        $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
 
         echo ""
         echo -e "${CYAN}==================================================================${NC}"
@@ -243,13 +362,7 @@ echo -e "${GREEN}[✓] Arquivo .env gerado com sucesso.${NC}"
 # 5. Compilação do Frontend
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[4/6] Compilando painel frontend...${NC}"
-
-if command -v npm &> /dev/null && [ -f "frontend/package.json" ]; then
-    (cd frontend && npm install && npm run build) || docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
-else
-    docker run --rm -v "$(pwd)/frontend:/app" -w /app node:20-alpine sh -c "npm install && npm run build"
-fi
-echo -e "${GREEN}[✓] Frontend compilado com sucesso em ./frontend/dist!${NC}"
+compile_frontend
 
 # ------------------------------------------------------------------------------
 # 6. Inicialização dos Containers e Migrações
@@ -273,7 +386,33 @@ else
     $DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
 fi
 
-$DOCKER_COMPOSE up -d --build
+if ! $DOCKER_COMPOSE up -d --build; then
+    echo ""
+    echo -e "${RED}==================================================================${NC}"
+    echo -e "${BOLD}${RED}[X] FALHA NA CONSTRUÇÃO DOS CONTAINERS DOCKER${NC}"
+    echo -e "${RED}==================================================================${NC}"
+    echo " Diagnóstico do erro:"
+    echo ""
+    echo -e " 1) ${BOLD}Erro de Certificado SSL / Firewall DPI (x509: certificate signed by unknown authority):${NC}"
+    echo "    O Docker não conseguiu validar o certificado SSL ao consultar o Docker Hub."
+    echo "    Causa: O firewall corporativo (DPI / Inspeção SSL) está interceptando HTTPS."
+    echo ""
+    echo -e "    ${BOLD}Como resolver:${NC}"
+    echo "    - Certifique-se de que a CA do firewall está em: /usr/local/share/ca-certificates/<nome>.crt"
+    echo "    - Execute:"
+    echo "      sudo ./check-firewall.sh --fix-ca"
+    echo "    - Em seguida, execute o ./setup.sh novamente."
+    echo ""
+    echo -e " 2) ${BOLD}Bloqueio de Firewall nos Registros do Docker Hub:${NC}"
+    echo "    Solicite à equipe de segurança a liberação das seguintes portas/domínios:"
+    echo "    - registry-1.docker.io (porta 443 TCP)"
+    echo "    - auth.docker.io (porta 443 TCP)"
+    echo "    - production.cloudflare.docker.com (porta 443 TCP)"
+    echo ""
+    echo -e " Dica: Execute ${CYAN}./check-firewall.sh${NC} para auditar o status das regras e certificados."
+    echo -e "${RED}==================================================================${NC}"
+    exit 1
+fi
 
 echo " [*] Aguardando o banco de dados PostgreSQL ficar pronto para conexões..."
 MAX_ATTEMPTS=30
@@ -281,8 +420,8 @@ ATTEMPT=0
 until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" &>/dev/null; do
     ATTEMPT=$((ATTEMPT + 1))
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-        echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL.${NC}"
-        $DOCKER_COMPOSE logs postgres
+        echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL responder na porta 5432.${NC}"
+        $DOCKER_COMPOSE logs --tail 20 postgres
         exit 1
     fi
     sleep 1
@@ -303,8 +442,8 @@ $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey \
     $CREATE_SITES_FLAG
 
 echo " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
-$DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles || \
-$DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles || true
+$DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
+$DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
 
 # ------------------------------------------------------------------------------
 # 7. Conclusão e Resumo da Instalação
