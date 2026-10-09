@@ -120,10 +120,15 @@ except Exception as e:
 if port == 443:
     try:
         ctx = ssl.create_default_context()
+
+        # Compatibilidade com certificados da inspeção HTTPS Fortinet
+        if hasattr(ssl, "VERIFY_X509_STRICT"):
+            ctx.verify_flags &= ~ssl.VERIFY_X509_STRICT
+
         ss = ctx.wrap_socket(s, server_hostname=host)
         cert = ss.getpeercert()
         issuer = dict(x[0] for x in cert.get('issuer', []))
-        org = issuer.get('organizationName') or issuer.get('commonName') or 'Confiável'
+        org = issuer.get('organizationName') or cert.get('issuer', [{}])[0][0][1] if cert.get('issuer') else 'Confiável'
         print(f"OK|SSL Válido ({org})")
         sys.exit(0)
     except ssl.SSLCertVerificationError as e:
