@@ -1,0 +1,160 @@
+/* ==========================================================
+   SEÇÃO DE PERIFÉRICOS & DISPOSITIVOS CONECTADOS
+   ========================================================== */
+.perif-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.perif-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: all 0.15s ease;
+}
+
+.perif-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+}
+
+.perif-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.perif-icon-monitor {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.perif-icon-phone {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.perif-icon-input {
+  background: var(--bg-alt);
+  color: #475569;
+}
+
+.perif-icon-storage {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.perif-icon-printer {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.perif-icon-other {
+  background: var(--surface-hover);
+  color: #64748b;
+}
+
+.perif-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.perif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.perif-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.perif-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.perif-badge-monitor {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.perif-badge-phone {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.perif-badge-input {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.perif-badge-storage {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.perif-badge-printer {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.perif-badge-other {
+  background: var(--bg-alt);
+  color: #475569;
+}
+
+.perif-sub {
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.perif-serial {
+  font-family: monospace;
+  font-size: 11px;
+  background: var(--bg-alt);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #334155;
+}
+
+.perif-empty {
+  padding: 14px 16px;
+  background: var(--surface-hover);
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 10px;
+  text-align: center;
+}
+

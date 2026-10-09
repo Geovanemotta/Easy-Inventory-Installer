@@ -1,0 +1,48 @@
+/* =========================================================
+   DARK MODE STANDARDIZED HOVER & INTERACTION SYSTEM
+   Garante tons suaves de azul/ciano (var(--brand-soft)) em hover,
+   eliminando contrastes brancos ou ilegíveis em modo escuro.
+   ========================================================= */
+
+[data-theme="dark"] .copy-button:hover,
+[data-theme="dark"] .na-copy:hover,
+[data-theme="dark"] .na-icon-btn:hover,
+[data-theme="dark"] .net-mono-tag:hover,
+[data-theme="dark"] .net-btn-action:hover,
+[data-theme="dark"] .na-ext:hover,
+[data-theme="dark"] .btn-ssh-open:hover,
+[data-theme="dark"] .btn-ssh-mini:hover,
+[data-theme="dark"] .ad-site:hover,
+[data-theme="dark"] .ad-check:hover,
+[data-theme="dark"] .ad-quick button:hover:not(.danger),
+[data-theme="dark"] .na-clear:hover {
+  background: rgba(56, 189, 248, 0.16) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+
+[data-theme="dark"] .copy-button:hover svg,
+[data-theme="dark"] .na-copy:hover .na-ico,
+[data-theme="dark"] .na-icon-btn:hover svg,
+[data-theme="dark"] .net-btn-action:hover svg,
+[data-theme="dark"] .btn-ssh-open:hover svg,
+[data-theme="dark"] .btn-ssh-mini:hover svg {
+  color: #38bdf8 !important;
+  stroke: #38bdf8 !important;
+}
+
+/* Light mode equivalents for copy and table actions */
+[data-theme="light"] .copy-button:hover,
+[data-theme="light"] .na-copy:hover,
+[data-theme="light"] .na-icon-btn:hover {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+[data-theme="light"] .copy-button:hover svg,
+[data-theme="light"] .na-copy:hover .na-ico,
+[data-theme="light"] .na-icon-btn:hover svg {
+  color: #1d4ed8 !important;
+  stroke: #1d4ed8 !important;
+}

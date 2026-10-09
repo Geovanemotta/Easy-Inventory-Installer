@@ -1,0 +1,179 @@
+/* =========================================================
+   ENTERPRISE RMM & FLEET INVENTORY - DESIGN SYSTEM
+   Inspirado nas plataformas NinjaOne e Octofleet
+   Suporte completo e nativo a Dark Mode e Light Mode
+   ========================================================= */
+
+:root,
+[data-theme="dark"] {
+  /* Dark Theme Enterprise (NinjaOne & Octofleet Midnight Slate) */
+  --bg: #090d16;
+  --bg-alt: #0d1322;
+  --surface: #111827;
+  --surface-hover: #172236;
+  --surface-active: #1e293b;
+  --surface-card: #111827;
+
+  --line: #1e293b;
+  --line-subtle: #162238;
+  --line-bright: #334155;
+
+  --ink: #f8fafc;
+  --ink-subtle: #cbd5e1;
+  --muted: #94a3b8;
+  --muted-dim: #64748b;
+
+  --brand: #0284c7;
+  --brand-hover: #0369a1;
+  --brand-active: #075985;
+  --brand-soft: rgba(2, 132, 199, 0.15);
+  --brand-glow: rgba(56, 189, 248, 0.25);
+  --brand-border: rgba(56, 189, 248, 0.35);
+
+  --input-bg: #131b2e;
+  --input-border: #223049;
+  --input-focus-border: #38bdf8;
+
+  --table-head-bg: #0c1220;
+  --table-row-hover: #151e32;
+  --table-zebra: #0d1424;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.7);
+
+  --ok: #10b981;
+  --ok-bg: rgba(16, 185, 129, 0.14);
+  --ok-border: rgba(16, 185, 129, 0.3);
+
+  --warn: #f59e0b;
+  --warn-bg: rgba(245, 158, 11, 0.14);
+  --warn-border: rgba(245, 158, 11, 0.3);
+
+  --bad: #ef4444;
+  --bad-bg: rgba(239, 68, 68, 0.16);
+  --bad-border: rgba(239, 68, 68, 0.35);
+
+  --loja: #38bdf8;
+  --combo: #a855f7;
+  --matriz: #10b981;
+
+  --r: 10px;
+  --r-sm: 6px;
+  --r-lg: 14px;
+}
+
+[data-theme="light"] {
+  /* Light Theme Enterprise (Clean Slate) */
+  --bg: #f4f6fa;
+  --bg-alt: #edf1f7;
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --surface-active: #f1f5f9;
+  --surface-card: #ffffff;
+
+  --line: #e2e8f0;
+  --line-subtle: #edf2f7;
+  --line-bright: #cbd5e1;
+
+  --ink: #0f172a;
+  --ink-subtle: #334155;
+  --muted: #64748b;
+  --muted-dim: #94a3b8;
+
+  --brand: #1d4ed8;
+  --brand-hover: #1e40af;
+  --brand-active: #172554;
+  --brand-soft: #eff6ff;
+  --brand-glow: rgba(29, 78, 216, 0.18);
+  --brand-border: #bfdbfe;
+
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-focus-border: #2563eb;
+
+  --table-head-bg: #f8fafc;
+  --table-row-hover: #f8fafc;
+  --table-zebra: #fbfcfe;
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 14px 34px rgba(15, 23, 42, 0.12);
+
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --ok-border: #bbf7d0;
+
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --warn-border: #fde68a;
+
+  --bad: #b91c1c;
+  --bad-bg: #fee2e2;
+  --bad-border: #fecaca;
+
+  --loja: #2563eb;
+  --combo: #7c3aed;
+  --matriz: #0f766e;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-bright);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
