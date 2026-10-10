@@ -19,6 +19,8 @@ type RemoteAccessPageProps = {
   showToast?: (msg: string) => void
 }
 
+type SessionTabMode = 'desktop' | 'files' | 'terminal'
+
 export default function RemoteAccessPage({
   inventario,
   onOpenSsh,
@@ -35,6 +37,7 @@ export default function RemoteAccessPage({
   const [activeSession, setActiveSession] = useState<{
     device: EnrichedMachine
     url: string
+    tab: SessionTabMode
   } | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -95,7 +98,6 @@ export default function RemoteAccessPage({
   const meshUrlBase = useMemo(() => {
     if (typeof window !== 'undefined') {
       const currentHost = window.location.hostname
-      // Se o usuário acessou por IP ou domínio, usa o mesmo host na porta 4443
       if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
         const port = config?.mesh_port || 4443
         return `https://${currentHost}:${port}`
@@ -104,21 +106,47 @@ export default function RemoteAccessPage({
     return config?.mesh_url || 'https://localhost:4443'
   }, [config])
 
-  const gerarUrlDesktop = (device: EnrichedMachine) => {
-    // viewmode=11: Desktop remoto direto / gotodevicename: Seleciona o nó pelo hostname / hide=15: Visual limpo sem barras
-    return `${meshUrlBase}/?viewmode=11&gotodevicename=${encodeURIComponent(device.hostname)}&hide=15`
+  const gerarUrlModo = (device: EnrichedMachine, modo: SessionTabMode) => {
+    // 11 = Desktop (Tela) / 13 = Files (Gerenciador de Arquivos) / 12 = Terminal (Shell)
+    const viewmodeMap: Record<SessionTabMode, number> = {
+      desktop: 11,
+      files: 13,
+      terminal: 12,
+    }
+    const vm = viewmodeMap[modo]
+    return `${meshUrlBase}/?viewmode=${vm}&gotodevicename=${encodeURIComponent(device.hostname)}&hide=15`
   }
 
   const handleOpenDesktop = (device: EnrichedMachine) => {
-    const targetUrl = gerarUrlDesktop(device)
+    const targetUrl = gerarUrlModo(device, 'desktop')
     setActiveSession({
       device,
+      url: targetUrl,
+      tab: 'desktop',
+    })
+  }
+
+  const handleOpenFiles = (device: EnrichedMachine) => {
+    const targetUrl = gerarUrlModo(device, 'files')
+    setActiveSession({
+      device,
+      url: targetUrl,
+      tab: 'files',
+    })
+  }
+
+  const handleTrocarAbaSessao = (novoModo: SessionTabMode) => {
+    if (!activeSession) return
+    const targetUrl = gerarUrlModo(activeSession.device, novoModo)
+    setActiveSession({
+      ...activeSession,
+      tab: novoModo,
       url: targetUrl,
     })
   }
 
   const handleOpenNewTab = (device: EnrichedMachine) => {
-    const targetUrl = gerarUrlDesktop(device)
+    const targetUrl = gerarUrlModo(device, 'desktop')
     window.open(targetUrl, '_blank', 'noopener,noreferrer')
   }
 
@@ -146,7 +174,7 @@ export default function RemoteAccessPage({
               <span className="remote-tag-live">MeshCentral Ativo</span>
             </h2>
             <p>
-              Controle remoto cooperativo (Helpdesk em tempo real, suporte a UAC sem tela preta e conexões simultâneas ilimitadas).
+              Controle remoto cooperativo (Desktop, transferência direta de arquivos e terminal nativo sem limite de conexões).
             </p>
           </div>
         </div>
@@ -195,7 +223,7 @@ export default function RemoteAccessPage({
               Instalação Silenciosa do Agente MeshCentral (Windows &amp; Linux)
             </h3>
             <span style={{ fontSize: '12px', color: '#64748b' }}>
-              Serviço em segundo plano sob <code>NT AUTHORITY\SYSTEM</code> (UAC e login habilitados)
+              Serviço em segundo plano sob <code>NT AUTHORITY\SYSTEM</code> (UAC, arquivos e desktop habilitados)
             </span>
           </div>
 
@@ -343,14 +371,26 @@ export default function RemoteAccessPage({
                   type="button"
                   className="btn-remote-connect"
                   onClick={() => handleOpenDesktop(m)}
-                  title="Abrir desktop remoto em janela embutida"
+                  title="Abrir tela remota da máquina"
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="3" width="20" height="14" rx="2" />
                     <line x1="8" y1="21" x2="16" y2="21" />
                     <line x1="12" y1="17" x2="12" y2="21" />
                   </svg>
-                  <span>Conectar Desktop</span>
+                  <span>Desktop</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-remote-files"
+                  onClick={() => handleOpenFiles(m)}
+                  title="Abrir gerenciador e transferência de arquivos da máquina"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  </svg>
+                  <span>Arquivos</span>
                 </button>
 
                 <button
@@ -397,13 +437,51 @@ export default function RemoteAccessPage({
           <div className={`remote-session-window ${isFullscreen ? 'fullscreen' : ''}`}>
             <div className="remote-session-header">
               <div className="remote-session-title">
-                <h3>Controle Remoto em Tempo Real</h3>
                 <span className="remote-session-host-tag">
                   {activeSession.device.hostname} ({activeSession.device.ip})
                 </span>
-                <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '12px' }}>
-                  Caso a tela fique em branco, clique no botão ao lado para abrir em nova aba.
-                </span>
+
+                {/* Seletor de Modo: Desktop / Arquivos / Terminal */}
+                <div className="remote-session-tabs">
+                  <button
+                    type="button"
+                    className={`session-tab-btn ${activeSession.tab === 'desktop' ? 'active' : ''}`}
+                    onClick={() => handleTrocarAbaSessao('desktop')}
+                    title="Ver a tela do usuário em tempo real"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="2" y="3" width="20" height="14" rx="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                    <span>Desktop (Tela)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`session-tab-btn ${activeSession.tab === 'files' ? 'active' : ''}`}
+                    onClick={() => handleTrocarAbaSessao('files')}
+                    title="Explorador de arquivos: Upload, Download e navegação de pastas"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span>Arquivos &amp; Pastas</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`session-tab-btn ${activeSession.tab === 'terminal' ? 'active' : ''}`}
+                    onClick={() => handleTrocarAbaSessao('terminal')}
+                    title="Console de comando / Shell"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="4 17 10 11 4 5" />
+                      <line x1="12" y1="19" x2="20" y2="19" />
+                    </svg>
+                    <span>Terminal</span>
+                  </button>
+                </div>
               </div>
 
               <div className="remote-session-ctrls">
@@ -462,7 +540,7 @@ export default function RemoteAccessPage({
             <div className="remote-session-body">
               <iframe
                 src={activeSession.url}
-                title={`Sessão Remota - ${activeSession.device.hostname}`}
+                title={`Sessão Remota (${activeSession.tab}) - ${activeSession.device.hostname}`}
                 allow="clipboard-read; clipboard-write; fullscreen"
               />
             </div>
