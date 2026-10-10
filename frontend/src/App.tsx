@@ -10,6 +10,7 @@ import AppsPage from './pages/AppsPage'
 import InventoryPage from './pages/InventoryPage'
 import Login from './pages/Login'
 import NetworkAssetsPage from './pages/NetworkAssetsPage'
+import RemoteAccessPage from './pages/RemoteAccessPage'
 import ReportsPage from './pages/ReportsPage'
 import {
   clearDeviceAlert,
@@ -67,7 +68,7 @@ export default function App() {
   const [rawInventory, setRawInventory] = useState<RawInventoryItem[]>([])
   const [loading, setLoading] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<string>('-')
-  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net'>('inv')
+  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote'>('inv')
   const [toast, setToast] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -148,7 +149,7 @@ export default function App() {
     }
   }
 
-  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net') {
+  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote') {
     setView(v)
     window.location.hash = v
   }
@@ -328,16 +329,16 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '')
-    if (['rel', 'apps', 'ad', 'net'].includes(hash)) {
-      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net')
+    if (['rel', 'apps', 'ad', 'net', 'remote'].includes(hash)) {
+      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote')
     } else {
       setView('inv')
     }
 
     const onHashChange = () => {
       const h = window.location.hash.replace('#', '')
-      if (['rel', 'apps', 'ad', 'net'].includes(h)) {
-        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net')
+      if (['rel', 'apps', 'ad', 'net', 'remote'].includes(h)) {
+        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote')
       } else {
         setView('inv')
       }
@@ -460,6 +461,16 @@ export default function App() {
               token={localStorage.getItem('access_token') || ''}
               isSuperAdmin={Boolean(currentUser?.is_superadmin)}
               userRoles={currentUser?.roles || []}
+              showToast={showToast}
+            />
+          )}
+
+          {view === 'remote' && (
+            <RemoteAccessPage
+              inventario={inventario}
+              currentUser={currentUser}
+              onOpenSsh={handleOpenSsh}
+              copiarTexto={copiarTexto}
               showToast={showToast}
             />
           )}

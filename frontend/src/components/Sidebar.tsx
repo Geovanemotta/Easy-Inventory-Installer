@@ -10,8 +10,8 @@ type UserInfo = {
 }
 
 type SidebarProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net'
-  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad' | 'net') => void
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote'
+  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote') => void
   inventarioCount: number
   currentUser: UserInfo | null
   onLogout: () => void
@@ -25,6 +25,12 @@ export default function Sidebar({
   onLogout,
 }: SidebarProps) {
   const isAdmin = Boolean(currentUser?.is_superadmin || currentUser?.roles?.includes('admin'))
+  const canRemoteAccess = Boolean(
+    currentUser?.is_superadmin ||
+    currentUser?.roles?.includes('admin') ||
+    currentUser?.roles?.includes('operador_matriz') ||
+    currentUser?.roles?.includes('remote_access')
+  )
 
   const roleLabel = currentUser?.is_superadmin
     ? 'Super Admin'
@@ -96,6 +102,23 @@ export default function Sidebar({
           </svg>
           <span className="nav-label">Ativos de Rede</span>
         </button>
+
+        {canRemoteAccess && (
+          <button
+            type="button"
+            className={`nav ${view === 'remote' ? 'on' : ''}`}
+            onClick={() => irPara('remote')}
+            title="Acesso e controle remoto de estações (MeshCentral & Terminal)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+              <circle cx="12" cy="10" r="2" />
+            </svg>
+            <span className="nav-label">Acesso Remoto</span>
+          </button>
+        )}
 
         <button
           type="button"

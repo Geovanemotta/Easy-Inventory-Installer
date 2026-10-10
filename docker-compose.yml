@@ -68,12 +68,29 @@ services:
     ports:
       - "${PORT_HTTP:-80}:80"
       - "${PORT_HTTPS:-443}:443"
+      - "${PORT_MESHCENTRAL:-4443}:4443"
     volumes:
       - ./frontend/dist:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/certs:/etc/nginx/certs
     depends_on:
       - backend
+      - meshcentral
+
+  meshcentral:
+    image: tydomke/meshcentral:latest
+    container_name: giassi-meshcentral
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./meshcentral/config.json:/opt/meshcentral/meshcentral-data/config.json:ro
+      - meshcentral_data:/opt/meshcentral/meshcentral-data
+      - meshcentral_files:/opt/meshcentral/meshcentral-files
+    expose:
+      - "4430"
 
 volumes:
   postgres_data:
+  meshcentral_data:
+  meshcentral_files:

@@ -1,5 +1,5 @@
 type HeaderProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net'
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote'
   lastUpdate: string
   loading: boolean
   isSuperAdmin: boolean
@@ -10,7 +10,6 @@ type HeaderProps = {
 }
 
 export default function Header({
-
   view,
   lastUpdate,
   loading,
@@ -25,6 +24,8 @@ export default function Header({
       ? { tag: 'ESTAÇÕES', color: '#38bdf8' }
       : view === 'net'
       ? { tag: 'REDE & IOT', color: '#818cf8' }
+      : view === 'remote'
+      ? { tag: 'ACESSO REMOTO', color: '#e87722' }
       : view === 'rel'
       ? { tag: 'RELATÓRIOS', color: '#34d399' }
       : view === 'apps'
@@ -48,6 +49,7 @@ export default function Header({
           <h1>
             {view === 'inv' && 'Inventário de Estações'}
             {view === 'net' && 'Ativos de Rede & Periféricos'}
+            {view === 'remote' && 'Acesso Remoto & Suporte'}
             {view === 'rel' && 'Relatórios e Análises'}
             {view === 'apps' && 'Aplicativos e Versões'}
             {view === 'ad' && 'Active Directory & Acessos'}

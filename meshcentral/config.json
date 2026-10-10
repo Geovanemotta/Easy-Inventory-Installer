@@ -1,0 +1,26 @@
+{
+  "$schema": "https://meshcentral.com/schemas/config.json",
+  "settings": {
+    "cert": "localhost",
+    "port": 4430,
+    "aliasPort": 4443,
+    "redirPort": 8086,
+    "_redirAliasPort": 80,
+    "trustedProxy": "nginx,127.0.0.1,172.16.0.0/12,192.168.0.0/16,10.0.0.0/8",
+    "allowFraming": true,
+    "webrtc": true,
+    "wanonly": false,
+    "agentPong": 60,
+    "minify": true
+  },
+  "domains": {
+    "": {
+      "title": "Giassi - Acesso Remoto",
+      "title2": "Controle Remoto de Estações de Trabalho",
+      "minify": true,
+      "newAccounts": true,
+      "userNameIsEmail": false,
+      "hideMeshCentral": false
+    }
+  }
+}

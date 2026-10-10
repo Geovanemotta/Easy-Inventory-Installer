@@ -942,3 +942,34 @@ export async function downloadNetworkAssetTemplate(token: string): Promise<void>
   window.URL.revokeObjectURL(url)
 }
 
+export type RemoteAccessConfig = {
+  enabled: boolean
+  mesh_port: number
+  mesh_url: string
+  server_host: string
+  features: {
+    desktop_sharing: boolean
+    file_transfer: boolean
+    uac_support: boolean
+    unlimited_concurrent: boolean
+  }
+  user: {
+    username: string
+    full_name: string
+    is_admin: boolean
+  }
+}
+
+export async function getRemoteAccessConfig(token: string): Promise<RemoteAccessConfig> {
+  const response = await fetch(`${API_URL}/remote-access/config`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao obter configurações de acesso remoto.')
+  }
+  return response.json()
+}
+
