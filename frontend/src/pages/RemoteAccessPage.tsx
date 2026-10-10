@@ -99,16 +99,14 @@ export default function RemoteAccessPage({
   // Resolve a URL do MeshCentral usando estritamente o host pelo qual o navegador está acessando
   const meshUrlBase = useMemo(() => {
     if (typeof window !== 'undefined') {
-      const currentHost = window.location.hostname
-      if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-        const port = config?.mesh_port || 4443
-        return `https://${currentHost}:${port}`
-      }
+      const currentHost = window.location.hostname || 'localhost'
+      const port = config?.mesh_port || 4443
+      return `https://${currentHost}:${port}`
     }
     return config?.mesh_url || 'https://localhost:4443'
   }, [config])
 
-  const gerarUrlModo = (device: EnrichedMachine, modo: SessionTabMode) => {
+  const gerarUrlModo = (device: EnrichedMachine, modo: SessionTabMode, embedded: boolean = false) => {
     // 11 = Desktop (Tela) / 13 = Files (Gerenciador de Arquivos) / 12 = Terminal (Shell)
     const viewmodeMap: Record<SessionTabMode, number> = {
       desktop: 11,
@@ -116,11 +114,14 @@ export default function RemoteAccessPage({
       terminal: 12,
     }
     const vm = viewmodeMap[modo]
-    return `${meshUrlBase}/?viewmode=${vm}&gotodevicename=${encodeURIComponent(device.hostname)}&hide=15`
+    // Em nova aba (embedded=false), NÃO ocultamos o topo (hide=0) para permitir ver a conta logada e o botão de LOGOUT / SAIR no MeshCentral
+    // Embutido no modal (embedded=true), oculta apenas menus laterais (hide=2)
+    const hideParam = embedded ? 'hide=2' : 'hide=0'
+    return `${meshUrlBase}/?viewmode=${vm}&gotodevicename=${encodeURIComponent(device.hostname)}&${hideParam}`
   }
 
   const handleOpenDesktop = (device: EnrichedMachine) => {
-    const targetUrl = gerarUrlModo(device, 'desktop')
+    const targetUrl = gerarUrlModo(device, 'desktop', true)
     setActiveSession({
       device,
       url: targetUrl,
@@ -129,7 +130,7 @@ export default function RemoteAccessPage({
   }
 
   const handleOpenFiles = (device: EnrichedMachine) => {
-    const targetUrl = gerarUrlModo(device, 'files')
+    const targetUrl = gerarUrlModo(device, 'files', true)
     setActiveSession({
       device,
       url: targetUrl,
@@ -139,7 +140,7 @@ export default function RemoteAccessPage({
 
   const handleTrocarAbaSessao = (novoModo: SessionTabMode) => {
     if (!activeSession) return
-    const targetUrl = gerarUrlModo(activeSession.device, novoModo)
+    const targetUrl = gerarUrlModo(activeSession.device, novoModo, true)
     setActiveSession({
       ...activeSession,
       tab: novoModo,
@@ -148,13 +149,14 @@ export default function RemoteAccessPage({
   }
 
   const handleOpenNewTab = (device: EnrichedMachine) => {
-    const targetUrl = gerarUrlModo(device, 'desktop')
+    const targetUrl = gerarUrlModo(device, 'desktop', false)
     window.open(targetUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleOpenExternal = () => {
     if (!activeSession) return
-    window.open(activeSession.url, '_blank', 'noopener,noreferrer')
+    const targetUrl = gerarUrlModo(activeSession.device, activeSession.tab, false)
+    window.open(targetUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleMeshLogout = () => {
@@ -590,6 +592,15 @@ export default function RemoteAccessPage({
                 title={`Sessão Remota (${activeSession.tab}) - ${activeSession.device.hostname}`}
                 allow="clipboard-read; clipboard-write; fullscreen"
               />
+              <div className="remote-session-footer-hint">
+                <span>
+                  💡 Se o navegador bloquear o carregamento interno (certificado autoassinado),{' '}
+                  <a href={activeSession.url} target="_blank" rel="noopener noreferrer">
+                    clique aqui para aceitar o certificado SSL
+                  </a>{' '}
+                  ou use o botão <strong>Nova Aba</strong> no cabeçalho.
+                </span>
+              </div>
             </div>
           </div>
         </div>
