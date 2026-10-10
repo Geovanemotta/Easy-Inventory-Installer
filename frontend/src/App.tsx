@@ -267,6 +267,23 @@ export default function App() {
   }
 
   function handleLogout() {
+    try {
+      const currentHost = window.location.hostname
+      const meshHost = currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1'
+        ? currentHost
+        : 'localhost'
+      const logoutUrl = `https://${meshHost}:4443/logout`
+      const ifr = document.createElement('iframe')
+      ifr.style.display = 'none'
+      ifr.src = logoutUrl
+      document.body.appendChild(ifr)
+      setTimeout(() => {
+        try { ifr.remove() } catch (_) {}
+      }, 2500)
+    } catch (e) {
+      console.warn('Erro ao encerrar sessão MeshCentral:', e)
+    }
+
     localStorage.removeItem('access_token')
     localStorage.removeItem('current_user')
     setCurrentUser(null)

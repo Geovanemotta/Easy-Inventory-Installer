@@ -21,6 +21,7 @@
       "allowedOrigin": true,
       "minify": true,
       "newAccounts": true,
+      "newAccountsRights": [ "nonewgroups", "notools" ],
       "userNameIsEmail": false,
       "hideMeshCentral": false,
       "auth": "ldap",

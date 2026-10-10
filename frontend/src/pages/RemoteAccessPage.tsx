@@ -23,8 +23,10 @@ type SessionTabMode = 'desktop' | 'files' | 'terminal'
 
 export default function RemoteAccessPage({
   inventario,
+  currentUser: _currentUser,
   onOpenSsh,
   copiarTexto,
+  showToast,
 }: RemoteAccessPageProps) {
   const [config, setConfig] = useState<RemoteAccessConfig | null>(null)
   const [search, setSearch] = useState('')
@@ -155,6 +157,34 @@ export default function RemoteAccessPage({
     window.open(activeSession.url, '_blank', 'noopener,noreferrer')
   }
 
+  const handleMeshLogout = () => {
+    const logoutUrl = `${meshUrlBase}/logout`
+
+    // Abre um popup temporário para garantir requisição direta de topo que invalida o cookie HttpOnly xid
+    const win = window.open(logoutUrl, 'MeshLogoutWindow', 'width=450,height=350')
+    if (win) {
+      setTimeout(() => {
+        try { win.close() } catch (_) {}
+      }, 1500)
+    }
+
+    // Também dispara via iframe de apoio
+    try {
+      const ifr = document.createElement('iframe')
+      ifr.style.display = 'none'
+      ifr.src = logoutUrl
+      document.body.appendChild(ifr)
+      setTimeout(() => {
+        try { ifr.remove() } catch (_) {}
+      }, 2000)
+    } catch (_) {}
+
+    setActiveSession(null)
+    if (showToast) {
+      showToast('Sessão do MeshCentral encerrada. Ao reconectar, informe o novo usuário.')
+    }
+  }
+
   return (
     <div className="remote-page-container">
       {/* Banner Principal com Status */}
@@ -194,6 +224,20 @@ export default function RemoteAccessPage({
             </svg>
             <span>Console do Servidor</span>
           </a>
+
+          <button
+            type="button"
+            className="btn-mesh-logout"
+            onClick={handleMeshLogout}
+            title="Encerrar a sessão ativa do MeshCentral para permitir a troca de usuário"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Trocar Usuário (Sair do Mesh)</span>
+          </button>
 
           <button
             type="button"
