@@ -369,56 +369,58 @@ export default function RemoteAccessPage({
               <div className="remote-card-actions">
                 <button
                   type="button"
-                  className="btn-remote-connect"
+                  className="btn-remote-connect-primary"
                   onClick={() => handleOpenDesktop(m)}
-                  title="Abrir tela remota da máquina"
+                  title="Conectar e assumir controle da tela remota"
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="3" width="20" height="14" rx="2" />
                     <line x1="8" y1="21" x2="16" y2="21" />
                     <line x1="12" y1="17" x2="12" y2="21" />
                   </svg>
-                  <span>Desktop</span>
+                  <span>Conectar Desktop</span>
                 </button>
 
-                <button
-                  type="button"
-                  className="btn-remote-files"
-                  onClick={() => handleOpenFiles(m)}
-                  title="Abrir gerenciador e transferência de arquivos da máquina"
-                >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                  </svg>
-                  <span>Arquivos</span>
-                </button>
+                <div className="remote-card-subactions">
+                  <button
+                    type="button"
+                    className="btn-remote-sub btn-sub-newtab"
+                    onClick={() => handleOpenNewTab(m)}
+                    title="Abrir tela remota em nova aba do navegador"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    <span>Nova Aba</span>
+                  </button>
 
-                <button
-                  type="button"
-                  className="btn-remote-ssh"
-                  onClick={() => handleOpenNewTab(m)}
-                  title="Abrir desktop remoto em uma nova aba dedicada"
-                >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    <polyline points="15 3 21 3 21 9" />
-                    <line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                  <span>Nova Aba</span>
-                </button>
+                  <button
+                    type="button"
+                    className="btn-remote-sub btn-sub-files"
+                    onClick={() => handleOpenFiles(m)}
+                    title="Gerenciador de arquivos e pastas"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span>Arquivos</span>
+                  </button>
 
-                <button
-                  type="button"
-                  className="btn-remote-ssh"
-                  onClick={() => onOpenSsh(m)}
-                  title="Abrir terminal SSH / PowerShell"
-                >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="4 17 10 11 4 5" />
-                    <line x1="12" y1="19" x2="20" y2="19" />
-                  </svg>
-                  <span>Terminal</span>
-                </button>
+                  <button
+                    type="button"
+                    className="btn-remote-sub btn-sub-terminal"
+                    onClick={() => onOpenSsh(m)}
+                    title="Abrir terminal SSH / PowerShell"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="4 17 10 11 4 5" />
+                      <line x1="12" y1="19" x2="20" y2="19" />
+                    </svg>
+                    <span>Terminal</span>
+                  </button>
+                </div>
               </div>
             </div>
           )
@@ -487,15 +489,16 @@ export default function RemoteAccessPage({
               <div className="remote-session-ctrls">
                 <button
                   type="button"
-                  className="btn-ctrl-icon"
+                  className="btn-session-ext-tab"
                   onClick={handleOpenExternal}
-                  title="Abrir em uma nova janela / aba do navegador"
+                  title="Abrir em uma nova aba dedicada do navegador"
                 >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                     <polyline points="15 3 21 3 21 9" />
                     <line x1="10" y1="14" x2="21" y2="3" />
                   </svg>
+                  <span>Nova Aba</span>
                 </button>
 
                 <button
