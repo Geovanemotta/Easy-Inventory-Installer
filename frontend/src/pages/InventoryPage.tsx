@@ -132,8 +132,8 @@ export default function InventoryPage({
       patrimonioInputs[item.id] !== undefined
         ? patrimonioInputs[item.id]
         : item.patrimonio
-        ? item.patrimonio.replace(/\D/g, '')
-        : ''
+          ? item.patrimonio.replace(/\D/g, '')
+          : ''
 
     if (!rawVal.trim()) {
       alert('Por favor, informe ao menos os números do patrimônio.')
@@ -165,8 +165,8 @@ export default function InventoryPage({
       patrimonioInputs[item.id] !== undefined
         ? patrimonioInputs[item.id]
         : item.patrimonio
-        ? item.patrimonio.replace(/\D/g, '')
-        : ''
+          ? item.patrimonio.replace(/\D/g, '')
+          : ''
 
     setSolicitandoFirewall((prev) => ({ ...prev, [item.id!]: true }))
     try {
@@ -240,16 +240,6 @@ export default function InventoryPage({
     }
   }, [inventoryTarget, inventario, onLoadHistorico, onClearTarget])
 
-  const totaisTabs = useMemo(() => {
-    const res = { '': inventario.length, Loja: 0, Combo: 0, Matriz: 0 }
-    inventario.forEach((i: EnrichedMachine) => {
-      if (i._f.tipo in res) {
-        res[i._f.tipo as keyof typeof res]++
-      }
-    })
-    return res
-  }, [inventario])
-
   const versoesDisponiveis = useMemo(() => {
     return [...new Set(inventario.map(versaoCompleta).filter(Boolean))].sort()
   }, [inventario])
@@ -263,6 +253,7 @@ export default function InventoryPage({
         status?: boolean
         disco?: boolean
         plataforma?: boolean
+        tipo?: boolean
       }
     ) => {
       if (search.trim()) {
@@ -283,7 +274,7 @@ export default function InventoryPage({
         if (!campos.includes(q)) return false
       }
 
-      if (tipoAtivo && i._f.tipo !== tipoAtivo) return false
+      if (!ignorar?.tipo && tipoAtivo && i._f.tipo !== tipoAtivo) return false
       if (!ignorar?.plataforma && selectedPlataforma && i._so !== selectedPlataforma) return false
       if (comFilial && selectedFilial && i._f.filial !== selectedFilial) return false
       if (!ignorar?.versao && selectedVersao && versaoCompleta(i) !== selectedVersao) return false
@@ -444,6 +435,28 @@ export default function InventoryPage({
     return distroStatus.reduce((s, item) => s + item[1], 0)
   }, [distroStatus])
 
+  const distroTipo = useMemo(() => {
+    let loja = 0
+    let combo = 0
+    let matriz = 0
+    inventario.forEach((i: EnrichedMachine) => {
+      if (!passaFiltro(i, true, { tipo: true })) return
+      if (i._f.tipo === 'Loja') loja++
+      else if (i._f.tipo === 'Combo') combo++
+      else if (i._f.tipo === 'Matriz') matriz++
+    })
+    const list: [string, number, string][] = []
+    if (loja > 0) list.push(['Lojas', loja, TIPOS.Loja || '#2563eb'])
+    if (combo > 0) list.push(['Combos', combo, TIPOS.Combo || '#059669'])
+    if (matriz > 0) list.push(['Matriz', matriz, TIPOS.Matriz || '#7c3aed'])
+    return list
+  }, [inventario, passaFiltro])
+
+  const totalDistroTipo = useMemo(() => {
+    return distroTipo.reduce((s, item) => s + item[1], 0)
+  }, [distroTipo])
+
+
   const filiaisOpcoes = useMemo(() => {
     const fm = new Map<
       string,
@@ -477,17 +490,6 @@ export default function InventoryPage({
         a.num - b.num
     )
   }, [inventario, passaFiltro, selectedFilial])
-
-  const altasDisco = useMemo(() => {
-    return inventario
-      .filter(
-        (i: EnrichedMachine) =>
-          passaFiltro(i, true, { disco: true }) &&
-          i._p !== null &&
-          i._p > 75
-      )
-      .sort((a: EnrichedMachine, b: EnrichedMachine) => (b._p ?? 0) - (a._p ?? 0))
-  }, [inventario, passaFiltro])
 
   const totalPaginas = Math.ceil(filtrados.length / porPagina) || 1
   const inicio = (paginaAtual - 1) * porPagina
@@ -612,20 +614,20 @@ export default function InventoryPage({
                 selectedStatus === 'OK'
                   ? 'Atualizada'
                   : selectedStatus === 'UPGRADE_REQUIRED'
-                  ? 'Atualização Necessária'
-                  : selectedStatus === 'OUTRO'
-                  ? 'Não Identificada'
-                  : ''
+                    ? 'Atualização Necessária'
+                    : selectedStatus === 'OUTRO'
+                      ? 'Não Identificada'
+                      : ''
               }
               onItemClick={(label) => {
                 const code =
                   label === 'Atualizada'
                     ? 'OK'
                     : label === 'Atualização Necessária'
-                    ? 'UPGRADE_REQUIRED'
-                    : label === 'Não Identificada'
-                    ? 'OUTRO'
-                    : ''
+                      ? 'UPGRADE_REQUIRED'
+                      : label === 'Não Identificada'
+                        ? 'OUTRO'
+                        : ''
                 setSelectedStatus((cur) => (cur === code ? '' : code))
                 setPaginaAtual(1)
               }}
@@ -633,88 +635,49 @@ export default function InventoryPage({
           )}
         </section>
 
-        {/* 3) Disco > 75% */}
+        {/* 3) Donut: Tipo de unidade (Lojas, Combos, Matriz) */}
         <section className="panel">
-          <h2>Máquinas com disco acima de 75%</h2>
-          <p>
-            {altasDisco.length} de {filtrados.length} máquinas acima de
-            75%.
-          </p>
-          <div>
-            {altasDisco.length === 0 ? (
-              <div className="empty">
-                Nenhuma máquina acima de 75% de uso
-              </div>
-            ) : (
-              <>
-                {altasDisco.slice(0, 7).map((i: EnrichedMachine) => {
-                  const p = i._p ?? 0
-                  const cor = p >= 85 ? '#dc2626' : '#f59e0b'
-                  return (
-                    <button
-                      key={`${i.id ?? i.hostname}-${i.ip ?? ''}`}
-                      className="hb"
-                      onClick={() => {
-                        setSearch((s) =>
-                          s === i.hostname ? '' : i.hostname
-                        )
-                        setPaginaAtual(1)
-                      }}
-                      title={i.hostname}
-                    >
-                      <span
-                        className="hb-n"
-                        style={{
-                          width: '128px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {i.hostname}
-                      </span>
-                      <span className="hb-t">
-                        <span
-                          style={{
-                            width: `${Math.min(p, 100)}%`,
-                            background: cor,
-                          }}
-                        />
-                      </span>
-                      <b>{Math.round(p)}%</b>
-                    </button>
-                  )
-                })}
-                {altasDisco.length > 7 && (
-                  <button
-                    className={`btn ${
-                      selectedDisco === 'gt75' ? 'primary' : ''
-                    }`}
-                    style={{ marginTop: '8px', width: '100%' }}
-                    onClick={() => {
-                      setSelectedDisco((cur) =>
-                        cur === 'gt75' ? '' : 'gt75'
-                      )
-                      setPaginaAtual(1)
-                    }}
-                  >
-                    {selectedDisco === 'gt75'
-                      ? 'Limpar filtro de disco > 75%'
-                      : `Ver todas as ${altasDisco.length} máquinas (> 75%)`}
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+          <h2>Tipo de unidade</h2>
+          <p>Lojas, combos e matriz</p>
+          {totalDistroTipo === 0 ? (
+            <div className="empty">Sem dados para os filtros atuais</div>
+          ) : (
+            <DonutChart
+              items={distroTipo}
+              total={totalDistroTipo}
+              modoValor="qtd"
+              activeItem={
+                tipoAtivo === 'Loja'
+                  ? 'Lojas'
+                  : tipoAtivo === 'Combo'
+                    ? 'Combos'
+                    : tipoAtivo === 'Matriz'
+                      ? 'Matriz'
+                      : ''
+              }
+              onItemClick={(label) => {
+                const code =
+                  label === 'Lojas'
+                    ? 'Loja'
+                    : label === 'Combos'
+                      ? 'Combo'
+                      : label === 'Matriz'
+                        ? 'Matriz'
+                        : ''
+                setTipoAtivo((cur) => (cur === code ? '' : code))
+                setSelectedFilial('')
+                setPaginaAtual(1)
+              }}
+            />
+          )}
         </section>
       </div>
 
       {/* Stat Cards */}
       <div className="cards">
         <div
-          className={`card click ${
-            selectedPlataforma === 'Linux' ? 'on' : ''
-          }`}
+          className={`card click ${selectedPlataforma === 'Linux' ? 'on' : ''
+            }`}
           role="button"
           tabIndex={0}
           title="Clique para filtrar por Linux"
@@ -732,9 +695,8 @@ export default function InventoryPage({
         </div>
 
         <div
-          className={`card click ${
-            selectedPlataforma === 'Windows' ? 'on' : ''
-          }`}
+          className={`card click ${selectedPlataforma === 'Windows' ? 'on' : ''
+            }`}
           role="button"
           tabIndex={0}
           title="Clique para filtrar por Windows"
@@ -838,35 +800,6 @@ export default function InventoryPage({
           </div>
         </div>
       </div>
-
-      {/* Tabs */}
-      {(isSuperAdmin || userRoles?.includes('admin') || userRoles?.includes('operador_matriz')) && (
-        <div className="tabs">
-          {[
-            { id: '', label: 'Todas', cor: '#94a3b8' },
-            { id: 'Loja', label: 'Lojas', cor: TIPOS.Loja },
-            { id: 'Combo', label: 'Combos', cor: TIPOS.Combo },
-            { id: 'Matriz', label: 'Matriz', cor: TIPOS.Matriz },
-          ].map((t) => (
-            <button
-              key={t.id}
-              className={`tab ${tipoAtivo === t.id ? 'active' : ''}`}
-              onClick={() => {
-                setTipoAtivo((cur) => (cur === t.id ? '' : t.id))
-                setSelectedFilial('')
-                setPaginaAtual(1)
-              }}
-              style={{ '--c': t.cor } as React.CSSProperties}
-            >
-              <i />
-              {t.label}{' '}
-              <span>
-                {totaisTabs[t.id as keyof typeof totaisTabs] ?? 0}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Filters Form */}
       <div className="filters">
@@ -1138,18 +1071,26 @@ export default function InventoryPage({
                   i.status === 'OK'
                     ? 'status-ok'
                     : i.status === 'UPGRADE_REQUIRED'
-                    ? 'status-upgrade'
-                    : 'status-other'
+                      ? 'status-upgrade'
+                      : 'status-other'
                 const statusTxt =
                   i.status === 'OK'
                     ? 'Atualizada'
                     : i.status === 'UPGRADE_REQUIRED'
-                    ? 'Atualização Necessária'
-                    : 'Não Identificada'
+                      ? 'Atualização Necessária'
+                      : 'Não Identificada'
 
                 return (
                   <React.Fragment key={`${i.id ?? i.hostname}-${i.ip ?? ''}`}>
-                    <tr className="row">
+                    <tr
+                      className={`row ${isExpanded ? 'row-expanded' : ''}`}
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement
+                        if (target.closest('button, input, select, textarea, a, .copy-button')) return
+                        toggleDetails(i.hostname, i.id)
+                      }}
+                      title={isExpanded ? 'Clique para recolher detalhes' : 'Clique para ver detalhes desta máquina'}
+                    >
                       <td>
                         <span
                           className="filial"
@@ -1187,33 +1128,33 @@ export default function InventoryPage({
                                 (i.history_count !== undefined && i.history_count > 0) ||
                                 conexao.status === 'offline' ||
                                 i.firewall_status === 'pendente') && (
-                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                  {conexao.status === 'offline' && (
-                                    <span
-                                      className="badge-offline-hw"
-                                      title={`Sem envio de inventário há mais de 48h (Última coleta: ${i.data_coleta || 'sem data'})`}
-                                    >
-                                      🔴 Inativa (+48h)
-                                    </span>
-                                  )}
-                                  {i.alerta_hardware && (
-                                    <span
-                                      className="badge-alert-hw"
-                                      title={i.alerta_hardware}
-                                    >
-                                      ⚠️ {i.alerta_hardware.includes('Conflito MAC') ? 'Conflito MAC' : 'Alerta HW'}
-                                    </span>
-                                  )}
-                                  {i.firewall_status === 'pendente' && (
-                                    <span
-                                      className="badge-firewall-pending"
-                                      title={`Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
-                                    >
-                                      🟡 Nova / Firewall
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+                                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
+                                    {conexao.status === 'offline' && (
+                                      <span
+                                        className="badge-offline-hw"
+                                        title={`Sem envio de inventário há mais de 48h (Última coleta: ${i.data_coleta || 'sem data'})`}
+                                      >
+                                        🔴 Inativa (+48h)
+                                      </span>
+                                    )}
+                                    {i.alerta_hardware && (
+                                      <span
+                                        className="badge-alert-hw"
+                                        title={i.alerta_hardware}
+                                      >
+                                        ⚠️ {i.alerta_hardware.includes('Conflito MAC') ? 'Conflito MAC' : 'Alerta HW'}
+                                      </span>
+                                    )}
+                                    {i.firewall_status === 'pendente' && (
+                                      <span
+                                        className="badge-firewall-pending"
+                                        title={`Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
+                                      >
+                                        🟡 Nova / Firewall
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                             </>
                           )
                         })()}
@@ -1267,7 +1208,7 @@ export default function InventoryPage({
                                 {p !== null
                                   ? `${Math.round(p)}%`
                                   : String(i.disco_percentual || i.porcentagem_disco || '')
-                                      .replace(/%+$/, '') + '%'}
+                                    .replace(/%+$/, '') + '%'}
                               </span>
                             </div>
                             <div className="disk-bar">
@@ -1401,77 +1342,139 @@ export default function InventoryPage({
                             <div className="det-layout">
                               {/* Left Column: Specs, Network, Registration, History */}
                               <div>
-                                <div className="detail-sec">Status</div>
-                                <div className="details-grid">
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      Status do dispositivo
-                                    </div>
-                                    <div className="detail-value">
-                                      <span className={`status ${statusCls}`}>
-                                        {statusTxt}
-                                      </span>
-                                      {i.motivo_upgrade && (
-                                        <div
-                                          style={{
-                                            fontSize: '11px',
-                                            color: '#b45309',
-                                            marginTop: '4px',
-                                          }}
-                                        >
-                                          {i.motivo_upgrade}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      Última sincronização
-                                    </div>
-                                    <div className="detail-value">
-                                      {i.data_coleta || 'Não informado'}
-                                      {(() => {
-                                        const c = obterStatusConexao(i.data_coleta)
-                                        return (
+                                <details className="detail-section" open>
+                                  <summary className="detail-sec">Status</summary>
+                                  <div className="details-grid">
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Status do dispositivo
+                                      </div>
+                                      <div className="detail-value">
+                                        <span className={`status ${statusCls}`}>
+                                          {statusTxt}
+                                        </span>
+                                        {i.motivo_upgrade && (
                                           <div
                                             style={{
                                               fontSize: '11px',
-                                              color: c.cor,
-                                              fontWeight: 600,
-                                              marginTop: '2px',
+                                              color: '#b45309',
+                                              marginTop: '4px',
                                             }}
                                           >
-                                            ● {c.texto}
+                                            {i.motivo_upgrade}
                                           </div>
-                                        )
-                                      })()}
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
 
-                                <div className="detail-sec">Sistema</div>
-                                <div className="details-grid">
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      Sistema operacional
-                                    </div>
-                                    <div className="detail-value">
-                                      {versaoCompleta(i) || '-'}
-                                    </div>
-                                  </div>
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      Plataforma
-                                    </div>
-                                    <div className="detail-value">
-                                      {i._so}
-                                    </div>
-                                  </div>
-                                  {(i.build || i.windows_release) && (
                                     <div className="detail-item">
                                       <div className="detail-label">
-                                        Build / Versão
+                                        Última sincronização
+                                      </div>
+                                      <div className="detail-value">
+                                        {i.data_coleta || 'Não informado'}
+                                        {(() => {
+                                          const c = obterStatusConexao(i.data_coleta)
+                                          return (
+                                            <div
+                                              style={{
+                                                fontSize: '11px',
+                                                color: c.cor,
+                                                fontWeight: 600,
+                                                marginTop: '2px',
+                                              }}
+                                            >
+                                              ● {c.texto}
+                                            </div>
+                                          )
+                                        })()}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </details>
+
+                                <details className="detail-section">
+                                  <summary className="detail-sec">Sistema</summary>
+                                  <div className="details-grid">
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Sistema operacional
+                                      </div>
+                                      <div className="detail-value">
+                                        {versaoCompleta(i) || '-'}
+                                      </div>
+                                    </div>
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Plataforma
+                                      </div>
+                                      <div className="detail-value">
+                                        {i._so}
+                                      </div>
+                                    </div>
+                                    {(i.build || i.windows_release) && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Build / Versão
+                                        </div>
+                                        <div
+                                          className="detail-value"
+                                          style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            flexWrap: 'wrap',
+                                          }}
+                                        >
+                                          <span>{i.build || '-'}</span>
+                                          {i.windows_release && (
+                                            <span
+                                              style={{
+                                                fontSize: '11px',
+                                                fontWeight: 700,
+                                                padding: '1px 6px',
+                                                borderRadius: '4px',
+                                                background: '#eff6ff',
+                                                color: '#2563eb',
+                                                border: '1px solid #bfdbfe',
+                                                display: 'inline-block',
+                                                lineHeight: '1.4',
+                                              }}
+                                              title={`Versão de lançamento: ${i.windows_release}`}
+                                            >
+                                              {i.windows_release}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {i.data_coleta && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Data Coleta
+                                        </div>
+                                        <div className="detail-value">
+                                          {i.data_coleta}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </details>
+
+                                <details className="detail-section">
+                                  <summary className="detail-sec">Hardware</summary>
+                                  <div className="details-grid">
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Processador
+                                      </div>
+                                      <div className="detail-value">
+                                        {i.processador || '-'}
+                                      </div>
+                                    </div>
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        RAM total
                                       </div>
                                       <div
                                         className="detail-value"
@@ -1482,449 +1485,364 @@ export default function InventoryPage({
                                           flexWrap: 'wrap',
                                         }}
                                       >
-                                        <span>{i.build || '-'}</span>
-                                        {i.windows_release && (
+                                        <span>{i.ram_total || '-'}</span>
+                                        {i.ram_tipo && (
                                           <span
                                             style={{
                                               fontSize: '11px',
-                                              fontWeight: 700,
+                                              fontWeight: 600,
                                               padding: '1px 6px',
                                               borderRadius: '4px',
-                                              background: '#eff6ff',
-                                              color: '#2563eb',
-                                              border: '1px solid #bfdbfe',
+                                              background: 'var(--bg-alt)',
+                                              color: 'var(--ink)',
+                                              border: '1px solid var(--line)',
                                               display: 'inline-block',
                                               lineHeight: '1.4',
                                             }}
-                                            title={`Versão de lançamento: ${i.windows_release}`}
+                                            title={`Tipo de memória: ${i.ram_tipo}`}
                                           >
-                                            {i.windows_release}
+                                            {i.ram_tipo}
                                           </span>
                                         )}
                                       </div>
                                     </div>
-                                  )}
-                                  {i.data_coleta && (
-                                    <div className="detail-item">
-                                      <div className="detail-label">
-                                        Data Coleta
+                                    {i.fabricante && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Fabricante
+                                        </div>
+                                        <div className="detail-value">
+                                          {i.fabricante}
+                                        </div>
                                       </div>
-                                      <div className="detail-value">
-                                        {i.data_coleta}
+                                    )}
+                                    {i.modelo && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Modelo
+                                        </div>
+                                        <div className="detail-value">
+                                          {i.modelo}
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="detail-sec">Hardware</div>
-                                <div className="details-grid">
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      Processador
-                                    </div>
-                                    <div className="detail-value">
-                                      {i.processador || '-'}
-                                    </div>
-                                  </div>
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      RAM total
-                                    </div>
-                                    <div
-                                      className="detail-value"
-                                      style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        flexWrap: 'wrap',
-                                      }}
-                                    >
-                                      <span>{i.ram_total || '-'}</span>
-                                      {i.ram_tipo && (
-                                        <span
-                                          style={{
-                                            fontSize: '11px',
-                                            fontWeight: 600,
-                                            padding: '1px 6px',
-                                            borderRadius: '4px',
-                                            background: 'var(--bg-alt)',
-                                            color: 'var(--ink)',
-                                            border: '1px solid var(--line)',
-                                            display: 'inline-block',
-                                            lineHeight: '1.4',
-                                          }}
-                                          title={`Tipo de memória: ${i.ram_tipo}`}
+                                    )}
+                                    {i.serial && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Número de série
+                                        </div>
+                                        <div className="detail-value mono">
+                                          {i.serial}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {i.patrimonio && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Número de Patrimônio
+                                        </div>
+                                        <div
+                                          className="detail-value mono"
+                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                                         >
-                                          {i.ram_tipo}
-                                        </span>
-                                      )}
-                                    </div>
+                                          <span>{i.patrimonio}</span>
+                                          <button
+                                            type="button"
+                                            className="copy-button"
+                                            onClick={() => copiarTexto(i.patrimonio!)}
+                                            title="Copiar Patrimônio"
+                                            aria-label="Copiar Patrimônio"
+                                          >
+                                            <IconCopy />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                  {i.fabricante && (
+                                </details>
+
+                                <details className="detail-section">
+                                  <summary className="detail-sec">Rede & Acesso</summary>
+                                  <div className="details-grid">
                                     <div className="detail-item">
                                       <div className="detail-label">
-                                        Fabricante
-                                      </div>
-                                      <div className="detail-value">
-                                        {i.fabricante}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {i.modelo && (
-                                    <div className="detail-item">
-                                      <div className="detail-label">
-                                        Modelo
-                                      </div>
-                                      <div className="detail-value">
-                                        {i.modelo}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {i.serial && (
-                                    <div className="detail-item">
-                                      <div className="detail-label">
-                                        Número de série
-                                      </div>
-                                      <div className="detail-value mono">
-                                        {i.serial}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {i.patrimonio && (
-                                    <div className="detail-item">
-                                      <div className="detail-label">
-                                        Número de Patrimônio
+                                        IP Principal
                                       </div>
                                       <div
                                         className="detail-value mono"
                                         style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                                       >
-                                        <span>{i.patrimonio}</span>
-                                        <button
-                                          type="button"
-                                          className="copy-button"
-                                          onClick={() => copiarTexto(i.patrimonio!)}
-                                          title="Copiar Patrimônio"
-                                          aria-label="Copiar Patrimônio"
-                                        >
-                                          <IconCopy />
-                                        </button>
+                                        <span>{i.ip || '-'}</span>
+                                        {i.ip && (
+                                          <button
+                                            type="button"
+                                            className="copy-button"
+                                            onClick={() => copiarTexto(i.ip!)}
+                                            title="Copiar IP"
+                                            aria-label="Copiar IP"
+                                          >
+                                            <IconCopy />
+                                          </button>
+                                        )}
                                       </div>
                                     </div>
-                                  )}
-                                </div>
-
-                                <div className="detail-sec">Rede & Acesso</div>
-                                <div className="details-grid">
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      IP Principal
-                                    </div>
-                                    <div
-                                      className="detail-value mono"
-                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                                    >
-                                      <span>{i.ip || '-'}</span>
-                                      {i.ip && (
-                                        <button
-                                          type="button"
-                                          className="copy-button"
-                                          onClick={() => copiarTexto(i.ip!)}
-                                          title="Copiar IP"
-                                          aria-label="Copiar IP"
-                                        >
-                                          <IconCopy />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="detail-item">
-                                    <div className="detail-label">
-                                      MAC Address
-                                    </div>
-                                    <div
-                                      className="detail-value mono"
-                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                                    >
-                                      <span>{i.mac || '-'}</span>
-                                      {i.mac && (
-                                        <button
-                                          type="button"
-                                          className="copy-button"
-                                          onClick={() => copiarTexto(i.mac!)}
-                                          title="Copiar MAC"
-                                          aria-label="Copiar MAC"
-                                        >
-                                          <IconCopy />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {i._extras.length > 0 && (
                                     <div className="detail-item">
                                       <div className="detail-label">
-                                        IPs Adicionais
-                                      </div>
-                                      <div className="detail-value mono">
-                                        {i._extras.join(', ')}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {i.rustdesk_id && (
-                                    <div className="detail-item">
-                                      <div className="detail-label">
-                                        RustDesk ID
+                                        MAC Address
                                       </div>
                                       <div
                                         className="detail-value mono"
-                                        style={{
-                                          display: 'inline-flex',
-                                          alignItems: 'center',
-                                          gap: '6px',
-                                        }}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                                       >
-                                        <span>{i.rustdesk_id}</span>
+                                        <span>{i.mac || '-'}</span>
+                                        {i.mac && (
+                                          <button
+                                            type="button"
+                                            className="copy-button"
+                                            onClick={() => copiarTexto(i.mac!)}
+                                            title="Copiar MAC"
+                                            aria-label="Copiar MAC"
+                                          >
+                                            <IconCopy />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {i._extras.length > 0 && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          IPs Adicionais
+                                        </div>
+                                        <div className="detail-value mono">
+                                          {i._extras.join(', ')}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {i.rustdesk_id && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          RustDesk ID
+                                        </div>
+                                        <div
+                                          className="detail-value mono"
+                                          style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                          }}
+                                        >
+                                          <span>{i.rustdesk_id}</span>
+                                          <button
+                                            type="button"
+                                            className="copy-button"
+                                            onClick={() => copiarTexto(i.rustdesk_id!)}
+                                            title="Copiar ID do RustDesk"
+                                            aria-label="Copiar ID do RustDesk"
+                                          >
+                                            <IconCopy />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {i.dominio && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Domínio
+                                        </div>
+                                        <div className="detail-value">
+                                          {i.dominio}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {i.usuario && (
+                                      <div className="detail-item">
+                                        <div className="detail-label">
+                                          Último usuário
+                                        </div>
+                                        <div className="detail-value">
+                                          {i.usuario}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {canUseSsh && isLinuxDevice(i) && Boolean(i.ip) && (
+                                      <div className="detail-item" style={{ display: 'flex', alignItems: 'center' }}>
                                         <button
                                           type="button"
-                                          className="copy-button"
-                                          onClick={() => copiarTexto(i.rustdesk_id!)}
-                                          title="Copiar ID do RustDesk"
-                                          aria-label="Copiar ID do RustDesk"
+                                          className="btn-ssh-open"
+                                          onClick={() => handleOpenTerminal(i)}
+                                          title={`Conectar via terminal SSH em ${i.hostname} (${i.ip})`}
                                         >
-                                          <IconCopy />
+                                          <span>🖥️</span> Terminal SSH
                                         </button>
                                       </div>
+                                    )}
+                                  </div>
+                                </details>
+
+                                {/* Seção de Patrimônio & Cadastro no Firewall */}
+                                <details className="detail-section">
+                                  <summary className="detail-sec">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                      <span>Patrimônio &amp; Cadastro no Firewall</span>
+                                      {i.firewall_status === 'pendente' && (
+                                        <span className="badge-firewall-pending">🟡 Pendente de Cadastro no Firewall</span>
+                                      )}
+                                      {i.firewall_status === 'confirmado' && (
+                                        <span className="badge-firewall-ok">🟢 Cadastrada no Firewall</span>
+                                      )}
                                     </div>
-                                  )}
-                                  {i.dominio && (
-                                    <div className="detail-item">
-                                      <div className="detail-label">
-                                        Domínio
-                                      </div>
-                                      <div className="detail-value">
-                                        {i.dominio}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {i.usuario && (
-                                     <div className="detail-item">
-                                       <div className="detail-label">
-                                         Último usuário
-                                       </div>
-                                       <div className="detail-value">
-                                         {i.usuario}
-                                       </div>
-                                     </div>
-                                   )}
-                                   {canUseSsh && isLinuxDevice(i) && Boolean(i.ip) && (
-                                     <div className="detail-item" style={{ display: 'flex', alignItems: 'center' }}>
-                                       <button
-                                         type="button"
-                                         className="btn-ssh-open"
-                                         onClick={() => handleOpenTerminal(i)}
-                                         title={`Conectar via terminal SSH em ${i.hostname} (${i.ip})`}
-                                       >
-                                         <span>🖥️</span> Terminal SSH
-                                       </button>
-                                     </div>
-                                   )}
-                                 </div>
+                                  </summary>
 
-                                 {/* Seção de Patrimônio & Homologação de Firewall */}
-                                 <div
-                                   className="detail-sec"
-                                   style={{
-                                     display: 'flex',
-                                     alignItems: 'center',
-                                     justifyContent: 'space-between',
-                                     flexWrap: 'wrap',
-                                     gap: '8px',
-                                     marginTop: '16px',
-                                   }}
-                                 >
-                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                     <span>Patrimônio &amp; Homologação de Firewall</span>
-                                     {i.firewall_status === 'pendente' && (
-                                       <span className="badge-firewall-pending">🟡 Pendente de Firewall</span>
-                                     )}
-                                     {i.firewall_status === 'confirmado' && (
-                                       <span className="badge-firewall-ok">🟢 Firewall Homologado</span>
-                                     )}
-                                   </div>
-                                 </div>
 
-                                 {(() => {
-                                   const isLocked = i.firewall_status === 'confirmado' && !canManage
-                                   const currentNum =
-                                     patrimonioInputs[i.id!] !== undefined
-                                       ? patrimonioInputs[i.id!]
-                                       : i.patrimonio
-                                       ? i.patrimonio.replace(/\D/g, '')
-                                       : ''
-                                   const isSavingPat = Boolean(salvandoPatrimonio[i.id!])
-                                   const isSolicitando = Boolean(solicitandoFirewall[i.id!])
-                                   const isConfirmando = Boolean(confirmandoFirewall[i.id!])
+                                  {(() => {
+                                    const isLocked = i.firewall_status === 'confirmado' && !canManage
+                                    const currentNum =
+                                      patrimonioInputs[i.id!] !== undefined
+                                        ? patrimonioInputs[i.id!]
+                                        : i.patrimonio
+                                          ? i.patrimonio.replace(/\D/g, '')
+                                          : ''
+                                    const isSavingPat = Boolean(salvandoPatrimonio[i.id!])
+                                    const isSolicitando = Boolean(solicitandoFirewall[i.id!])
+                                    const isConfirmando = Boolean(confirmandoFirewall[i.id!])
 
-                                   return (
-                                     <div className="firewall-homolog-card">
-                                       <div className="firewall-card-grid">
-                                         {/* Coluna 1: Input de Patrimônio */}
-                                         <div className="firewall-field-box">
-                                           <div className="detail-label" style={{ marginBottom: '6px' }}>
-                                             {isLocked ? 'Patrimônio Homologado' : 'Número de Patrimônio'}
-                                           </div>
-                                           <div className="patrimonio-input-group">
-                                             <span className="patrimonio-prefix">pat.</span>
-                                             <input
-                                               type="text"
-                                               className={`patrimonio-input ${isLocked ? 'locked' : ''}`}
-                                               placeholder="00000"
-                                               maxLength={12}
-                                               value={currentNum}
-                                               disabled={isLocked || isSavingPat}
-                                               onChange={(e) => {
-                                                 const digits = e.target.value.replace(/\D/g, '')
-                                                 setPatrimonioInputs((prev) => ({
-                                                   ...prev,
-                                                   [i.id!]: digits,
-                                                 }))
-                                               }}
-                                               onKeyDown={(e) => {
-                                                 if (e.key === 'Enter' && !isLocked) {
-                                                   handleSalvarPatrimonio(i)
-                                                 }
-                                               }}
-                                             />
-                                             {!isLocked && (
-                                               <button
-                                                 type="button"
-                                                 className="btn-save-pat"
-                                                 onClick={() => handleSalvarPatrimonio(i)}
-                                                 disabled={isSavingPat}
-                                                 title="Salvar número de patrimônio"
-                                               >
-                                                 {isSavingPat ? '...' : 'Salvar'}
-                                               </button>
-                                             )}
-                                              {Boolean(i.patrimonio || currentNum) && (
+                                    return (
+                                      <div className="firewall-homolog-card">
+                                        <div className="firewall-card-grid">
+                                          {/* Coluna 1: Input de Patrimônio */}
+                                          <div className="firewall-field-box">
+                                            <div className="detail-label" style={{ marginBottom: '6px' }}>
+                                              {isLocked ? 'Patrimônio Cadastrado no Firewall' : 'Número de Patrimônio'}
+                                            </div>
+                                            <div className="patrimonio-input-group">
+                                              <span className="patrimonio-prefix">pat.</span>
+                                              <input
+                                                type="text"
+                                                className={`patrimonio-input ${isLocked ? 'locked' : ''}`}
+                                                placeholder="00000"
+                                                maxLength={12}
+                                                value={currentNum}
+                                                disabled={isLocked || isSavingPat}
+                                                onChange={(e) => {
+                                                  const digits = e.target.value.replace(/\D/g, '')
+                                                  setPatrimonioInputs((prev) => ({
+                                                    ...prev,
+                                                    [i.id!]: digits,
+                                                  }))
+                                                }}
+                                                onKeyDown={(e) => {
+                                                  if (e.key === 'Enter' && !isLocked) {
+                                                    handleSalvarPatrimonio(i)
+                                                  }
+                                                }}
+                                              />
+                                              {!isLocked && (
                                                 <button
                                                   type="button"
-                                                  className="copy-button"
-                                                  style={{ height: '34px', width: '34px', padding: 0 }}
-                                                  onClick={() =>
-                                                    copiarTexto(
-                                                      i.patrimonio || (currentNum ? `pat.${currentNum}` : '')
-                                                    )
-                                                  }
-                                                  title="Copiar Patrimônio"
-                                                  aria-label="Copiar Patrimônio"
+                                                  className="btn-save-pat"
+                                                  onClick={() => handleSalvarPatrimonio(i)}
+                                                  disabled={isSavingPat}
+                                                  title="Salvar número de patrimônio"
                                                 >
-                                                  <IconCopy />
+                                                  {isSavingPat ? '...' : 'Salvar'}
                                                 </button>
                                               )}
-                                           </div>
-                                           {isLocked ? (
-                                             <div className="patrimonio-lock-msg">
-                                               🔒 Homologado pelo administrador. Edição bloqueada.
-                                             </div>
-                                           ) : (
-                                             <div className="patrimonio-hint">
-                                               Digite apenas os números.
-                                             </div>
-                                           )}
-                                         </div>
 
-                                         {/* Coluna 2: Status e Ações do Firewall */}
-                                         <div className="firewall-action-box">
-                                           {/* <div className="detail-label" style={{ marginBottom: '6px' }}>
+                                            </div>
+                                            {isLocked ? (
+                                              <div className="patrimonio-lock-msg">
+                                                🔒 Homologado pelo administrador. Edição bloqueada.
+                                              </div>
+                                            ) : (
+                                              <div className="patrimonio-hint">
+                                                Digite apenas os números.
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {/* Coluna 2: Status e Ações do Firewall */}
+                                          <div className="firewall-action-box">
+                                            {/* <div className="detail-label" style={{ marginBottom: '6px' }}>
                                              Status do Firewall &amp; Esteira
                                            </div> */}
 
-                                           <div className="firewall-status-content">
-                                             {i.firewall_status === 'pendente' ? (
-                                               <div className="firewall-status-detail pending">
-                                                 <div className="firewall-status-title">
-                                                   🟡 Aguardando Cadastro no Firewall
-                                                 </div>
-                                                 <div className="firewall-meta">
-                                                   {i.firewall_solicitado_por && (
-                                                     <span>Solicitado por: <b>{i.firewall_solicitado_por}</b></span>
-                                                   )}
-                                                   {i.firewall_solicitado_em && (
-                                                     <span> em {new Date(i.firewall_solicitado_em).toLocaleString('pt-BR')}</span>
-                                                   )}
-                                                 </div>
-                                               </div>
-                                             ) : i.firewall_status === 'confirmado' ? (
-                                               <div className="firewall-status-detail confirmed">
-                                                 <div className="firewall-status-title">
-                                                   🟢 Liberado e Homologado no Firewall
-                                                 </div>
-                                                 <div className="firewall-meta">
-                                                   {i.firewall_confirmado_por && (
-                                                     <span>Confirmado por: <b>{i.firewall_confirmado_por}</b></span>
-                                                   )}
-                                                   {i.firewall_confirmado_em && (
-                                                     <span> em {new Date(i.firewall_confirmado_em).toLocaleString('pt-BR')}</span>
-                                                   )}
-                                                 </div>
-                                               </div>
-                                             ) : (
-                                               <div className="firewall-status-detail regular">
-                                                 <div className="firewall-status-title">
-                                                   ⚪ Máquina Operacional Regular
-                                                 </div>
-                                                 <div className="firewall-meta">
-                                                   Solicitar cadastro novo no firewall.
-                                                 </div>
-                                               </div>
-                                             )}
+                                            <div className="firewall-status-content">
+                                              {i.firewall_status === 'pendente' ? (
+                                                <div className="firewall-status-detail pending">
+                                                  <div className="firewall-status-title">
+                                                    🟡 Aguardando Cadastro no Firewall
+                                                  </div>
+                                                  <div className="firewall-meta">
+                                                    {i.firewall_solicitado_por && (
+                                                      <span>Solicitado por: <b>{i.firewall_solicitado_por}</b></span>
+                                                    )}
+                                                    {i.firewall_solicitado_em && (
+                                                      <span> em {new Date(i.firewall_solicitado_em).toLocaleString('pt-BR')}</span>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ) : i.firewall_status === 'confirmado' ? (
+                                                <div className="firewall-status-detail confirmed">
+                                                  <div className="firewall-status-title">
+                                                    🟢 Liberado e Homologado no Firewall
+                                                  </div>
+                                                  <div className="firewall-meta">
+                                                    {i.firewall_confirmado_por && (
+                                                      <span>Confirmado por: <b>{i.firewall_confirmado_por}</b></span>
+                                                    )}
+                                                    {i.firewall_confirmado_em && (
+                                                      <span> em {new Date(i.firewall_confirmado_em).toLocaleString('pt-BR')}</span>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ) : (
+                                                <div className="firewall-status-detail regular">
+                                                  <div className="firewall-status-title">
+                                                    ⚪ Máquina Operacional Regular
+                                                  </div>
+                                                  <div className="firewall-meta">
+                                                    Solicitar cadastro novo no firewall.
+                                                  </div>
+                                                </div>
+                                              )}
 
-                                             <div className="firewall-btn-actions">
-                                               {canRequestFirewall && i.firewall_status !== 'pendente' && (
-                                                 <button
-                                                   type="button"
-                                                   className="btn-solicitar-firewall"
-                                                   onClick={() => handleSolicitarFirewall(i)}
-                                                   disabled={isSolicitando}
-                                                   title="Marcar máquina como nova e enviar para homologação no firewall"
-                                                 >
-                                                   {isSolicitando ? 'Marcando...' : '🏷️ Marcar para Firewall (Nova)'}
-                                                 </button>
-                                               )}
+                                              <div className="firewall-btn-actions">
+                                                {canRequestFirewall && i.firewall_status !== 'pendente' && (
+                                                  <button
+                                                    type="button"
+                                                    className="btn-solicitar-firewall"
+                                                    onClick={() => handleSolicitarFirewall(i)}
+                                                    disabled={isSolicitando}
+                                                    title="Marcar máquina como nova e enviar para homologação no firewall"
+                                                  >
+                                                    {isSolicitando ? 'Marcando...' : '🏷️ Marcar para Firewall (Nova)'}
+                                                  </button>
+                                                )}
 
-                                               {canConfirmFirewall && i.firewall_status === 'pendente' && (
-                                                 <button
-                                                   type="button"
-                                                   className="btn-confirmar-firewall"
-                                                   onClick={() => handleConfirmarFirewall(i)}
-                                                   disabled={isConfirmando}
-                                                   title="Confirmar cadastro no firewall e travar patrimônio"
-                                                 >
-                                                   {isConfirmando ? 'Confirmando...' : '✓ Confirmar cadastro no Firewall'}
-                                                 </button>
-                                               )}
-                                             </div>
-                                           </div>
-                                         </div>
-                                       </div>
-                                     </div>
-                                   )
-                                 })()}
+                                                {canConfirmFirewall && i.firewall_status === 'pendente' && (
+                                                  <button
+                                                    type="button"
+                                                    className="btn-confirmar-firewall"
+                                                    onClick={() => handleConfirmarFirewall(i)}
+                                                    disabled={isConfirmando}
+                                                    title="Confirmar cadastro no firewall e travar patrimônio"
+                                                  >
+                                                    {isConfirmando ? 'Confirmando...' : '✓ Confirmar cadastro no Firewall'}
+                                                  </button>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )
+                                  })()}
+                                </details>
 
-                                  {/* Seção de Periféricos & Dispositivos Conectados */}
-                                  <div
-                                    className="detail-sec"
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      flexWrap: 'wrap',
-                                      gap: '8px',
-                                      marginTop: '16px',
-                                    }}
-                                  >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {/* Seção de Periféricos & Dispositivos Conectados */}
+                                <details className="detail-section">
+                                  <summary className="detail-sec">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                       <span>Periféricos &amp; Dispositivos Conectados</span>
                                       {Array.isArray(i.perifericos) && i.perifericos.length > 0 && (
                                         <span className="perif-badge perif-badge-monitor">
@@ -1932,10 +1850,8 @@ export default function InventoryPage({
                                         </span>
                                       )}
                                     </div>
-                                    <small style={{ color: 'var(--muted)', fontSize: '11px' }}>
-                                      Monitores, smartphones, teclados, mouses e mídias USB
-                                    </small>
-                                  </div>
+                                  </summary>
+
 
                                   {(() => {
                                     const listaPerif = Array.isArray(i.perifericos) ? i.perifericos : []
@@ -2038,113 +1954,119 @@ export default function InventoryPage({
                                       </div>
                                     )
                                   })()}
+                                </details>
 
-                                 {/* Change History Timeline */}
-                                 <div className="detail-sec">
-                                  Histórico de Alterações / Linha do Tempo
-                                  <small>Auditoria contínua de hardware, rede e sistema</small>
-                                </div>
-                                <div className="timeline-container">
-                                  {loadingHistorico[i.id!] ? (
-                                    <div className="timeline-loading">
-                                      <span>Carregando histórico de alterações...</span>
-                                    </div>
-                                  ) : (() => {
-                                    const hList = historicoMap[i.id!] || []
-                                    if (hList.length === 0) {
+                                {/* Change History Timeline */}
+                                <details className="detail-section">
+                                  <summary className="detail-sec">
+                                    <span>Histórico de Alterações / Linha do Tempo</span>
+                                  </summary>
+                                  <div className="timeline-container">
+                                    {loadingHistorico[i.id!] ? (
+                                      <div className="timeline-loading">
+                                        <span>Carregando histórico de alterações...</span>
+                                      </div>
+                                    ) : (() => {
+                                      const hList = historicoMap[i.id!] || []
+                                      if (hList.length === 0) {
+                                        return (
+                                          <div className="timeline-empty">
+                                            Nenhuma alteração registrada até o momento nesta máquina.
+                                          </div>
+                                        )
+                                      }
+
                                       return (
-                                        <div className="timeline-empty">
-                                          Nenhuma alteração registrada até o momento nesta máquina.
+                                        <div className="timeline-list">
+                                          {hList.map((h) => {
+                                            const isAlert = h.campo.includes('ALERTA') || h.campo.includes('TROCA_MAC')
+                                            const tagClass = isAlert
+                                              ? 'tag-mac-alert'
+                                              : h.campo.includes('RAM')
+                                                ? 'tag-ram'
+                                                : h.campo.includes('DISCO')
+                                                  ? 'tag-disk'
+                                                  : ''
+
+                                            let campoLabel = h.campo
+                                            if (campoLabel === 'ALERTA_CONFLITO_MAC') campoLabel = '🚨 CONFLITO DE MAC'
+                                            else if (campoLabel === 'TROCA_MAC') campoLabel = '⚠️ TROCA DE MAC'
+                                            else if (campoLabel === 'ALERTA_RESOLVIDO') campoLabel = '✅ ALERTA RESOLVIDO'
+                                            else if (campoLabel === 'RAM_TOTAL') campoLabel = 'MEMÓRIA RAM'
+                                            else if (campoLabel === 'RAM_TIPO') campoLabel = 'TIPO DE RAM'
+                                            else if (campoLabel === 'CPU_MODELO') campoLabel = 'PROCESSADOR'
+                                            else if (campoLabel === 'DISCO_MODELO') campoLabel = 'MODELO DO DISCO'
+                                            else if (campoLabel === 'DISCO_TOTAL') campoLabel = 'CAPACIDADE DO DISCO'
+                                            else if (campoLabel === 'PLACA_MAE') campoLabel = 'PLACA MÃE'
+                                            else if (campoLabel === 'SISTEMA_OPERACIONAL') campoLabel = 'SISTEMA OPERACIONAL'
+                                            else if (campoLabel === 'BUILD') campoLabel = 'BUILD DO SO'
+                                            else if (campoLabel === 'IP') campoLabel = 'ENDEREÇO IP'
+                                            else if (campoLabel === 'RUSTDESK_ID') campoLabel = 'RUSTDESK ID'
+                                            else if (campoLabel === 'USUARIO') campoLabel = 'USUÁRIO'
+                                            else if (campoLabel === 'DOMINIO') campoLabel = 'DOMÍNIO'
+
+                                            return (
+                                              <div
+                                                key={h.id}
+                                                className={`timeline-item ${isAlert ? 'alert-item' : ''}`}
+                                              >
+                                                <div className="timeline-item-header">
+                                                  <span className={`timeline-tag ${tagClass}`}>
+                                                    {campoLabel}
+                                                  </span>
+                                                  <span className="timeline-date">{h.data_alteracao}</span>
+                                                </div>
+                                                <div className="timeline-diff">
+                                                  {h.valor_anterior && (
+                                                    <>
+                                                      <span className="old-val" title="Valor Anterior">
+                                                        {h.valor_anterior}
+                                                      </span>
+                                                      <span className="arrow">➔</span>
+                                                    </>
+                                                  )}
+                                                  <span className="new-val" title="Novo Valor Registrado">
+                                                    {h.valor_novo}
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            )
+                                          })}
                                         </div>
                                       )
-                                    }
-
-                                    return (
-                                      <div className="timeline-list">
-                                        {hList.map((h) => {
-                                          const isAlert = h.campo.includes('ALERTA') || h.campo.includes('TROCA_MAC')
-                                          const tagClass = isAlert
-                                            ? 'tag-mac-alert'
-                                            : h.campo.includes('RAM')
-                                            ? 'tag-ram'
-                                            : h.campo.includes('DISCO')
-                                            ? 'tag-disk'
-                                            : ''
-
-                                          let campoLabel = h.campo
-                                          if (campoLabel === 'ALERTA_CONFLITO_MAC') campoLabel = '🚨 CONFLITO DE MAC'
-                                          else if (campoLabel === 'TROCA_MAC') campoLabel = '⚠️ TROCA DE MAC'
-                                          else if (campoLabel === 'ALERTA_RESOLVIDO') campoLabel = '✅ ALERTA RESOLVIDO'
-                                          else if (campoLabel === 'RAM_TOTAL') campoLabel = 'MEMÓRIA RAM'
-                                          else if (campoLabel === 'RAM_TIPO') campoLabel = 'TIPO DE RAM'
-                                          else if (campoLabel === 'CPU_MODELO') campoLabel = 'PROCESSADOR'
-                                          else if (campoLabel === 'DISCO_MODELO') campoLabel = 'MODELO DO DISCO'
-                                          else if (campoLabel === 'DISCO_TOTAL') campoLabel = 'CAPACIDADE DO DISCO'
-                                          else if (campoLabel === 'PLACA_MAE') campoLabel = 'PLACA MÃE'
-                                          else if (campoLabel === 'SISTEMA_OPERACIONAL') campoLabel = 'SISTEMA OPERACIONAL'
-                                          else if (campoLabel === 'BUILD') campoLabel = 'BUILD DO SO'
-                                          else if (campoLabel === 'IP') campoLabel = 'ENDEREÇO IP'
-                                          else if (campoLabel === 'RUSTDESK_ID') campoLabel = 'RUSTDESK ID'
-                                          else if (campoLabel === 'USUARIO') campoLabel = 'USUÁRIO'
-                                          else if (campoLabel === 'DOMINIO') campoLabel = 'DOMÍNIO'
-
-                                          return (
-                                            <div
-                                              key={h.id}
-                                              className={`timeline-item ${isAlert ? 'alert-item' : ''}`}
-                                            >
-                                              <div className="timeline-item-header">
-                                                <span className={`timeline-tag ${tagClass}`}>
-                                                  {campoLabel}
-                                                </span>
-                                                <span className="timeline-date">{h.data_alteracao}</span>
-                                              </div>
-                                              <div className="timeline-diff">
-                                                {h.valor_anterior && (
-                                                  <>
-                                                    <span className="old-val" title="Valor Anterior">
-                                                      {h.valor_anterior}
-                                                    </span>
-                                                    <span className="arrow">➔</span>
-                                                  </>
-                                                )}
-                                                <span className="new-val" title="Novo Valor Registrado">
-                                                  {h.valor_novo}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          )
-                                        })}
-                                      </div>
-                                    )
-                                  })()}
-                                </div>
+                                    })()}
+                                  </div>
+                                </details>
                               </div>
 
                               {/* Right Column: Disk breakdown & Apps */}
                               <div>
-                                <div className="detail-sec">Uso de disco</div>
-                                <div className={`cap ${nv}`}>
-                                  <div className="cap-bar">
-                                    <i
-                                      style={{
-                                        width: `${p !== null ? Math.min(p, 100) : 0}%`,
-                                      }}
-                                    />
+                                <details className="detail-section">
+                                  <summary className="detail-sec">Uso de disco</summary>
+                                  <div className="detail-body">
+                                    <div className={`cap ${nv}`}>
+                                      <div className="cap-bar">
+                                        <i
+                                          style={{
+                                            width: `${p !== null ? Math.min(p, 100) : 0}%`,
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="cap-leg">
+                                        <span>
+                                          <b>{i.disco_usado || '-'}</b> usado
+                                          {p !== null ? ` (${Math.round(p)}%)` : ''}
+                                        </span>
+                                        <span>
+                                          <b>{i.disco_livre || '-'}</b> livre
+                                        </span>
+                                        <span>
+                                          <b>{i.disco_total || '-'}</b> total
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="cap-leg">
-                                    <span>
-                                      <b>{i.disco_usado || '-'}</b> usado
-                                      {p !== null ? ` (${Math.round(p)}%)` : ''}
-                                    </span>
-                                    <span>
-                                      <b>{i.disco_livre || '-'}</b> livre
-                                    </span>
-                                    <span>
-                                      <b>{i.disco_total || '-'}</b> total
-                                    </span>
-                                  </div>
-                                </div>
+                                </details>
 
                                 {/* Drives & Partitions / Disk Analysis */}
                                 {(() => {
@@ -2197,9 +2119,10 @@ export default function InventoryPage({
                                   return (
                                     <>
                                       {unidadesDisco.length > 0 && (
-                                        <>
-                                          <div className="detail-sec">Unidades de disco</div>
+                                        <details className="detail-section">
+                                          <summary className="detail-sec">Unidades de disco</summary>
                                           <div className="details-grid">
+
                                             {unidadesDisco.map((u: UnidadeDisco, uIdx: number) => {
                                               const nome =
                                                 u.ponto_montagem ||
@@ -2265,8 +2188,8 @@ export default function InventoryPage({
                                                             pctNum > 90
                                                               ? 'var(--bad)'
                                                               : pctNum > 75
-                                                              ? '#f59e0b'
-                                                              : 'var(--ok)',
+                                                                ? '#f59e0b'
+                                                                : 'var(--ok)',
                                                         }}
                                                       />
                                                     </div>
@@ -2275,7 +2198,7 @@ export default function InventoryPage({
                                               )
                                             })}
                                           </div>
-                                        </>
+                                        </details>
                                       )}
 
                                       {usuariosPastas.length > 0 &&
@@ -2295,9 +2218,9 @@ export default function InventoryPage({
                                           const discoUsadoMB = tamanhoMB(i.disco_usado)
 
                                           return (
-                                            <>
-                                              <div className="detail-sec">
-                                                Pastas de usuários
+                                            <details className="detail-section">
+                                              <summary className="detail-sec">
+                                                <span>Pastas de usuários</span>
                                                 <small>
                                                   {usuariosPastas.length}{' '}
                                                   {usuariosPastas.length === 1
@@ -2306,106 +2229,109 @@ export default function InventoryPage({
                                                   {fmtMB(somaUsuarios)}
                                                   {discoUsadoMB > 0
                                                     ? ` (${Math.round(
-                                                        (somaUsuarios /
-                                                          discoUsadoMB) *
-                                                          100
-                                                      )}% do disco usado)`
+                                                      (somaUsuarios /
+                                                        discoUsadoMB) *
+                                                      100
+                                                    )}% do disco usado)`
                                                     : ''}
                                                 </small>
-                                              </div>
-                                              {usuariosPastas.map(
-                                                (u: AnaliseUsuario, uIdx: number) => {
-                                                  const sub = Array.isArray(u.subpastas)
-                                                    ? u.subpastas
-                                                    : Array.isArray(u.pastas)
-                                                    ? u.pastas
-                                                    : []
-                                                  const maxSub = Math.max(
-                                                    1,
-                                                    ...sub.map((x: PastaUsuario) =>
-                                                      tamanhoMB(x.tamanho)
-                                                    )
-                                                  )
-                                                  const uMB = tamanhoMB(u.tamanho)
-                                                  const uPct = Math.min(
-                                                    100,
-                                                    Math.max(
-                                                      0,
-                                                      (uMB / maxUsuario) * 100
-                                                    )
-                                                  )
+                                              </summary>
+                                              <div className="detail-body">
 
-                                                  return (
-                                                    <details key={uIdx} className="usr">
-                                                      <summary>
-                                                        <span className="u-n">
-                                                          {u.usuario}
-                                                        </span>
-                                                        <span className="u-bar">
-                                                          <i
-                                                            style={{
-                                                              width: `${uPct}%`,
-                                                            }}
-                                                          />
-                                                        </span>
-                                                        <b>
-                                                          {padronizarTamanho(
-                                                            u.tamanho
-                                                          )}
-                                                        </b>
-                                                      </summary>
-                                                      {sub.length > 0 && (
-                                                        <ul>
-                                                          {sub.map(
-                                                            (
-                                                              x: PastaUsuario,
-                                                              sIdx: number
-                                                            ) => {
-                                                              const xMB = tamanhoMB(
-                                                                x.tamanho
-                                                              )
-                                                              const xPct = Math.min(
-                                                                100,
-                                                                Math.max(
-                                                                  0,
-                                                                  (xMB / maxSub) *
-                                                                    100
+                                                {usuariosPastas.map(
+                                                  (u: AnaliseUsuario, uIdx: number) => {
+                                                    const sub = Array.isArray(u.subpastas)
+                                                      ? u.subpastas
+                                                      : Array.isArray(u.pastas)
+                                                        ? u.pastas
+                                                        : []
+                                                    const maxSub = Math.max(
+                                                      1,
+                                                      ...sub.map((x: PastaUsuario) =>
+                                                        tamanhoMB(x.tamanho)
+                                                      )
+                                                    )
+                                                    const uMB = tamanhoMB(u.tamanho)
+                                                    const uPct = Math.min(
+                                                      100,
+                                                      Math.max(
+                                                        0,
+                                                        (uMB / maxUsuario) * 100
+                                                      )
+                                                    )
+
+                                                    return (
+                                                      <details key={uIdx} className="usr">
+                                                        <summary>
+                                                          <span className="u-n">
+                                                            {u.usuario}
+                                                          </span>
+                                                          <span className="u-bar">
+                                                            <i
+                                                              style={{
+                                                                width: `${uPct}%`,
+                                                              }}
+                                                            />
+                                                          </span>
+                                                          <b>
+                                                            {padronizarTamanho(
+                                                              u.tamanho
+                                                            )}
+                                                          </b>
+                                                        </summary>
+                                                        {sub.length > 0 && (
+                                                          <ul>
+                                                            {sub.map(
+                                                              (
+                                                                x: PastaUsuario,
+                                                                sIdx: number
+                                                              ) => {
+                                                                const xMB = tamanhoMB(
+                                                                  x.tamanho
                                                                 )
-                                                              )
-                                                              return (
-                                                                <li
-                                                                  key={sIdx}
-                                                                  title={
-                                                                    x.caminho || ''
-                                                                  }
-                                                                >
-                                                                  <span className="u-n">
-                                                                    {x.pasta ||
-                                                                      x.nome}
-                                                                  </span>
-                                                                  <span className="u-bar">
-                                                                    <i
-                                                                      style={{
-                                                                        width: `${xPct}%`,
-                                                                      }}
-                                                                    />
-                                                                  </span>
-                                                                  <b>
-                                                                    {padronizarTamanho(
-                                                                      x.tamanho
-                                                                    )}
-                                                                  </b>
-                                                                </li>
-                                                              )
-                                                            }
-                                                          )}
-                                                        </ul>
-                                                      )}
-                                                    </details>
-                                                  )
-                                                }
-                                              )}
-                                            </>
+                                                                const xPct = Math.min(
+                                                                  100,
+                                                                  Math.max(
+                                                                    0,
+                                                                    (xMB / maxSub) *
+                                                                    100
+                                                                  )
+                                                                )
+                                                                return (
+                                                                  <li
+                                                                    key={sIdx}
+                                                                    title={
+                                                                      x.caminho || ''
+                                                                    }
+                                                                  >
+                                                                    <span className="u-n">
+                                                                      {x.pasta ||
+                                                                        x.nome}
+                                                                    </span>
+                                                                    <span className="u-bar">
+                                                                      <i
+                                                                        style={{
+                                                                          width: `${xPct}%`,
+                                                                        }}
+                                                                      />
+                                                                    </span>
+                                                                    <b>
+                                                                      {padronizarTamanho(
+                                                                        x.tamanho
+                                                                      )}
+                                                                    </b>
+                                                                  </li>
+                                                                )
+                                                              }
+                                                            )}
+                                                          </ul>
+                                                        )}
+                                                      </details>
+                                                    )
+                                                  }
+                                                )}
+                                              </div>
+                                            </details>
                                           )
                                         })()}
 
@@ -2423,62 +2349,65 @@ export default function InventoryPage({
                                             )
                                           )
                                           return (
-                                            <>
-                                              <div className="detail-sec">
-                                                Logs do sistema
+                                            <details className="detail-section">
+                                              <summary className="detail-sec">
+                                                <span>Logs do sistema</span>
                                                 <small>
                                                   /var/log, maiores itens:{' '}
                                                   {fmtMB(somaV)}
                                                 </small>
-                                              </div>
-                                              <details className="usr">
-                                                <summary>
-                                                  <span className="u-n">
-                                                    Ver itens
-                                                  </span>
-                                                  <span className="u-bar">
-                                                    <i style={{ width: '100%' }} />
-                                                  </span>
-                                                  <b>{fmtMB(somaV)}</b>
-                                                </summary>
-                                                <ul>
-                                                  {varLogItens.map(
-                                                    (x: ItemVarLog, vIdx: number) => {
-                                                      const xMB = tamanhoMB(x.tamanho)
-                                                      const xPct = Math.min(
-                                                        100,
-                                                        Math.max(
-                                                          0,
-                                                          (xMB / maxV) * 100
+                                              </summary>
+                                              <div className="detail-body">
+
+                                                <details className="usr">
+                                                  <summary>
+                                                    <span className="u-n">
+                                                      Ver itens
+                                                    </span>
+                                                    <span className="u-bar">
+                                                      <i style={{ width: '100%' }} />
+                                                    </span>
+                                                    <b>{fmtMB(somaV)}</b>
+                                                  </summary>
+                                                  <ul>
+                                                    {varLogItens.map(
+                                                      (x: ItemVarLog, vIdx: number) => {
+                                                        const xMB = tamanhoMB(x.tamanho)
+                                                        const xPct = Math.min(
+                                                          100,
+                                                          Math.max(
+                                                            0,
+                                                            (xMB / maxV) * 100
+                                                          )
                                                         )
-                                                      )
-                                                      return (
-                                                        <li
-                                                          key={vIdx}
-                                                          title={x.caminho || ''}
-                                                        >
-                                                          <span className="u-n">
-                                                            {x.nome || x.pasta}
-                                                          </span>
-                                                          <span className="u-bar">
-                                                            <i
-                                                              style={{
-                                                                width: `${xPct}%`,
-                                                              }}
-                                                            />
-                                                          </span>
-                                                          <b>
-                                                            {padronizarTamanho(
-                                                              x.tamanho
-                                                            )}
-                                                          </b>
-                                                        </li>
-                                                      )
-                                                    }
-                                                  )}
-                                                </ul>
-                                              </details>
-                                            </>
+                                                        return (
+                                                          <li
+                                                            key={vIdx}
+                                                            title={x.caminho || ''}
+                                                          >
+                                                            <span className="u-n">
+                                                              {x.nome || x.pasta}
+                                                            </span>
+                                                            <span className="u-bar">
+                                                              <i
+                                                                style={{
+                                                                  width: `${xPct}%`,
+                                                                }}
+                                                              />
+                                                            </span>
+                                                            <b>
+                                                              {padronizarTamanho(
+                                                                x.tamanho
+                                                              )}
+                                                            </b>
+                                                          </li>
+                                                        )
+                                                      }
+                                                    )}
+                                                  </ul>
+                                                </details>
+                                              </div>
+                                            </details>
                                           )
                                         })()}
                                     </>
@@ -2502,45 +2431,48 @@ export default function InventoryPage({
                                     0
                                   )
                                   return (
-                                    <>
-                                      <div className="detail-sec">
-                                        Aplicativos instalados
+                                    <details className="detail-section">
+                                      <summary className="detail-sec">
+                                        <span>Aplicativos instalados</span>
                                         <small>{totalApps} itens</small>
-                                      </div>
-                                      {grupos.map(([cat, l], gIdx) => (
-                                        <details
-                                          key={gIdx}
-                                          className="usr"
-                                        >
-                                          <summary>
-                                            <span className="u-n">
-                                              {cat}s
-                                            </span>
-                                            <span className="u-bar" />
-                                            <b>{l.length}</b>
-                                          </summary>
-                                          <ul className="app-list">
-                                            {l.map((x: AppItem, aIdx: number) => (
-                                              <li key={aIdx}>
-                                                <span className="u-n">
-                                                  {x.nome}
-                                                </span>
-                                                {x.versao && (
-                                                  <span
-                                                    style={{
-                                                      color: '#64748b',
-                                                      fontSize: '11px',
-                                                    }}
-                                                  >
-                                                    {x.versao}
+                                      </summary>
+                                      <div className="detail-body">
+
+                                        {grupos.map(([cat, l], gIdx) => (
+                                          <details
+                                            key={gIdx}
+                                            className="usr"
+                                          >
+                                            <summary>
+                                              <span className="u-n">
+                                                {cat}s
+                                              </span>
+                                              <span className="u-bar" />
+                                              <b>{l.length}</b>
+                                            </summary>
+                                            <ul className="app-list">
+                                              {l.map((x: AppItem, aIdx: number) => (
+                                                <li key={aIdx}>
+                                                  <span className="u-n">
+                                                    {x.nome}
                                                   </span>
-                                                )}
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        </details>
-                                      ))}
-                                    </>
+                                                  {x.versao && (
+                                                    <span
+                                                      style={{
+                                                        color: '#64748b',
+                                                        fontSize: '11px',
+                                                      }}
+                                                    >
+                                                      {x.versao}
+                                                    </span>
+                                                  )}
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </details>
+                                        ))}
+                                      </div>
+                                    </details>
                                   )
                                 })()}
                               </div>
@@ -2617,9 +2549,8 @@ export default function InventoryPage({
                         <span style={{ padding: '0 4px' }}>...</span>
                       )}
                       <button
-                        className={`page-btn ${
-                          paginaAtual === p ? 'active' : ''
-                        }`}
+                        className={`page-btn ${paginaAtual === p ? 'active' : ''
+                          }`}
                         onClick={() => setPaginaAtual(p)}
                       >
                         {p}

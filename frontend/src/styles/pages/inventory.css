@@ -444,7 +444,16 @@ td {
   color: var(--ink);
 }
 
+tbody tr.row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
 tbody tr.row:hover {
+  background: var(--table-row-hover);
+}
+
+tbody tr.row.row-expanded {
   background: var(--table-row-hover);
 }
 
@@ -575,7 +584,7 @@ tbody tr.row:hover {
 }
 
 .disk-subtext {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -611,34 +620,154 @@ tbody tr.row:hover {
   background: var(--bg-alt);
   color: var(--ink);
   border-top: 1px dashed var(--line);
-  padding: 16px 20px;
-  border-top: 1px dashed var(--line);
+  padding: 10px 14px;
 }
 
 .det-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 22px;
+  gap: 14px;
+  align-items: start;
+}
+
+/* Subseções expansíveis por camadas */
+.detail-section {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section:hover {
+  border-color: var(--line-bright, #cbd5e1);
+}
+
+.detail-section[open] {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Cabeçalho da subseção (visual de barra/botão expansível nativo) */
+.detail-section > summary.detail-sec {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  list-style: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.detail-section > summary.detail-sec::-webkit-details-marker {
+  display: none;
+}
+
+.detail-section > summary.detail-sec::marker {
+  content: "";
+  display: none;
+}
+
+.detail-section > summary.detail-sec:hover {
+  background: var(--surface-hover);
+  color: var(--brand);
+}
+
+/* Indicador visual de expansão (chevron minimalista) */
+.detail-section > summary.detail-sec::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease;
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+
+.detail-section[open] > summary.detail-sec {
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-section[open] > summary.detail-sec::after {
+  transform: rotate(45deg);
+  border-color: var(--brand);
+}
+
+/* Conteúdos das subseções expandidas */
+.detail-section > .details-grid,
+.detail-section > .detail-body,
+.detail-section > .perif-grid,
+.detail-section > .perif-empty,
+.detail-section > .timeline-container {
+  padding: 10px 12px;
+  background: var(--surface);
+}
+
+.detail-section > .firewall-homolog-card {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 5px;
+}
+
+.detail-section > .perif-empty {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.detail-section > .perif-grid {
+  margin: 0;
+}
+
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
 }
 
 .detail-item {
-  background: var(--surface);
+  background: var(--bg-alt);
   border: 1px solid var(--line);
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 9px 12px;
+  border-radius: 6px;
+  padding: 8px 10px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: border-color 0.15s ease;
+}
+
+.detail-item:hover {
+  border-color: var(--line-bright, #cbd5e1);
 }
 
 .detail-label {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--muted);
   margin-bottom: 3px;
 }
@@ -658,14 +787,11 @@ tbody tr.row:hover {
   margin: 14px 0 6px;
 }
 
-.details-content>.det-layout>div>.detail-sec:first-child {
-  margin-top: 0;
-}
-
 .detail-sec small {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 400;
+  color: var(--muted);
   margin-left: 6px;
 }
 

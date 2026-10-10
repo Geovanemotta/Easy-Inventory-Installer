@@ -48,7 +48,7 @@ export default function AgentInstallModal({
               className={`agent-tab-btn ${agentTab === 'linux' ? 'active' : ''}`}
               onClick={() => setAgentTab('linux')}
             >
-              <IcoLnx /> Linux (Ubuntu / Zorin / Debian)
+              <IcoLnx /> Linux
             </button>
             <button
               className={`agent-tab-btn ${agentTab === 'windows' ? 'active' : ''}`}
@@ -140,13 +140,6 @@ export default function AgentInstallModal({
                   >
                     {copiedKey === 'win-task' ? '✓ Copiado' : 'Copiar'}
                   </button>
-                </div>
-              </div>
-
-              <div className="agent-info-tip">
-                <span>💡</span>
-                <div>
-                  O script Windows consulta o Registro do Windows (64-bit e Wow6432Node), identificando e categorizando automaticamente softwares em Aplicativos, Agentes, Runtimes e Ferramentas. Também coleta CPU, múltiplos volumes de disco, fabricante, serial, usuário e domínio Active Directory.
                 </div>
               </div>
             </div>

@@ -18,7 +18,7 @@ function gravarUsuario(valor: string | null) {
   try {
     if (valor) localStorage.setItem(USER_KEY, valor)
     else localStorage.removeItem(USER_KEY)
-  } catch {}
+  } catch { }
 }
 
 function traduzirErro(err: unknown): string {
@@ -100,7 +100,7 @@ export default function Login({ onLogin, notice }: LoginProps) {
   return (
     <div className="login-container">
       <div className="login-card">
-        
+
         {/* Coluna da Esquerda: Formulário */}
         <div className="login-form-section">
           <div className="login-header">

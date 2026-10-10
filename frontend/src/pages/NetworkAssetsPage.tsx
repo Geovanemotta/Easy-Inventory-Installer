@@ -912,29 +912,29 @@ export default function NetworkAssetsPage({
     tone: string
     ativo: boolean
   }[] = [
-    { id: 'total', label: 'Total de ativos', value: kpis.total, sub: `${kpis.testados} já testados`, icon: 'other', tone: 'total', ativo: !filtrosAtivos },
-    { id: 'impressora', label: 'Impressoras', value: kpis.impressoras, icon: 'printer', tone: 'printer', ativo: filtroGrupo === 'impressora' },
-    { id: 'rede', label: 'Switches / Roteadores', value: kpis.switches, icon: 'switch', tone: 'switch', ativo: filtroGrupo === 'rede' },
-    { id: 'wifi', label: 'Access Points (Wi-Fi)', value: kpis.aps, icon: 'wifi', tone: 'wifi', ativo: filtroGrupo === 'wifi' },
-    {
-      id: 'online',
-      label: 'Online agora',
-      value: kpis.online,
-      sub: kpis.testados ? `${Math.round((kpis.online / kpis.testados) * 100)}% dos testados` : 'nenhum teste ainda',
-      icon: 'check',
-      tone: 'online',
-      ativo: filtroStatus === 'online' && !filtroGrupo,
-    },
-    {
-      id: 'offline',
-      label: 'Inacessíveis / Offline',
-      value: kpis.offline,
-      sub: kpis.testados ? `${Math.round((kpis.offline / kpis.testados) * 100)}% dos testados` : undefined,
-      icon: 'x',
-      tone: 'offline',
-      ativo: filtroStatus === 'offline' && !filtroGrupo,
-    },
-  ]
+      { id: 'total', label: 'Total de ativos', value: kpis.total, sub: `${kpis.testados} já testados`, icon: 'other', tone: 'total', ativo: !filtrosAtivos },
+      { id: 'impressora', label: 'Impressoras', value: kpis.impressoras, icon: 'printer', tone: 'printer', ativo: filtroGrupo === 'impressora' },
+      { id: 'rede', label: 'Switches / Roteadores', value: kpis.switches, icon: 'switch', tone: 'switch', ativo: filtroGrupo === 'rede' },
+      { id: 'wifi', label: 'Access Points (Wi-Fi)', value: kpis.aps, icon: 'wifi', tone: 'wifi', ativo: filtroGrupo === 'wifi' },
+      {
+        id: 'online',
+        label: 'Online agora',
+        value: kpis.online,
+        sub: kpis.testados ? `${Math.round((kpis.online / kpis.testados) * 100)}% dos testados` : 'nenhum teste ainda',
+        icon: 'check',
+        tone: 'online',
+        ativo: filtroStatus === 'online' && !filtroGrupo,
+      },
+      {
+        id: 'offline',
+        label: 'Inacessíveis / Offline',
+        value: kpis.offline,
+        sub: kpis.testados ? `${Math.round((kpis.offline / kpis.testados) * 100)}% dos testados` : undefined,
+        icon: 'x',
+        tone: 'offline',
+        ativo: filtroStatus === 'offline' && !filtroGrupo,
+      },
+    ]
 
   const thSort = (chave: Ordem, rotulo: string, style?: React.CSSProperties) => (
     <th style={style} className="sortable" onClick={() => alternarOrdem(chave)} aria-sort={ordem === chave ? (dirAsc ? 'ascending' : 'descending') : 'none'}>
