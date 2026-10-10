@@ -22,7 +22,35 @@
       "minify": true,
       "newAccounts": true,
       "userNameIsEmail": false,
-      "hideMeshCentral": false
+      "hideMeshCentral": false,
+      "auth": "ldap",
+      "LDAPOptions": {
+        "url": "ldap://192.168.0.228:389",
+        "bindDN": "serv_jumpserver@giassisuper.corp",
+        "bindCredentials": "n3s)4(8SZb",
+        "searchBase": "OU=giassisuper,DC=giassisuper,DC=corp",
+        "searchFilter": "(&(objectClass=user)(sAMAccountName={{username}}))"
+      },
+      "LDAPUserKey": "sAMAccountName",
+      "LDAPUserName": "displayName",
+      "LDAPUserEmail": "mail",
+      "LDAPUserGroups": "memberOf",
+      "LDAPSiteAdminGroups": [
+        "CN=G_TI_ADMIN,OU=Grupos,OU=TI,OU=Departamentos,OU=Matriz,OU=giassisuper,DC=giassisuper,DC=corp"
+      ],
+      "LDAPUserRequiredGroupMembership": [
+        "CN=operador-matriz,OU=AD,OU=Grupos,OU=Servidores,OU=Matriz,OU=giassisuper,DC=giassisuper,DC=corp",
+        "CN=G_TI_ADMIN,OU=Grupos,OU=TI,OU=Departamentos,OU=Matriz,OU=giassisuper,DC=giassisuper,DC=corp"
+      ]
+    },
+    "local": {
+      "title": "Giassi - Acesso Local (Admin)",
+      "title2": "Autenticação Local de Contingência",
+      "certUrl": "https://192.168.0.5:4443/local",
+      "allowedOrigin": true,
+      "minify": true,
+      "newAccounts": false,
+      "userNameIsEmail": false
     }
   }
 }

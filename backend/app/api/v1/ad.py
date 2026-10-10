@@ -216,6 +216,13 @@ def save_ad_config(
 
         session.commit()
 
+        # Sincroniza automaticamente o MeshCentral com as novas configurações e grupos do AD
+        try:
+            from app.services.meshcentral_service import sync_meshcentral_ad_config
+            sync_meshcentral_ad_config(cfg)
+        except Exception as e:
+            logger.warning(f"Falha ao sincronizar MeshCentral com AD: {e}")
+
         return {
             "status": "success",
             "message": "Configurações do Active Directory salvas com sucesso!",
