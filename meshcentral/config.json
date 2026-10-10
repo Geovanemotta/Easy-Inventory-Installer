@@ -23,6 +23,7 @@
       "minify": true,
       "newAccounts": true,
       "newAccountsRights": [ "nonewgroups", "notools" ],
+      "newAccountsUserGroups": [ "ugrp//operadores_matriz" ],
       "userNameIsEmail": false,
       "hideMeshCentral": false,
       "auth": "ldap",

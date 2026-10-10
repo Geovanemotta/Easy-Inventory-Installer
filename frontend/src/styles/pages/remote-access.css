@@ -542,7 +542,8 @@
   transform: translateY(-1px);
 }
 
-.btn-sub-newtab:hover {
+.btn-sub-newtab:hover,
+.btn-sub-embedded:hover {
   color: #38bdf8;
   border-color: rgba(56, 189, 248, 0.35);
 }

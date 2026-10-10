@@ -416,8 +416,8 @@ export default function RemoteAccessPage({
                 <button
                   type="button"
                   className="btn-remote-connect-primary"
-                  onClick={() => handleOpenDesktop(m)}
-                  title="Conectar e assumir controle da tela remota"
+                  onClick={() => handleOpenNewTab(m)}
+                  title="Conectar e assumir controle da tela remota em nova guia dedicada (Recomendado)"
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -430,16 +430,15 @@ export default function RemoteAccessPage({
                 <div className="remote-card-subactions">
                   <button
                     type="button"
-                    className="btn-remote-sub btn-sub-newtab"
-                    onClick={() => handleOpenNewTab(m)}
-                    title="Abrir tela remota em nova aba do navegador"
+                    className="btn-remote-sub btn-sub-embedded"
+                    onClick={() => handleOpenDesktop(m)}
+                    title="Visualizar em janela embutida na página"
                   >
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <path d="M3 9h18" />
                     </svg>
-                    <span>Nova Aba</span>
+                    <span>Embutido</span>
                   </button>
 
                   <button
