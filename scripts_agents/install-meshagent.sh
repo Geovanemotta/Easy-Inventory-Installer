@@ -5,8 +5,9 @@
 
 set -e
 
-SERVER_HOST="${SERVER_HOST:-192.168.0.4}"
+SERVER_HOST="${SERVER_HOST:-192.168.0.5}"
 SERVER_PORT="${SERVER_PORT:-4443}"
+MESH_ID="${MESH_ID:-@oLaTf\$n@RpilBaLgcYNw@0pLz2dR\$TQotm4DXxNwG7Di9sbsSW6hWN6KS9mwvZ4}"
 
 echo "=========================================================="
 echo "   INSTALADOR DO AGENTE MESHCENTRAL - GRUPO GIASSI TI    "
@@ -17,37 +18,32 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+SERVER_URL="https://${SERVER_HOST}:${SERVER_PORT}"
+
+echo "[+] Servidor de destino: $SERVER_URL"
+echo "[+] Grupo de Dispositivos: $MESH_ID"
+
+# Se o serviço antigo já estiver rodando, para e remove a instalação antiga para renovar o vínculo
 if systemctl is-active --quiet meshagent 2>/dev/null; then
-    echo "[OK] O serviço 'meshagent' já está instalado e ativo no sistema."
-    exit 0
+    echo "[!] Detectado serviço 'meshagent' anterior em execução."
+    echo "[+] Parando e atualizando serviço..."
+    systemctl stop meshagent 2>/dev/null || true
+    if [[ -f "/usr/local/meshagent/meshagent" ]]; then
+        /usr/local/meshagent/meshagent -fulluninstall 2>/dev/null || true
+    fi
 fi
 
-WORKDIR="/usr/local/meshagent"
-mkdir -p "$WORKDIR"
-cd "$WORKDIR"
+# Executa o script oficial do MeshCentral passando o servidor e o MeshID do grupo corporativo
+echo "[+] Baixando instalador do grupo e registrando agente no MeshCentral..."
+curl -k -s -S -L -m 30 "${SERVER_URL}/meshagents?script=1" | bash -s -- "${SERVER_URL}" "${MESH_ID}"
 
-# Verifica se o executável já existe no diretório do script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "$SCRIPT_DIR/meshagent" ]]; then
-    echo "[+] Copiando executável local..."
-    cp -f "$SCRIPT_DIR/meshagent" "$WORKDIR/meshagent"
-else
-    DOWNLOAD_URL="https://${SERVER_HOST}:${SERVER_PORT}/meshagents?id=6"
-    echo "[+] Baixando agente do servidor: $DOWNLOAD_URL..."
-    curl -k -s -S -L -m 30 "$DOWNLOAD_URL" -o "$WORKDIR/meshagent" || {
-        echo "[AVISO] Falha ao baixar diretamente via curl."
-        echo "Baixe o binário 'meshagent' para Linux pelo painel do MeshCentral e coloque na pasta deste script."
-        exit 1
-    }
-fi
+sleep 3
 
-chmod 755 "$WORKDIR/meshagent"
-echo "[+] Registrando serviço systemd..."
-"$WORKDIR/meshagent" -install
-
-sleep 2
 if systemctl is-active --quiet meshagent 2>/dev/null; then
-    echo "[SUCESSO] MeshAgent instalado e rodando em background via systemd!"
+    echo "=========================================================="
+    echo " [SUCESSO] MeshAgent instalado e conectado com sucesso!"
+    echo " A máquina já deve aparecer no grupo 'Maquinas Giassi'."
+    echo "=========================================================="
 else
-    echo "[AVISO] Instalador executado. Verifique o status com: systemctl status meshagent"
+    echo "[AVISO] Verifique o status com: sudo systemctl status meshagent"
 fi
