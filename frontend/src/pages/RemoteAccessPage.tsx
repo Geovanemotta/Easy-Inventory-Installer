@@ -91,22 +91,35 @@ export default function RemoteAccessPage({
     })
   }, [inventario, search, filtroOs, filtroStatus, filtroFilial])
 
+  // Resolve a URL do MeshCentral usando estritamente o host pelo qual o navegador está acessando
   const meshUrlBase = useMemo(() => {
-    if (config?.mesh_url) return config.mesh_url
     if (typeof window !== 'undefined') {
-      const host = window.location.hostname
-      return `https://${host}:4443`
+      const currentHost = window.location.hostname
+      // Se o usuário acessou por IP ou domínio, usa o mesmo host na porta 4443
+      if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+        const port = config?.mesh_port || 4443
+        return `https://${currentHost}:${port}`
+      }
     }
-    return 'https://localhost:4443'
+    return config?.mesh_url || 'https://localhost:4443'
   }, [config])
 
+  const gerarUrlDesktop = (device: EnrichedMachine) => {
+    // viewmode=11: Desktop remoto direto / gotodevicename: Seleciona o nó pelo hostname / hide=15: Visual limpo sem barras
+    return `${meshUrlBase}/?viewmode=11&gotodevicename=${encodeURIComponent(device.hostname)}&hide=15`
+  }
+
   const handleOpenDesktop = (device: EnrichedMachine) => {
-    // Carrega o console do MeshCentral direcionado
-    const targetUrl = `${meshUrlBase}`
+    const targetUrl = gerarUrlDesktop(device)
     setActiveSession({
       device,
       url: targetUrl,
     })
+  }
+
+  const handleOpenNewTab = (device: EnrichedMachine) => {
+    const targetUrl = gerarUrlDesktop(device)
+    window.open(targetUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleOpenExternal = () => {
@@ -330,7 +343,7 @@ export default function RemoteAccessPage({
                   type="button"
                   className="btn-remote-connect"
                   onClick={() => handleOpenDesktop(m)}
-                  title="Iniciar sessão de desktop remoto pelo navegador"
+                  title="Abrir desktop remoto em janela embutida"
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -338,6 +351,20 @@ export default function RemoteAccessPage({
                     <line x1="12" y1="17" x2="12" y2="21" />
                   </svg>
                   <span>Conectar Desktop</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-remote-ssh"
+                  onClick={() => handleOpenNewTab(m)}
+                  title="Abrir desktop remoto em uma nova aba dedicada"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                  <span>Nova Aba</span>
                 </button>
 
                 <button
@@ -373,6 +400,9 @@ export default function RemoteAccessPage({
                 <h3>Controle Remoto em Tempo Real</h3>
                 <span className="remote-session-host-tag">
                   {activeSession.device.hostname} ({activeSession.device.ip})
+                </span>
+                <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '12px' }}>
+                  Caso a tela fique em branco, clique no botão ao lado para abrir em nova aba.
                 </span>
               </div>
 
