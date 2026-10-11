@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import '../styles/pages/remote-access.css'
 import {
   getRemoteAccessConfig,
@@ -23,9 +23,9 @@ type SessionTabMode = 'desktop' | 'files' | 'terminal'
 
 export default function RemoteAccessPage({
   inventario,
-  currentUser: _currentUser,
+  currentUser,
   onOpenSsh,
-  copiarTexto,
+  copiarTexto: _copiarTexto,
   showToast,
 }: RemoteAccessPageProps) {
   const [config, setConfig] = useState<RemoteAccessConfig | null>(null)
@@ -33,7 +33,10 @@ export default function RemoteAccessPage({
   const [filtroOs, setFiltroOs] = useState<'todos' | 'windows' | 'linux'>('todos')
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'online' | 'offline'>('todos')
   const [filtroFilial, setFiltroFilial] = useState<string>('todos')
-  const [showGuide, setShowGuide] = useState(false)
+
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(12)
 
   // Sessão remota ativa no modal/iframe
   const [activeSession, setActiveSession] = useState<{
@@ -42,6 +45,12 @@ export default function RemoteAccessPage({
     tab: SessionTabMode
   } | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Controle de permissões do operador matriz
+  const isOperadorMatriz = Boolean(currentUser?.roles?.includes('operador_matriz'))
+  const canAccessServerConsole = !isOperadorMatriz && Boolean(
+    currentUser?.is_superadmin || currentUser?.roles?.includes('admin')
+  )
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
@@ -96,6 +105,20 @@ export default function RemoteAccessPage({
     })
   }, [inventario, search, filtroOs, filtroStatus, filtroFilial])
 
+  // Reseta para a primeira página sempre que os filtros ou tamanho de página mudarem
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, filtroOs, filtroStatus, filtroFilial, pageSize])
+
+  // Cálculos de paginação
+  const totalItems = maquinasFiltradas.length
+  const totalPaginas = Math.max(1, Math.ceil(totalItems / pageSize))
+  const inicio = (currentPage - 1) * pageSize
+  const fim = Math.min(inicio + pageSize, totalItems)
+  const maquinasPaginadas = useMemo(() => {
+    return maquinasFiltradas.slice(inicio, fim)
+  }, [maquinasFiltradas, inicio, fim])
+
   // Resolve a URL do MeshCentral usando estritamente o host pelo qual o navegador está acessando
   const meshUrlBase = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -135,6 +158,15 @@ export default function RemoteAccessPage({
       device,
       url: targetUrl,
       tab: 'files',
+    })
+  }
+
+  const handleOpenTerminal = (device: EnrichedMachine) => {
+    const targetUrl = gerarUrlModo(device, 'terminal', true)
+    setActiveSession({
+      device,
+      url: targetUrl,
+      tab: 'terminal',
     })
   }
 
@@ -211,109 +243,39 @@ export default function RemoteAccessPage({
           </div>
         </div>
 
-        <div className="remote-banner-actions">
-          <a
-            href={meshUrlBase}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-mesh-console"
-            title="Abrir o painel administrativo do MeshCentral em nova aba"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            <span>Console do Servidor</span>
-          </a>
-
-          <button
-            type="button"
-            className="btn-mesh-logout"
-            onClick={handleMeshLogout}
-            title="Encerrar a sessão ativa do MeshCentral para permitir a troca de usuário"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            <span>Trocar Usuário (Sair do Mesh)</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn-guide-toggle"
-            onClick={() => setShowGuide((prev) => !prev)}
-            title="Ver instruções para instalação do agente nos computadores"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            <span>{showGuide ? 'Ocultar Guia' : 'Como Instalar Agentes'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Guia Expansível de Instalação do Agente */}
-      {showGuide && (
-        <div className="remote-guide-box">
-          <div className="remote-guide-head">
-            <h3>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 17l6-6-6-6" />
-                <path d="M12 19h8" />
+        {canAccessServerConsole && (
+          <div className="remote-banner-actions">
+            <a
+              href={meshUrlBase}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-mesh-console"
+              title="Abrir o painel administrativo do MeshCentral em nova aba"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
-              Instalação Silenciosa do Agente MeshCentral (Windows &amp; Linux)
-            </h3>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
-              Serviço em segundo plano sob <code>NT AUTHORITY\SYSTEM</code> (UAC, arquivos e desktop habilitados)
-            </span>
-          </div>
+              <span>Console do Servidor</span>
+            </a>
 
-          <div className="remote-guide-grid">
-            <div className="guide-col">
-              <h4>Windows (PowerShell Administrador)</h4>
-              <p>Execute o script automatizado para registrar o serviço silenciosamente:</p>
-              <div className="guide-code-box">
-                <code>powershell -ExecutionPolicy Bypass -File .\scripts_agents\install-meshagent.ps1</code>
-                <button
-                  type="button"
-                  className="guide-copy-btn"
-                  onClick={() => copiarTexto('powershell -ExecutionPolicy Bypass -File .\\scripts_agents\\install-meshagent.ps1')}
-                  title="Copiar comando"
-                >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="guide-col">
-              <h4>Linux (Root / Sudo)</h4>
-              <p>Execute o instalador nativo registrado no systemd:</p>
-              <div className="guide-code-box">
-                <code>sudo bash ./scripts_agents/install-meshagent.sh</code>
-                <button
-                  type="button"
-                  className="guide-copy-btn"
-                  onClick={() => copiarTexto('sudo bash ./scripts_agents/install-meshagent.sh')}
-                  title="Copiar comando"
-                >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            <button
+              type="button"
+              className="btn-mesh-logout"
+              onClick={handleMeshLogout}
+              title="Encerrar a sessão ativa do MeshCentral para permitir a troca de usuário"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span>Trocar Usuário (Sair do Mesh)</span>
+            </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Barra de Ferramentas / Filtros */}
       <div className="remote-toolbar">
@@ -372,9 +334,9 @@ export default function RemoteAccessPage({
         </div>
       </div>
 
-      {/* Grid de Dispositivos */}
+      {/* Grid de Dispositivos Paginados */}
       <div className="remote-grid">
-        {maquinasFiltradas.map((m) => {
+        {maquinasPaginadas.map((m) => {
           const isWin = m._so === 'Windows'
           const st = obterStatusConexao(m.data_coleta)
           const isOnline = st.status === 'online'
@@ -456,8 +418,18 @@ export default function RemoteAccessPage({
                   <button
                     type="button"
                     className="btn-remote-sub btn-sub-terminal"
-                    onClick={() => onOpenSsh(m)}
-                    title="Abrir terminal SSH / PowerShell"
+                    onClick={() => {
+                      if (isWin) {
+                        handleOpenTerminal(m)
+                      } else {
+                        onOpenSsh(m)
+                      }
+                    }}
+                    title={
+                      isWin
+                        ? 'Abrir terminal nativo (CMD / PowerShell) integrado do MeshCentral'
+                        : 'Abrir terminal SSH'
+                    }
                   >
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="4 17 10 11 4 5" />
@@ -477,6 +449,78 @@ export default function RemoteAccessPage({
           </div>
         )}
       </div>
+
+      {/* Barra de Paginação */}
+      {totalItems > 0 && (
+        <div className="remote-pagination-container">
+          <div className="remote-pagination-info">
+            <span>
+              Exibindo <strong>{inicio + 1}-{fim}</strong> de <strong>{totalItems}</strong> estações
+            </span>
+            <div className="remote-page-size-selector">
+              <label htmlFor="remote-page-size">Por página:</label>
+              <select
+                id="remote-page-size"
+                className="remote-select-page-size"
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value))
+                }}
+              >
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+                <option value={48}>48</option>
+                <option value={96}>96</option>
+              </select>
+            </div>
+          </div>
+
+          {totalPaginas > 1 && (
+            <div className="remote-pagination-controls">
+              <button
+                type="button"
+                className="page-btn"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                Anterior
+              </button>
+
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                .filter((p) => {
+                  if (p === 1 || p === totalPaginas) return true
+                  if (p >= currentPage - 1 && p <= currentPage + 1) return true
+                  return false
+                })
+                .map((p, idx, arr) => {
+                  const prev = arr[idx - 1]
+                  const hasEllipsis = prev && p - prev > 1
+                  return (
+                    <Fragment key={p}>
+                      {hasEllipsis && <span className="pagination-ellipsis">...</span>}
+                      <button
+                        type="button"
+                        className={`page-btn ${currentPage === p ? 'active' : ''}`}
+                        onClick={() => setCurrentPage(p)}
+                      >
+                        {p}
+                      </button>
+                    </Fragment>
+                  )
+                })}
+
+              <button
+                type="button"
+                className="page-btn"
+                disabled={currentPage >= totalPaginas}
+                onClick={() => setCurrentPage((p) => Math.min(totalPaginas, p + 1))}
+              >
+                Próxima
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Janela Embutida de Sessão de Controle Remoto */}
       {activeSession && (
