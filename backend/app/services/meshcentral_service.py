@@ -88,6 +88,21 @@ def sync_meshcentral_ad_config(ad_config: ADConfig) -> bool:
 
         domain_default = mesh_data["domains"][""]
 
+        # Sincroniza SERVER_HOST e portas dinâmicas se configurados no ambiente (.env)
+        server_env = os.getenv("SERVER_HOST", "").strip()
+        port_mesh = os.getenv("PORT_MESHCENTRAL", "4443").strip()
+        if server_env:
+            current_certs = [x.strip() for x in mesh_data.get("settings", {}).get("cert", "").split(",") if x.strip()]
+            if server_env not in current_certs:
+                current_certs.insert(0, server_env)
+            for default_host in ["localhost", "127.0.0.1"]:
+                if default_host not in current_certs:
+                    current_certs.append(default_host)
+            mesh_data.setdefault("settings", {})["cert"] = ",".join(current_certs)
+            domain_default["certUrl"] = f"https://{server_env}:{port_mesh}/"
+            if "local" in mesh_data.get("domains", {}):
+                mesh_data["domains"]["local"]["certUrl"] = f"https://{server_env}:{port_mesh}/local"
+
         if not ad_config.enabled or not ad_config.server_host.strip():
             # Se o AD estiver desativado no inventário, remove a autenticação forçada no MeshCentral
             domain_default.pop("auth", None)

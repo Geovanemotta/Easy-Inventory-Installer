@@ -220,6 +220,9 @@ fi
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
 
+# Sincronizar grupos e permissões restritas no MeshCentral (Operadores Matriz - rights: 8)
+$DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
+
 echo -e "${GREEN}[✓] Banco de dados e papéis estruturalmente atualizados sem perda de dados.${NC}"
 
 # Limpeza de imagens órfãs antigas

@@ -231,6 +231,7 @@ if [ -f ".env" ]; then
         echo " [*] Sincronizando novos perfis (Operador Matriz) e permissões..."
         $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
         $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
+        $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
 
         echo ""
         echo -e "${CYAN}==================================================================${NC}"
@@ -444,6 +445,7 @@ $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey \
 echo " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
+$DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
 
 # ------------------------------------------------------------------------------
 # 7. Conclusão e Resumo da Instalação

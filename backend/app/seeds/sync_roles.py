@@ -108,6 +108,19 @@ def sync_roles():
         session.commit()
     print("[✓] Papéis e permissões sincronizados com sucesso!")
 
+    # 3. Sincronização automática do AD com o MeshCentral (se houver configuração no banco)
+    try:
+        from app.models.ad_config import ADConfig
+        from app.services.meshcentral_service import sync_meshcentral_ad_config
+        with Session(engine) as session:
+            cfg = session.scalar(select(ADConfig).where(ADConfig.company_id == 1))
+            if cfg:
+                sync_meshcentral_ad_config(cfg)
+                print("[✓] Configurações do Active Directory sincronizadas com o MeshCentral.")
+    except Exception as e:
+        print(f"[!] Aviso: Sincronização AD/MeshCentral pulada ({e}).")
+
 
 if __name__ == "__main__":
     sync_roles()
+
