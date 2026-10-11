@@ -79,7 +79,8 @@ services:
       - meshcentral
 
   meshcentral:
-    image: ghcr.io/ylianst/meshcentral:latest
+    build:
+      context: ./meshcentral
     container_name: giassi-meshcentral
     restart: unless-stopped
     environment:
