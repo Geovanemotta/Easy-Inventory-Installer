@@ -87,6 +87,7 @@ services:
       - NODE_ENV=production
     volumes:
       - ./meshcentral/config.json:/opt/meshcentral/meshcentral-data/config.json:ro
+      - ./meshcentral/custom.css:/opt/meshcentral/meshcentral/public/styles/custom.css:ro
       - ./meshcentral/ensure_permissions.js:/opt/meshcentral/ensure_permissions.js:ro
       - meshcentral_data:/opt/meshcentral/meshcentral-data
       - meshcentral_files:/opt/meshcentral/meshcentral-files
