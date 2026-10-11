@@ -98,7 +98,14 @@ fi
 # 2.1 Sincronização do Endereço do Servidor (MeshCentral & Agentes)
 # ------------------------------------------------------------------------------
 if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | grep -v '^\s*$' | xargs)
+    ENV_SERVER_HOST=$(grep -E '^\s*SERVER_HOST\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d ' ' || true)
+    if [ -n "$ENV_SERVER_HOST" ]; then
+        SERVER_HOST="$ENV_SERVER_HOST"
+    fi
+    ENV_PORT_MESHCENTRAL=$(grep -E '^\s*PORT_MESHCENTRAL\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d ' ' || true)
+    if [ -n "$ENV_PORT_MESHCENTRAL" ]; then
+        PORT_MESHCENTRAL="$ENV_PORT_MESHCENTRAL"
+    fi
 fi
 
 if [ -z "$SERVER_HOST" ]; then
@@ -106,11 +113,11 @@ if [ -z "$SERVER_HOST" ]; then
     if [ -z "$DETECTED_IP" ]; then
         DETECTED_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}')
     fi
-    SERVER_HOST=${DETECTED_IP:-"127.0.0.1"}
+    SERVER_HOST=${DETECTED_IP:-"localhost"}
 fi
 PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
 
-echo " [*] Sincronizando IP do servidor nos módulos de Acesso Remoto (${SERVER_HOST}:${PORT_MESHCENTRAL})..."
+echo " [*] Sincronizando endereço do servidor nos módulos de Acesso Remoto (${SERVER_HOST}:${PORT_MESHCENTRAL})..."
 if command -v python3 &>/dev/null; then
     python3 meshcentral/configure_host.py "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
 elif command -v node &>/dev/null; then

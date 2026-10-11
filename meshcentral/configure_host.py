@@ -26,27 +26,43 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
 
         settings = data.setdefault("settings", {})
 
-        # Atualiza certificados SAN
-        clean_certs = [server_host]
-        for c in ["localhost", "127.0.0.1"]:
-            if c not in clean_certs:
-                clean_certs.append(c)
+        is_loopback = server_host in ("127.0.0.1", "localhost", "::1", "")
 
-        settings["cert"] = ",".join(clean_certs)
+        if is_loopback:
+            # Em modo localhost/dinâmico, 'localhost' não tem ponto (.).
+            # O MeshCentral detecta isso e utiliza dinamicamente window.location.hostname
+            # do navegador do usuário que abrir a interface web para os comandos dos agentes.
+            settings["cert"] = "localhost"
+        else:
+            clean_certs = [server_host]
+            for c in ["localhost", "127.0.0.1"]:
+                if c not in clean_certs:
+                    clean_certs.append(c)
+            settings["cert"] = ",".join(clean_certs)
+
         settings["aliasPort"] = port
         settings["ignoreAgentHashCheck"] = True
 
         # Atualiza domains
         domains = data.setdefault("domains", {})
         if "" in domains:
-            domains[""]["certUrl"] = f"https://{server_host}:{port}/"
             domains[""]["ignoreAgentHashCheck"] = True
+            domains[""].pop("certUrl", None)
+            if not is_loopback:
+                domains[""]["dns"] = server_host
+            else:
+                domains[""].pop("dns", None)
+
             # Garante que criacao de contas locais esteja ativa caso nao haja LDAP
             if "auth" not in domains[""]:
                 domains[""]["newAccounts"] = True
 
         if "local" in domains:
-            domains["local"]["certUrl"] = f"https://{server_host}:{port}/local"
+            domains["local"].pop("certUrl", None)
+            if not is_loopback:
+                domains["local"]["dns"] = server_host
+            else:
+                domains["local"].pop("dns", None)
             domains["local"]["newAccounts"] = True
 
         with open(cfg_file, "w", encoding="utf-8") as f:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://meshcentral.com/schemas/config.json",
   "settings": {
-    "cert": "127.0.0.1,localhost",
+    "cert": "localhost",
     "port": 4430,
     "aliasPort": 4443,
     "redirPort": 8086,
@@ -19,7 +19,6 @@
     "": {
       "title": "Giassi - Acesso Remoto",
       "title2": "Controle Remoto de Estações de Trabalho",
-      "certUrl": "https://127.0.0.1:4443/",
       "ignoreAgentHashCheck": true,
       "allowedOrigin": true,
       "minify": true,
@@ -37,7 +36,6 @@
     "local": {
       "title": "Giassi - Acesso Local (Admin)",
       "title2": "Autenticação Local de Contingência",
-      "certUrl": "https://127.0.0.1:4443/local",
       "allowedOrigin": true,
       "minify": true,
       "newAccounts": true,

@@ -18,24 +18,41 @@ function updateMeshConfig() {
     const data = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
     if (!data.settings) data.settings = {};
 
-    const cleanCerts = [serverHost];
-    for (const c of ['localhost', '127.0.0.1']) {
-      if (!cleanCerts.includes(c)) cleanCerts.push(c);
+    const isLoopback = !serverHost || ['127.0.0.1', 'localhost', '::1'].includes(serverHost);
+
+    if (isLoopback) {
+      data.settings.cert = 'localhost';
+    } else {
+      const cleanCerts = [serverHost];
+      for (const c of ['localhost', '127.0.0.1']) {
+        if (!cleanCerts.includes(c)) cleanCerts.push(c);
+      }
+      data.settings.cert = cleanCerts.join(',');
     }
-    data.settings.cert = cleanCerts.join(',');
+
     data.settings.aliasPort = serverPort;
     data.settings.ignoreAgentHashCheck = true;
 
     if (!data.domains) data.domains = {};
     if (data.domains['']) {
-      data.domains[''].certUrl = `https://${serverHost}:${serverPort}/`;
+      delete data.domains[''].certUrl;
+      if (!isLoopback) {
+        data.domains[''].dns = serverHost;
+      } else {
+        delete data.domains[''].dns;
+      }
       data.domains[''].ignoreAgentHashCheck = true;
       if (!data.domains[''].auth) {
         data.domains[''].newAccounts = true;
       }
     }
     if (data.domains.local) {
-      data.domains.local.certUrl = `https://${serverHost}:${serverPort}/local`;
+      delete data.domains.local.certUrl;
+      if (!isLoopback) {
+        data.domains.local.dns = serverHost;
+      } else {
+        delete data.domains.local.dns;
+      }
       data.domains.local.newAccounts = true;
     }
 
