@@ -24,10 +24,12 @@ function updateMeshConfig() {
     }
     data.settings.cert = cleanCerts.join(',');
     data.settings.aliasPort = serverPort;
+    data.settings.ignoreAgentHashCheck = true;
 
     if (!data.domains) data.domains = {};
     if (data.domains['']) {
       data.domains[''].certUrl = `https://${serverHost}:${serverPort}/`;
+      data.domains[''].ignoreAgentHashCheck = true;
       if (!data.domains[''].auth) {
         data.domains[''].newAccounts = true;
       }

@@ -99,7 +99,9 @@ def sync_meshcentral_ad_config(ad_config: ADConfig) -> bool:
                 if default_host not in current_certs:
                     current_certs.append(default_host)
             mesh_data.setdefault("settings", {})["cert"] = ",".join(current_certs)
+            mesh_data.setdefault("settings", {})["ignoreAgentHashCheck"] = True
             domain_default["certUrl"] = f"https://{server_env}:{port_mesh}/"
+            domain_default["ignoreAgentHashCheck"] = True
             if "local" in mesh_data.get("domains", {}):
                 mesh_data["domains"]["local"]["certUrl"] = f"https://{server_env}:{port_mesh}/local"
 

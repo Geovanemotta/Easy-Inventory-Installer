@@ -34,11 +34,13 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
 
         settings["cert"] = ",".join(clean_certs)
         settings["aliasPort"] = port
+        settings["ignoreAgentHashCheck"] = True
 
         # Atualiza domains
         domains = data.setdefault("domains", {})
         if "" in domains:
             domains[""]["certUrl"] = f"https://{server_host}:{port}/"
+            domains[""]["ignoreAgentHashCheck"] = True
             # Garante que criacao de contas locais esteja ativa caso nao haja LDAP
             if "auth" not in domains[""]:
                 domains[""]["newAccounts"] = True
