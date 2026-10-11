@@ -23,6 +23,22 @@ SERVER_URL="https://${SERVER_HOST}:${SERVER_PORT}"
 echo "[+] Servidor de destino: $SERVER_URL"
 echo "[+] Grupo de Dispositivos: $MESH_ID"
 
+# Ajuste de compatibilidade para controle de Desktop (Zorin OS / Ubuntu / Debian)
+# O MeshAgent necessita de Xorg para captura de tela e mouse/teclado.
+# Desabilita Wayland no GDM para habilitar controle remoto não-assistido.
+if [ -f "/etc/gdm3/custom.conf" ]; then
+    if grep -q "WaylandEnable=false" /etc/gdm3/custom.conf; then
+        sed -i 's/#\s*WaylandEnable=false/WaylandEnable=false/' /etc/gdm3/custom.conf
+    elif grep -q "\[daemon\]" /etc/gdm3/custom.conf; then
+        sed -i '/\[daemon\]/a WaylandEnable=false' /etc/gdm3/custom.conf
+    else
+        printf "\n[daemon]\nWaylandEnable=false\n" >> /etc/gdm3/custom.conf
+    fi
+    echo "[+] Compatibilidade de Desktop (Xorg) ativada em /etc/gdm3/custom.conf."
+elif [ -f "/etc/gdm/custom.conf" ]; then
+    sed -i 's/#\s*WaylandEnable=false/WaylandEnable=false/' /etc/gdm/custom.conf 2>/dev/null || true
+fi
+
 # Se o serviço antigo já estiver rodando, para e remove a instalação antiga para renovar o vínculo
 if systemctl is-active --quiet meshagent 2>/dev/null; then
     echo "[!] Detectado serviço 'meshagent' anterior em execução."
