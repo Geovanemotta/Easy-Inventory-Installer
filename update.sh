@@ -247,6 +247,16 @@ $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || tr
 $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
 $DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
 
+# Aguardar MeshCentral abrir a porta 4430 e sincronizar Nginx (evita 502 Bad Gateway)
+echo " [*] Aguardando inicialização do serviço MeshCentral (porta 4430)..."
+MAX_ATTEMPTS=20
+ATTEMPT=0
+until $DOCKER_COMPOSE exec -T meshcentral netstat -tuln 2>/dev/null | grep -q ":4430" || [ $ATTEMPT -ge $MAX_ATTEMPTS ]; do
+    ATTEMPT=$((ATTEMPT + 1))
+    sleep 1
+done
+$DOCKER_COMPOSE exec -T nginx nginx -s reload 2>/dev/null || true
+
 echo -e "${GREEN}[✓] Banco de dados e papéis estruturalmente atualizados sem perda de dados.${NC}"
 
 # Limpeza de imagens órfãs antigas

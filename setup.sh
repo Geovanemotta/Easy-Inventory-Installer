@@ -242,6 +242,16 @@ if [ -f ".env" ]; then
         $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
         $DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
 
+        # Aguardar MeshCentral abrir a porta 4430 e sincronizar Nginx (evita 502 Bad Gateway)
+        echo " [*] Aguardando inicialização do serviço MeshCentral (porta 4430)..."
+        MAX_ATTEMPTS=20
+        ATTEMPT=0
+        until $DOCKER_COMPOSE exec -T meshcentral netstat -tuln 2>/dev/null | grep -q ":4430" || [ $ATTEMPT -ge $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 1
+        done
+        $DOCKER_COMPOSE exec -T nginx nginx -s reload 2>/dev/null || true
+
         echo ""
         echo -e "${CYAN}==================================================================${NC}"
         echo -e "${BOLD}${GREEN}   SISTEMA ATUALIZADO COM SUCESSO! 🚀${NC}"
@@ -464,6 +474,16 @@ $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
 $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
 $DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
+
+# Aguardar MeshCentral abrir a porta 4430 e sincronizar Nginx (evita 502 Bad Gateway)
+echo " [*] Aguardando inicialização do serviço MeshCentral (porta 4430)..."
+MAX_ATTEMPTS=20
+ATTEMPT=0
+until $DOCKER_COMPOSE exec -T meshcentral netstat -tuln 2>/dev/null | grep -q ":4430" || [ $ATTEMPT -ge $MAX_ATTEMPTS ]; do
+    ATTEMPT=$((ATTEMPT + 1))
+    sleep 1
+done
+$DOCKER_COMPOSE exec -T nginx nginx -s reload 2>/dev/null || true
 
 # ------------------------------------------------------------------------------
 # 7. Conclusão e Resumo da Instalação
