@@ -109,7 +109,11 @@ def sync_meshcentral_ad_config(ad_config: ADConfig) -> bool:
             domain_default.pop("LDAPOptions", None)
             domain_default.pop("LDAPSiteAdminGroups", None)
             domain_default.pop("LDAPUserRequiredGroupMembership", None)
+            domain_default["newAccounts"] = True
         else:
+            # Em modo LDAP, o domínio 'local' permite login e criação de administradores locais
+            if "local" in mesh_data.get("domains", {}):
+                mesh_data["domains"]["local"]["newAccounts"] = True
             # 1. Identifica os grupos de Superadmin
             super_groups = [g.strip() for g in (ad_config.superadmin_groups or []) if g.strip()]
 

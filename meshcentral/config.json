@@ -1,7 +1,7 @@
 {
   "$schema": "https://meshcentral.com/schemas/config.json",
   "settings": {
-    "cert": "192.168.0.5,localhost,127.0.0.1",
+    "cert": "127.0.0.1,localhost",
     "port": 4430,
     "aliasPort": 4443,
     "redirPort": 8086,
@@ -18,7 +18,7 @@
     "": {
       "title": "Giassi - Acesso Remoto",
       "title2": "Controle Remoto de Estações de Trabalho",
-      "certUrl": "https://192.168.0.5:4443/",
+      "certUrl": "https://127.0.0.1:4443/",
       "allowedOrigin": true,
       "minify": true,
       "newAccounts": true,
@@ -30,34 +30,15 @@
         "ugrp//operadores_matriz"
       ],
       "userNameIsEmail": false,
-      "hideMeshCentral": false,
-      "auth": "ldap",
-      "LDAPOptions": {
-        "url": "ldap://192.168.0.228:389",
-        "bindDN": "serv_jumpserver@giassisuper.corp",
-        "bindCredentials": "n3s)4(8SZb",
-        "searchBase": "OU=giassisuper,DC=giassisuper,DC=corp",
-        "searchFilter": "(&(objectClass=user)(sAMAccountName={{username}}))"
-      },
-      "LDAPUserKey": "sAMAccountName",
-      "LDAPUserName": "displayName",
-      "LDAPUserEmail": "mail",
-      "LDAPUserGroups": "memberOf",
-      "LDAPSiteAdminGroups": [
-        "CN=G_TI_ADMIN,OU=Grupos,OU=TI,OU=Departamentos,OU=Matriz,OU=giassisuper,DC=giassisuper,DC=corp"
-      ],
-      "LDAPUserRequiredGroupMembership": [
-        "CN=operador-matriz,OU=AD,OU=Grupos,OU=Servidores,OU=Matriz,OU=giassisuper,DC=giassisuper,DC=corp",
-        "CN=G_TI_ADMIN,OU=Grupos,OU=TI,OU=Departamentos,OU=Matriz,OU=giassisuper,DC=giassisuper,DC=corp"
-      ]
+      "hideMeshCentral": false
     },
     "local": {
       "title": "Giassi - Acesso Local (Admin)",
       "title2": "Autenticação Local de Contingência",
-      "certUrl": "https://192.168.0.5:4443/local",
+      "certUrl": "https://127.0.0.1:4443/local",
       "allowedOrigin": true,
       "minify": true,
-      "newAccounts": false,
+      "newAccounts": true,
       "userNameIsEmail": false
     }
   }

@@ -95,6 +95,29 @@ else
 fi
 
 # ------------------------------------------------------------------------------
+# 2.1 Sincronização do Endereço do Servidor (MeshCentral & Agentes)
+# ------------------------------------------------------------------------------
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | grep -v '^\s*$' | xargs)
+fi
+
+if [ -z "$SERVER_HOST" ]; then
+    DETECTED_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+    if [ -z "$DETECTED_IP" ]; then
+        DETECTED_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}')
+    fi
+    SERVER_HOST=${DETECTED_IP:-"127.0.0.1"}
+fi
+PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
+
+echo " [*] Sincronizando IP do servidor nos módulos de Acesso Remoto (${SERVER_HOST}:${PORT_MESHCENTRAL})..."
+if command -v python3 &>/dev/null; then
+    python3 meshcentral/configure_host.py "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
+elif command -v node &>/dev/null; then
+    node meshcentral/configure_host.js "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
+fi
+
+# ------------------------------------------------------------------------------
 # 3. Recompilar o Frontend (React / Vite)
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[2/5] Compilando painel frontend...${NC}"
@@ -222,6 +245,7 @@ $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || tr
 
 # Sincronizar grupos e permissões restritas no MeshCentral (Operadores Matriz - rights: 8)
 $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
+$DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
 
 echo -e "${GREEN}[✓] Banco de dados e papéis estruturalmente atualizados sem perda de dados.${NC}"
 

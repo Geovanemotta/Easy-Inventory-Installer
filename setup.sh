@@ -177,6 +177,14 @@ if [ -f ".env" ]; then
         # Carrega variáveis do .env existente
         export $(grep -v '^#' .env | grep -v '^\s*$' | xargs)
 
+        PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
+        echo " [*] Sincronizando IP do servidor nos módulos de Acesso Remoto (${SERVER_HOST:-localhost}:${PORT_MESHCENTRAL})..."
+        if command -v python3 &>/dev/null; then
+            python3 meshcentral/configure_host.py "${SERVER_HOST:-localhost}" "$PORT_MESHCENTRAL" 2>/dev/null || true
+        elif command -v node &>/dev/null; then
+            node meshcentral/configure_host.js "${SERVER_HOST:-localhost}" "$PORT_MESHCENTRAL" 2>/dev/null || true
+        fi
+
         # Compilar frontend
         compile_frontend
 
@@ -232,6 +240,7 @@ if [ -f ".env" ]; then
         $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
         $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
         $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
+        $DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
 
         echo ""
         echo -e "${CYAN}==================================================================${NC}"
@@ -359,6 +368,14 @@ EOF
 
 echo -e "${GREEN}[✓] Arquivo .env gerado com sucesso.${NC}"
 
+PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
+echo " [*] Sincronizando IP do servidor nos módulos de Acesso Remoto (${SERVER_HOST}:${PORT_MESHCENTRAL})..."
+if command -v python3 &>/dev/null; then
+    python3 meshcentral/configure_host.py "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
+elif command -v node &>/dev/null; then
+    node meshcentral/configure_host.js "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
+fi
+
 # ------------------------------------------------------------------------------
 # 5. Compilação do Frontend
 # ------------------------------------------------------------------------------
@@ -446,6 +463,7 @@ echo " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
 $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
+$DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
 
 # ------------------------------------------------------------------------------
 # 7. Conclusão e Resumo da Instalação

@@ -9,7 +9,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$ServerHost = "192.168.0.5",
+    [string]$ServerHost = "127.0.0.1",
     [int]$ServerPort = 4443,
     [string]$MeshGroup = "Giassi"
 )
