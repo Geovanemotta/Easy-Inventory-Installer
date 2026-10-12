@@ -155,13 +155,19 @@ def sync_meshcentral_ad_config(ad_config: ADConfig) -> bool:
 
             # 5. Aplica a configuração LDAP no MeshCentral
             domain_default["auth"] = "ldap"
-            domain_default["LDAPOptions"] = {
-                "url": f"ldap://{server_host}:{server_port}",
+            proto = "ldaps" if ad_config.use_ssl else "ldap"
+            ldap_options = {
+                "url": f"{proto}://{server_host}:{server_port}",
                 "bindDN": bind_user or "",
                 "bindCredentials": bind_password or "",
                 "searchBase": base_dn,
                 "searchFilter": filter_mesh,
             }
+            if ad_config.use_ssl:
+                ldap_options["tlsOptions"] = {
+                    "rejectUnauthorized": False
+                }
+            domain_default["LDAPOptions"] = ldap_options
             domain_default["LDAPUserKey"] = "sAMAccountName"
             domain_default["LDAPUserName"] = "displayName"
             domain_default["LDAPUserEmail"] = "mail"
