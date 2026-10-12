@@ -13,7 +13,17 @@
     "webrtc": true,
     "wanonly": false,
     "agentPong": 60,
-    "minify": true
+    "minify": true,
+    "maxInvalidLogin": {
+      "time": 10,
+      "count": 5,
+      "coolofftime": 15
+    },
+    "maxInvalid2fa": {
+      "time": 10,
+      "count": 5,
+      "coolofftime": 15
+    }
   },
   "domains": {
     "": {
@@ -60,7 +70,7 @@
       "title2": "Autenticação Local de Contingência",
       "allowedOrigin": true,
       "minify": true,
-      "newAccounts": true,
+      "newAccounts": false,
       "userNameIsEmail": false
     }
   }
