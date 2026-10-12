@@ -89,6 +89,17 @@ class User(Base):
         default=False,
     )
 
+    two_factor_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    two_factor_secret: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

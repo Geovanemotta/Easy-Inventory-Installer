@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.jwt import create_access_token
+from app.core.jwt import create_access_token, create_temp_2fa_token, decode_temp_2fa_token
 from app.core.security import verify_password
 from app.database import engine
 from app.models import User
@@ -10,21 +10,20 @@ from app.schemas.auth import (
     LoginRequest,
     TokenResponse,
     UserResponse,
+    Verify2FARequest,
 )
 from app.api.dependencies.auth import get_current_user
-
-
-router = APIRouter(
-    prefix="/auth",
-    tags=["Authentication"],
-)
-
-
 from app.services.ldap_service import authenticate_ldap_user
+from app.services.two_factor_service import generate_totp_setup, verify_totp_code
 from app.core.session_vault import (
     store_ad_session_cred,
     has_ad_session_cred,
     clear_ad_session_cred,
+)
+
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
 )
 
 
@@ -58,8 +57,66 @@ def login(data: LoginRequest):
                     detail="Usuário ou senha inválidos.",
                 )
 
-        token = create_access_token(user.id)
+        # 3. Autenticação em 2 Etapas (2FA) Obrigatória
+        if user.two_factor_enabled and user.two_factor_secret:
+            # Usuário já possui 2FA configurado: solicita código de 6 dígitos
+            temp_token = create_temp_2fa_token(user.id)
+            return {
+                "requires_2fa": True,
+                "temp_token": temp_token,
+            }
+        else:
+            # Primeiro login: provisionamento obrigatório de 2FA
+            secret, uri, qr_code = generate_totp_setup(user.username)
+            temp_token = create_temp_2fa_token(user.id, setup_secret=secret)
+            return {
+                "setup_2fa_required": True,
+                "temp_token": temp_token,
+                "secret": secret,
+                "qr_code": qr_code,
+                "otpauth_url": uri,
+            }
 
+
+@router.post(
+    "/verify-2fa",
+    response_model=TokenResponse,
+)
+def verify_2fa(data: Verify2FARequest):
+    payload = decode_temp_2fa_token(data.temp_token)
+    if not payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Sessão de autenticação temporária expirada ou inválida. Faça login novamente.",
+        )
+
+    user_id = int(payload["sub"])
+    setup_secret = payload.get("setup_secret")
+
+    with Session(engine) as session:
+        user = session.get(User, user_id)
+        if not user or not user.active:
+            raise HTTPException(status_code=401, detail="Usuário inativo ou inexistente.")
+
+        if setup_secret:
+            # Confirmação do primeiro cadastro de 2FA
+            if not verify_totp_code(setup_secret, data.code):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Código de autenticação incorreto. Verifique o código no seu aplicativo autenticador e tente novamente.",
+                )
+            user.two_factor_enabled = True
+            user.two_factor_secret = setup_secret
+            session.commit()
+        else:
+            # Validação normal de login existente com 2FA
+            if not user.two_factor_secret or not verify_totp_code(user.two_factor_secret, data.code):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Código de autenticação 2FA incorreto ou expirado.",
+                )
+
+        token = create_access_token(user.id)
         return {
             "access_token": token,
             "token_type": "bearer",
@@ -83,6 +140,7 @@ def me(
         "is_superadmin": current_user.is_superadmin,
         "roles": role_slugs,
         "has_ad_session": has_ad_session_cred(current_user.id),
+        "two_factor_enabled": current_user.two_factor_enabled,
     }
 
 
@@ -92,4 +150,3 @@ def logout(
 ):
     clear_ad_session_cred(current_user.id)
     return {"message": "Sessão encerrada com sucesso."}
-

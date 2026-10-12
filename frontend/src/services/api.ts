@@ -5,9 +5,15 @@ const API_URL =
     : '/api/v1')
 
 
-type LoginResponse = {
-  access_token: string
-  token_type: string
+export type LoginResponse = {
+  access_token?: string
+  token_type?: string
+  requires_2fa?: boolean
+  setup_2fa_required?: boolean
+  temp_token?: string
+  secret?: string
+  qr_code?: string
+  otpauth_url?: string
 }
 
 export async function login(
@@ -29,8 +35,34 @@ export async function login(
     if (response.status === 401) {
       throw new Error('Usuário ou senha inválidos.')
     }
+    if (response.status === 429) {
+      throw new Error('Muitas tentativas de login. Aguarde alguns instantes.')
+    }
 
     throw new Error('Erro ao realizar login.')
+  }
+
+  return response.json()
+}
+
+export async function verify2FA(
+  temp_token: string,
+  code: string,
+): Promise<{ access_token: string; token_type: string }> {
+  const response = await fetch(`${API_URL}/auth/verify-2fa`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      temp_token,
+      code,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Código de verificação 2FA inválido.')
   }
 
   return response.json()

@@ -9,6 +9,8 @@ ldap3
 python-multipart
 asyncssh
 cryptography
+pyotp
+qrcode[pil]
 
 # Correcoes de Seguranca
 urllib3==2.8.0

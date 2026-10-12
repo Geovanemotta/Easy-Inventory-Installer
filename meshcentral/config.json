@@ -28,6 +28,7 @@
   "domains": {
     "": {
       "title": "Giassi - Acesso Remoto",
+      "force2factor": true,
       "ignoreAgentHashCheck": true,
       "allowedOrigin": true,
       "minify": true,
