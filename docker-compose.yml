@@ -13,6 +13,9 @@ services:
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
 
+    networks:
+      - giassi_db_net
+
     volumes:
       - postgres_data:/var/lib/postgresql
 
@@ -29,11 +32,17 @@ services:
     container_name: giassi-backend
     restart: unless-stopped
 
+    networks:
+      - giassi_db_net
+      - giassi_web_net
+
     environment:
       DATABASE_URL: "postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}"
       PYTHONPATH: "/app"
+      ENVIRONMENT: "${ENVIRONMENT:-production}"
+      ENABLE_SWAGGER_DOCS: "${ENABLE_SWAGGER_DOCS:-false}"
 
     ports:
       - "127.0.0.1:8000:8000"
@@ -43,6 +52,7 @@ services:
       - ./import-data:/app/import-data:ro
       - ./scripts_agents:/app/scripts_agents:ro
       - ./meshcentral:/app/meshcentral
+      - meshcentral_data:/opt/meshcentral-data:rw
 
     depends_on:
       postgres:
@@ -64,6 +74,8 @@ services:
       context: ./nginx
     container_name: giassi-nginx
     restart: unless-stopped
+    networks:
+      - giassi_web_net
     environment:
       SERVER_HOST: "${SERVER_HOST:-giassi-inventory}"
     ports:
@@ -83,6 +95,8 @@ services:
       context: ./meshcentral
     container_name: giassi-meshcentral
     restart: unless-stopped
+    networks:
+      - giassi_web_net
     environment:
       - NODE_ENV=production
     volumes:
@@ -99,3 +113,9 @@ volumes:
   postgres_data:
   meshcentral_data:
   meshcentral_files:
+
+networks:
+  giassi_db_net:
+    driver: bridge
+  giassi_web_net:
+    driver: bridge

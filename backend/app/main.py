@@ -12,9 +12,19 @@ from app.api.v1.sites import router as sites_router
 from app.api.v1.inventory import router as inventory_router
 from app.api.v1.network_assets import router as network_assets_router
 
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production").lower()
+ENABLE_SWAGGER_DOCS = os.getenv("ENABLE_SWAGGER_DOCS", "false").lower() in ("true", "1", "yes")
+
+docs_url = "/docs" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "development")) else None
+redoc_url = "/redoc" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "development")) else None
+openapi_url = "/openapi.json" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "development")) else None
+
 app = FastAPI(
     title="Device Inventory API",
     version="0.1.0",
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url,
 )
 
 app.add_middleware(

@@ -193,12 +193,61 @@ def reset_meshcentral_user_2fa(username: str) -> bool:
     """
     if not username:
         return False
-    try:
-        import subprocess
-        cmd = ["docker", "exec", "giassi-meshcentral", "node", "/opt/meshcentral/reset_2fa.js", username.strip()]
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
-        logger.info(f"Reset de 2FA MeshCentral ({username}): {res.stdout.strip()}")
-        return res.returncode == 0
-    except Exception as e:
-        logger.warning(f"Não foi possível resetar 2FA no container giassi-meshcentral ({e})")
+
+    db_paths = [
+        "/opt/meshcentral-data/meshcentral.db",
+        "/app/meshcentral/meshcentral-data/meshcentral.db",
+    ]
+    target_db = None
+    for p in db_paths:
+        if os.path.exists(p):
+            target_db = p
+            break
+
+    if not target_db:
+        logger.warning("Banco meshcentral.db não encontrado para reset de 2FA.")
         return False
+
+    try:
+        target_lower = username.lower().strip()
+        target_id1 = f"user//{target_lower}"
+        target_id2 = f"user/local/{target_lower}"
+        output_lines = []
+        found = False
+
+        with open(target_db, "r", encoding="utf-8") as f:
+            for line in f:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                try:
+                    obj = json.loads(stripped)
+                    if obj.get("type") == "user" and (
+                        obj.get("_id") in (target_id1, target_id2)
+                        or (obj.get("name") and str(obj.get("name")).lower() == target_lower)
+                    ):
+                        keys_to_delete = [
+                            "otpekey", "otpsecret", "otpkeys", "otphkeys",
+                            "otpdev", "otpsms", "otpmsg", "otpduo", "msghandle", "fido2"
+                        ]
+                        for k in keys_to_delete:
+                            obj.pop(k, None)
+                        found = True
+                        output_lines.append(json.dumps(obj))
+                        continue
+                    output_lines.append(stripped)
+                except Exception:
+                    output_lines.append(stripped)
+
+        if found:
+            with open(target_db, "w", encoding="utf-8") as f:
+                f.write("\n".join(output_lines) + "\n")
+            logger.info(f"[MeshCentral] 2FA resetado com sucesso no banco para o usuário: {username}")
+            return True
+        else:
+            logger.info(f"[MeshCentral] Usuário '{username}' não encontrado no banco do MeshCentral.")
+            return False
+    except Exception as e:
+        logger.error(f"Erro ao resetar 2FA no banco do MeshCentral: {e}", exc_info=True)
+        return False
+
