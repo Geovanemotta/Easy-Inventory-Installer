@@ -6,9 +6,12 @@ import {
   testADUser,
   getADGroups,
   getSites,
+  listUsers,
+  resetUser2FA,
   type ADConfigData,
   type ADGroup,
   type Site,
+  type ManagedUser,
 } from '../services/api'
 
 type Props = {
@@ -18,7 +21,7 @@ type Props = {
 
 type Role = 'operator' | 'admin' | 'operador_matriz'
 type SiteKind = 'loja' | 'combo' | 'outros'
-type TabId = 'conexao' | 'permissoes' | 'simulador'
+type TabId = 'conexao' | 'permissoes' | 'simulador' | 'usuarios'
 type SiteTab = 'all' | SiteKind
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -154,6 +157,53 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
 
   // Input de novos grupos superadmin
   const [newGroupInput, setNewGroupInput] = useState('')
+
+  // Gestão de Usuários & 2FA
+  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [userSearchTerm, setUserSearchTerm] = useState('')
+  const [userToReset, setUserToReset] = useState<ManagedUser | null>(null)
+  const [resettingUserId, setResettingUserId] = useState<number | null>(null)
+
+  async function carregarUsuarios() {
+    setLoadingUsers(true)
+    try {
+      const data = await listUsers(token)
+      setManagedUsers(data)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao listar usuários.')
+    } finally {
+      setLoadingUsers(false)
+    }
+  }
+
+  async function handleConfirmReset2FA() {
+    if (!userToReset) return
+    setResettingUserId(userToReset.id)
+    try {
+      const res = await resetUser2FA(token, userToReset.id)
+      showToast(res.message || `2FA de ${userToReset.full_name} resetado com sucesso!`)
+      setManagedUsers((prev) =>
+        prev.map((u) => (u.id === userToReset.id ? { ...u, two_factor_enabled: false } : u))
+      )
+      setUserToReset(null)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao resetar 2FA.')
+    } finally {
+      setResettingUserId(null)
+    }
+  }
+
+  const filteredUsers = useMemo(() => {
+    if (!userSearchTerm.trim()) return managedUsers
+    const term = userSearchTerm.toLowerCase().trim()
+    return managedUsers.filter(
+      (u) =>
+        u.username.toLowerCase().includes(term) ||
+        u.full_name.toLowerCase().includes(term) ||
+        (u.email && u.email.toLowerCase().includes(term))
+    )
+  }, [managedUsers, userSearchTerm])
 
   useEffect(() => {
     carregarDadosIniciais()
@@ -537,6 +587,7 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
           ['conexao', 'Conexão'],
           ['permissoes', 'Permissões e grupos'],
           ['simulador', 'Simulador de login'],
+          ['usuarios', 'Usuários & 2FA'],
         ] as const).map(([id, label]) => (
           <button
             key={id}
@@ -544,10 +595,14 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
             role="tab"
             aria-selected={tab === id}
             className={`tab ${tab === id ? 'active' : ''}`}
-            onClick={() => setTab(id)}
+            onClick={() => {
+              setTab(id)
+              if (id === 'usuarios') carregarUsuarios()
+            }}
           >
             {label}
             {id === 'permissoes' && <span>{mappingEntries.length}</span>}
+            {id === 'usuarios' && managedUsers.length > 0 && <span>{managedUsers.length}</span>}
           </button>
         ))}
       </div>
@@ -1258,6 +1313,290 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
             </div>
           )}
         </section>
+      )}
+
+      {/* ================= ABA: USUÁRIOS & 2FA ================= */}
+      {tab === 'usuarios' && (
+        <section className="ad-card">
+          <div className="ad-card-head ad-between">
+            <div className="ad-card-head-in">
+              <span className="ad-step"><Icon name="users" size={14} /></span>
+              <div>
+                <h3>Gestão de Usuários e Autenticação em 2 Etapas (2FA)</h3>
+                <p>Monitore os acessos e redefina o segundo fator caso o operador tenha perdido ou trocado de celular.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn sm"
+              onClick={carregarUsuarios}
+              disabled={loadingUsers}
+              title="Recarregar lista de contas"
+            >
+              <Icon name="refresh" size={13} /> {loadingUsers ? 'Carregando...' : 'Atualizar'}
+            </button>
+          </div>
+
+          <div style={{ padding: '0 24px 20px' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '18px' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <input
+                  type="text"
+                  placeholder="Filtrar por nome, usuário ou e-mail..."
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '38px',
+                    padding: '0 12px 0 34px',
+                    background: '#0b1120',
+                    border: '1px solid #1e293b',
+                    borderRadius: '8px',
+                    color: '#f8fafc',
+                    fontSize: '13px',
+                  }}
+                />
+                <span style={{ position: 'absolute', left: '10px', top: '10px', color: '#64748b' }}>
+                  <Icon name="search" size={15} />
+                </span>
+              </div>
+            </div>
+
+            {loadingUsers ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                <Icon name="refresh" size={24} />
+                <p style={{ marginTop: '8px', fontSize: '14px' }}>Consultando contas cadastradas...</p>
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                <p>Nenhum usuário localizado.</p>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                      <th style={{ padding: '12px 8px', fontWeight: 600 }}>Operador</th>
+                      <th style={{ padding: '12px 8px', fontWeight: 600 }}>Origem</th>
+                      <th style={{ padding: '12px 8px', fontWeight: 600 }}>Perfis</th>
+                      <th style={{ padding: '12px 8px', fontWeight: 600 }}>Status do 2FA</th>
+                      <th style={{ padding: '12px 8px', fontWeight: 600, textAlign: 'right' }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((u) => {
+                      const isAd = u.auth_source === 'ad'
+                      return (
+                        <tr key={u.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                          <td style={{ padding: '12px 8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div
+                                style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  background: isAd ? 'rgba(56, 189, 248, 0.15)' : 'rgba(168, 85, 247, 0.15)',
+                                  color: isAd ? '#38bdf8' : '#c084fc',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 700,
+                                  fontSize: '12px',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {u.full_name?.charAt(0).toUpperCase() || u.username.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, color: '#f8fafc' }}>{u.full_name}</div>
+                                <div style={{ fontSize: '12px', color: '#64748b' }}>@{u.username} {u.email && `• ${u.email}`}</div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td style={{ padding: '12px 8px' }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                background: isAd ? 'rgba(56, 189, 248, 0.1)' : 'rgba(168, 85, 247, 0.1)',
+                                color: isAd ? '#38bdf8' : '#c084fc',
+                                border: `1px solid ${isAd ? 'rgba(56, 189, 248, 0.25)' : 'rgba(168, 85, 247, 0.25)'}`,
+                              }}
+                            >
+                              {isAd ? 'Active Directory' : 'Conta Local'}
+                            </span>
+                          </td>
+
+                          <td style={{ padding: '12px 8px' }}>
+                            {u.is_superadmin ? (
+                              <span style={{ color: '#38bdf8', fontWeight: 600, fontSize: '12px' }}>Super Administrador</span>
+                            ) : u.roles.length > 0 ? (
+                              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                {u.roles.map((r, i) => (
+                                  <span key={i} style={{ background: '#1e293b', color: '#cbd5e1', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>
+                                    {r}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#64748b', fontSize: '12px' }}>Sem perfis</span>
+                            )}
+                          </td>
+
+                          <td style={{ padding: '12px 8px' }}>
+                            {u.two_factor_enabled ? (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  background: 'rgba(34, 197, 94, 0.15)',
+                                  color: '#4ade80',
+                                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                                }}
+                              >
+                                <Icon name="shield" size={13} /> 2FA Ativo
+                              </span>
+                            ) : (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  background: 'rgba(234, 179, 8, 0.12)',
+                                  color: '#facc15',
+                                  border: '1px solid rgba(234, 179, 8, 0.25)',
+                                }}
+                              >
+                                <Icon name="alert" size={13} /> Pendente (Próximo Login)
+                              </span>
+                            )}
+                          </td>
+
+                          <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              className="btn sm danger"
+                              onClick={() => setUserToReset(u)}
+                              disabled={!u.two_factor_enabled || resettingUserId === u.id}
+                              title={
+                                u.two_factor_enabled
+                                  ? 'Excluir chave atual e exigir novo QR Code no próximo login'
+                                  : 'O usuário ainda não cadastrou o 2FA'
+                              }
+                              style={{
+                                opacity: u.two_factor_enabled ? 1 : 0.45,
+                                cursor: u.two_factor_enabled ? 'pointer' : 'not-allowed',
+                              }}
+                            >
+                              <Icon name="key" size={12} />
+                              {resettingUserId === u.id ? 'Resetando...' : 'Resetar 2FA'}
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Modal de Confirmação de Reset de 2FA */}
+      {userToReset && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: '#0f172a',
+              border: '1px solid #334155',
+              borderRadius: '16px',
+              maxWidth: '480px',
+              width: '100%',
+              padding: '28px',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8)',
+              color: '#f8fafc',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Icon name="alert" size={22} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700 }}>Resetar Autenticação em 2 Etapas?</h3>
+                <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#94a3b8' }}>
+                  Usuário: <b>{userToReset.full_name}</b> (@{userToReset.username})
+                </p>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '13px', lineHeight: 1.5, color: '#cbd5e1', marginBottom: '22px' }}>
+              Ao confirmar o reset, a chave de 2FA atual do operador será <b>removida imediatamente</b> do Inventário e do MeshCentral.
+              <br /><br />
+              No próximo login, o usuário deverá escanear um <b>novo QR Code</b> no aplicativo autenticador do celular para concluir o acesso.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setUserToReset(null)}
+                disabled={resettingUserId !== null}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn danger confirm"
+                onClick={handleConfirmReset2FA}
+                disabled={resettingUserId !== null}
+                style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                {resettingUserId !== null ? 'Resetando...' : 'Confirmar e Resetar 2FA'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Barra de alterações pendentes */}

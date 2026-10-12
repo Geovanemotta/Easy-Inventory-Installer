@@ -78,6 +78,55 @@ export type UserResponse = {
   is_superadmin: boolean
   roles?: string[]
   has_ad_session?: boolean
+  two_factor_enabled?: boolean
+}
+
+export type ManagedUser = {
+  id: number
+  username: string
+  full_name: string
+  email: string | null
+  auth_source: string
+  active: boolean
+  is_superadmin: boolean
+  two_factor_enabled: boolean
+  roles: string[]
+  created_at: string | null
+}
+
+export async function listUsers(token: string): Promise<ManagedUser[]> {
+  const response = await fetch(`${API_URL}/auth/users`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Falha ao carregar lista de usuários.')
+  }
+
+  return response.json()
+}
+
+export async function resetUser2FA(
+  token: string,
+  userId: number,
+): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_URL}/auth/users/${userId}/reset-2fa`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Falha ao resetar o 2FA.')
+  }
+
+  return response.json()
 }
 
 export async function getCurrentUser(

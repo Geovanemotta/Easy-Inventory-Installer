@@ -150,3 +150,64 @@ def logout(
 ):
     clear_ad_session_cred(current_user.id)
     return {"message": "Sessão encerrada com sucesso."}
+
+
+@router.get("/users")
+def list_users(
+    current_user: User = Depends(get_current_user),
+):
+    is_admin = current_user.is_superadmin or any(r.slug == "admin" for r in current_user.roles)
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Acesso restrito a administradores.")
+
+    with Session(engine) as session:
+        users = session.scalars(
+            select(User).order_by(User.full_name.asc())
+        ).all()
+
+        return [
+            {
+                "id": u.id,
+                "username": u.username,
+                "full_name": u.full_name,
+                "email": u.email,
+                "auth_source": u.auth_source,
+                "active": u.active,
+                "is_superadmin": u.is_superadmin,
+                "two_factor_enabled": u.two_factor_enabled,
+                "roles": [r.name for r in u.roles] if u.roles else [],
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+            }
+            for u in users
+        ]
+
+
+@router.post("/users/{user_id}/reset-2fa")
+def reset_user_2fa(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    is_admin = current_user.is_superadmin or any(r.slug == "admin" for r in current_user.roles)
+    if not is_admin and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Apenas administradores podem resetar o 2FA de outros usuários.")
+
+    with Session(engine) as session:
+        target_user = session.get(User, user_id)
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+        target_user.two_factor_enabled = False
+        target_user.two_factor_secret = None
+        session.commit()
+
+        # Reseta simultaneamente no MeshCentral para manter sincronizado
+        try:
+            from app.services.meshcentral_service import reset_meshcentral_user_2fa
+            reset_meshcentral_user_2fa(target_user.username)
+        except Exception:
+            pass
+
+        return {
+            "success": True,
+            "message": f"O 2FA do usuário '{target_user.username}' foi resetado com sucesso no Inventário e no MeshCentral! No próximo login, um novo QR Code será exigido.",
+        }

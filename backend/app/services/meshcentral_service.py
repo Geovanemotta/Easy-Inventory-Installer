@@ -184,3 +184,21 @@ def sync_meshcentral_ad_config(ad_config: ADConfig) -> bool:
     except Exception as ex:
         logger.error(f"Erro ao sincronizar AD com MeshCentral: {ex}", exc_info=True)
         return False
+
+
+def reset_meshcentral_user_2fa(username: str) -> bool:
+    """
+    Remove as credenciais e chaves de 2FA do usuário no banco NeDB do MeshCentral,
+    permitindo que ele vincule um novo celular/dispositivo no próximo login.
+    """
+    if not username:
+        return False
+    try:
+        import subprocess
+        cmd = ["docker", "exec", "giassi-meshcentral", "node", "/opt/meshcentral/reset_2fa.js", username.strip()]
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        logger.info(f"Reset de 2FA MeshCentral ({username}): {res.stdout.strip()}")
+        return res.returncode == 0
+    except Exception as e:
+        logger.warning(f"Não foi possível resetar 2FA no container giassi-meshcentral ({e})")
+        return False

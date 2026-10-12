@@ -89,6 +89,7 @@ services:
       - ./meshcentral/config.json:/opt/meshcentral/meshcentral-data/config.json:ro
       - ./meshcentral/custom.css:/opt/meshcentral/meshcentral/public/styles/custom.css:ro
       - ./meshcentral/ensure_permissions.js:/opt/meshcentral/ensure_permissions.js:ro
+      - ./meshcentral/reset_2fa.js:/opt/meshcentral/reset_2fa.js:ro
       - meshcentral_data:/opt/meshcentral/meshcentral-data
       - meshcentral_files:/opt/meshcentral/meshcentral-files
     expose:
