@@ -105,24 +105,7 @@ body.login, #body.login {
     padding: 6px 4px !important;
 }
 
-/* Campos de Entrada de Texto (Inputs) */
-#loginpanel input[type="text"],
-#loginpanel input[type="password"],
-#createpanel input[type="text"],
-#createpanel input[type="password"],
-#createpanel input[type="email"],
-#tokenpanel input[type="text"] {
-    background: #1e293b !important;
-    border: 1px solid #334155 !important;
-    border-radius: 8px !important;
-    color: #f8fafc !important;
-    font-size: 14px !important;
-    padding: 9px 12px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    outline: none !important;
-    transition: all 0.2s ease !important;
-}
+
 
 #loginpanel input[type="text"]:focus,
 #loginpanel input[type="password"]:focus,
@@ -171,8 +154,6 @@ body.login, #body.login {
     font-size: 13px !important;
     margin-bottom: 14px !important;
     padding: 8px 12px !important;
-    background: rgba(239, 68, 68, 0.12) !important;
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
     border-radius: 6px !important;
 }
 

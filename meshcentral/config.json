@@ -18,7 +18,6 @@
   "domains": {
     "": {
       "title": "Giassi - Acesso Remoto",
-      "title2": "Controle Remoto de Estações de Trabalho",
       "ignoreAgentHashCheck": true,
       "allowedOrigin": true,
       "minify": true,
@@ -34,6 +33,7 @@
       "hideMeshCentral": false
     },
     "local": {
+      "siteStyle": 2,
       "title": "Giassi - Acesso Local (Admin)",
       "title2": "Autenticação Local de Contingência",
       "allowedOrigin": true,
