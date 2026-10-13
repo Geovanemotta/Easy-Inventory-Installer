@@ -118,6 +118,11 @@ fi
 PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
 
 echo " [*] Sincronizando endereço do servidor nos módulos de Acesso Remoto (${SERVER_HOST}:${PORT_MESHCENTRAL})..."
+if [ ! -f "meshcentral/config.json" ] && [ -f "meshcentral/config.json.example" ]; then
+    echo " [*] Inicializando meshcentral/config.json a partir do modelo de exemplo..."
+    cp "meshcentral/config.json.example" "meshcentral/config.json"
+fi
+
 if command -v python3 &>/dev/null; then
     python3 meshcentral/configure_host.py "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
 elif command -v node &>/dev/null; then

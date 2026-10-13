@@ -47,3 +47,7 @@ Thumbs.db
 # Firewall audit reports
 firewall_report.txt
 firewall_captured_domains.log
+
+# MeshCentral sensitive configs
+meshcentral/config.json
+
