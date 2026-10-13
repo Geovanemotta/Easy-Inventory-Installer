@@ -1,7 +1,7 @@
 {
   "$schema": "https://meshcentral.com/schemas/config.json",
   "settings": {
-    "cert": "localhost",
+    "cert": "inventario.giassi.com.br,localhost,127.0.0.1",
     "port": 4430,
     "aliasPort": 4443,
     "redirPort": 8086,
@@ -71,7 +71,7 @@
       "title2": "Autenticação Local de Contingência",
       "allowedOrigin": true,
       "minify": true,
-      "newAccounts": false,
+      "newAccounts": true,
       "userNameIsEmail": false
     }
   }

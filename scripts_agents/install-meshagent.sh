@@ -5,7 +5,7 @@
 
 set -e
 
-SERVER_HOST="${SERVER_HOST:-localhost}"
+SERVER_HOST="${SERVER_HOST:-inventario.giassi.com.br}"
 SERVER_PORT="${SERVER_PORT:-4443}"
 MESH_ID="${MESH_ID:-@oLaTf\$n@RpilBaLgcYNw@0pLz2dR\$TQotm4DXxNwG7Di9sbsSW6hWN6KS9mwvZ4}"
 

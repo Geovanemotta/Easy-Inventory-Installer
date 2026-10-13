@@ -48,10 +48,8 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
         if "" in domains:
             domains[""]["ignoreAgentHashCheck"] = True
             domains[""].pop("certUrl", None)
-            if not is_loopback:
-                domains[""]["dns"] = server_host
-            else:
-                domains[""].pop("dns", None)
+            # No MeshCentral, o dominio default "" NUNCA pode ter o campo "dns"
+            domains[""].pop("dns", None)
 
             # Garante que criacao de contas locais esteja ativa caso nao haja LDAP
             if "auth" not in domains[""]:
@@ -59,10 +57,7 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
 
         if "local" in domains:
             domains["local"].pop("certUrl", None)
-            if not is_loopback:
-                domains["local"]["dns"] = server_host
-            else:
-                domains["local"].pop("dns", None)
+            domains["local"].pop("dns", None)
             domains["local"]["newAccounts"] = True
 
         with open(cfg_file, "w", encoding="utf-8") as f:

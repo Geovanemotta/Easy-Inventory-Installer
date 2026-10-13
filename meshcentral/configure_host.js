@@ -36,11 +36,7 @@ function updateMeshConfig() {
     if (!data.domains) data.domains = {};
     if (data.domains['']) {
       delete data.domains[''].certUrl;
-      if (!isLoopback) {
-        data.domains[''].dns = serverHost;
-      } else {
-        delete data.domains[''].dns;
-      }
+      delete data.domains[''].dns;
       data.domains[''].ignoreAgentHashCheck = true;
       if (!data.domains[''].auth) {
         data.domains[''].newAccounts = true;
@@ -48,11 +44,7 @@ function updateMeshConfig() {
     }
     if (data.domains.local) {
       delete data.domains.local.certUrl;
-      if (!isLoopback) {
-        data.domains.local.dns = serverHost;
-      } else {
-        delete data.domains.local.dns;
-      }
+      delete data.domains.local.dns;
       data.domains.local.newAccounts = true;
     }
 

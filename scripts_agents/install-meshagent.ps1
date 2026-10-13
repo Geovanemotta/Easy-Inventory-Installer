@@ -9,7 +9,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$ServerHost = "localhost",
+    [string]$ServerHost = "inventario.giassi.com.br",
     [int]$ServerPort = 4443,
     [string]$MeshGroup = "Giassi"
 )
