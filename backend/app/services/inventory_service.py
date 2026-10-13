@@ -125,7 +125,18 @@ def identificar_site(
 
 
 
+IGNORED_HISTORY_FIELDS = {
+    "USUARIO",
+    "DOMINIO",
+    "RUSTDESK_ID",
+    "PERIFERICOS",
+}
+
+
 def registrar_drift(db: Session, device_id: int, campo: str, ant: Any, novo: Any):
+    if campo in IGNORED_HISTORY_FIELDS:
+        return
+
     s_ant = str(ant or "").strip()
     s_novo = str(novo or "").strip()
     if s_ant and s_novo and s_ant.lower() != s_novo.lower():
@@ -230,7 +241,10 @@ def upsert_device_from_payload(
             device.alerta_hardware = alerta_troca
             registrar_drift(db, device.id, "TROCA_MAC", device.mac, mac)
 
-        # 3. Registro de Hardware Drift e Mudanças do Sistema
+        # 3. Registro de Hardware Drift e Mudanças Críticas (CPU, RAM, Disco, Placa-Mãe, SO, IP e Hostname)
+        if device.hostname and hostname and device.hostname.lower() != hostname.lower():
+            registrar_drift(db, device.id, "HOSTNAME", device.hostname, hostname)
+
         registrar_drift(db, device.id, "MEMORIA_RAM", device.ram_total, dados.get("ram_total"))
         registrar_drift(db, device.id, "TIPO_RAM", device.ram_tipo, dados.get("ram_tipo"))
         registrar_drift(db, device.id, "PROCESSADOR", device.processador, dados.get("processador"))
@@ -247,9 +261,6 @@ def upsert_device_from_payload(
             registrar_drift(db, device.id, "SISTEMA_OPERACIONAL", old_os, new_os)
 
         registrar_drift(db, device.id, "ENDERECO_IP", device.ip, ip)
-        registrar_drift(db, device.id, "RUSTDESK_ID", device.rustdesk_id, dados.get("rustdesk_id"))
-        registrar_drift(db, device.id, "USUARIO", device.usuario, dados.get("usuario"))
-        registrar_drift(db, device.id, "DOMINIO", device.dominio, dados.get("dominio"))
 
         # Atualiza dispositivo existente
         if site:
@@ -429,11 +440,12 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
 
     devices = db.scalars(query.order_by(Device.hostname, Device.updated_at.desc())).all()
 
-    # Contagem de histórico por device de forma eficiente em lote
+    # Contagem de histórico por device de forma eficiente em lote (filtrando campos de ruído)
     try:
         history_counts = dict(
             db.execute(
                 select(DeviceHistory.device_id, func.count(DeviceHistory.id))
+                .where(DeviceHistory.campo.notin_(IGNORED_HISTORY_FIELDS))
                 .group_by(DeviceHistory.device_id)
             ).all()
         )

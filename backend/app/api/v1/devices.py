@@ -252,13 +252,22 @@ def list_devices(
         }
 
 
+IGNORED_HISTORY_FIELDS = {
+    "USUARIO",
+    "DOMINIO",
+    "RUSTDESK_ID",
+    "PERIFERICOS",
+}
+
+
 @router.get("/{device_id}/history")
 def get_device_history(
     device_id: int,
+    limit: int = Query(default=100, ge=1, le=500),
     current_user: User = Depends(get_current_user),
 ):
     """
-    Retorna o histórico completo de alterações (drift) de um dispositivo.
+    Retorna o histórico de alterações críticas (hardware, IP, hostname, patrimônio) de um dispositivo.
     """
     with Session(engine) as session:
         device = session.scalar(
@@ -272,8 +281,12 @@ def get_device_history(
 
         histories = session.scalars(
             select(DeviceHistory)
-            .where(DeviceHistory.device_id == device_id)
+            .where(
+                DeviceHistory.device_id == device_id,
+                DeviceHistory.campo.notin_(IGNORED_HISTORY_FIELDS),
+            )
             .order_by(DeviceHistory.data_alteracao.desc())
+            .limit(limit)
         ).all()
 
         return [

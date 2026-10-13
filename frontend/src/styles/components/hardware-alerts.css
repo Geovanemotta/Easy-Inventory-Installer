@@ -259,6 +259,41 @@
   color: #92400e;
 }
 
+.timeline-tag.tag-network {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.timeline-tag.tag-patrimonio {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.timeline-container {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.timeline-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timeline-container::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
 .timeline-date {
   color: #64748b;
   font-size: 11px;

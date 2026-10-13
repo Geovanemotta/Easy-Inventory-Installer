@@ -714,10 +714,18 @@ tbody tr.row.row-expanded {
 .detail-section > .details-grid,
 .detail-section > .detail-body,
 .detail-section > .perif-grid,
-.detail-section > .perif-empty,
-.detail-section > .timeline-container {
+.detail-section > .perif-empty {
   padding: 10px 12px;
   background: var(--surface);
+}
+
+.detail-section > .timeline-container {
+  padding: 12px 14px;
+  background: var(--surface);
+  max-height: 380px;
+  overflow-y: auto;
+  border-radius: 6px;
+  border: 1px solid var(--line, #e2e8f0);
 }
 
 .detail-section > .firewall-homolog-card {

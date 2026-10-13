@@ -1958,8 +1958,11 @@ export default function InventoryPage({
 
                                 {/* Change History Timeline */}
                                 <details className="detail-section">
-                                  <summary className="detail-sec">
-                                    <span>Histórico de Alterações / Linha do Tempo</span>
+                                  <summary className="detail-sec" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+                                    <span>
+                                      Histórico de Alterações / Linha do Tempo
+                                      {historicoMap[i.id!] ? ` (${(historicoMap[i.id!] || []).filter(h => !['USUARIO', 'DOMINIO', 'RUSTDESK_ID', 'PERIFERICOS'].includes(h.campo)).length})` : ''}
+                                    </span>
                                   </summary>
                                   <div className="timeline-container">
                                     {loadingHistorico[i.id!] ? (
@@ -1967,11 +1970,14 @@ export default function InventoryPage({
                                         <span>Carregando histórico de alterações...</span>
                                       </div>
                                     ) : (() => {
-                                      const hList = historicoMap[i.id!] || []
+                                      const rawList = historicoMap[i.id!] || []
+                                      const hList = rawList.filter(
+                                        (h) => !['USUARIO', 'DOMINIO', 'RUSTDESK_ID', 'PERIFERICOS'].includes(h.campo)
+                                      )
                                       if (hList.length === 0) {
                                         return (
                                           <div className="timeline-empty">
-                                            Nenhuma alteração registrada até o momento nesta máquina.
+                                            Nenhuma alteração de hardware, rede ou patrimônio registrada até o momento nesta máquina.
                                           </div>
                                         )
                                       }
@@ -1986,24 +1992,30 @@ export default function InventoryPage({
                                                 ? 'tag-ram'
                                                 : h.campo.includes('DISCO')
                                                   ? 'tag-disk'
-                                                  : ''
+                                                  : h.campo.includes('IP') || h.campo.includes('HOSTNAME')
+                                                    ? 'tag-network'
+                                                    : h.campo.includes('PATRIMONIO')
+                                                      ? 'tag-patrimonio'
+                                                      : ''
 
                                             let campoLabel = h.campo
                                             if (campoLabel === 'ALERTA_CONFLITO_MAC') campoLabel = '🚨 CONFLITO DE MAC'
                                             else if (campoLabel === 'TROCA_MAC') campoLabel = '⚠️ TROCA DE MAC'
                                             else if (campoLabel === 'ALERTA_RESOLVIDO') campoLabel = '✅ ALERTA RESOLVIDO'
-                                            else if (campoLabel === 'RAM_TOTAL') campoLabel = 'MEMÓRIA RAM'
-                                            else if (campoLabel === 'RAM_TIPO') campoLabel = 'TIPO DE RAM'
-                                            else if (campoLabel === 'CPU_MODELO') campoLabel = 'PROCESSADOR'
+                                            else if (campoLabel === 'RAM_TOTAL' || campoLabel === 'MEMORIA_RAM') campoLabel = 'MEMÓRIA RAM'
+                                            else if (campoLabel === 'RAM_TIPO' || campoLabel === 'TIPO_RAM') campoLabel = 'TIPO DE RAM'
+                                            else if (campoLabel === 'CPU_MODELO' || campoLabel === 'PROCESSADOR') campoLabel = 'PROCESSADOR'
                                             else if (campoLabel === 'DISCO_MODELO') campoLabel = 'MODELO DO DISCO'
                                             else if (campoLabel === 'DISCO_TOTAL') campoLabel = 'CAPACIDADE DO DISCO'
                                             else if (campoLabel === 'PLACA_MAE') campoLabel = 'PLACA MÃE'
                                             else if (campoLabel === 'SISTEMA_OPERACIONAL') campoLabel = 'SISTEMA OPERACIONAL'
                                             else if (campoLabel === 'BUILD') campoLabel = 'BUILD DO SO'
-                                            else if (campoLabel === 'IP') campoLabel = 'ENDEREÇO IP'
-                                            else if (campoLabel === 'RUSTDESK_ID') campoLabel = 'RUSTDESK ID'
-                                            else if (campoLabel === 'USUARIO') campoLabel = 'USUÁRIO'
-                                            else if (campoLabel === 'DOMINIO') campoLabel = 'DOMÍNIO'
+                                            else if (campoLabel === 'IP' || campoLabel === 'ENDERECO_IP') campoLabel = '🌐 ENDEREÇO IP'
+                                            else if (campoLabel === 'HOSTNAME') campoLabel = '🖥️ HOSTNAME'
+                                            else if (campoLabel === 'PATRIMONIO') campoLabel = '🏷️ PATRIMÔNIO'
+                                            else if (campoLabel === 'FIREWALL_STATUS') campoLabel = '🛡️ HOMOLOGAÇÃO FIREWALL'
+                                            else if (campoLabel === 'FIREWALL_SOLICITADO') campoLabel = '🛡️ SOLICITAÇÃO FIREWALL'
+                                            else if (campoLabel === 'PRIMEIRO_REGISTRO') campoLabel = '✨ PRIMEIRO REGISTRO'
 
                                             return (
                                               <div
