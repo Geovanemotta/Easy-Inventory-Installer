@@ -120,6 +120,9 @@ const ICONS = {
   ac: 'M12 2v20 M4.9 7l14.2 10 M4.9 17L19.1 7',
   belt: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9l2.1 2.1 M17 17l2.1 2.1 M4.9 19.1L7 17 M17 7l2.1-2.1',
   other: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20',
+  windows: 'M3 5.5L10.5 4.5V11.5H3V5.5ZM11.5 4.3L21 3V11.5H11.5V4.3ZM3 12.5H10.5V19.5L3 18.5V12.5ZM11.5 12.5H21V21L11.5 19.7V12.5Z',
+  linux: 'M12 2C9.5 2 8 4 8 6C8 7.5 7.5 9 6.5 10C5.5 11 5 12.5 5 14C5 17.5 8 21 12 21C16 21 19 17.5 19 14C19 12.5 18.5 11 17.5 10C16.5 9 16 7.5 16 6C16 4 14.5 2 12 2Z',
+  lock: 'M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-12 0V7a5 5 0 0 1 10 0v4',
 } as const
 
 function Icon({ name, size = 16, className = '' }: { name: keyof typeof ICONS; size?: number; className?: string }) {
@@ -271,6 +274,8 @@ export default function NetworkAssetsPage({
   // Modais
   const [modalFormAberto, setModalFormAberto] = useState(false)
   const [assetEditando, setAssetEditando] = useState<NetworkAsset | null>(null)
+  const [origemIpLivre, setOrigemIpLivre] = useState(false)
+  const [formFaixaOrigem, setFormFaixaOrigem] = useState<string | null>(null)
   const [formSalvarCarregando, setFormSalvarCarregando] = useState(false)
 
   // Modal Confirmação Varredura em Lote
@@ -596,6 +601,8 @@ export default function NetworkAssetsPage({
   /* ---------------- Formulário Ativo ---------------- */
   function abrirModalCriar() {
     setAssetEditando(null)
+    setOrigemIpLivre(false)
+    setFormFaixaOrigem(null)
     setFormNome('')
     setFormTipo('IMPRESSORA')
     setFormSiteId(filtroSite !== 'todos' && filtroSite !== 'sem' ? filtroSite : sites.length > 0 ? String(sites[0].id) : '')
@@ -610,14 +617,19 @@ export default function NetworkAssetsPage({
     setModalFormAberto(true)
   }
 
-  function abrirModalCriarComIp(ip: string, siteId?: number | null) {
+  function abrirModalCriarComIp(ip: string, siteId?: number | null, faixaNome?: string | null, localizacaoSugestao?: string | null) {
     abrirModalCriar()
     setFormIp(ip)
     if (siteId) setFormSiteId(String(siteId))
+    setOrigemIpLivre(true)
+    if (faixaNome) setFormFaixaOrigem(faixaNome)
+    if (localizacaoSugestao) setFormLocalizacao(localizacaoSugestao)
   }
 
   function abrirModalEditar(a: NetworkAsset) {
     setAssetEditando(a)
+    setOrigemIpLivre(false)
+    setFormFaixaOrigem(null)
     setFormNome(a.nome)
     setFormTipo(a.tipo || 'IMPRESSORA')
     setFormSiteId(a.site_id ? String(a.site_id) : '')
@@ -636,7 +648,7 @@ export default function NetworkAssetsPage({
   const ipDigitado = formIp.trim()
   const ipFormatoSuspeito = ipDigitado !== '' && !ipValido(ipDigitado)
   const ipDuplicado = ipDigitado
-    ? assets.find((x) => x.ip === ipDigitado && x.id !== assetEditando?.id)
+    ? assets.find((x) => x.origem !== 'livre' && x.origem !== 'estacao' && x.ip === ipDigitado && x.id !== assetEditando?.id)
     : undefined
   const estacaoConflitante = ipDigitado
     ? assets.find((x) => x.origem === 'estacao' && x.ip === ipDigitado)
@@ -1416,13 +1428,14 @@ export default function NetworkAssetsPage({
                       </th>
                     )}
                     {thSort('status', 'Conexão', { width: 140 })}
+                    {thSort('ip', 'Endereço IP', { width: 145 })}
+                    {thSort('tipo', 'Tipo', { width: 140 })}
                     {thSort('nome', 'Equipamento')}
-                    {thSort('tipo', 'Tipo')}
-                    {thSort('filial', 'Localização / filial')}
-                    {thSort('ip', 'Endereço IP')}
-                    <th>MAC</th>
-                    {thSort('patrimonio', 'Patrimônio')}
-                    {canManage && <th style={{ width: 120, textAlign: 'right' }}>Ações</th>}
+                    {thSort('filial', 'Localização / Filial')}
+                    {thSort('patrimonio', 'Patrimônio', { width: 125 })}
+                    <th style={{ width: 155 }}>MAC</th>
+                    <th style={{ width: 150 }}>Faixa / VLAN</th>
+                    {canManage && <th style={{ width: 110, textAlign: 'right' }}>Ações</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -1491,61 +1504,6 @@ export default function NetworkAssetsPage({
                           </td>
 
                           <td>
-                            <div className="na-name">
-                              {isLivre ? (
-                                <>
-                                  <strong className="na-livre-name">(Disponível)</strong>
-                                  <span className="na-livre-sub">Faixa: {a.faixa_nome || a.localizacao}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <strong>{a.nome}</strong>
-                                  {isEstacao && (
-                                    <span className="na-tag-estacao" title="Equipamento integrado a partir do inventário de estações">
-                                      <Icon name="pc" size={11} /> Estação de Trabalho
-                                    </span>
-                                  )}
-                                  {sub && <span className="na-model">{sub}</span>}
-                                  {a.observacoes && (
-                                    <span className="na-obs" title={a.observacoes}>
-                                      <Icon name="note" size={11} /> {a.observacoes.split('\n')[0]}
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </td>
-
-                          <td>
-                            {isLivre ? (
-                              <span className="na-tipo t-livre"><Icon name="check" size={12} /> Disponível</span>
-                            ) : (
-                              <TipoPill tipo={a.tipo} />
-                            )}
-                          </td>
-
-                          <td>
-                            <div className="na-local">
-                              {a.localizacao && !isLivre && (
-                                <span><Icon name="pin" size={12} /> <b>{a.localizacao}</b></span>
-                              )}
-                              {a.site_codigo || a.site_nome ? (
-                                <span className={`na-filial k-${siteKind(a.site_codigo || '')}`}>
-                                  <Icon name="store" size={12} />
-                                  {a.site_codigo ? `${a.site_codigo} - ` : ''}{a.site_nome || ''}
-                                </span>
-                              ) : !a.localizacao ? (
-                                <span className="na-muted">—</span>
-                              ) : null}
-                              {a.faixa_nome && !isLivre && (
-                                <span className="na-tag-faixa" title={`Pertence à faixa: ${a.faixa_nome}`}>
-                                  <Icon name="switch" size={10} /> {a.faixa_nome}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-
-                          <td>
                             {a.ip ? (
                               <div className="na-copywrap">
                                 <button className="na-copy mono" onClick={() => copiarTexto(a.ip!, 'IP copiado!')} title="Clique para copiar o IP">
@@ -1563,13 +1521,55 @@ export default function NetworkAssetsPage({
                           </td>
 
                           <td>
-                            {a.mac ? (
-                              <button className="na-copy mono" onClick={() => copiarTexto(a.mac!, 'MAC copiado!')} title="Clique para copiar o MAC">
-                                {a.mac}<Icon name="copy" size={12} />
-                              </button>
+                            {isLivre ? (
+                              <span className="na-tipo t-livre"><Icon name="check" size={12} /> Disponível</span>
                             ) : (
-                              <span className="na-muted">—</span>
+                              <TipoPill tipo={a.tipo} />
                             )}
+                          </td>
+
+                          <td>
+                            <div className="na-name">
+                              {isLivre ? (
+                                <strong className="na-livre-name">(Disponível)</strong>
+                              ) : isEstacao ? (
+                                <>
+                                  <strong>{a.nome}</strong>
+                                  {a.sistema_operacional && (
+                                    <span className="na-tag-so" title={`Sistema Operacional: ${a.sistema_operacional}`}>
+                                      <Icon name={/windows/i.test(a.sistema_operacional) ? 'windows' : 'linux'} size={11} />
+                                      {a.sistema_operacional}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <strong>{a.nome}</strong>
+                                  {sub && <span className="na-model">{sub}</span>}
+                                  {a.observacoes && (
+                                    <span className="na-obs" title={a.observacoes}>
+                                      <Icon name="note" size={11} /> {a.observacoes.split('\n')[0]}
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </td>
+
+                          <td>
+                            <div className="na-local">
+                              {a.localizacao && !isLivre && (
+                                <span><Icon name="pin" size={12} /> <b>{a.localizacao}</b></span>
+                              )}
+                              {a.site_codigo || a.site_nome ? (
+                                <span className={`na-filial k-${siteKind(a.site_codigo || '')}`}>
+                                  <Icon name="store" size={12} />
+                                  {a.site_codigo ? `${a.site_codigo} - ` : ''}{a.site_nome || ''}
+                                </span>
+                              ) : !a.localizacao ? (
+                                <span className="na-muted">—</span>
+                              ) : null}
+                            </div>
                           </td>
 
                           <td>
@@ -1582,13 +1582,33 @@ export default function NetworkAssetsPage({
                             )}
                           </td>
 
+                          <td>
+                            {a.mac ? (
+                              <button className="na-copy mono" onClick={() => copiarTexto(a.mac!, 'MAC copiado!')} title="Clique para copiar o MAC">
+                                {a.mac}<Icon name="copy" size={12} />
+                              </button>
+                            ) : (
+                              <span className="na-muted">—</span>
+                            )}
+                          </td>
+
+                          <td>
+                            {a.faixa_nome ? (
+                              <span className="na-tag-vlan" title={`Faixa de IP / VLAN: ${a.faixa_nome}`}>
+                                <Icon name="switch" size={11} /> {a.faixa_nome}
+                              </span>
+                            ) : (
+                              <span className="na-muted">—</span>
+                            )}
+                          </td>
+
                           {canManage && (
                             <td style={{ textAlign: 'right' }}>
                               {isLivre ? (
                                 <button
                                   type="button"
                                   className="btn sm primary na-use-ip-btn"
-                                  onClick={() => abrirModalCriarComIp(a.ip!, a.site_id)}
+                                  onClick={() => abrirModalCriarComIp(a.ip!, a.site_id, a.faixa_nome, a.site_codigo ? `${a.site_codigo} - ${a.site_nome || ''}` : a.localizacao)}
                                   title="Cadastrar ativo de rede usando este endereço IP"
                                 >
                                   + Usar IP
@@ -1602,6 +1622,7 @@ export default function NetworkAssetsPage({
                                   <button
                                     className="na-icon-btn"
                                     onClick={() => duplicarInline(a)}
+                                    disabled={Boolean(inlineDraft)}
                                     title="Duplicar ativo (cria cópia abaixo para edição direta)"
                                     aria-label={`Duplicar ${a.nome}`}
                                   >
@@ -1634,6 +1655,32 @@ export default function NetworkAssetsPage({
                             </td>
 
                             <td>
+                              <input
+                                type="text"
+                                className="na-inline-input mono"
+                                placeholder="192.168.x.x"
+                                value={inlineDraft.ip}
+                                onChange={(e) => setInlineDraft({ ...inlineDraft, ip: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSalvarInline()
+                                  if (e.key === 'Escape') setInlineDraft(null)
+                                }}
+                              />
+                            </td>
+
+                            <td>
+                              <select
+                                className="na-inline-select"
+                                value={inlineDraft.tipo}
+                                onChange={(e) => setInlineDraft({ ...inlineDraft, tipo: e.target.value })}
+                              >
+                                {TIPOS_PREDEFINIDOS.map((t) => (
+                                  <option key={t} value={t}>{t}</option>
+                                ))}
+                              </select>
+                            </td>
+
+                            <td>
                               <div className="na-inline-field">
                                 <input
                                   type="text"
@@ -1648,18 +1695,6 @@ export default function NetworkAssetsPage({
                                   }}
                                 />
                               </div>
-                            </td>
-
-                            <td>
-                              <select
-                                className="na-inline-select"
-                                value={inlineDraft.tipo}
-                                onChange={(e) => setInlineDraft({ ...inlineDraft, tipo: e.target.value })}
-                              >
-                                {TIPOS_PREDEFINIDOS.map((t) => (
-                                  <option key={t} value={t}>{t}</option>
-                                ))}
-                              </select>
                             </td>
 
                             <td>
@@ -1692,10 +1727,10 @@ export default function NetworkAssetsPage({
                             <td>
                               <input
                                 type="text"
-                                className="na-inline-input mono"
-                                placeholder="192.168.x.x"
-                                value={inlineDraft.ip}
-                                onChange={(e) => setInlineDraft({ ...inlineDraft, ip: e.target.value })}
+                                className="na-inline-input"
+                                placeholder="Nº Patrimônio"
+                                value={inlineDraft.patrimonio}
+                                onChange={(e) => setInlineDraft({ ...inlineDraft, patrimonio: e.target.value })}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') handleSalvarInline()
                                   if (e.key === 'Escape') setInlineDraft(null)
@@ -1718,17 +1753,7 @@ export default function NetworkAssetsPage({
                             </td>
 
                             <td>
-                              <input
-                                type="text"
-                                className="na-inline-input"
-                                placeholder="Nº Patrimônio"
-                                value={inlineDraft.patrimonio}
-                                onChange={(e) => setInlineDraft({ ...inlineDraft, patrimonio: e.target.value })}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleSalvarInline()
-                                  if (e.key === 'Escape') setInlineDraft(null)
-                                }}
-                              />
+                              <span className="na-muted">—</span>
                             </td>
 
                             <td style={{ textAlign: 'right' }}>
@@ -1823,9 +1848,16 @@ export default function NetworkAssetsPage({
       {modalFormAberto && (
         <Modal onClose={() => !formSalvarCarregando && setModalFormAberto(false)}>
           <div className="na-modal-head">
-            <h2>{assetEditando ? 'Editar ativo de rede' : 'Novo ativo de rede'}</h2>
+            <h2>{assetEditando ? 'Editar ativo de rede' : origemIpLivre ? 'Cadastrar ativo no IP reservado' : 'Novo ativo de rede'}</h2>
             <button className="na-icon-btn" onClick={() => setModalFormAberto(false)} aria-label="Fechar"><Icon name="x" /></button>
           </div>
+
+          {origemIpLivre && (
+            <div className="na-modal-badge-livre">
+              <Icon name="check" size={14} />
+              <span>Atribuindo IP livre: <b>{formIp}</b>{formFaixaOrigem ? ` • Faixa: ${formFaixaOrigem}` : ''}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSalvarForm} className="na-form">
             <fieldset>
@@ -1854,14 +1886,32 @@ export default function NetworkAssetsPage({
               <div className="na-grid g2">
                 <div className="field">
                   <label>Loja / filial vinculada</label>
-                  <select value={formSiteId} onChange={(e) => setFormSiteId(e.target.value)}>
+                  <select
+                    value={formSiteId}
+                    onChange={(e) => setFormSiteId(e.target.value)}
+                    disabled={origemIpLivre}
+                    className={origemIpLivre ? 'na-input-locked' : ''}
+                  >
                     <option value="">(Sem filial vinculada)</option>
                     {sites.map((s) => <option key={s.id} value={s.id}>{s.code} - {s.name}</option>)}
                   </select>
+                  {origemIpLivre && (
+                    <small className="na-fhint locked"><Icon name="lock" size={12} /> Filial vinculada à faixa da rede.</small>
+                  )}
                 </div>
                 <div className="field">
                   <label>Localização / código (ex: LJ01, CPD)</label>
-                  <input type="text" placeholder="Ex: LJ01, Caixa 01, CPD..." value={formLocalizacao} onChange={(e) => setFormLocalizacao(e.target.value)} />
+                  <input
+                    type="text"
+                    placeholder="Ex: LJ01, Caixa 01, CPD..."
+                    value={formLocalizacao}
+                    onChange={(e) => setFormLocalizacao(e.target.value)}
+                    readOnly={origemIpLivre}
+                    className={origemIpLivre ? 'na-input-locked' : ''}
+                  />
+                  {origemIpLivre && (
+                    <small className="na-fhint locked"><Icon name="lock" size={12} /> Localização fixada pela loja da faixa.</small>
+                  )}
                 </div>
               </div>
             </fieldset>
@@ -1871,7 +1921,17 @@ export default function NetworkAssetsPage({
               <div className="na-grid g2">
                 <div className="field">
                   <label>Endereço IPv4</label>
-                  <input type="text" className="mono" placeholder="Ex: 192.168.4.5" value={formIp} onChange={(e) => setFormIp(e.target.value)} />
+                  <input
+                    type="text"
+                    className={`mono ${origemIpLivre ? 'na-input-locked' : ''}`}
+                    placeholder="Ex: 192.168.4.5"
+                    value={formIp}
+                    onChange={(e) => setFormIp(e.target.value)}
+                    readOnly={origemIpLivre}
+                  />
+                  {origemIpLivre && (
+                    <small className="na-fhint locked"><Icon name="lock" size={12} /> IP reservado e fixado a partir da faixa.</small>
+                  )}
                   {ipFormatoSuspeito && <small className="na-fhint warn"><Icon name="alert" size={12} /> Formato de IP incomum. Confira antes de salvar.</small>}
                   {ipDuplicado && <small className="na-fhint warn"><Icon name="alert" size={12} /> Este IP já está em uso por “{ipDuplicado.nome}”.</small>}
                   {estacaoConflitante && (

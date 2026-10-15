@@ -46,6 +46,7 @@ class NetworkAssetOut(NetworkAssetBase):
     origem: str = "manual"
     device_id: Optional[int] = None
     faixa_nome: Optional[str] = None
+    sistema_operacional: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

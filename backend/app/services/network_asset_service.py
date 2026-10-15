@@ -41,6 +41,42 @@ def normalizar_mac(m: Optional[str]) -> Optional[str]:
     return bruto.replace("-", ":")
 
 
+def formatar_so_estacao(sistema: Optional[str], versao: Optional[str]) -> Optional[str]:
+    combined = f"{sistema or ''} {versao or ''}".strip()
+    if not combined:
+        return None
+    c_lower = combined.lower()
+    if "windows 11" in c_lower or "win 11" in c_lower:
+        return "Windows 11"
+    if "windows 10" in c_lower or "win 10" in c_lower:
+        return "Windows 10"
+    if "windows 7" in c_lower or "win 7" in c_lower:
+        return "Windows 7"
+    if "windows server" in c_lower:
+        return "Windows Server"
+    if "windows" in c_lower:
+        return "Windows"
+    if "zorin" in c_lower:
+        return "Linux Zorin"
+    if "kubuntu" in c_lower:
+        return "Linux Kubuntu"
+    if "ubuntu" in c_lower:
+        return "Linux Ubuntu"
+    if "mint" in c_lower:
+        return "Linux Mint"
+    if "debian" in c_lower:
+        return "Linux Debian"
+    if "fedora" in c_lower:
+        return "Linux Fedora"
+    if "centos" in c_lower:
+        return "Linux CentOS"
+    if "red hat" in c_lower or "rhel" in c_lower:
+        return "Linux Red Hat"
+    if "linux" in c_lower:
+        return "Linux"
+    return combined[:30]
+
+
 def obter_sites_permitidos(db: Session, current_user: User) -> Optional[List[int]]:
     if current_user.is_superadmin:
         return None
@@ -167,7 +203,7 @@ def listar_network_assets(
         clean_ip = d.ip.strip() if d.ip else None
         site_nome = d.site.name if d.site else None
         site_codigo = d.site.code if d.site else None
-        obs = f"Estação de Trabalho ({d.sistema or ''} {d.versao or ''})".strip()
+        so_formatado = formatar_so_estacao(d.sistema, d.versao)
         dev_item = NetworkAssetOut(
             id=None,
             company_id=d.company_id,
@@ -179,17 +215,18 @@ def listar_network_assets(
             ip=clean_ip,
             mac=d.mac,
             patrimonio=d.patrimonio,
-            fabricante=d.fabricante,
-            modelo=d.modelo,
-            numero_serie=d.serial,
-            localizacao=(site_nome or d.loja) or "Estação",
+            fabricante=None,  # Evita poluir com fabricante da placa-mãe
+            modelo=None,      # Evita poluir com modelo da placa-mãe
+            numero_serie=None,
+            localizacao=site_nome or d.loja or "Estação",
             status_online=(d.status == "online") if d.status else None,
             ultimo_ping=d.data_coleta,
             tempo_resposta_ms=None,
-            observacoes=obs if obs != "Estação de Trabalho ()" else "Estação de Trabalho",
+            observacoes=None,  # Sem observações duplicadas
             origem="estacao",
             device_id=d.id,
             faixa_nome=get_faixa_nome(clean_ip),
+            sistema_operacional=so_formatado,
             created_at=d.created_at,
             updated_at=d.updated_at,
         )

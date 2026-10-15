@@ -948,6 +948,7 @@ export type NetworkAsset = {
   origem: 'manual' | 'planilha' | 'estacao' | 'livre' | string
   device_id?: number | null
   faixa_nome?: string | null
+  sistema_operacional?: string | null
   created_at: string
   updated_at: string
 }
