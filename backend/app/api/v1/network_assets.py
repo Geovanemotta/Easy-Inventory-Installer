@@ -14,15 +14,23 @@ from app.schemas.network_asset import (
     NetworkAssetUpdate,
     PingResultOut,
     ScanBatchIn,
+    SiteIpRangeCreate,
+    SiteIpRangeOut,
+    SiteIpRangeUpdate,
 )
 from app.services.network_asset_service import (
+    atualizar_ip_range,
     atualizar_network_asset,
+    criar_ip_range,
     criar_network_asset,
+    excluir_ip_range,
     excluir_network_asset,
     excluir_network_assets_lote,
     gerar_csv_modelo,
+    listar_ip_ranges,
     listar_network_assets,
     ping_asset_by_id,
+    ping_direct,
     processar_csv_importacao,
     scan_assets_batch,
 )
@@ -33,13 +41,27 @@ router = APIRouter(
 )
 
 
+def check_admin_write_permission(user: User):
+    if user.is_superadmin:
+        return
+    role_slugs = [r.slug for r in user.roles] if user.roles else []
+    if "admin" in role_slugs:
+        return
+    raise HTTPException(
+        status_code=403,
+        detail="Apenas administradores possuem permissão para criar, alterar ou excluir ativos e faixas de rede.",
+    )
+
+
 @router.get("", response_model=List[NetworkAssetOut])
 @router.get("/", response_model=List[NetworkAssetOut])
 def get_assets(
     site_id: Optional[int] = Query(default=None, description="Filtra por loja/filial"),
-    tipo: Optional[str] = Query(default=None, description="Filtra por tipo (Impressora, Switch, Roteador, AP, etc.)"),
+    tipo: Optional[str] = Query(default=None, description="Filtra por tipo (Impressora, Switch, Estação, etc.)"),
     status_online: Optional[bool] = Query(default=None, description="Filtra por status de conexão"),
     search: Optional[str] = Query(default=None, description="Busca por nome, IP, MAC, patrimônio, modelo"),
+    filtro_ocupacao: Optional[str] = Query(default=None, description="Filtra por ocupação (todos, ocupados, livres, estacoes, ativos)"),
+    faixa_id: Optional[int] = Query(default=None, description="Filtra por ID de faixa de IP específica"),
     current_user: User = Depends(get_current_user),
 ):
     with Session(engine) as session:
@@ -50,70 +72,88 @@ def get_assets(
             tipo=tipo,
             status_online=status_online,
             search=search,
+            filtro_ocupacao=filtro_ocupacao,
+            faixa_id=faixa_id,
         )
 
 
-def check_admin_write_permission(user: User):
-    if user.is_superadmin:
-        return
-    role_slugs = [r.slug for r in user.roles] if user.roles else []
-    if "admin" in role_slugs:
-        return
-    raise HTTPException(
-        status_code=403,
-        detail="Apenas administradores possuem permissão para criar, alterar ou excluir ativos de rede.",
-    )
+# ==============================================================================
+# FAIXAS DE IP (IPAM / SUBNETS / VLANS)
+# ==============================================================================
+
+@router.get("/ranges", response_model=List[SiteIpRangeOut])
+def get_ip_ranges(
+    site_id: Optional[int] = Query(default=None, description="Filtra faixas por loja/filial"),
+    current_user: User = Depends(get_current_user),
+):
+    with Session(engine) as session:
+        return listar_ip_ranges(
+            db=session,
+            current_user=current_user,
+            site_id=site_id,
+        )
 
 
-@router.post("", response_model=NetworkAssetOut)
-@router.post("/", response_model=NetworkAssetOut)
-def create_asset(
-    data: NetworkAssetCreate,
+@router.post("/ranges", response_model=SiteIpRangeOut)
+def create_ip_range_route(
+    data: SiteIpRangeCreate,
     current_user: User = Depends(get_current_user),
 ):
     check_admin_write_permission(current_user)
     with Session(engine) as session:
-        return criar_network_asset(
+        return criar_ip_range(
             db=session,
             current_user=current_user,
             data=data,
         )
 
 
-@router.put("/{asset_id}", response_model=NetworkAssetOut)
-def update_asset(
-    asset_id: int,
-    data: NetworkAssetUpdate,
+@router.put("/ranges/{range_id}", response_model=SiteIpRangeOut)
+def update_ip_range_route(
+    range_id: int,
+    data: SiteIpRangeUpdate,
     current_user: User = Depends(get_current_user),
 ):
     check_admin_write_permission(current_user)
     with Session(engine) as session:
-        res = atualizar_network_asset(
+        res = atualizar_ip_range(
             db=session,
             current_user=current_user,
-            asset_id=asset_id,
+            range_id=range_id,
             data=data,
         )
         if not res:
-            raise HTTPException(status_code=404, detail="Ativo de rede não encontrado")
+            raise HTTPException(status_code=404, detail="Faixa de IP não encontrada.")
         return res
 
 
-@router.delete("/{asset_id}")
-def delete_asset(
-    asset_id: int,
+@router.delete("/ranges/{range_id}")
+def delete_ip_range_route(
+    range_id: int,
     current_user: User = Depends(get_current_user),
 ):
     check_admin_write_permission(current_user)
     with Session(engine) as session:
-        ok = excluir_network_asset(
+        ok = excluir_ip_range(
             db=session,
             current_user=current_user,
-            asset_id=asset_id,
+            range_id=range_id,
         )
         if not ok:
-            raise HTTPException(status_code=404, detail="Ativo de rede não encontrado")
-        return {"success": True, "message": "Ativo excluído com sucesso"}
+            raise HTTPException(status_code=404, detail="Faixa de IP não encontrada.")
+        return {"success": True, "message": "Faixa de IP excluída com sucesso."}
+
+
+# ==============================================================================
+# OPERAÇÕES ESPECIAIS (PING, IMPORTAÇÃO, LOTE)
+# ==============================================================================
+
+@router.post("/ping-ip", response_model=PingResultOut)
+async def ping_direct_ip_route(
+    ip: str = Query(..., min_length=7, description="Endereço IP para teste de conectividade"),
+    current_user: User = Depends(get_current_user),
+):
+    return await ping_direct(ip)
 
 
 @router.post("/bulk-delete")
@@ -129,25 +169,6 @@ def bulk_delete_assets(
             ids=payload.ids,
         )
         return {"success": True, "removidos": removidos}
-
-
-@router.post("/{asset_id}/ping", response_model=PingResultOut)
-async def ping_asset(
-    asset_id: int,
-    current_user: User = Depends(get_current_user),
-):
-    with Session(engine) as session:
-        res = await ping_asset_by_id(
-            db=session,
-            current_user=current_user,
-            asset_id=asset_id,
-        )
-        if not res:
-            raise HTTPException(
-                status_code=404,
-                detail="Ativo de rede não encontrado ou sem endereço IP cadastrado",
-            )
-        return res
 
 
 @router.post("/scan-batch", response_model=List[PingResultOut])
@@ -202,3 +223,78 @@ def download_template():
             "Access-Control-Expose-Headers": "Content-Disposition",
         },
     )
+
+
+# ==============================================================================
+# CRUD ATIVOS DE REDE INDIVIDUAIS
+# ==============================================================================
+
+@router.post("", response_model=NetworkAssetOut)
+@router.post("/", response_model=NetworkAssetOut)
+def create_asset(
+    data: NetworkAssetCreate,
+    current_user: User = Depends(get_current_user),
+):
+    check_admin_write_permission(current_user)
+    with Session(engine) as session:
+        return criar_network_asset(
+            db=session,
+            current_user=current_user,
+            data=data,
+        )
+
+
+@router.put("/{asset_id}", response_model=NetworkAssetOut)
+def update_asset(
+    asset_id: int,
+    data: NetworkAssetUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    check_admin_write_permission(current_user)
+    with Session(engine) as session:
+        res = atualizar_network_asset(
+            db=session,
+            current_user=current_user,
+            asset_id=asset_id,
+            data=data,
+        )
+        if not res:
+            raise HTTPException(status_code=404, detail="Ativo de rede não encontrado")
+        return res
+
+
+@router.delete("/{asset_id}")
+def delete_asset(
+    asset_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    check_admin_write_permission(current_user)
+    with Session(engine) as session:
+        ok = excluir_network_asset(
+            db=session,
+            current_user=current_user,
+            asset_id=asset_id,
+        )
+        if not ok:
+            raise HTTPException(status_code=404, detail="Ativo de rede não encontrado")
+        return {"success": True, "message": "Ativo excluído com sucesso"}
+
+
+@router.post("/{asset_id}/ping", response_model=PingResultOut)
+async def ping_asset(
+    asset_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    with Session(engine) as session:
+        res = await ping_asset_by_id(
+            db=session,
+            current_user=current_user,
+            asset_id=asset_id,
+        )
+        if not res:
+            raise HTTPException(
+                status_code=404,
+                detail="Ativo de rede não encontrado ou sem endereço IP cadastrado",
+            )
+        return res
+

@@ -14,6 +14,7 @@ from app.models.software_history import SoftwareHistory
 from app.models.site_identifier import SiteIdentifier
 from app.models.ad_config import ADConfig
 from app.models.network_asset import NetworkAsset
+from app.models.site_ip_range import SiteIpRange
 
 
 __all__ = [
@@ -32,4 +33,6 @@ __all__ = [
     "SiteIdentifier",
     "ADConfig",
     "NetworkAsset",
+    "SiteIpRange",
 ]
+

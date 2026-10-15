@@ -2,18 +2,25 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   bulkDeleteNetworkAssets,
   createNetworkAsset,
+  createSiteIpRange,
   deleteNetworkAsset,
+  deleteSiteIpRange,
   downloadNetworkAssetTemplate,
   getNetworkAssets,
+  getSiteIpRanges,
   getSites,
   importNetworkAssetsCSV,
+  pingDirectIp,
   pingNetworkAsset,
   scanNetworkAssetsBatch,
   updateNetworkAsset,
+  updateSiteIpRange,
   type ImportResult,
   type NetworkAsset,
   type NetworkAssetInput,
   type Site,
+  type SiteIpRange,
+  type SiteIpRangeInput,
 } from '../services/api'
 
 type NetworkAssetsPageProps = {
@@ -59,6 +66,7 @@ export const TIPOS_PREDEFINIDOS = [
 /* Tipos auxiliares                                                    */
 /* ------------------------------------------------------------------ */
 type StatusFiltro = 'todos' | 'online' | 'offline' | 'nao_testado'
+type OcupacaoFiltro = 'todos' | 'ocupados' | 'livres' | 'estacoes' | 'ativos'
 type Grupo = '' | 'impressora' | 'rede' | 'wifi'
 type Ordem = 'padrao' | 'nome' | 'tipo' | 'filial' | 'ip' | 'status' | 'patrimonio'
 type Cat =
@@ -229,7 +237,7 @@ export default function NetworkAssetsPage({
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
-  const [pingingId, setPingingId] = useState<number | null>(null)
+  const [pingingIp, setPingingIp] = useState<string | null>(null)
 
   // Filtros
   const [busca, setBusca] = useState('')
@@ -237,6 +245,22 @@ export default function NetworkAssetsPage({
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [filtroStatus, setFiltroStatus] = useState<StatusFiltro>('todos')
   const [filtroGrupo, setFiltroGrupo] = useState<Grupo>('')
+  const [filtroOcupacao, setFiltroOcupacao] = useState<OcupacaoFiltro>('todos')
+  const [filtroFaixa, setFiltroFaixa] = useState<string>('todas')
+
+  // Faixas de IP (VLANs / Sub-redes por loja)
+  const [faixas, setFaixas] = useState<SiteIpRange[]>([])
+  const [modalFaixasAberto, setModalFaixasAberto] = useState(false)
+  const [faixaEditando, setFaixaEditando] = useState<SiteIpRange | null>(null)
+  const [formFaixaSiteId, setFormFaixaSiteId] = useState<string>('')
+  const [formFaixaNome, setFormFaixaNome] = useState('')
+  const [formFaixaIpInicio, setFormFaixaIpInicio] = useState('')
+  const [formFaixaIpFim, setFormFaixaIpFim] = useState('')
+  const [formFaixaGateway, setFormFaixaGateway] = useState('')
+  const [formFaixaMascara, setFormFaixaMascara] = useState('255.255.255.0')
+  const [formFaixaObs, setFormFaixaObs] = useState('')
+  const [salvandoFaixa, setSalvandoFaixa] = useState(false)
+  const [excluindoFaixaId, setExcluindoFaixaId] = useState<number | null>(null)
 
   // Ordenação e paginação
   const [ordem, setOrdem] = useState<Ordem>('padrao')
@@ -302,16 +326,22 @@ export default function NetworkAssetsPage({
   const [inlineDraft, setInlineDraft] = useState<InlineDraft | null>(null)
   const [salvandoInline, setSalvandoInline] = useState(false)
 
-  // Carregamento inicial
+  // Carregamento inicial de lojas
   useEffect(() => {
     carregarSites()
-    carregarAtivos()
   }, [])
+
+  // Sincroniza ativos e faixas de IP sempre que a filial filtrada mudar
+  useEffect(() => {
+    carregarAtivos()
+    carregarFaixas()
+    setFiltroFaixa('todas')
+  }, [filtroSite])
 
   // Volta para a primeira página sempre que o resultado muda
   useEffect(() => {
     setPagina(1)
-  }, [busca, filtroSite, filtroTipo, filtroStatus, filtroGrupo, ordem, dirAsc, porPagina])
+  }, [busca, filtroSite, filtroTipo, filtroStatus, filtroGrupo, filtroOcupacao, filtroFaixa, ordem, dirAsc, porPagina])
 
   // ESC fecha modal ou cancela rascunho inline
   useEffect(() => {
@@ -323,10 +353,11 @@ export default function NetworkAssetsPage({
       else if (modalConfirmarScan) setModalConfirmarScan(false)
       else if (modalFormAberto && !formSalvarCarregando) setModalFormAberto(false)
       else if (modalImportAberto && !importandoCsv) setModalImportAberto(false)
+      else if (modalFaixasAberto && !salvandoFaixa) setModalFaixasAberto(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [inlineDraft, salvandoInline, modalConfirmarExclusaoLote, excluindoLote, assetParaExcluir, excluindoAsset, modalConfirmarScan, modalFormAberto, formSalvarCarregando, modalImportAberto, importandoCsv])
+  }, [inlineDraft, salvandoInline, modalConfirmarExclusaoLote, excluindoLote, assetParaExcluir, excluindoAsset, modalConfirmarScan, modalFormAberto, formSalvarCarregando, modalImportAberto, importandoCsv, modalFaixasAberto, salvandoFaixa])
 
   async function carregarSites() {
     try {
@@ -340,13 +371,26 @@ export default function NetworkAssetsPage({
   async function carregarAtivos() {
     setLoading(true)
     try {
-      const data = await getNetworkAssets(token)
+      const siteIdParam = filtroSite !== 'todos' && filtroSite !== 'sem' ? Number(filtroSite) : undefined
+      const data = await getNetworkAssets(token, {
+        site_id: siteIdParam,
+      })
       setAssets(data || [])
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       showToast(`Erro ao carregar ativos: ${msg}`)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function carregarFaixas() {
+    try {
+      const siteIdParam = filtroSite !== 'todos' && filtroSite !== 'sem' ? Number(filtroSite) : undefined
+      const data = await getSiteIpRanges(token, siteIdParam)
+      setFaixas(data || [])
+    } catch (err) {
+      console.warn('Falha ao carregar faixas de IP:', err)
     }
   }
 
@@ -358,6 +402,8 @@ export default function NetworkAssetsPage({
     tipo?: boolean
     site?: boolean
     grupo?: boolean
+    ocupacao?: boolean
+    faixa?: boolean
   }
 
   function passa(a: NetworkAsset, ignorar?: IgnorarFiltros): boolean {
@@ -368,6 +414,26 @@ export default function NetworkAssetsPage({
         return false
       }
     }
+    if (!ignorar?.ocupacao) {
+      if (filtroOcupacao === 'ocupados' && a.origem === 'livre') return false
+      if (filtroOcupacao === 'livres' && a.origem !== 'livre') return false
+      if (filtroOcupacao === 'estacoes' && a.origem !== 'estacao') return false
+      if (filtroOcupacao === 'ativos' && a.origem !== 'manual' && a.origem !== 'planilha') return false
+    }
+
+    if (!ignorar?.faixa && filtroFaixa !== 'todas') {
+      const fObj = faixas.find((f) => String(f.id) === filtroFaixa)
+      if (fObj) {
+        if (a.faixa_nome && a.faixa_nome !== fObj.nome) return false
+        if (!a.faixa_nome && a.ip) {
+          const n = ipNum(a.ip)
+          const s = ipNum(fObj.ip_inicio)
+          const e = ipNum(fObj.ip_fim)
+          if (n < s || n > e) return false
+        }
+      }
+    }
+
     if (!ignorar?.tipo) {
       if (filtroTipo !== 'todos' && tipoDe(a) !== filtroTipo.toUpperCase().trim()) return false
     }
@@ -381,7 +447,7 @@ export default function NetworkAssetsPage({
     }
     if (busca.trim()) {
       const s = busca.toLowerCase().trim()
-      const campos = [a.nome, a.ip, a.mac, a.patrimonio, a.localizacao, a.site_nome, a.site_codigo, a.tipo, a.fabricante, a.modelo, a.numero_serie]
+      const campos = [a.nome, a.ip, a.mac, a.patrimonio, a.localizacao, a.site_nome, a.site_codigo, a.tipo, a.fabricante, a.modelo, a.numero_serie, a.faixa_nome]
       if (!campos.some((c) => (c || '').toLowerCase().includes(s))) return false
     }
     return true
@@ -406,7 +472,7 @@ export default function NetworkAssetsPage({
     }
     return [...lista].sort((a, b) => (dirAsc ? 1 : -1) * cmp(a, b))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets, filtroSite, filtroTipo, filtroStatus, filtroGrupo, busca, ordem, dirAsc])
+  }, [assets, filtroSite, filtroTipo, filtroStatus, filtroGrupo, filtroOcupacao, filtroFaixa, faixas, busca, ordem, dirAsc])
 
   // Contagem por status considerando os demais filtros (para os botões de status)
   const statusCounts = useMemo(() => {
@@ -474,7 +540,17 @@ export default function NetworkAssetsPage({
   }, [filtroSite, sites])
 
   const filtrosAtivos =
-    !!busca.trim() || filtroSite !== 'todos' || filtroTipo !== 'todos' || filtroStatus !== 'todos' || !!filtroGrupo
+    !!busca.trim() || filtroSite !== 'todos' || filtroTipo !== 'todos' || filtroStatus !== 'todos' || !!filtroGrupo || filtroOcupacao !== 'todos' || filtroFaixa !== 'todas'
+
+  const ocupacaoCounts = useMemo(() => {
+    return {
+      todos: assets.length,
+      ocupados: assets.filter((a) => a.origem !== 'livre').length,
+      livres: assets.filter((a) => a.origem === 'livre').length,
+      estacoes: assets.filter((a) => a.origem === 'estacao').length,
+      ativos: assets.filter((a) => a.origem === 'manual' || a.origem === 'planilha').length,
+    }
+  }, [assets])
 
   function limparFiltros() {
     setBusca('')
@@ -482,6 +558,8 @@ export default function NetworkAssetsPage({
     setFiltroTipo('todos')
     setFiltroStatus('todos')
     setFiltroGrupo('')
+    setFiltroOcupacao('todos')
+    setFiltroFaixa('todas')
   }
 
   /* KPI clicável: filtra pelo indicador; clicar de novo limpa */
@@ -515,7 +593,7 @@ export default function NetworkAssetsPage({
     }
   }
 
-  /* ---------------- Formulário ---------------- */
+  /* ---------------- Formulário Ativo ---------------- */
   function abrirModalCriar() {
     setAssetEditando(null)
     setFormNome('')
@@ -530,6 +608,12 @@ export default function NetworkAssetsPage({
     setFormNumeroSerie('')
     setFormObservacoes('')
     setModalFormAberto(true)
+  }
+
+  function abrirModalCriarComIp(ip: string, siteId?: number | null) {
+    abrirModalCriar()
+    setFormIp(ip)
+    if (siteId) setFormSiteId(String(siteId))
   }
 
   function abrirModalEditar(a: NetworkAsset) {
@@ -553,6 +637,9 @@ export default function NetworkAssetsPage({
   const ipFormatoSuspeito = ipDigitado !== '' && !ipValido(ipDigitado)
   const ipDuplicado = ipDigitado
     ? assets.find((x) => x.ip === ipDigitado && x.id !== assetEditando?.id)
+    : undefined
+  const estacaoConflitante = ipDigitado
+    ? assets.find((x) => x.origem === 'estacao' && x.ip === ipDigitado)
     : undefined
   const macDigitado = formMac.trim()
   const macFormatoSuspeito = macDigitado !== '' && macHex(macDigitado).length !== 12
@@ -587,7 +674,7 @@ export default function NetworkAssetsPage({
 
     try {
       if (assetEditando) {
-        const atualizado = await updateNetworkAsset(token, assetEditando.id, payload)
+        const atualizado = await updateNetworkAsset(token, assetEditando.id!, payload)
         setAssets((prev) => prev.map((item) => (item.id === atualizado.id ? atualizado : item)))
         showToast('Ativo de rede atualizado com sucesso!')
       } else {
@@ -596,6 +683,7 @@ export default function NetworkAssetsPage({
         showToast('Ativo cadastrado com sucesso!')
       }
       setModalFormAberto(false)
+      carregarFaixas()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       showToast(`Falha ao salvar: ${msg}`)
@@ -605,14 +693,14 @@ export default function NetworkAssetsPage({
   }
 
   async function handleConfirmarExclusao() {
-    if (!assetParaExcluir) return
+    if (!assetParaExcluir || !assetParaExcluir.id) return
     setExcluindoAsset(true)
     try {
       await deleteNetworkAsset(token, assetParaExcluir.id)
       setAssets((prev) => prev.filter((a) => a.id !== assetParaExcluir.id))
       setSelecionados((prev) => {
         const next = new Set(prev)
-        next.delete(assetParaExcluir.id)
+        next.delete(assetParaExcluir.id!)
         return next
       })
       if (inlineDraft?.parentId === assetParaExcluir.id) {
@@ -620,6 +708,7 @@ export default function NetworkAssetsPage({
       }
       showToast(`Ativo "${assetParaExcluir.nome}" excluído.`)
       setAssetParaExcluir(null)
+      carregarFaixas()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       showToast(`Erro ao excluir: ${msg}`)
@@ -628,24 +717,112 @@ export default function NetworkAssetsPage({
     }
   }
 
+  /* ---------------- Faixas de IP / VLANs ---------------- */
+  function abrirModalFaixas() {
+    setFaixaEditando(null)
+    setFormFaixaSiteId(filtroSite !== 'todos' && filtroSite !== 'sem' ? filtroSite : sites.length > 0 ? String(sites[0].id) : '')
+    setFormFaixaNome('')
+    setFormFaixaIpInicio('')
+    setFormFaixaIpFim('')
+    setFormFaixaGateway('')
+    setFormFaixaMascara('255.255.255.0')
+    setFormFaixaObs('')
+    setModalFaixasAberto(true)
+  }
+
+  function iniciarEditarFaixa(f: SiteIpRange) {
+    setFaixaEditando(f)
+    setFormFaixaSiteId(String(f.site_id))
+    setFormFaixaNome(f.nome)
+    setFormFaixaIpInicio(f.ip_inicio)
+    setFormFaixaIpFim(f.ip_fim)
+    setFormFaixaGateway(f.gateway || '')
+    setFormFaixaMascara(f.mascara || '255.255.255.0')
+    setFormFaixaObs(f.observacoes || '')
+  }
+
+  function cancelarEditarFaixa() {
+    setFaixaEditando(null)
+    setFormFaixaNome('')
+    setFormFaixaIpInicio('')
+    setFormFaixaIpFim('')
+    setFormFaixaGateway('')
+    setFormFaixaMascara('255.255.255.0')
+    setFormFaixaObs('')
+  }
+
+  async function handleSalvarFaixa(e: React.FormEvent) {
+    e.preventDefault()
+    if (!formFaixaNome.trim() || !formFaixaIpInicio.trim() || !formFaixaIpFim.trim() || !formFaixaSiteId) {
+      showToast('Preencha os campos obrigatórios da faixa (Loja, Nome, IP Inicial e Final).')
+      return
+    }
+
+    setSalvandoFaixa(true)
+    try {
+      const payload: SiteIpRangeInput = {
+        site_id: Number(formFaixaSiteId),
+        nome: formFaixaNome.trim(),
+        ip_inicio: formFaixaIpInicio.trim(),
+        ip_fim: formFaixaIpFim.trim(),
+        gateway: formFaixaGateway.trim() || null,
+        mascara: formFaixaMascara.trim() || null,
+        observacoes: formFaixaObs.trim() || null,
+      }
+
+      if (faixaEditando) {
+        await updateSiteIpRange(token, faixaEditando.id, payload)
+        showToast('Faixa de IP atualizada com sucesso!')
+      } else {
+        await createSiteIpRange(token, payload)
+        showToast('Nova faixa de IP criada com sucesso!')
+      }
+
+      cancelarEditarFaixa()
+      await carregarFaixas()
+      await carregarAtivos()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      showToast(`Erro ao salvar faixa: ${msg}`)
+    } finally {
+      setSalvandoFaixa(false)
+    }
+  }
+
+  async function handleExcluirFaixa(id: number) {
+    setExcluindoFaixaId(id)
+    try {
+      await deleteSiteIpRange(token, id)
+      showToast('Faixa de IP excluída.')
+      await carregarFaixas()
+      await carregarAtivos()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      showToast(`Erro ao excluir faixa: ${msg}`)
+    } finally {
+      setExcluindoFaixaId(null)
+    }
+  }
+
   /* ---------------- Ping ---------------- */
   async function handlePingIndividual(a: NetworkAsset) {
     if (!a.ip) {
-      showToast('Este ativo não possui IP configurado.')
+      showToast('Este equipamento não possui IP configurado.')
       return
     }
-    setPingingId(a.id)
+    setPingingIp(a.ip)
     try {
-      const res = await pingNetworkAsset(token, a.id)
+      const res = a.id ? await pingNetworkAsset(token, a.id) : await pingDirectIp(token, a.ip)
       setAssets((prev) =>
-        prev.map((item) =>
-          item.id === a.id
+        prev.map((item) => {
+          const matches = (item.id && a.id && item.id === a.id) || (item.ip === a.ip)
+          return matches
             ? { ...item, status_online: res.online, tempo_resposta_ms: res.tempo_resposta_ms, ultimo_ping: res.timestamp }
             : item
-        )
+        })
       )
       if (res.online) {
-        showToast(`✓ ${a.nome} respondeu em ${res.tempo_resposta_ms}ms`)
+        showToast(`✓ ${a.nome} (${a.ip}) respondeu em ${res.tempo_resposta_ms}ms`)
       } else {
         showToast(`✕ ${a.nome} (${a.ip}) está inacessível.`)
       }
@@ -653,7 +830,7 @@ export default function NetworkAssetsPage({
       const msg = err instanceof Error ? err.message : String(err)
       showToast(`Erro no teste: ${msg}`)
     } finally {
-      setPingingId(null)
+      setPingingIp(null)
     }
   }
 
@@ -669,7 +846,9 @@ export default function NetworkAssetsPage({
 
   async function executarScanLote() {
     setModalConfirmarScan(false)
-    const comIpFiltrados = ativosFiltrados.filter((a) => a.ip && a.ip.trim())
+    const comIpFiltrados = ativosFiltrados.filter(
+      (a): a is NetworkAsset & { id: number } => Boolean(a.id && a.ip && a.ip.trim())
+    )
     const targetIds = comIpFiltrados.map((a) => a.id)
     const siteIdParam = filtroSite !== 'todos' && filtroSite !== 'sem' ? Number(filtroSite) : undefined
     setScanning(true)
@@ -680,7 +859,7 @@ export default function NetworkAssetsPage({
 
       setAssets((prev) =>
         prev.map((item) => {
-          const r = resMap.get(item.id)
+          const r = item.id ? resMap.get(item.id) : undefined
           return r ? { ...item, status_online: r.online, tempo_resposta_ms: r.tempo_resposta_ms, ultimo_ping: r.timestamp } : item
         })
       )
@@ -784,10 +963,15 @@ export default function NetworkAssetsPage({
   const itensPagina = ativosFiltrados.slice(inicio, inicio + porPagina)
 
   /* ---------------- Seleção Múltipla & Lote ---------------- */
+  const itensPaginaSelecionaveis = itensPagina.filter(
+    (a): a is NetworkAsset & { id: number } =>
+      typeof a.id === 'number' && a.origem !== 'estacao' && a.origem !== 'livre'
+  )
   const todosDaPaginaSelecionados =
-    itensPagina.length > 0 && itensPagina.every((a) => selecionados.has(a.id))
+    itensPaginaSelecionaveis.length > 0 &&
+    itensPaginaSelecionaveis.every((a) => selecionados.has(a.id))
   const algumDaPaginaSelecionado =
-    itensPagina.some((a) => selecionados.has(a.id))
+    itensPaginaSelecionaveis.some((a) => selecionados.has(a.id))
 
   useEffect(() => {
     if (checkAllRef.current) {
@@ -799,9 +983,9 @@ export default function NetworkAssetsPage({
     setSelecionados((prev) => {
       const next = new Set(prev)
       if (todosDaPaginaSelecionados) {
-        itensPagina.forEach((a) => next.delete(a.id))
+        itensPaginaSelecionaveis.forEach((a) => next.delete(a.id))
       } else {
-        itensPagina.forEach((a) => next.add(a.id))
+        itensPaginaSelecionaveis.forEach((a) => next.add(a.id))
       }
       return next
     })
@@ -827,7 +1011,7 @@ export default function NetworkAssetsPage({
     try {
       const res = await bulkDeleteNetworkAssets(token, ids)
       const idsSet = new Set(ids)
-      setAssets((prev) => prev.filter((a) => !idsSet.has(a.id)))
+      setAssets((prev) => prev.filter((a) => a.id === null || !idsSet.has(a.id)))
       setSelecionados(new Set())
       if (inlineDraft && idsSet.has(inlineDraft.parentId)) {
         setInlineDraft(null)
@@ -844,6 +1028,7 @@ export default function NetworkAssetsPage({
 
   /* ---------------- Duplicação Inline ---------------- */
   function duplicarInline(origem: NetworkAsset) {
+    if (!origem.id) return
     setInlineDraft({
       parentId: origem.id,
       nome: `${origem.nome} (Cópia)`,
@@ -969,6 +1154,11 @@ export default function NetworkAssetsPage({
             <Icon name="file" /> Exportar
           </button>
           {canManage && (
+            <button className="btn" onClick={abrirModalFaixas} title="Gerenciar faixas de IP e sub-redes (VLANs) por filial">
+              <Icon name="switch" /> Faixas de IP (VLANs)
+            </button>
+          )}
+          {canManage && (
             <button className="btn accent" onClick={abrirConfirmacaoScan} disabled={scanning} title="Testa conectividade e latência dos equipamentos filtrados">
               <Icon name="bolt" className={scanning ? 'na-spin' : ''} /> {scanning ? 'Verificando...' : 'Testar conexões'}
             </button>
@@ -992,6 +1182,34 @@ export default function NetworkAssetsPage({
               <span className="na-kpi-label">{k.label}</span>
               <b>{k.value}</b>
               {k.sub && <small>{k.sub}</small>}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* ABAS DE OCUPAÇÃO (IPAM) */}
+      <div className="na-ocupacao-tabs">
+        {([
+          { id: 'todos', label: 'Todos os IPs', desc: 'Ativos, estações e livres' },
+          { id: 'ocupados', label: 'Ocupados', desc: 'Com equipamento vinculado' },
+          { id: 'livres', label: 'Apenas IPs Livres', desc: 'Disponíveis nas faixas' },
+          { id: 'estacoes', label: 'Apenas Estações', desc: 'Inventário de computadores' },
+          { id: 'ativos', label: 'Apenas Ativos de Rede', desc: 'Impressoras, switches, etc.' },
+        ] as const).map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`na-ocup-btn ${filtroOcupacao === tab.id ? 'active' : ''}`}
+            onClick={() => setFiltroOcupacao(tab.id)}
+            title={tab.desc}
+          >
+            {tab.label}
+            <span className="na-ocup-count">
+              {tab.id === 'todos' ? ocupacaoCounts.todos :
+               tab.id === 'ocupados' ? ocupacaoCounts.ocupados :
+               tab.id === 'livres' ? ocupacaoCounts.livres :
+               tab.id === 'estacoes' ? ocupacaoCounts.estacoes :
+               ocupacaoCounts.ativos}
             </span>
           </button>
         ))}
@@ -1040,6 +1258,17 @@ export default function NetworkAssetsPage({
             )}
             {siteOpcoes.semFilial > 0 && <option value="sem">Sem filial vinculada ({siteOpcoes.semFilial})</option>}
           </select>
+
+          {faixas.length > 0 && (
+            <select value={filtroFaixa} onChange={(e) => setFiltroFaixa(e.target.value)} aria-label="Faixa de IP">
+              <option value="todas">Todas as faixas de IP ({faixas.length})</option>
+              {faixas.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nome} ({f.ip_inicio} - {f.ip_fim}) • {f.ips_livres} livres
+                </option>
+              ))}
+            </select>
+          )}
 
           <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} aria-label="Tipo de equipamento">
             <option value="todos">Todos os tipos ({totalTiposFiltrados})</option>
@@ -1093,6 +1322,12 @@ export default function NetworkAssetsPage({
             {filtroSite !== 'todos' && (
               <span className="na-fchip">{nomeLojaFiltrada}<button onClick={() => setFiltroSite('todos')} aria-label="Remover filtro"><Icon name="x" size={11} /></button></span>
             )}
+            {filtroFaixa !== 'todas' && (
+              <span className="na-fchip">Faixa selecionada<button onClick={() => setFiltroFaixa('todas')} aria-label="Remover filtro"><Icon name="x" size={11} /></button></span>
+            )}
+            {filtroOcupacao !== 'todos' && (
+              <span className="na-fchip">Filtro: {filtroOcupacao}<button onClick={() => setFiltroOcupacao('todos')} aria-label="Remover filtro"><Icon name="x" size={11} /></button></span>
+            )}
             {filtroTipo !== 'todos' && (
               <span className="na-fchip">{filtroTipo}<button onClick={() => setFiltroTipo('todos')} aria-label="Remover filtro"><Icon name="x" size={11} /></button></span>
             )}
@@ -1141,9 +1376,9 @@ export default function NetworkAssetsPage({
                     <button
                       type="button"
                       className="na-link"
-                      onClick={() => setSelecionados(new Set(ativosFiltrados.map((a) => a.id)))}
+                      onClick={() => setSelecionados(new Set(ativosFiltrados.map((a) => a.id).filter((id): id is number => id !== null)))}
                     >
-                      Selecionar todos os {ativosFiltrados.length} filtrados
+                      Selecionar todos os ativos filtrados
                     </button>
                   )}
                 </div>
@@ -1187,35 +1422,46 @@ export default function NetworkAssetsPage({
                     {thSort('ip', 'Endereço IP')}
                     <th>MAC</th>
                     {thSort('patrimonio', 'Patrimônio')}
-                    {canManage && <th style={{ width: 116, textAlign: 'right' }}>Ações</th>}
+                    {canManage && <th style={{ width: 120, textAlign: 'right' }}>Ações</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {itensPagina.map((a) => {
-                    const isPinging = pingingId === a.id
-                    const isSelected = selecionados.has(a.id)
-                    const isDraftOpen = inlineDraft?.parentId === a.id
+                  {itensPagina.map((a, idx) => {
+                    const isPinging = pingingIp === a.ip
+                    const isSelected = a.id ? selecionados.has(a.id) : false
+                    const isDraftOpen = a.id ? inlineDraft?.parentId === a.id : false
                     const quando = tempoRelativo(a.ultimo_ping)
                     const sub = [a.fabricante, a.modelo].filter(Boolean).join(' ')
+                    const isEstacao = a.origem === 'estacao'
+                    const isLivre = a.origem === 'livre'
+
                     return (
-                      <React.Fragment key={a.id}>
-                        <tr className={isSelected ? 'selected' : ''}>
+                      <React.Fragment key={a.id ? `asset-${a.id}` : `ip-${a.ip}-${idx}`}>
+                        <tr className={`${isSelected ? 'selected' : ''} ${isLivre ? 'na-row-livre' : ''}`}>
                           {canManage && (
                             <td className="na-td-check">
-                              <input
-                                type="checkbox"
-                                className="na-checkbox"
-                                checked={isSelected}
-                                onChange={() => toggleSelecionado(a.id)}
-                                aria-label={`Selecionar ${a.nome}`}
-                              />
+                              {a.id ? (
+                                <input
+                                  type="checkbox"
+                                  className="na-checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleSelecionado(a.id!)}
+                                  aria-label={`Selecionar ${a.nome}`}
+                                />
+                              ) : (
+                                <span className="na-muted" title={isEstacao ? 'Estação integrada' : 'IP livre'}>—</span>
+                              )}
                             </td>
                           )}
 
                           <td>
                             <div className="na-conn">
                               <div>
-                                {a.status_online === true ? (
+                                {isLivre ? (
+                                  <span className="na-st livre" title="IP livre e disponível na faixa de rede">
+                                    <i className="dot green" /> Livre
+                                  </span>
+                                ) : a.status_online === true ? (
                                   <span className="na-st online" title={`Online. Latência: ${a.tempo_resposta_ms ?? 0}ms`}>
                                     <i className="dot green" />{a.tempo_resposta_ms ? `${a.tempo_resposta_ms} ms` : 'Online'}
                                   </span>
@@ -1228,10 +1474,16 @@ export default function NetworkAssetsPage({
                                     <i className="dot gray" />Não testado
                                   </span>
                                 )}
-                                {quando && <small className="na-when">{quando}</small>}
+                                {quando && !isLivre && <small className="na-when">{quando}</small>}
                               </div>
                               {a.ip && (
-                                <button className="na-ping" onClick={() => handlePingIndividual(a)} disabled={isPinging || scanning} title="Testar conectividade deste equipamento agora" aria-label={`Testar ${a.nome}`}>
+                                <button
+                                  className="na-ping"
+                                  onClick={() => handlePingIndividual(a)}
+                                  disabled={isPinging || scanning}
+                                  title={isLivre ? 'Testar se este IP livre responde na rede' : 'Testar conectividade deste equipamento agora'}
+                                  aria-label={`Testar ${a.nome}`}
+                                >
                                   <Icon name="bolt" size={14} className={isPinging ? 'na-spin' : ''} />
                                 </button>
                               )}
@@ -1240,21 +1492,41 @@ export default function NetworkAssetsPage({
 
                           <td>
                             <div className="na-name">
-                              <strong>{a.nome}</strong>
-                              {sub && <span className="na-model">{sub}</span>}
-                              {a.observacoes && (
-                                <span className="na-obs" title={a.observacoes}>
-                                  <Icon name="note" size={11} /> {a.observacoes.split('\n')[0]}
-                                </span>
+                              {isLivre ? (
+                                <>
+                                  <strong className="na-livre-name">(Disponível)</strong>
+                                  <span className="na-livre-sub">Faixa: {a.faixa_nome || a.localizacao}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <strong>{a.nome}</strong>
+                                  {isEstacao && (
+                                    <span className="na-tag-estacao" title="Equipamento integrado a partir do inventário de estações">
+                                      <Icon name="pc" size={11} /> Estação de Trabalho
+                                    </span>
+                                  )}
+                                  {sub && <span className="na-model">{sub}</span>}
+                                  {a.observacoes && (
+                                    <span className="na-obs" title={a.observacoes}>
+                                      <Icon name="note" size={11} /> {a.observacoes.split('\n')[0]}
+                                    </span>
+                                  )}
+                                </>
                               )}
                             </div>
                           </td>
 
-                          <td><TipoPill tipo={a.tipo} /></td>
+                          <td>
+                            {isLivre ? (
+                              <span className="na-tipo t-livre"><Icon name="check" size={12} /> Disponível</span>
+                            ) : (
+                              <TipoPill tipo={a.tipo} />
+                            )}
+                          </td>
 
                           <td>
                             <div className="na-local">
-                              {a.localizacao && (
+                              {a.localizacao && !isLivre && (
                                 <span><Icon name="pin" size={12} /> <b>{a.localizacao}</b></span>
                               )}
                               {a.site_codigo || a.site_nome ? (
@@ -1265,6 +1537,11 @@ export default function NetworkAssetsPage({
                               ) : !a.localizacao ? (
                                 <span className="na-muted">—</span>
                               ) : null}
+                              {a.faixa_nome && !isLivre && (
+                                <span className="na-tag-faixa" title={`Pertence à faixa: ${a.faixa_nome}`}>
+                                  <Icon name="switch" size={10} /> {a.faixa_nome}
+                                </span>
+                              )}
                             </div>
                           </td>
 
@@ -1274,9 +1551,11 @@ export default function NetworkAssetsPage({
                                 <button className="na-copy mono" onClick={() => copiarTexto(a.ip!, 'IP copiado!')} title="Clique para copiar o IP">
                                   {a.ip}<Icon name="copy" size={12} />
                                 </button>
-                                <a href={`http://${a.ip}`} target="_blank" rel="noreferrer" className="na-ext" title="Abrir painel web (porta 80)" aria-label="Abrir painel web">
-                                  <Icon name="external" size={13} />
-                                </a>
+                                {!isLivre && (
+                                  <a href={`http://${a.ip}`} target="_blank" rel="noreferrer" className="na-ext" title="Abrir painel web (porta 80)" aria-label="Abrir painel web">
+                                    <Icon name="external" size={13} />
+                                  </a>
+                                )}
                               </div>
                             ) : (
                               <span className="na-muted">—</span>
@@ -1305,22 +1584,37 @@ export default function NetworkAssetsPage({
 
                           {canManage && (
                             <td style={{ textAlign: 'right' }}>
-                              <div className="na-row-actions">
+                              {isLivre ? (
                                 <button
-                                  className="na-icon-btn"
-                                  onClick={() => duplicarInline(a)}
-                                  title="Duplicar ativo (cria cópia abaixo para edição direta)"
-                                  aria-label={`Duplicar ${a.nome}`}
+                                  type="button"
+                                  className="btn sm primary na-use-ip-btn"
+                                  onClick={() => abrirModalCriarComIp(a.ip!, a.site_id)}
+                                  title="Cadastrar ativo de rede usando este endereço IP"
                                 >
-                                  <Icon name="copy" size={15} />
+                                  + Usar IP
                                 </button>
-                                <button className="na-icon-btn" onClick={() => abrirModalEditar(a)} title="Editar informações do ativo" aria-label={`Editar ${a.nome}`}>
-                                  <Icon name="edit" size={15} />
-                                </button>
-                                <button className="na-icon-btn danger" onClick={() => setAssetParaExcluir(a)} title="Excluir ativo do inventário" aria-label={`Excluir ${a.nome}`}>
-                                  <Icon name="trash" size={15} />
-                                </button>
-                              </div>
+                              ) : isEstacao ? (
+                                <span className="na-readonly-text" title="Estação integrada ao inventário (somente leitura)">
+                                  Estação
+                                </span>
+                              ) : (
+                                <div className="na-row-actions">
+                                  <button
+                                    className="na-icon-btn"
+                                    onClick={() => duplicarInline(a)}
+                                    title="Duplicar ativo (cria cópia abaixo para edição direta)"
+                                    aria-label={`Duplicar ${a.nome}`}
+                                  >
+                                    <Icon name="copy" size={15} />
+                                  </button>
+                                  <button className="na-icon-btn" onClick={() => abrirModalEditar(a)} title="Editar informações do ativo" aria-label={`Editar ${a.nome}`}>
+                                    <Icon name="edit" size={15} />
+                                  </button>
+                                  <button className="na-icon-btn danger" onClick={() => setAssetParaExcluir(a)} title="Excluir ativo do inventário" aria-label={`Excluir ${a.nome}`}>
+                                    <Icon name="trash" size={15} />
+                                  </button>
+                                </div>
+                              )}
                             </td>
                           )}
                         </tr>
@@ -1580,6 +1874,11 @@ export default function NetworkAssetsPage({
                   <input type="text" className="mono" placeholder="Ex: 192.168.4.5" value={formIp} onChange={(e) => setFormIp(e.target.value)} />
                   {ipFormatoSuspeito && <small className="na-fhint warn"><Icon name="alert" size={12} /> Formato de IP incomum. Confira antes de salvar.</small>}
                   {ipDuplicado && <small className="na-fhint warn"><Icon name="alert" size={12} /> Este IP já está em uso por “{ipDuplicado.nome}”.</small>}
+                  {estacaoConflitante && (
+                    <small className="na-fhint warn">
+                      <Icon name="alert" size={12} /> Atenção: Este IP está atribuído à estação de trabalho “{estacaoConflitante.nome}”. Verifique para evitar duplicidades na rede.
+                    </small>
+                  )}
                 </div>
                 <div className="field">
                   <label>Endereço MAC</label>
@@ -1638,6 +1937,7 @@ export default function NetworkAssetsPage({
               <ul>
                 <li>Compatível com cópia do <b>Google Planilhas</b> e arquivos <b>.CSV do Excel</b>.</li>
                 <li>A coluna <code>LOCALIZAÇAO</code> com valores como <code>LJXX</code> ou <code>CBXX</code> associa a filial automaticamente.</li>
+                <li><b>Proteção ativa de computadores:</b> se algum IP no CSV já pertencer a uma estação de trabalho cadastrada, ele será protegido e listado como aviso.</li>
               </ul>
             </div>
 
@@ -1675,6 +1975,30 @@ export default function NetworkAssetsPage({
                   <span className="info">{resultadoImport.atualizados} atualizados</span>
                   <span className="muted">{resultadoImport.ignorados} ignorados</span>
                 </div>
+
+                {resultadoImport.conflitos_estacao && resultadoImport.conflitos_estacao.length > 0 && (
+                  <div className="na-import-conflict-box">
+                    <div className="na-conflict-header">
+                      <Icon name="alert" size={18} />
+                      <span>{resultadoImport.conflitos_estacao.length} estação(ões) protegida(s) de sobrescrita</span>
+                    </div>
+                    <p>
+                      Os seguintes IPs na planilha pertencem a computadores do inventário e foram ignorados para evitar perda de dados:
+                    </p>
+                    <div className="na-conflict-list">
+                      {resultadoImport.conflitos_estacao.map((c, idx) => (
+                        <div key={idx} className="na-conflict-item">
+                          <span className="na-conflict-ip">{c.ip}</span>
+                          <span className="na-conflict-detail">
+                            Linha {c.linha}: <b>{c.nome_planilha}</b> conflitou com estação <b>{c.estacao_nome}</b>
+                            {c.estacao_patrimonio ? ` (Patrimônio: ${c.estacao_patrimonio})` : ''}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {resultadoImport.erros.length > 0 && (
                   <div className="na-result-errors">
                     <b>Avisos / erros ({resultadoImport.erros.length})</b>
@@ -1693,6 +2017,185 @@ export default function NetworkAssetsPage({
               </button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {/* =========== MODAL: GERENCIAR FAIXAS DE IP (VLANs / IPAM) =========== */}
+      {modalFaixasAberto && (
+        <Modal size="md" onClose={() => !salvandoFaixa && setModalFaixasAberto(false)}>
+          <div className="na-modal-head">
+            <h2>Faixas de IP &amp; VLANs por Filial</h2>
+            <button className="na-icon-btn" onClick={() => setModalFaixasAberto(false)} aria-label="Fechar"><Icon name="x" /></button>
+          </div>
+
+          <div className="na-ranges-container">
+            <div className="na-ranges-top">
+              <div className="field" style={{ minWidth: 260 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
+                  Selecione a Filial / Loja:
+                </label>
+                <select
+                  value={formFaixaSiteId}
+                  onChange={(e) => {
+                    setFormFaixaSiteId(e.target.value)
+                    cancelarEditarFaixa()
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  {sites.map((s) => (
+                    <option key={s.id} value={s.id}>{s.code} - {s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                Pré-cadastre intervalos de IPs para listar endereços livres e dinamizar o inventário.
+              </div>
+            </div>
+
+            {/* Lista de Faixas Cadastradas para esta filial */}
+            <div>
+              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>
+                Faixas cadastradas nesta loja ({faixas.filter((f) => String(f.site_id) === formFaixaSiteId).length})
+              </h4>
+
+              {faixas.filter((f) => String(f.site_id) === formFaixaSiteId).length === 0 ? (
+                <div style={{ padding: '16px', background: 'var(--bg-alt)', borderRadius: 8, textAlign: 'center', color: 'var(--muted)', fontSize: 12.5 }}>
+                  Nenhuma faixa de IP cadastrada para esta filial. Cadastre uma faixa abaixo (ex: 192.168.4.1 até 192.168.4.254).
+                </div>
+              ) : (
+                <div className="na-ranges-list">
+                  {faixas.filter((f) => String(f.site_id) === formFaixaSiteId).map((f) => (
+                    <div key={f.id} className="na-range-card">
+                      <div className="na-range-info">
+                        <h4><Icon name="switch" size={14} /> {f.nome}</h4>
+                        <div className="na-range-ips">
+                          {f.ip_inicio} → {f.ip_fim}
+                          {f.gateway && <span style={{ marginLeft: 12, color: 'var(--muted)' }}>GW: {f.gateway}</span>}
+                          {f.mascara && <span style={{ marginLeft: 8, color: 'var(--muted)' }}>({f.mascara})</span>}
+                        </div>
+                        <div className="na-range-meta">
+                          <span className="na-range-pill total">Total: {f.total_ips} IPs</span>
+                          <span className="na-range-pill ocup">Ocupados: {f.ips_ocupados}</span>
+                          <span className="na-range-pill livres">Livres: {f.ips_livres}</span>
+                          {f.observacoes && <small style={{ color: 'var(--muted)' }}>• {f.observacoes}</small>}
+                        </div>
+                      </div>
+                      <div className="na-range-actions">
+                        <button
+                          type="button"
+                          className="na-icon-btn"
+                          onClick={() => iniciarEditarFaixa(f)}
+                          title="Editar faixa de IP"
+                        >
+                          <Icon name="edit" size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="na-icon-btn danger"
+                          onClick={() => handleExcluirFaixa(f.id)}
+                          disabled={excluindoFaixaId === f.id}
+                          title="Excluir faixa de IP"
+                        >
+                          <Icon name="trash" size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Formulário de Adicionar / Editar Faixa */}
+            <div className="na-range-form-card">
+              <h4>
+                <Icon name={faixaEditando ? 'edit' : 'plus'} size={15} />
+                {faixaEditando ? `Editar Faixa: ${faixaEditando.nome}` : 'Adicionar Nova Faixa de IP'}
+              </h4>
+
+              <form onSubmit={handleSalvarFaixa} className="na-form">
+                <div className="na-grid g2">
+                  <div className="field span2">
+                    <label>Nome da Faixa / VLAN <span className="req">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: VLAN 10 - PDVs e Caixas, VLAN 20 - Impressoras"
+                      value={formFaixaNome}
+                      onChange={(e) => setFormFaixaNome(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>IP Inicial <span className="req">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      className="mono"
+                      placeholder="Ex: 192.168.4.1"
+                      value={formFaixaIpInicio}
+                      onChange={(e) => setFormFaixaIpInicio(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>IP Final <span className="req">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      className="mono"
+                      placeholder="Ex: 192.168.4.254"
+                      value={formFaixaIpFim}
+                      onChange={(e) => setFormFaixaIpFim(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Gateway (Opcional)</label>
+                    <input
+                      type="text"
+                      className="mono"
+                      placeholder="Ex: 192.168.4.254"
+                      value={formFaixaGateway}
+                      onChange={(e) => setFormFaixaGateway(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Máscara de Sub-rede</label>
+                    <input
+                      type="text"
+                      className="mono"
+                      placeholder="Ex: 255.255.255.0 ou /24"
+                      value={formFaixaMascara}
+                      onChange={(e) => setFormFaixaMascara(e.target.value)}
+                    />
+                  </div>
+                  <div className="field span2">
+                    <label>Observações</label>
+                    <input
+                      type="text"
+                      placeholder="Anotações sobre esta sub-rede ou VLAN..."
+                      value={formFaixaObs}
+                      onChange={(e) => setFormFaixaObs(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                  {faixaEditando && (
+                    <button type="button" className="btn" onClick={cancelarEditarFaixa}>
+                      Cancelar edição
+                    </button>
+                  )}
+                  <button type="submit" className="btn primary" disabled={salvandoFaixa}>
+                    {salvandoFaixa ? 'Salvando...' : faixaEditando ? 'Salvar alterações da faixa' : '+ Cadastrar faixa de IP'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="na-modal-foot" style={{ marginTop: 0 }}>
+              <button type="button" className="btn" onClick={() => setModalFaixasAberto(false)}>
+                Fechar
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 
@@ -1726,7 +2229,7 @@ export default function NetworkAssetsPage({
             </p>
             <div className="na-bulk-preview">
               {assets
-                .filter((a) => selecionados.has(a.id))
+                .filter((a) => a.id && selecionados.has(a.id))
                 .slice(0, 5)
                 .map((a) => (
                   <div key={a.id} className="na-bulk-preview-item">

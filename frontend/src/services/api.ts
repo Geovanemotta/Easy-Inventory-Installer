@@ -927,7 +927,7 @@ export async function confirmarDeviceFirewall(
    ========================================================= */
 
 export type NetworkAsset = {
-  id: number
+  id: number | null
   company_id: number
   site_id: number | null
   site_nome: string | null
@@ -945,9 +945,40 @@ export type NetworkAsset = {
   ultimo_ping: string | null
   tempo_resposta_ms: number | null
   observacoes: string | null
-  origem: string
+  origem: 'manual' | 'planilha' | 'estacao' | 'livre' | string
+  device_id?: number | null
+  faixa_nome?: string | null
   created_at: string
   updated_at: string
+}
+
+export type SiteIpRange = {
+  id: number
+  company_id: number
+  site_id: number
+  site_nome: string | null
+  site_codigo: string | null
+  nome: string
+  ip_inicio: string
+  ip_fim: string
+  gateway: string | null
+  mascara: string | null
+  observacoes: string | null
+  total_ips: number
+  ips_ocupados: number
+  ips_livres: number
+  created_at: string
+  updated_at: string
+}
+
+export type SiteIpRangeInput = {
+  site_id: number
+  nome: string
+  ip_inicio: string
+  ip_fim: string
+  gateway?: string | null
+  mascara?: string | null
+  observacoes?: string | null
 }
 
 export type NetworkAssetInput = {
@@ -965,11 +996,20 @@ export type NetworkAssetInput = {
 }
 
 export type PingResult = {
-  asset_id: number
+  asset_id: number | null
   ip: string
   online: boolean
   tempo_resposta_ms: number | null
   timestamp: string
+}
+
+export type ImportStationConflict = {
+  linha: number
+  ip: string
+  nome_planilha: string
+  estacao_nome: string
+  estacao_patrimonio?: string | null
+  mensagem: string
 }
 
 export type ImportResult = {
@@ -978,6 +1018,7 @@ export type ImportResult = {
   atualizados: number
   ignorados: number
   erros: string[]
+  conflitos_estacao?: ImportStationConflict[]
 }
 
 export async function getNetworkAssets(
@@ -987,6 +1028,8 @@ export async function getNetworkAssets(
     tipo?: string | null
     status_online?: boolean | null
     search?: string | null
+    filtro_ocupacao?: string | null
+    faixa_id?: number | null
   },
 ): Promise<NetworkAsset[]> {
   const q = new URLSearchParams()
@@ -996,6 +1039,10 @@ export async function getNetworkAssets(
     q.set('status_online', String(params.status_online))
   }
   if (params?.search && params.search.trim()) q.set('search', params.search.trim())
+  if (params?.filtro_ocupacao && params.filtro_ocupacao !== 'todos') {
+    q.set('filtro_ocupacao', params.filtro_ocupacao)
+  }
+  if (params?.faixa_id) q.set('faixa_id', String(params.faixa_id))
 
   const url = `${API_URL}/network-assets${q.toString() ? `?${q.toString()}` : ''}`
   const response = await fetch(url, {
@@ -1176,6 +1223,95 @@ export async function downloadNetworkAssetTemplate(token: string): Promise<void>
   a.click()
   a.remove()
   window.URL.revokeObjectURL(url)
+}
+
+export async function pingDirectIp(token: string, ip: string): Promise<PingResult> {
+  const response = await fetch(`${API_URL}/network-assets/ping-ip?ip=${encodeURIComponent(ip)}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Falha ao testar IP.')
+  }
+  return response.json()
+}
+
+export async function getSiteIpRanges(
+  token: string,
+  site_id?: number | null,
+): Promise<SiteIpRange[]> {
+  const q = new URLSearchParams()
+  if (site_id) q.set('site_id', String(site_id))
+
+  const url = `${API_URL}/network-assets/ranges${q.toString() ? `?${q.toString()}` : ''}`
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao carregar faixas de IP.')
+  }
+  return response.json()
+}
+
+export async function createSiteIpRange(
+  token: string,
+  data: SiteIpRangeInput,
+): Promise<SiteIpRange> {
+  const response = await fetch(`${API_URL}/network-assets/ranges`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao cadastrar faixa de IP.')
+  }
+  return response.json()
+}
+
+export async function updateSiteIpRange(
+  token: string,
+  rangeId: number,
+  data: Partial<SiteIpRangeInput>,
+): Promise<SiteIpRange> {
+  const response = await fetch(`${API_URL}/network-assets/ranges/${rangeId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao atualizar faixa de IP.')
+  }
+  return response.json()
+}
+
+export async function deleteSiteIpRange(
+  token: string,
+  rangeId: number,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/network-assets/ranges/${rangeId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao excluir faixa de IP.')
+  }
 }
 
 export type RemoteAccessConfig = {

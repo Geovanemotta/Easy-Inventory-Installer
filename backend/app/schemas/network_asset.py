@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
 class NetworkAssetBase(BaseModel):
-    nome: str = Field(..., min_length=2, max_length=150, description="Nome identificador do ativo")
+    nome: str = Field(..., min_length=1, max_length=150, description="Nome identificador do ativo")
     tipo: str = Field(default="Impressora", description="Tipo (Impressora, Switch, Roteador, Access Point, Servidor, Outro)")
     site_id: Optional[int] = Field(default=None, description="ID da filial/loja associada")
     ip: Optional[str] = Field(default=None, description="Endereço IPv4 do equipamento")
@@ -36,14 +36,16 @@ class NetworkAssetUpdate(BaseModel):
 
 
 class NetworkAssetOut(NetworkAssetBase):
-    id: int
+    id: Optional[int] = None
     company_id: int
     site_nome: Optional[str] = None
     site_codigo: Optional[str] = None
     status_online: Optional[bool] = None
     ultimo_ping: Optional[datetime] = None
     tempo_resposta_ms: Optional[int] = None
-    origem: str
+    origem: str = "manual"
+    device_id: Optional[int] = None
+    faixa_nome: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -52,7 +54,7 @@ class NetworkAssetOut(NetworkAssetBase):
 
 
 class PingResultOut(BaseModel):
-    asset_id: int
+    asset_id: Optional[int] = None
     ip: str
     online: bool
     tempo_resposta_ms: Optional[int] = None
@@ -64,13 +66,64 @@ class ImportResultOut(BaseModel):
     criados: int
     atualizados: int
     ignorados: int
-    erros: list[str] = []
+    erros: List[str] = []
+    conflitos_estacao: List[Dict[str, Any]] = []
 
 
 class BulkDeleteIn(BaseModel):
-    ids: list[int] = Field(..., min_length=1, description="Lista de IDs de ativos para exclusão em massa")
+    ids: List[int] = Field(..., min_length=1, description="Lista de IDs de ativos para exclusão em massa")
 
 
 class ScanBatchIn(BaseModel):
-    asset_ids: Optional[list[int]] = Field(default=None, description="Lista opcional de IDs de ativos para escanear especificamente")
+    asset_ids: Optional[List[int]] = Field(default=None, description="Lista opcional de IDs de ativos para escanear especificamente")
     site_id: Optional[int] = Field(default=None, description="Filtra por loja caso asset_ids não seja informado")
+    ips: Optional[List[str]] = Field(default=None, description="Lista opcional de IPs para ping direto")
+
+
+# =========================================================
+# FAIXAS DE IP / SUBNETS / VLANS POR LOJA
+# =========================================================
+
+class SiteIpRangeBase(BaseModel):
+    site_id: int = Field(..., description="ID da filial/loja")
+    nome: str = Field(..., min_length=2, max_length=100, description="Nome da faixa (ex: VLAN 10 - PDVs)")
+    ip_inicio: str = Field(..., min_length=7, max_length=45, description="IP Inicial da faixa (ex: 192.168.4.1)")
+    ip_fim: str = Field(..., min_length=7, max_length=45, description="IP Final da faixa (ex: 192.168.4.254)")
+    gateway: Optional[str] = Field(default=None, max_length=45, description="Gateway da sub-rede")
+    mascara: Optional[str] = Field(default=None, max_length=45, description="Máscara de sub-rede (ex: 255.255.255.0 ou /24)")
+    observacoes: Optional[str] = Field(default=None, max_length=255, description="Observações adicionais")
+
+
+class SiteIpRangeCreate(SiteIpRangeBase):
+    pass
+
+
+class SiteIpRangeUpdate(BaseModel):
+    nome: Optional[str] = None
+    ip_inicio: Optional[str] = None
+    ip_fim: Optional[str] = None
+    gateway: Optional[str] = None
+    mascara: Optional[str] = None
+    observacoes: Optional[str] = None
+
+
+class SiteIpRangeOut(BaseModel):
+    id: int
+    company_id: int
+    site_id: int
+    site_nome: Optional[str] = None
+    site_codigo: Optional[str] = None
+    nome: str
+    ip_inicio: str
+    ip_fim: str
+    gateway: Optional[str] = None
+    mascara: Optional[str] = None
+    observacoes: Optional[str] = None
+    total_ips: int = 0
+    ips_ocupados: int = 0
+    ips_livres: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

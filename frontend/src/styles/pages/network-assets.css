@@ -2666,4 +2666,312 @@
   color: var(--ink) !important;
 }
 
+/* =========================================================
+   IPAM (GESTÃO DE FAIXAS DE IP, ESTAÇÕES & PLANILHA DINÂMICA)
+   ========================================================= */
+
+.na-ocupacao-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.na-ocup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.na-ocup-btn:hover {
+  color: var(--ink);
+  background: var(--surface-hover);
+}
+
+.na-ocup-btn.active {
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+}
+
+.na-ocup-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+}
+
+.na-ocup-btn:not(.active) .na-ocup-count {
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* Badges e tags na tabela */
+.na-tag-estacao {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+}
+
+.na-tag-faixa {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  padding: 1px 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  border-radius: 5px;
+  background: rgba(14, 165, 233, 0.08);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.na-st.livre {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.na-tipo.t-livre {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.na-livre-name {
+  color: #10b981 !important;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.na-livre-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.na-use-ip-btn {
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  white-space: nowrap;
+}
+
+.na-readonly-text {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+  padding: 4px 8px;
+  background: var(--bg-alt);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+/* Alerta de conflito de estações no modal de importação */
+.na-import-conflict-box {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.na-conflict-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 13.5px;
+  margin-bottom: 6px;
+}
+
+.na-import-conflict-box p {
+  font-size: 12px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.na-conflict-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.na-conflict-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  border-bottom: 1px solid var(--line);
+}
+
+.na-conflict-item:last-child {
+  border-bottom: none;
+}
+
+.na-conflict-ip {
+  font-family: monospace;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  min-width: 105px;
+}
+
+.na-conflict-detail {
+  flex: 1;
+  color: var(--muted);
+}
+
+.na-conflict-detail b {
+  color: var(--ink);
+}
+
+/* Modal de Faixas de IP (VLANs) */
+.na-ranges-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.na-ranges-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.na-ranges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.na-range-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  transition: border-color 0.15s ease;
+}
+
+.na-range-card:hover {
+  border-color: var(--line-bright);
+}
+
+.na-range-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.na-range-ips {
+  font-family: monospace;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.na-range-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.na-range-pill {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.na-range-pill.total {
+  background: rgba(14, 165, 233, 0.1);
+  color: #38bdf8;
+}
+
+.na-range-pill.ocup {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.na-range-pill.livres {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.na-range-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.na-range-form-card {
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.na-range-form-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 

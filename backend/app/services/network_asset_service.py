@@ -1,6 +1,7 @@
 import asyncio
 import csv
 import io
+import ipaddress
 import platform
 import re
 import time
@@ -8,11 +9,14 @@ import unicodedata
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
+from fastapi import HTTPException
 from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session
 
+from app.models.device import Device
 from app.models.network_asset import NetworkAsset
 from app.models.site import Site
+from app.models.site_ip_range import SiteIpRange
 from app.models.user import User
 from app.models.user_site_access import user_site_access
 from app.schemas.network_asset import (
@@ -21,6 +25,9 @@ from app.schemas.network_asset import (
     NetworkAssetOut,
     NetworkAssetUpdate,
     PingResultOut,
+    SiteIpRangeCreate,
+    SiteIpRangeOut,
+    SiteIpRangeUpdate,
 )
 
 
@@ -85,39 +92,216 @@ def listar_network_assets(
     tipo: Optional[str] = None,
     status_online: Optional[bool] = None,
     search: Optional[str] = None,
+    filtro_ocupacao: Optional[str] = None,
+    faixa_id: Optional[int] = None,
 ) -> List[NetworkAssetOut]:
-    stmt = select(NetworkAsset).where(NetworkAsset.company_id == current_user.company_id)
-
     sites_permitidos = obter_sites_permitidos(db, current_user)
+    if sites_permitidos is not None and site_id is not None and site_id not in sites_permitidos:
+        return []
+
+    # 1. Carrega Faixas de IPs configuradas
+    stmt_ranges = select(SiteIpRange).where(SiteIpRange.company_id == current_user.company_id)
     if sites_permitidos is not None:
-        stmt = stmt.where(NetworkAsset.site_id.in_(sites_permitidos))
-
+        stmt_ranges = stmt_ranges.where(SiteIpRange.site_id.in_(sites_permitidos))
     if site_id is not None:
-        stmt = stmt.where(NetworkAsset.site_id == site_id)
+        stmt_ranges = stmt_ranges.where(SiteIpRange.site_id == site_id)
+    if faixa_id is not None:
+        stmt_ranges = stmt_ranges.where(SiteIpRange.id == faixa_id)
 
-    if tipo and tipo != "todos":
-        stmt = stmt.where(NetworkAsset.tipo == tipo)
+    ranges_db = db.scalars(stmt_ranges).all()
 
-    if status_online is not None:
-        stmt = stmt.where(NetworkAsset.status_online == status_online)
+    # Prepara ranges para busca rápida de nome da faixa e geração de IPs livres
+    parsed_ranges = []
+    for r in ranges_db:
+        try:
+            s_int = int(ipaddress.IPv4Address(r.ip_inicio.strip()))
+            e_int = int(ipaddress.IPv4Address(r.ip_fim.strip()))
+            if e_int >= s_int:
+                parsed_ranges.append((r, s_int, e_int))
+        except Exception:
+            continue
 
-    if search:
-        s = f"%{search.strip()}%"
-        stmt = stmt.where(
-            or_(
-                NetworkAsset.nome.ilike(s),
-                NetworkAsset.ip.ilike(s),
-                NetworkAsset.mac.ilike(s),
-                NetworkAsset.patrimonio.ilike(s),
-                NetworkAsset.fabricante.ilike(s),
-                NetworkAsset.modelo.ilike(s),
-                NetworkAsset.localizacao.ilike(s),
-            )
+    def get_faixa_nome(ip_str: Optional[str]) -> Optional[str]:
+        if not ip_str:
+            return None
+        try:
+            val = int(ipaddress.IPv4Address(ip_str.strip()))
+            for r_obj, s_int, e_int in parsed_ranges:
+                if s_int <= val <= e_int:
+                    return r_obj.nome
+        except Exception:
+            pass
+        return None
+
+    all_items: List[NetworkAssetOut] = []
+    occupied_ips = set()
+
+    # 2. Carrega Ativos de Rede cadastrados (manual / planilha)
+    stmt_assets = select(NetworkAsset).where(NetworkAsset.company_id == current_user.company_id)
+    if sites_permitidos is not None:
+        stmt_assets = stmt_assets.where(NetworkAsset.site_id.in_(sites_permitidos))
+    if site_id is not None:
+        stmt_assets = stmt_assets.where(NetworkAsset.site_id == site_id)
+
+    assets_db = db.scalars(stmt_assets).all()
+    for a in assets_db:
+        item = formatar_asset_out(a)
+        item.faixa_nome = get_faixa_nome(a.ip)
+        all_items.append(item)
+        if a.ip and a.ip.strip():
+            occupied_ips.add(a.ip.strip())
+
+    # 3. Carrega Estações de Trabalho (Device) vinculadas à empresa/loja
+    stmt_devs = select(Device).where(
+        Device.company_id == current_user.company_id,
+        Device.active == True,
+        Device.ip.isnot(None),
+    )
+    if sites_permitidos is not None:
+        stmt_devs = stmt_devs.where(Device.site_id.in_(sites_permitidos))
+    if site_id is not None:
+        stmt_devs = stmt_devs.where(Device.site_id == site_id)
+
+    devices_db = db.scalars(stmt_devs).all()
+    for d in devices_db:
+        clean_ip = d.ip.strip() if d.ip else None
+        site_nome = d.site.name if d.site else None
+        site_codigo = d.site.code if d.site else None
+        obs = f"Estação de Trabalho ({d.sistema or ''} {d.versao or ''})".strip()
+        dev_item = NetworkAssetOut(
+            id=None,
+            company_id=d.company_id,
+            site_id=d.site_id,
+            site_nome=site_nome,
+            site_codigo=site_codigo,
+            nome=d.hostname,
+            tipo="Estação de Trabalho",
+            ip=clean_ip,
+            mac=d.mac,
+            patrimonio=d.patrimonio,
+            fabricante=d.fabricante,
+            modelo=d.modelo,
+            numero_serie=d.serial,
+            localizacao=(site_nome or d.loja) or "Estação",
+            status_online=(d.status == "online") if d.status else None,
+            ultimo_ping=d.data_coleta,
+            tempo_resposta_ms=None,
+            observacoes=obs if obs != "Estação de Trabalho ()" else "Estação de Trabalho",
+            origem="estacao",
+            device_id=d.id,
+            faixa_nome=get_faixa_nome(clean_ip),
+            created_at=d.created_at,
+            updated_at=d.updated_at,
         )
+        all_items.append(dev_item)
+        if clean_ip:
+            occupied_ips.add(clean_ip)
 
-    stmt = stmt.order_by(NetworkAsset.tipo.asc(), NetworkAsset.nome.asc())
-    assets = db.scalars(stmt).all()
-    return [formatar_asset_out(a) for a in assets]
+    # 4. Gera IPs Livres / Disponíveis a partir das faixas configuradas
+    deve_gerar_livres = (site_id is not None) or (faixa_id is not None) or (filtro_ocupacao == "livres")
+    if deve_gerar_livres:
+        for r_obj, s_int, e_int in parsed_ranges:
+            total_range = e_int - s_int + 1
+            limite = min(total_range, 2048)
+            for ip_val in range(s_int, s_int + limite):
+                ip_str = str(ipaddress.IPv4Address(ip_val))
+                if ip_str not in occupied_ips:
+                    free_item = NetworkAssetOut(
+                        id=None,
+                        company_id=r_obj.company_id,
+                        site_id=r_obj.site_id,
+                        site_nome=r_obj.site.name if r_obj.site else None,
+                        site_codigo=r_obj.site.code if r_obj.site else None,
+                        nome="(Disponível)",
+                        tipo="Livre / Disponível",
+                        ip=ip_str,
+                        mac=None,
+                        patrimonio=None,
+                        fabricante=None,
+                        modelo=None,
+                        numero_serie=None,
+                        localizacao=r_obj.nome,
+                        status_online=None,
+                        ultimo_ping=None,
+                        tempo_resposta_ms=None,
+                        observacoes=f"Endereço IP livre na faixa {r_obj.nome}",
+                        origem="livre",
+                        device_id=None,
+                        faixa_nome=r_obj.nome,
+                        created_at=r_obj.created_at,
+                        updated_at=r_obj.updated_at,
+                    )
+                    all_items.append(free_item)
+
+    # 5. Aplica filtro de faixa (se especificado)
+    if faixa_id is not None:
+        target_range = next((pr for pr in parsed_ranges if pr[0].id == faixa_id), None)
+        if target_range:
+            _, s_int, e_int = target_range
+            filtrados_faixa = []
+            for it in all_items:
+                if not it.ip:
+                    continue
+                try:
+                    val = int(ipaddress.IPv4Address(it.ip.strip()))
+                    if s_int <= val <= e_int:
+                        filtrados_faixa.append(it)
+                except Exception:
+                    continue
+            all_items = filtrados_faixa
+
+    # 6. Aplica filtro_ocupacao
+    if filtro_ocupacao:
+        f_oc = filtro_ocupacao.lower().strip()
+        if f_oc == "ocupados":
+            all_items = [it for it in all_items if it.origem != "livre"]
+        elif f_oc == "livres":
+            all_items = [it for it in all_items if it.origem == "livre"]
+        elif f_oc == "estacoes":
+            all_items = [it for it in all_items if it.origem == "estacao"]
+        elif f_oc == "ativos":
+            all_items = [it for it in all_items if it.origem in ("manual", "planilha")]
+
+    # 7. Aplica filtro de tipo
+    if tipo and tipo != "todos":
+        tipo_up = tipo.upper().strip()
+        all_items = [it for it in all_items if (it.tipo or "").upper().strip() == tipo_up]
+
+    # 8. Aplica status_online
+    if status_online is not None:
+        all_items = [it for it in all_items if it.status_online == status_online]
+
+    # 9. Aplica busca textual
+    if search and search.strip():
+        s = search.lower().strip()
+        campos = lambda it: [
+            it.nome,
+            it.ip,
+            it.mac,
+            it.patrimonio,
+            it.fabricante,
+            it.modelo,
+            it.localizacao,
+            it.faixa_nome,
+            it.site_nome,
+            it.site_codigo,
+        ]
+        all_items = [
+            it for it in all_items
+            if any(s in (c or "").lower() for c in campos(it))
+        ]
+
+    # 10. Ordenação numérica por IP IPv4
+    def sort_key(it: NetworkAssetOut):
+        if not it.ip:
+            return (1, 0xFFFFFFFF, it.nome or "")
+        try:
+            return (0, int(ipaddress.IPv4Address(it.ip.strip())), it.nome or "")
+        except Exception:
+            return (1, 0xFFFFFFFF, it.nome or "")
+
+    all_items.sort(key=sort_key)
+    return all_items
 
 
 def criar_network_asset(
@@ -292,6 +476,19 @@ async def ping_asset_by_id(
     )
 
 
+async def ping_direct(
+    ip: str,
+) -> PingResultOut:
+    online, latency = await ping_ip(ip)
+    return PingResultOut(
+        asset_id=None,
+        ip=ip,
+        online=online,
+        tempo_resposta_ms=latency,
+        timestamp=datetime.utcnow(),
+    )
+
+
 async def scan_assets_batch(
     db: Session,
     current_user: User,
@@ -435,10 +632,24 @@ def processar_csv_importacao(
         sites_map[clean_name] = s.id
         sites_map[c_name] = s.id
 
+    # Carrega todas as estações de trabalho ativas da empresa que possuem IP (proteção contra sobrescrita)
+    devices_db = db.scalars(
+        select(Device).where(
+            Device.company_id == current_user.company_id,
+            Device.active == True,
+            Device.ip.isnot(None),
+        )
+    ).all()
+    device_ip_map = {}
+    for dev in devices_db:
+        if dev.ip and dev.ip.strip():
+            device_ip_map[dev.ip.strip()] = dev
+
     criados = 0
     atualizados = 0
     ignorados = 0
     erros = []
+    conflitos_estacao = []
 
     for num_linha, row in enumerate(linhas[1:], start=2):
         if not row or not any(row):
@@ -458,6 +669,23 @@ def processar_csv_importacao(
 
         tipo = get_val("tipo") or "Impressora"
         ip = get_val("ip")
+        if ip:
+            ip = ip.strip()
+
+        # Validação de proteção: Impede sobrescrever IP já pertencente a uma estação do inventário
+        if ip and ip in device_ip_map:
+            dev = device_ip_map[ip]
+            conflitos_estacao.append({
+                "linha": num_linha,
+                "ip": ip,
+                "nome_planilha": nome,
+                "estacao_nome": dev.hostname,
+                "estacao_patrimonio": dev.patrimonio,
+                "mensagem": f"Linha {num_linha}: O IP {ip} ('{nome}') já pertence à estação '{dev.hostname}' (Patrimônio: {dev.patrimonio or 'N/A'}). Importação ignorada para não sobrescrever a estação.",
+            })
+            ignorados += 1
+            continue
+
         mac = normalizar_mac(get_val("mac"))
         patrimonio = get_val("patrimonio")
         fabricante = get_val("fabricante")
@@ -552,7 +780,198 @@ def processar_csv_importacao(
         atualizados=atualizados,
         ignorados=ignorados,
         erros=erros[:15],
+        conflitos_estacao=conflitos_estacao,
     )
+
+
+# ==============================================================================
+# GESTÃO DE FAIXAS DE IP (IPAM / SUBNETS / VLANS)
+# ==============================================================================
+
+def listar_ip_ranges(
+    db: Session,
+    current_user: User,
+    site_id: Optional[int] = None,
+) -> List[SiteIpRangeOut]:
+    stmt = select(SiteIpRange).where(SiteIpRange.company_id == current_user.company_id)
+    sites_permitidos = obter_sites_permitidos(db, current_user)
+    if sites_permitidos is not None:
+        stmt = stmt.where(SiteIpRange.site_id.in_(sites_permitidos))
+    if site_id is not None:
+        stmt = stmt.where(SiteIpRange.site_id == site_id)
+
+    ranges = db.scalars(stmt.order_by(SiteIpRange.nome.asc())).all()
+    if not ranges:
+        return []
+
+    site_ids = list({r.site_id for r in ranges})
+
+    asset_ips = db.scalars(
+        select(NetworkAsset.ip).where(
+            NetworkAsset.company_id == current_user.company_id,
+            NetworkAsset.site_id.in_(site_ids),
+            NetworkAsset.ip.isnot(None),
+        )
+    ).all()
+
+    device_ips = db.scalars(
+        select(Device.ip).where(
+            Device.company_id == current_user.company_id,
+            Device.active == True,
+            Device.site_id.in_(site_ids),
+            Device.ip.isnot(None),
+        )
+    ).all()
+
+    occupied_ints = set()
+    for ip_str in list(asset_ips) + list(device_ips):
+        if ip_str and ip_str.strip():
+            try:
+                occupied_ints.add(int(ipaddress.IPv4Address(ip_str.strip())))
+            except Exception:
+                pass
+
+    out = []
+    for r in ranges:
+        try:
+            s_int = int(ipaddress.IPv4Address(r.ip_inicio.strip()))
+            e_int = int(ipaddress.IPv4Address(r.ip_fim.strip()))
+            total_ips = max(e_int - s_int + 1, 0)
+        except Exception:
+            s_int = 0
+            e_int = 0
+            total_ips = 0
+
+        ocupados = sum(1 for val in occupied_ints if s_int <= val <= e_int)
+        livres = max(total_ips - ocupados, 0)
+
+        out.append(
+            SiteIpRangeOut(
+                id=r.id,
+                company_id=r.company_id,
+                site_id=r.site_id,
+                site_nome=r.site.name if r.site else None,
+                site_codigo=r.site.code if r.site else None,
+                nome=r.nome,
+                ip_inicio=r.ip_inicio,
+                ip_fim=r.ip_fim,
+                gateway=r.gateway,
+                mascara=r.mascara,
+                observacoes=r.observacoes,
+                total_ips=total_ips,
+                ips_ocupados=ocupados,
+                ips_livres=livres,
+                created_at=r.created_at,
+                updated_at=r.updated_at,
+            )
+        )
+    return out
+
+
+def criar_ip_range(
+    db: Session,
+    current_user: User,
+    data: SiteIpRangeCreate,
+) -> SiteIpRangeOut:
+    site = db.scalar(
+        select(Site).where(
+            Site.id == data.site_id,
+            Site.company_id == current_user.company_id,
+        )
+    )
+    if not site:
+        raise HTTPException(status_code=404, detail="Filial/Loja não encontrada.")
+
+    try:
+        s_int = int(ipaddress.IPv4Address(data.ip_inicio.strip()))
+        e_int = int(ipaddress.IPv4Address(data.ip_fim.strip()))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Endereço IP inicial ou final inválido.")
+
+    if e_int < s_int:
+        raise HTTPException(status_code=400, detail="O IP final deve ser maior ou igual ao IP inicial.")
+
+    total = e_int - s_int + 1
+    if total > 2048:
+        raise HTTPException(status_code=400, detail="O intervalo de IPs não pode conter mais de 2048 endereços.")
+
+    range_obj = SiteIpRange(
+        company_id=current_user.company_id,
+        site_id=data.site_id,
+        nome=data.nome.strip(),
+        ip_inicio=data.ip_inicio.strip(),
+        ip_fim=data.ip_fim.strip(),
+        gateway=data.gateway.strip() if data.gateway else None,
+        mascara=data.mascara.strip() if data.mascara else None,
+        observacoes=data.observacoes.strip() if data.observacoes else None,
+    )
+    db.add(range_obj)
+    db.commit()
+    db.refresh(range_obj)
+    ranges = listar_ip_ranges(db, current_user, site_id=range_obj.site_id)
+    created = next((r for r in ranges if r.id == range_obj.id), None)
+    if not created:
+        raise HTTPException(status_code=500, detail="Erro ao carregar faixa recém-criada.")
+    return created
+
+
+def atualizar_ip_range(
+    db: Session,
+    current_user: User,
+    range_id: int,
+    data: SiteIpRangeUpdate,
+) -> Optional[SiteIpRangeOut]:
+    range_obj = db.scalar(
+        select(SiteIpRange).where(
+            SiteIpRange.id == range_id,
+            SiteIpRange.company_id == current_user.company_id,
+        )
+    )
+    if not range_obj:
+        return None
+
+    update_dict = data.model_dump(exclude_unset=True)
+    if "ip_inicio" in update_dict or "ip_fim" in update_dict:
+        novo_inicio = update_dict.get("ip_inicio", range_obj.ip_inicio)
+        novo_fim = update_dict.get("ip_fim", range_obj.ip_fim)
+        try:
+            s_int = int(ipaddress.IPv4Address(novo_inicio.strip()))
+            e_int = int(ipaddress.IPv4Address(novo_fim.strip()))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Endereço IP inicial ou final inválido.")
+        if e_int < s_int:
+            raise HTTPException(status_code=400, detail="O IP final deve ser maior ou igual ao IP inicial.")
+        if (e_int - s_int + 1) > 2048:
+            raise HTTPException(status_code=400, detail="O intervalo de IPs não pode conter mais de 2048 endereços.")
+
+    for k, v in update_dict.items():
+        if isinstance(v, str):
+            v = v.strip() or None
+        setattr(range_obj, k, v)
+
+    range_obj.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(range_obj)
+    ranges = listar_ip_ranges(db, current_user, site_id=range_obj.site_id)
+    return next((r for r in ranges if r.id == range_id), None)
+
+
+def excluir_ip_range(
+    db: Session,
+    current_user: User,
+    range_id: int,
+) -> bool:
+    range_obj = db.scalar(
+        select(SiteIpRange).where(
+            SiteIpRange.id == range_id,
+            SiteIpRange.company_id == current_user.company_id,
+        )
+    )
+    if not range_obj:
+        return False
+    db.delete(range_obj)
+    db.commit()
+    return True
 
 
 def gerar_csv_modelo() -> str:
