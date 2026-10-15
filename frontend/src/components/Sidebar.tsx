@@ -10,8 +10,8 @@ type UserInfo = {
 }
 
 type SidebarProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote'
-  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote') => void
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites'
+  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites') => void
   inventarioCount: number
   currentUser: UserInfo | null
   onLogout: () => void
@@ -143,6 +143,20 @@ export default function Sidebar({
               <path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8" />
             </svg>
             <span className="nav-label">Aplicativos</span>
+          </button>
+        )}
+
+        {isAdmin && (
+          <button
+            type="button"
+            className={`nav ${view === 'sites' ? 'on' : ''}`}
+            onClick={() => irPara('sites')}
+            title="Gerenciamento de Lojas, Filiais e Padrões de Nomenclatura"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M11 11h2M11 15h2M16 11h2M16 15h2M3 7l9-4 9 4" />
+            </svg>
+            <span className="nav-label">Lojas &amp; Filiais</span>
           </button>
         )}
 

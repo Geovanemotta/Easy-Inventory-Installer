@@ -486,13 +486,52 @@ export type Site = {
   name: string
   code: string
   active: boolean
+  identifiers?: string[]
+  devices_count?: number
+  network_assets_count?: number
+}
+
+export type SiteCreatePayload = {
+  name: string
+  code: string
+  active?: boolean
+  identifiers: string[]
+}
+
+export type SiteUpdatePayload = {
+  name?: string
+  code?: string
+  active?: boolean
+  identifiers?: string[]
+}
+
+export type SiteSimulationResult = {
+  matched: boolean
+  site_id?: number | null
+  site_name?: string | null
+  site_code?: string | null
+  matched_by?: string | null
+  details: string
+}
+
+export type SiteReclassifyResult = {
+  total_scanned: number
+  total_reclassified: number
+  changes: Array<{
+    device_id: number
+    hostname: string
+    old_site?: string | null
+    new_site: string
+  }>
 }
 
 export async function getSites(
   token: string,
+  includeInactive: boolean = false,
 ): Promise<Site[]> {
+  const query = includeInactive ? '?include_inactive=true' : ''
   const response = await fetch(
-    `${API_URL}/sites/`,
+    `${API_URL}/sites${query}`,
     {
       method: 'GET',
       headers: {
@@ -519,6 +558,119 @@ export async function getSites(
 
   return response.json()
 }
+
+export async function createSite(
+  token: string,
+  payload: SiteCreatePayload,
+): Promise<Site> {
+  const response = await fetch(`${API_URL}/sites`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao cadastrar nova filial.')
+  }
+
+  return response.json()
+}
+
+export async function updateSite(
+  token: string,
+  siteId: number,
+  payload: SiteUpdatePayload,
+): Promise<Site> {
+  const response = await fetch(`${API_URL}/sites/${siteId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao atualizar filial.')
+  }
+
+  return response.json()
+}
+
+export async function deleteSite(
+  token: string,
+  siteId: number,
+): Promise<{ detail: string; deactivated?: boolean }> {
+  const response = await fetch(`${API_URL}/sites/${siteId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao excluir filial.')
+  }
+
+  return response.json()
+}
+
+export async function simulateSiteMatch(
+  token: string,
+  hostname: string,
+  loja?: string,
+): Promise<SiteSimulationResult> {
+  const response = await fetch(`${API_URL}/sites/simulate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      hostname,
+      loja: loja || null,
+    }),
+  })
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao simular identificação da filial.')
+  }
+
+  return response.json()
+}
+
+export async function reclassifySites(
+  token: string,
+  onlyUnassigned: boolean = true,
+  siteId?: number,
+): Promise<SiteReclassifyResult> {
+  const response = await fetch(`${API_URL}/sites/reclassify`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      only_unassigned: onlyUnassigned,
+      site_id: siteId || null,
+    }),
+  })
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao reclassificar computadores.')
+  }
+
+  return response.json()
+}
+
 
 export type ADConfigData = {
   id?: number

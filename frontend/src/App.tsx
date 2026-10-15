@@ -12,6 +12,7 @@ import Login from './pages/Login'
 import NetworkAssetsPage from './pages/NetworkAssetsPage'
 import RemoteAccessPage from './pages/RemoteAccessPage'
 import ReportsPage from './pages/ReportsPage'
+import SitesPage from './pages/SitesPage'
 import {
   clearDeviceAlert,
   deleteDevice,
@@ -68,7 +69,7 @@ export default function App() {
   const [rawInventory, setRawInventory] = useState<RawInventoryItem[]>([])
   const [loading, setLoading] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<string>('-')
-  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote'>('inv')
+  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites'>('inv')
   const [toast, setToast] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -149,7 +150,7 @@ export default function App() {
     }
   }
 
-  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote') {
+  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites') {
     setView(v)
     window.location.hash = v
   }
@@ -346,16 +347,16 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '')
-    if (['rel', 'apps', 'ad', 'net', 'remote'].includes(hash)) {
-      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote')
+    if (['rel', 'apps', 'ad', 'net', 'remote', 'sites'].includes(hash)) {
+      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites')
     } else {
       setView('inv')
     }
 
     const onHashChange = () => {
       const h = window.location.hash.replace('#', '')
-      if (['rel', 'apps', 'ad', 'net', 'remote'].includes(h)) {
-        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote')
+      if (['rel', 'apps', 'ad', 'net', 'remote', 'sites'].includes(h)) {
+        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites')
       } else {
         setView('inv')
       }
@@ -364,10 +365,10 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
-  // Restrição de perfis: apenas administradores têm acesso a apps e ad
+  // Restrição de perfis: apenas administradores têm acesso a apps, ad e sites
   useEffect(() => {
     const isAdmin = Boolean(currentUser?.is_superadmin || currentUser?.roles?.includes('admin'))
-    if (currentUser && !isAdmin && (view === 'apps' || view === 'ad')) {
+    if (currentUser && !isAdmin && (view === 'apps' || view === 'ad' || view === 'sites')) {
       irPara('inv')
     }
   }, [currentUser, view])
@@ -503,6 +504,15 @@ export default function App() {
 
           {view === 'ad' && (
             <ActiveDirectoryPage showToast={showToast} />
+          )}
+
+          {view === 'sites' && (
+            <SitesPage
+              token={localStorage.getItem('access_token') || ''}
+              currentUser={currentUser}
+              showToast={showToast}
+              onRefreshInventory={() => carregarDados()}
+            />
           )}
         </div>
       </main>

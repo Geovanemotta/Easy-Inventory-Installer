@@ -57,4 +57,4 @@ class SiteIdentifier(Base):
     )
 
     company = relationship("Company")
-    site = relationship("Site")
+    site = relationship("Site", back_populates="identifiers")

@@ -49,79 +49,202 @@ def converter_data_coleta(valor: Any) -> Optional[datetime]:
             return None
 
 
-def identificar_site(
+def simular_identificacao_site(
     hostname: str,
     company_id: int,
     db: Session,
     loja: Optional[str] = None,
-) -> Optional[Site]:
+) -> Dict[str, Any]:
     h = (hostname or "").upper().strip()
-    target_identifiers = set()
-    target_codes = set()
+    l_str = str(loja or "").upper().strip() if loja else ""
 
-    # 1. Identificadores via regex
-    match = re.match(r"^(LJ?\d+|CB?\d+|AC)(?:-|$)", h)
-    if match:
-        identificador = match.group(1)
-        target_identifiers.add(identificador)
-        m_num = re.search(r"\d+", identificador)
-        if m_num:
-            num = int(m_num.group(0))
-            if identificador.startswith("CB") or identificador.startswith("C"):
-                target_identifiers.update([f"CB{num:02d}", f"C{num:02d}", f"CB{num}", f"C{num}"])
-                target_codes.update([f"C{num:02d}", f"COMBO-{num:02d}", f"C{num}"])
-            else:
-                target_identifiers.update([f"LJ{num:02d}", f"L{num:02d}", f"LJ{num}", f"L{num}"])
-                target_codes.update([f"{num:02d}", str(num), f"LOJA-{num:02d}"])
+    # 1. Correspondência direta pelo campo Loja enviado no payload
+    if l_str:
+        site_by_code = db.scalar(
+            select(Site).where(
+                Site.company_id == company_id,
+                or_(
+                    Site.code.ilike(l_str),
+                    Site.name.ilike(l_str),
+                ),
+                Site.active.is_(True),
+            )
+        )
+        if site_by_code:
+            return {
+                "matched": True,
+                "site_id": site_by_code.id,
+                "site_name": site_by_code.name,
+                "site_code": site_by_code.code,
+                "matched_by": f"Campo Loja ('{l_str}')",
+                "details": f"Correspondência direta com código/nome da loja '{site_by_code.name}' ({site_by_code.code}).",
+            }
 
-    # 2. Se a loja foi informada explicitamente no payload
-    if loja:
-        l_str = str(loja).upper().strip()
-        target_codes.add(l_str)
-        if l_str.isdigit():
-            target_codes.add(f"{int(l_str):02d}")
-            target_codes.add(f"LOJA-{int(l_str):02d}")
-
-    # 3. Prefixo no hostname
-    if h.startswith("AC-") or h == "MATRIZ":
-        target_codes.add("MATRIZ")
-        target_identifiers.add("AC")
-
-    # Busca em site_identifiers
-    if target_identifiers:
         site_by_ident = db.scalar(
             select(Site)
             .join(SiteIdentifier, SiteIdentifier.site_id == Site.id)
             .where(
                 SiteIdentifier.company_id == company_id,
-                SiteIdentifier.identifier.in_(target_identifiers),
+                SiteIdentifier.identifier.ilike(l_str),
                 SiteIdentifier.active.is_(True),
                 Site.active.is_(True),
             )
         )
         if site_by_ident:
-            return site_by_ident
+            return {
+                "matched": True,
+                "site_id": site_by_ident.id,
+                "site_name": site_by_ident.name,
+                "site_code": site_by_ident.code,
+                "matched_by": f"Padrão no campo Loja ('{l_str}')",
+                "details": f"O valor de loja '{l_str}' corresponde ao padrão cadastrado para '{site_by_ident.name}'.",
+            }
 
-    # Busca direta por Site.code
-    if target_codes:
-        site_by_code = db.scalar(
-            select(Site).where(
-                Site.company_id == company_id,
-                Site.code.in_(target_codes),
+    # 2. Busca dinâmica nos Padrões de Nomenclatura (SiteIdentifier) cadastrados no banco
+    if h:
+        rows = db.execute(
+            select(SiteIdentifier.identifier, Site.id, Site.name, Site.code)
+            .join(Site, Site.id == SiteIdentifier.site_id)
+            .where(
+                SiteIdentifier.company_id == company_id,
+                SiteIdentifier.active.is_(True),
                 Site.active.is_(True),
             )
-        )
-        if site_by_code:
-            return site_by_code
+        ).all()
 
-    # Fallback para OUTROS se existir
-    return db.scalar(
+        # Ordena identificadores por tamanho decrescente (mais específicos primeiro)
+        sorted_rows = sorted(rows, key=lambda r: len(r[0]), reverse=True)
+
+        for ident, s_id, s_name, s_code in sorted_rows:
+            ident_clean = str(ident).upper().strip()
+            if not ident_clean:
+                continue
+
+            # Suporte a curinga * (ex: "LJ01*")
+            if "*" in ident_clean:
+                pattern = "^" + re.escape(ident_clean).replace(r"\*", ".*") + "$"
+                if re.match(pattern, h):
+                    return {
+                        "matched": True,
+                        "site_id": s_id,
+                        "site_name": s_name,
+                        "site_code": s_code,
+                        "matched_by": f"Padrão curinga ('{ident_clean}')",
+                        "details": f"O hostname '{h}' atende ao padrão curinga '{ident_clean}' de '{s_name}'.",
+                    }
+
+            # Prefixo padrão: "LJ01-", "LJ01_", "LJ01." ou igualdade exata
+            if (
+                h == ident_clean
+                or h.startswith(f"{ident_clean}-")
+                or h.startswith(f"{ident_clean}_")
+                or h.startswith(f"{ident_clean}.")
+            ):
+                return {
+                    "matched": True,
+                    "site_id": s_id,
+                    "site_name": s_name,
+                    "site_code": s_code,
+                    "matched_by": f"Prefixo '{ident_clean}'",
+                    "details": f"O hostname '{h}' inicia com o prefixo cadastrado '{ident_clean}' de '{s_name}'.",
+                }
+
+            # Prefixo alfanumérico sem separador (ex: "LJ01PDV" quando ident é "LJ01")
+            if re.search(r"\d$", ident_clean) and h.startswith(ident_clean):
+                return {
+                    "matched": True,
+                    "site_id": s_id,
+                    "site_name": s_name,
+                    "site_code": s_code,
+                    "matched_by": f"Prefixo direto '{ident_clean}'",
+                    "details": f"O hostname '{h}' inicia com a sigla '{ident_clean}' de '{s_name}'.",
+                }
+
+        # Verifica prefixo direto pelo Site.code se configurado
+        all_sites = db.execute(
+            select(Site.id, Site.name, Site.code)
+            .where(Site.company_id == company_id, Site.active.is_(True))
+        ).all()
+        for s_id, s_name, s_code in all_sites:
+            code_u = s_code.upper().strip()
+            if code_u and (h == code_u or h.startswith(f"{code_u}-") or h.startswith(f"{code_u}_")):
+                return {
+                    "matched": True,
+                    "site_id": s_id,
+                    "site_name": s_name,
+                    "site_code": s_code,
+                    "matched_by": f"Código da Loja '{s_code}'",
+                    "details": f"O hostname '{h}' corresponde diretamente ao código '{s_code}' de '{s_name}'.",
+                }
+
+    # 3. Fallback inteligente via Regex padrão (LJ01, CB01, AC, etc.) para manter retrocompatibilidade
+    if h:
+        match = re.match(r"^(LJ?\d+|CB?\d+|AC)(?:-|$)", h)
+        if match:
+            prefixo = match.group(1)
+            m_num = re.search(r"\d+", prefixo)
+            if m_num:
+                num = int(m_num.group(0))
+                codes_to_try = (
+                    [f"C{num:02d}", f"COMBO-{num:02d}", f"C{num}"]
+                    if prefixo.startswith("CB") or prefixo.startswith("C")
+                    else [f"{num:02d}", str(num), f"LOJA-{num:02d}"]
+                )
+                site_regex = db.scalar(
+                    select(Site).where(
+                        Site.company_id == company_id,
+                        Site.code.in_(codes_to_try),
+                        Site.active.is_(True),
+                    )
+                )
+                if site_regex:
+                    return {
+                        "matched": True,
+                        "site_id": site_regex.id,
+                        "site_name": site_regex.name,
+                        "site_code": site_regex.code,
+                        "matched_by": f"Reconhecimento padrão ({prefixo})",
+                        "details": f"Reconhecido pelo padrão estrutural de filial ({prefixo}) como '{site_regex.name}'.",
+                    }
+
+    # 4. Fallback final para 'OUTROS'
+    site_outros = db.scalar(
         select(Site).where(
             Site.company_id == company_id,
             Site.code == "OUTROS",
             Site.active.is_(True),
         )
     )
+    if site_outros:
+        return {
+            "matched": False,
+            "site_id": site_outros.id,
+            "site_name": site_outros.name,
+            "site_code": site_outros.code,
+            "matched_by": "Fallback (OUTROS)",
+            "details": f"Nenhum padrão cadastrado corresponde ao hostname '{h or '(vazio)'}'. Atribuído à categoria de contingência 'OUTROS'.",
+        }
+
+    return {
+        "matched": False,
+        "site_id": None,
+        "site_name": None,
+        "site_code": None,
+        "matched_by": None,
+        "details": f"Nenhum padrão encontrado para o hostname '{h or '(vazio)'}'.",
+    }
+
+
+def identificar_site(
+    hostname: str,
+    company_id: int,
+    db: Session,
+    loja: Optional[str] = None,
+) -> Optional[Site]:
+    res = simular_identificacao_site(hostname, company_id, db, loja)
+    if res.get("site_id"):
+        return db.get(Site, res["site_id"])
+    return None
 
 
 

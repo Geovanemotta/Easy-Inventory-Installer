@@ -55,3 +55,9 @@ class Site(Base):
     )
 
     company = relationship("Company")
+    identifiers = relationship(
+        "SiteIdentifier",
+        back_populates="site",
+        cascade="all, delete-orphan",
+        order_by="SiteIdentifier.identifier",
+    )

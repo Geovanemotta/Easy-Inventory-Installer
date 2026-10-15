@@ -1,5 +1,5 @@
 type HeaderProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote'
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites'
   lastUpdate: string
   loading: boolean
   isSuperAdmin: boolean
@@ -30,6 +30,8 @@ export default function Header({
       ? { tag: 'RELATÓRIOS', color: '#34d399' }
       : view === 'apps'
       ? { tag: 'APLICATIVOS', color: '#fbbf24' }
+      : view === 'sites'
+      ? { tag: 'LOJAS & FILIAIS', color: '#a78bfa' }
       : { tag: 'ACTIVE DIRECTORY', color: '#f472b6' }
 
   return (
@@ -53,6 +55,7 @@ export default function Header({
             {view === 'rel' && 'Relatórios e Análises'}
             {view === 'apps' && 'Aplicativos e Versões'}
             {view === 'ad' && 'Active Directory & Acessos'}
+            {view === 'sites' && 'Lojas & Padrões de Nomenclatura'}
           </h1>
         </div>
         {/* <p>
