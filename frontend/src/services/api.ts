@@ -269,6 +269,8 @@ export type RawInventoryItem = {
   ferramentas?: AppItem[]
   perifericos?: PerifericoItem[]
   patrimonio?: string | null
+  serial_windows?: string | null
+  serial_office?: string | null
   firewall_status?: string | null
   firewall_solicitado_por?: string | null
   firewall_solicitado_em?: string | null
@@ -949,6 +951,8 @@ export type NetworkAsset = {
   device_id?: number | null
   faixa_nome?: string | null
   sistema_operacional?: string | null
+  serial_windows?: string | null
+  serial_office?: string | null
   created_at: string
   updated_at: string
 }
@@ -994,6 +998,8 @@ export type NetworkAssetInput = {
   numero_serie?: string | null
   localizacao?: string | null
   observacoes?: string | null
+  serial_windows?: string | null
+  serial_office?: string | null
 }
 
 export type PingResult = {
@@ -1153,7 +1159,7 @@ export async function pingNetworkAsset(
 
 export async function scanNetworkAssetsBatch(
   token: string,
-  params?: number | null | { asset_ids?: number[]; siteId?: number | null },
+  params?: number | null | { asset_ids?: number[]; siteId?: number | null; ips?: string[] },
 ): Promise<PingResult[]> {
   let url = `${API_URL}/network-assets/scan-batch`
   let body: string | undefined = undefined
@@ -1161,12 +1167,13 @@ export async function scanNetworkAssetsBatch(
   if (typeof params === 'number') {
     url += `?site_id=${params}`
   } else if (params && typeof params === 'object') {
-    if (params.siteId && !params.asset_ids) {
+    if (params.siteId && !params.asset_ids && !params.ips) {
       url += `?site_id=${params.siteId}`
     }
     body = JSON.stringify({
       asset_ids: params.asset_ids || undefined,
       site_id: params.siteId || undefined,
+      ips: params.ips || undefined,
     })
   }
 

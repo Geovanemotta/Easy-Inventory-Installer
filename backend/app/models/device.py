@@ -145,6 +145,16 @@ class Device(Base):
         nullable=True,
     )
 
+    serial_windows: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    serial_office: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
     alerta_hardware: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,

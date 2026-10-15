@@ -224,6 +224,10 @@ def listar_network_assets(
         site_nome = d.site.name if d.site else None
         site_codigo = d.site.code if d.site else None
         so_formatado = formatar_so_estacao(d.sistema, d.versao)
+        serial_win = getattr(d, "serial_windows", None) or (d.extra_data.get("serial_windows") if isinstance(d.extra_data, dict) else None)
+        serial_off = getattr(d, "serial_office", None) or (d.extra_data.get("serial_office") if isinstance(d.extra_data, dict) else None)
+        lat_estacao = d.extra_data.get("tempo_resposta_ms") if isinstance(d.extra_data, dict) else None
+        st_online_estacao = d.extra_data.get("status_online") if isinstance(d.extra_data, dict) else None
         dev_item = NetworkAssetOut(
             id=None,
             company_id=d.company_id,
@@ -239,14 +243,16 @@ def listar_network_assets(
             modelo=None,      # Evita poluir com modelo da placa-mãe
             numero_serie=None,
             localizacao=site_nome or d.loja or "Estação",
-            status_online=(d.status == "online") if d.status else None,
+            status_online=st_online_estacao,
             ultimo_ping=d.data_coleta,
-            tempo_resposta_ms=None,
+            tempo_resposta_ms=lat_estacao,
             observacoes=None,  # Sem observações duplicadas
             origem="estacao",
             device_id=d.id,
             faixa_nome=get_faixa_nome(clean_ip),
             sistema_operacional=so_formatado,
+            serial_windows=serial_win,
+            serial_office=serial_off,
             created_at=d.created_at,
             updated_at=d.updated_at,
         )
@@ -269,8 +275,8 @@ def listar_network_assets(
                         site_id=r_obj.site_id,
                         site_nome=r_obj.site.name if r_obj.site else None,
                         site_codigo=r_obj.site.code if r_obj.site else None,
-                        nome="(Disponível)",
-                        tipo="Livre / Disponível",
+                        nome="—",
+                        tipo="—",
                         ip=ip_str,
                         mac=None,
                         patrimonio=None,
@@ -535,14 +541,54 @@ async def ping_asset_by_id(
 
 async def ping_direct(
     ip: str,
+    db: Optional[Session] = None,
+    current_user: Optional[User] = None,
 ) -> PingResultOut:
     online, latency = await ping_ip(ip)
+    now = datetime.utcnow()
+    asset_id = None
+
+    if db and current_user:
+        clean_ip = ip.strip()
+        # Atualiza NetworkAsset se houver
+        asset = db.scalar(
+            select(NetworkAsset).where(
+                NetworkAsset.company_id == current_user.company_id,
+                NetworkAsset.ip == clean_ip,
+            )
+        )
+        if asset:
+            asset_id = asset.id
+            asset.status_online = online
+            asset.ultimo_ping = now
+            asset.tempo_resposta_ms = latency
+
+        # Atualiza Device (Estação) se houver
+        dev = db.scalar(
+            select(Device).where(
+                Device.company_id == current_user.company_id,
+                Device.ip == clean_ip,
+                Device.active == True,
+            )
+        )
+        if dev:
+            # IMPORTANTE: NÃO alterar dev.status (ele armazena conformidade de SO: OK / UPGRADE_REQUIRED)
+            dev.data_coleta = now
+            extra = dict(dev.extra_data or {})
+            extra["status_online"] = online
+            extra["ultimo_ping"] = now.isoformat()
+            if latency is not None:
+                extra["tempo_resposta_ms"] = latency
+            dev.extra_data = extra
+
+        db.commit()
+
     return PingResultOut(
-        asset_id=None,
+        asset_id=asset_id,
         ip=ip,
         online=online,
         tempo_resposta_ms=latency,
-        timestamp=datetime.utcnow(),
+        timestamp=now,
     )
 
 
@@ -551,47 +597,110 @@ async def scan_assets_batch(
     current_user: User,
     site_id: Optional[int] = None,
     asset_ids: Optional[List[int]] = None,
+    ips: Optional[List[str]] = None,
 ) -> List[PingResultOut]:
-    stmt = select(NetworkAsset).where(
+    ip_set = set()
+    if ips:
+        for ip in ips:
+            clean = (ip or "").strip()
+            if clean:
+                ip_set.add(clean)
+
+    # 1. Coleta registros de NetworkAsset
+    stmt_assets = select(NetworkAsset).where(
         NetworkAsset.company_id == current_user.company_id,
         NetworkAsset.ip.isnot(None),
     )
     if asset_ids:
-        stmt = stmt.where(NetworkAsset.id.in_(asset_ids))
+        stmt_assets = stmt_assets.where(NetworkAsset.id.in_(asset_ids))
     elif site_id:
-        stmt = stmt.where(NetworkAsset.site_id == site_id)
+        stmt_assets = stmt_assets.where(NetworkAsset.site_id == site_id)
 
-    assets = db.scalars(stmt).all()
-    if not assets:
+    matching_assets = db.scalars(stmt_assets).all()
+    if not ips:
+        for a in matching_assets:
+            if a.ip and a.ip.strip():
+                ip_set.add(a.ip.strip())
+
+        # Coleta estações de trabalho ativas
+        stmt_devs = select(Device).where(
+            Device.company_id == current_user.company_id,
+            Device.active == True,
+            Device.ip.isnot(None),
+        )
+        if site_id:
+            stmt_devs = stmt_devs.where(Device.site_id == site_id)
+        matching_devs = db.scalars(stmt_devs).all()
+        for d in matching_devs:
+            if d.ip and d.ip.strip():
+                ip_set.add(d.ip.strip())
+
+    if not ip_set:
         return []
 
-    sem = asyncio.Semaphore(25)  # até 25 testes simultâneos
+    unique_ips = list(ip_set)
+    sem = asyncio.Semaphore(30)  # até 30 pings simultâneos
 
-    async def check_one(asset: NetworkAsset):
+    async def check_ip(ip_addr: str):
         async with sem:
-            online, latency = await ping_ip(asset.ip)
-            return asset, online, latency
+            online, latency = await ping_ip(ip_addr)
+            return ip_addr, online, latency
 
-    tasks = [check_one(a) for a in assets]
+    tasks = [check_ip(ip) for ip in unique_ips]
     results = await asyncio.gather(*tasks)
 
     now = datetime.utcnow()
+    res_map = {ip: (online, latency) for ip, online, latency in results}
+
+    # Atualiza NetworkAssets no banco
+    stmt_all_assets = select(NetworkAsset).where(
+        NetworkAsset.company_id == current_user.company_id,
+        NetworkAsset.ip.in_(unique_ips),
+    )
+    assets_to_update = db.scalars(stmt_all_assets).all()
+    asset_by_ip = {}
+    for a in assets_to_update:
+        if a.ip:
+            asset_by_ip[a.ip] = a
+            if a.ip in res_map:
+                on, lat = res_map[a.ip]
+                a.status_online = on
+                a.ultimo_ping = now
+                a.tempo_resposta_ms = lat
+
+    # Atualiza Devices (Estações) no banco
+    stmt_all_devs = select(Device).where(
+        Device.company_id == current_user.company_id,
+        Device.active == True,
+        Device.ip.in_(unique_ips),
+    )
+    devs_to_update = db.scalars(stmt_all_devs).all()
+    for d in devs_to_update:
+        if d.ip and d.ip in res_map:
+            on, lat = res_map[d.ip]
+            # IMPORTANTE: NÃO alterar d.status (ele armazena conformidade de SO: OK / UPGRADE_REQUIRED)
+            d.data_coleta = now
+            extra = dict(d.extra_data or {})
+            extra["status_online"] = on
+            extra["ultimo_ping"] = now.isoformat()
+            if lat is not None:
+                extra["tempo_resposta_ms"] = lat
+            d.extra_data = extra
+
+    db.commit()
+
     output = []
-    for asset, online, latency in results:
-        asset.status_online = online
-        asset.ultimo_ping = now
-        asset.tempo_resposta_ms = latency
+    for ip, online, latency in results:
+        a = asset_by_ip.get(ip)
         output.append(
             PingResultOut(
-                asset_id=asset.id,
-                ip=asset.ip,
+                asset_id=a.id if a else None,
+                ip=ip,
                 online=online,
                 tempo_resposta_ms=latency,
                 timestamp=now,
             )
         )
-
-    db.commit()
     return output
 
 

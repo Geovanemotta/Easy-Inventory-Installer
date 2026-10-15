@@ -521,18 +521,14 @@ export default function ActiveDirectorySettings({ token, showToast }: Props) {
   return (
     <div className="ad-page">
       {/* Cabeçalho */}
+      {/* Barra de Ações Superior */}
       <header className="ad-head">
         <div className="ad-head-text">
           <div className="ad-title">
-            <span className="ad-title-ico"><Icon name="server" size={20} /></span>
-            <h2>Active Directory</h2>
             <span className={`ad-pill ${config.enabled ? 'on' : 'off'}`}>
-              <i /> {config.enabled ? 'Ativo' : 'Desativado'}
+              <i /> {config.enabled ? 'Integração AD Ativa' : 'Integração AD Desativada'}
             </span>
           </div>
-          {/* <p>
-            Autenticação centralizada dos colaboradores pelo AD corporativo, com visualização restrita por filial e loja.
-          </p> */}
         </div>
 
         <div className="ad-head-actions">

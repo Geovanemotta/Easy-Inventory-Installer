@@ -2,9 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   bulkDeleteNetworkAssets,
   createNetworkAsset,
-  createSiteIpRange,
   deleteNetworkAsset,
-  deleteSiteIpRange,
   downloadNetworkAssetTemplate,
   getNetworkAssets,
   getSiteIpRanges,
@@ -14,14 +12,13 @@ import {
   pingNetworkAsset,
   scanNetworkAssetsBatch,
   updateNetworkAsset,
-  updateSiteIpRange,
   type ImportResult,
   type NetworkAsset,
   type NetworkAssetInput,
   type Site,
   type SiteIpRange,
-  type SiteIpRangeInput,
 } from '../services/api'
+import SiteSelect from '../components/SiteSelect'
 
 type NetworkAssetsPageProps = {
   token: string
@@ -99,8 +96,12 @@ const ICONS = {
   info: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01',
   chevL: 'M15 18l-6-6 6-6',
   chevR: 'M9 18l6-6-6-6',
+  chevronDown: 'M6 9l6 6 6-6',
+  chevronUp: 'M18 15l-6-6-6 6',
   sortAsc: 'M12 19V5 M5 12l7-7 7 7',
   sortDesc: 'M12 5v14 M19 12l-7 7-7-7',
+  server: 'M2 2h20v8H2z M2 14h20v8H2z M6 6h.01 M6 18h.01',
+  hardware: 'M4 4h16v16H4z M9 9h6v6H9z',
   // categorias de equipamento
   printer: 'M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z',
   switch: 'M2 8h20v8H2z M6 12h.01 M10 12h.01 M14 12h.01 M18 12h.01',
@@ -188,8 +189,15 @@ function siteKind(code: string): SiteKind {
 
 function ipNum(ip?: string | null): number {
   if (!ip) return Infinity
-  const n = ip.split('.').reduce((t, p) => t * 256 + (+p || 0), 0)
-  return n || Infinity
+  const parts = ip.trim().split('.')
+  if (parts.length !== 4) return Infinity
+  let num = 0
+  for (const p of parts) {
+    const v = parseInt(p, 10)
+    if (isNaN(v) || v < 0 || v > 255) return Infinity
+    num = (num * 256) + v
+  }
+  return num
 }
 
 function tempoRelativo(valor?: string | null): string {
@@ -226,6 +234,15 @@ function Modal({ onClose, size = 'md', children }: { onClose: () => void; size?:
   )
 }
 
+export function formatarMac(m: string | null | undefined): string {
+  if (!m) return ''
+  const hex = m.toLowerCase().replace(/[^0-9a-f]/g, '')
+  if (hex.length === 12) {
+    return hex.match(/.{2}/g)!.join(':')
+  }
+  return m.replace(/-/g, ':')
+}
+
 /* ------------------------------------------------------------------ */
 /* Página                                                              */
 /* ------------------------------------------------------------------ */
@@ -236,6 +253,7 @@ export default function NetworkAssetsPage({
   showToast,
 }: NetworkAssetsPageProps) {
   const canManage = Boolean(isSuperAdmin || userRoles?.includes('admin'))
+
   const [assets, setAssets] = useState<NetworkAsset[]>([])
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(false)
@@ -251,19 +269,41 @@ export default function NetworkAssetsPage({
   const [filtroOcupacao, setFiltroOcupacao] = useState<OcupacaoFiltro>('todos')
   const [filtroFaixa, setFiltroFaixa] = useState<string>('todas')
 
-  // Faixas de IP (VLANs / Sub-redes por loja)
+  // Faixas de IP (carregadas para consulta e filtros)
   const [faixas, setFaixas] = useState<SiteIpRange[]>([])
-  const [modalFaixasAberto, setModalFaixasAberto] = useState(false)
-  const [faixaEditando, setFaixaEditando] = useState<SiteIpRange | null>(null)
-  const [formFaixaSiteId, setFormFaixaSiteId] = useState<string>('')
-  const [formFaixaNome, setFormFaixaNome] = useState('')
-  const [formFaixaIpInicio, setFormFaixaIpInicio] = useState('')
-  const [formFaixaIpFim, setFormFaixaIpFim] = useState('')
-  const [formFaixaGateway, setFormFaixaGateway] = useState('')
-  const [formFaixaMascara, setFormFaixaMascara] = useState('255.255.255.0')
-  const [formFaixaObs, setFormFaixaObs] = useState('')
-  const [salvandoFaixa, setSalvandoFaixa] = useState(false)
-  const [excluindoFaixaId, setExcluindoFaixaId] = useState<number | null>(null)
+
+  // Linha expandida para detalhes do ativo
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  // Filtros de busca integrada por coluna da tabela
+  const [colSearchOpen, setColSearchOpen] = useState<{ [key: string]: boolean }>({})
+  const [colBuscaIp, setColBuscaIp] = useState('')
+  const [colBuscaNome, setColBuscaNome] = useState('')
+  const [colBuscaFilial, setColBuscaFilial] = useState('')
+  const [colBuscaTipo, setColBuscaTipo] = useState('')
+  const [colBuscaPatrimonio, setColBuscaPatrimonio] = useState('')
+  const [colBuscaMac, setColBuscaMac] = useState('')
+
+  // Exibição dos cards detalhados de KPI
+  const [showKpiCards, setShowKpiCards] = useState(false)
+
+  function toggleColSearch(col: string) {
+    setColSearchOpen((prev) => ({ ...prev, [col]: !prev[col] }))
+  }
+
+  function limparBuscasColunas() {
+    setColBuscaIp('')
+    setColBuscaNome('')
+    setColBuscaFilial('')
+    setColBuscaTipo('')
+    setColBuscaPatrimonio('')
+    setColBuscaMac('')
+    setColSearchOpen({})
+  }
+
+  const temBuscaColunaAtiva = Boolean(
+    colBuscaIp || colBuscaNome || colBuscaFilial || colBuscaTipo || colBuscaPatrimonio || colBuscaMac
+  )
 
   // Ordenação e paginação
   const [ordem, setOrdem] = useState<Ordem>('padrao')
@@ -334,21 +374,28 @@ export default function NetworkAssetsPage({
   // Carregamento inicial de lojas
   useEffect(() => {
     carregarSites()
+    carregarFaixas()
   }, [])
 
-  // Sincroniza ativos e faixas de IP sempre que a filial filtrada mudar
+  // Sincroniza ativos e faixas de IP quando a filial ou faixa filtrada mudar
   useEffect(() => {
     carregarAtivos()
-    carregarFaixas()
-    setFiltroFaixa('todas')
-  }, [filtroSite])
+  }, [filtroSite, filtroFaixa])
+
+  // Reseta seleção de faixa caso ela não pertença à nova filial selecionada
+  useEffect(() => {
+    if (filtroSite !== 'todos' && filtroSite !== 'sem' && filtroFaixa !== 'todas') {
+      const existeNaLoja = faixas.some((f) => String(f.site_id) === filtroSite && String(f.id) === filtroFaixa)
+      if (!existeNaLoja) setFiltroFaixa('todas')
+    }
+  }, [filtroSite, faixas, filtroFaixa])
 
   // Volta para a primeira página sempre que o resultado muda
   useEffect(() => {
     setPagina(1)
   }, [busca, filtroSite, filtroTipo, filtroStatus, filtroGrupo, filtroOcupacao, filtroFaixa, ordem, dirAsc, porPagina])
 
-  // ESC fecha modal ou cancela rascunho inline
+  // ESC fecha modal, recolhe detalhes ou cancela rascunho inline
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
@@ -358,11 +405,12 @@ export default function NetworkAssetsPage({
       else if (modalConfirmarScan) setModalConfirmarScan(false)
       else if (modalFormAberto && !formSalvarCarregando) setModalFormAberto(false)
       else if (modalImportAberto && !importandoCsv) setModalImportAberto(false)
-      else if (modalFaixasAberto && !salvandoFaixa) setModalFaixasAberto(false)
+      else if (expandedId) setExpandedId(null)
+      else if (Object.values(colSearchOpen).some(Boolean)) setColSearchOpen({})
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [inlineDraft, salvandoInline, modalConfirmarExclusaoLote, excluindoLote, assetParaExcluir, excluindoAsset, modalConfirmarScan, modalFormAberto, formSalvarCarregando, modalImportAberto, importandoCsv, modalFaixasAberto, salvandoFaixa])
+  }, [inlineDraft, salvandoInline, modalConfirmarExclusaoLote, excluindoLote, assetParaExcluir, excluindoAsset, modalConfirmarScan, modalFormAberto, formSalvarCarregando, modalImportAberto, importandoCsv, expandedId, colSearchOpen])
 
   async function carregarSites() {
     try {
@@ -377,8 +425,10 @@ export default function NetworkAssetsPage({
     setLoading(true)
     try {
       const siteIdParam = filtroSite !== 'todos' && filtroSite !== 'sem' ? Number(filtroSite) : undefined
+      const faixaIdParam = filtroFaixa !== 'todas' ? Number(filtroFaixa) : undefined
       const data = await getNetworkAssets(token, {
         site_id: siteIdParam,
+        faixa_id: faixaIdParam,
       })
       setAssets(data || [])
     } catch (err: unknown) {
@@ -391,13 +441,18 @@ export default function NetworkAssetsPage({
 
   async function carregarFaixas() {
     try {
-      const siteIdParam = filtroSite !== 'todos' && filtroSite !== 'sem' ? Number(filtroSite) : undefined
-      const data = await getSiteIpRanges(token, siteIdParam)
+      const data = await getSiteIpRanges(token)
       setFaixas(data || [])
     } catch (err) {
       console.warn('Falha ao carregar faixas de IP:', err)
     }
   }
+
+  const faixasDisponiveis = useMemo(() => {
+    if (filtroSite === 'sem') return []
+    if (filtroSite === 'todos') return faixas
+    return faixas.filter((f) => String(f.site_id) === filtroSite)
+  }, [faixas, filtroSite])
 
   /* ---------------- Filtros ---------------- */
   const tipoDe = (a: NetworkAsset) => (a.tipo || '').toUpperCase().trim() || 'SEM TIPO'
@@ -455,6 +510,35 @@ export default function NetworkAssetsPage({
       const campos = [a.nome, a.ip, a.mac, a.patrimonio, a.localizacao, a.site_nome, a.site_codigo, a.tipo, a.fabricante, a.modelo, a.numero_serie, a.faixa_nome]
       if (!campos.some((c) => (c || '').toLowerCase().includes(s))) return false
     }
+
+    // Filtros por coluna da tabela
+    if (colBuscaIp.trim()) {
+      const q = colBuscaIp.toLowerCase().trim()
+      if (!((a.ip || '').toLowerCase().includes(q))) return false
+    }
+    if (colBuscaNome.trim()) {
+      const q = colBuscaNome.toLowerCase().trim()
+      if (!((a.nome || '').toLowerCase().includes(q))) return false
+    }
+    if (colBuscaFilial.trim()) {
+      const q = colBuscaFilial.toLowerCase().trim()
+      const match = [a.site_codigo, a.site_nome, a.localizacao].some((c) => (c || '').toLowerCase().includes(q))
+      if (!match) return false
+    }
+    if (colBuscaTipo.trim()) {
+      const q = colBuscaTipo.toLowerCase().trim()
+      if (!((a.tipo || '').toLowerCase().includes(q))) return false
+    }
+    if (colBuscaPatrimonio.trim()) {
+      const q = colBuscaPatrimonio.toLowerCase().trim()
+      if (!((a.patrimonio || '').toLowerCase().includes(q))) return false
+    }
+    if (colBuscaMac.trim()) {
+      const q = colBuscaMac.toLowerCase().trim().replace(/[^0-9a-f]/g, '')
+      const aMacHex = (a.mac || '').toLowerCase().replace(/[^0-9a-f]/g, '')
+      if (q && !aMacHex.includes(q)) return false
+    }
+
     return true
   }
 
@@ -477,7 +561,7 @@ export default function NetworkAssetsPage({
     }
     return [...lista].sort((a, b) => (dirAsc ? 1 : -1) * cmp(a, b))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets, filtroSite, filtroTipo, filtroStatus, filtroGrupo, filtroOcupacao, filtroFaixa, faixas, busca, ordem, dirAsc])
+  }, [assets, filtroSite, filtroTipo, filtroStatus, filtroGrupo, filtroOcupacao, filtroFaixa, faixas, busca, colBuscaIp, colBuscaNome, colBuscaFilial, colBuscaTipo, colBuscaPatrimonio, colBuscaMac, ordem, dirAsc])
 
   // Contagem por status considerando os demais filtros (para os botões de status)
   const statusCounts = useMemo(() => {
@@ -545,7 +629,14 @@ export default function NetworkAssetsPage({
   }, [filtroSite, sites])
 
   const filtrosAtivos =
-    !!busca.trim() || filtroSite !== 'todos' || filtroTipo !== 'todos' || filtroStatus !== 'todos' || !!filtroGrupo || filtroOcupacao !== 'todos' || filtroFaixa !== 'todas'
+    !!busca.trim() ||
+    filtroSite !== 'todos' ||
+    filtroTipo !== 'todos' ||
+    filtroStatus !== 'todos' ||
+    !!filtroGrupo ||
+    filtroOcupacao !== 'todos' ||
+    filtroFaixa !== 'todas' ||
+    temBuscaColunaAtiva
 
   const ocupacaoCounts = useMemo(() => {
     return {
@@ -565,6 +656,7 @@ export default function NetworkAssetsPage({
     setFiltroGrupo('')
     setFiltroOcupacao('todos')
     setFiltroFaixa('todas')
+    limparBuscasColunas()
   }
 
   /* KPI clicável: filtra pelo indicador; clicar de novo limpa */
@@ -713,7 +805,38 @@ export default function NetworkAssetsPage({
     setExcluindoAsset(true)
     try {
       await deleteNetworkAsset(token, assetParaExcluir.id)
-      setAssets((prev) => prev.filter((a) => a.id !== assetParaExcluir.id))
+      const exNome = assetParaExcluir.nome
+      const exIp = assetParaExcluir.ip?.trim()
+
+      setAssets((prev) =>
+        prev
+          .map((a) => {
+            if (a.id === assetParaExcluir.id) {
+              if (exIp) {
+                // Limpa os dados do ativo e deixa a linha como endereço IP livre/disponível
+                return {
+                  ...a,
+                  id: null,
+                  nome: '—',
+                  tipo: '—',
+                  mac: null,
+                  patrimonio: null,
+                  fabricante: null,
+                  modelo: null,
+                  numero_serie: null,
+                  observacoes: null,
+                  status_online: null,
+                  tempo_resposta_ms: null,
+                  origem: 'livre',
+                }
+              }
+              return null
+            }
+            return a
+          })
+          .filter(Boolean) as NetworkAsset[]
+      )
+
       setSelecionados((prev) => {
         const next = new Set(prev)
         next.delete(assetParaExcluir.id!)
@@ -722,7 +845,11 @@ export default function NetworkAssetsPage({
       if (inlineDraft?.parentId === assetParaExcluir.id) {
         setInlineDraft(null)
       }
-      showToast(`Ativo "${assetParaExcluir.nome}" excluído.`)
+      if (exIp) {
+        showToast(`Ativo "${exNome}" excluído. O endereço IP ${exIp} agora está disponível.`)
+      } else {
+        showToast(`Ativo "${exNome}" excluído com sucesso.`)
+      }
       setAssetParaExcluir(null)
       carregarFaixas()
     } catch (err: unknown) {
@@ -733,114 +860,38 @@ export default function NetworkAssetsPage({
     }
   }
 
-  /* ---------------- Faixas de IP / VLANs ---------------- */
-  function abrirModalFaixas() {
-    setFaixaEditando(null)
-    setFormFaixaSiteId(filtroSite !== 'todos' && filtroSite !== 'sem' ? filtroSite : sites.length > 0 ? String(sites[0].id) : '')
-    setFormFaixaNome('')
-    setFormFaixaIpInicio('')
-    setFormFaixaIpFim('')
-    setFormFaixaGateway('')
-    setFormFaixaMascara('255.255.255.0')
-    setFormFaixaObs('')
-    setModalFaixasAberto(true)
-  }
 
-  function iniciarEditarFaixa(f: SiteIpRange) {
-    setFaixaEditando(f)
-    setFormFaixaSiteId(String(f.site_id))
-    setFormFaixaNome(f.nome)
-    setFormFaixaIpInicio(f.ip_inicio)
-    setFormFaixaIpFim(f.ip_fim)
-    setFormFaixaGateway(f.gateway || '')
-    setFormFaixaMascara(f.mascara || '255.255.255.0')
-    setFormFaixaObs(f.observacoes || '')
-  }
-
-  function cancelarEditarFaixa() {
-    setFaixaEditando(null)
-    setFormFaixaNome('')
-    setFormFaixaIpInicio('')
-    setFormFaixaIpFim('')
-    setFormFaixaGateway('')
-    setFormFaixaMascara('255.255.255.0')
-    setFormFaixaObs('')
-  }
-
-  async function handleSalvarFaixa(e: React.FormEvent) {
-    e.preventDefault()
-    if (!formFaixaNome.trim() || !formFaixaIpInicio.trim() || !formFaixaIpFim.trim() || !formFaixaSiteId) {
-      showToast('Preencha os campos obrigatórios da faixa (Loja, Nome, IP Inicial e Final).')
-      return
-    }
-
-    setSalvandoFaixa(true)
-    try {
-      const payload: SiteIpRangeInput = {
-        site_id: Number(formFaixaSiteId),
-        nome: formFaixaNome.trim(),
-        ip_inicio: formFaixaIpInicio.trim(),
-        ip_fim: formFaixaIpFim.trim(),
-        gateway: formFaixaGateway.trim() || null,
-        mascara: formFaixaMascara.trim() || null,
-        observacoes: formFaixaObs.trim() || null,
-      }
-
-      if (faixaEditando) {
-        await updateSiteIpRange(token, faixaEditando.id, payload)
-        showToast('Faixa de IP atualizada com sucesso!')
-      } else {
-        await createSiteIpRange(token, payload)
-        showToast('Nova faixa de IP criada com sucesso!')
-      }
-
-      cancelarEditarFaixa()
-      await carregarFaixas()
-      await carregarAtivos()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      showToast(`Erro ao salvar faixa: ${msg}`)
-    } finally {
-      setSalvandoFaixa(false)
-    }
-  }
-
-  async function handleExcluirFaixa(id: number) {
-    setExcluindoFaixaId(id)
-    try {
-      await deleteSiteIpRange(token, id)
-      showToast('Faixa de IP excluída.')
-      await carregarFaixas()
-      await carregarAtivos()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      showToast(`Erro ao excluir faixa: ${msg}`)
-    } finally {
-      setExcluindoFaixaId(null)
-    }
-  }
 
   /* ---------------- Ping ---------------- */
   async function handlePingIndividual(a: NetworkAsset) {
-    if (!a.ip) {
+    if (!a.ip || !a.ip.trim()) {
       showToast('Este equipamento não possui IP configurado.')
       return
     }
-    setPingingIp(a.ip)
+    const cleanIp = a.ip.trim()
+    setPingingIp(cleanIp)
     try {
-      const res = a.id ? await pingNetworkAsset(token, a.id) : await pingDirectIp(token, a.ip)
+      const res = a.id ? await pingNetworkAsset(token, a.id) : await pingDirectIp(token, cleanIp)
       setAssets((prev) =>
         prev.map((item) => {
-          const matches = (item.id && a.id && item.id === a.id) || (item.ip === a.ip)
+          const matches = (item.id && a.id && item.id === a.id) || (item.ip && item.ip.trim() === cleanIp)
           return matches
             ? { ...item, status_online: res.online, tempo_resposta_ms: res.tempo_resposta_ms, ultimo_ping: res.timestamp }
             : item
         })
       )
       if (res.online) {
-        showToast(`✓ ${a.nome} (${a.ip}) respondeu em ${res.tempo_resposta_ms}ms`)
+        if (a.origem === 'livre') {
+          showToast(`⚠️ IP livre ${cleanIp} respondeu ao ping (${res.tempo_resposta_ms ?? 0}ms)! Pode haver equipamento não cadastrado em uso.`)
+        } else {
+          showToast(`✓ ${a.nome} (${cleanIp}) respondeu em ${res.tempo_resposta_ms}ms`)
+        }
       } else {
-        showToast(`✕ ${a.nome} (${a.ip}) está inacessível.`)
+        if (a.origem === 'livre') {
+          showToast(`✓ IP ${cleanIp} livre e sem resposta (disponível para uso).`)
+        } else {
+          showToast(`✕ ${a.nome} (${cleanIp}) está inacessível.`)
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -851,7 +902,7 @@ export default function NetworkAssetsPage({
   }
 
   function abrirConfirmacaoScan() {
-    const comIp = ativosFiltrados.filter((a) => a.ip && a.ip.trim())
+    const comIp = ativosFiltrados.filter((a) => a.ip && a.ip.trim() && ipValido(a.ip.trim()))
     if (comIp.length === 0) {
       showToast('Nenhum equipamento com endereço IP válido para testar.')
       return
@@ -862,26 +913,41 @@ export default function NetworkAssetsPage({
 
   async function executarScanLote() {
     setModalConfirmarScan(false)
-    const comIpFiltrados = ativosFiltrados.filter(
-      (a): a is NetworkAsset & { id: number } => Boolean(a.id && a.ip && a.ip.trim())
-    )
-    const targetIds = comIpFiltrados.map((a) => a.id)
+    const alvosComIp = ativosFiltrados.filter((a) => a.ip && a.ip.trim() && ipValido(a.ip.trim()))
+    const targetIps = Array.from(new Set(alvosComIp.map((a) => a.ip!.trim())))
+    const targetAssetIds = alvosComIp
+      .filter((a): a is NetworkAsset & { id: number } => typeof a.id === 'number')
+      .map((a) => a.id)
     const siteIdParam = filtroSite !== 'todos' && filtroSite !== 'sem' ? Number(filtroSite) : undefined
+
+    if (targetIps.length === 0) {
+      showToast('Nenhum equipamento com endereço IP válido para testar.')
+      return
+    }
+
     setScanning(true)
-    showToast(`Testando conectividade de ${targetIds.length} equipamentos filtrados...`)
+    showToast(`Testando conectividade de ${targetIps.length} endereços IP...`)
     try {
-      const results = await scanNetworkAssetsBatch(token, { asset_ids: targetIds, siteId: siteIdParam })
-      const resMap = new Map(results.map((r) => [r.asset_id, r]))
+      const results = await scanNetworkAssetsBatch(token, {
+        ips: targetIps,
+        asset_ids: targetAssetIds.length > 0 ? targetAssetIds : undefined,
+        siteId: siteIdParam,
+      })
+      const resByIp = new Map(results.map((r) => [r.ip, r]))
+      const resById = new Map(results.filter((r) => r.asset_id).map((r) => [r.asset_id!, r]))
 
       setAssets((prev) =>
         prev.map((item) => {
-          const r = item.id ? resMap.get(item.id) : undefined
-          return r ? { ...item, status_online: r.online, tempo_resposta_ms: r.tempo_resposta_ms, ultimo_ping: r.timestamp } : item
+          const cleanIp = item.ip?.trim()
+          const r = (cleanIp ? resByIp.get(cleanIp) : undefined) || (item.id ? resById.get(item.id) : undefined)
+          return r
+            ? { ...item, status_online: r.online, tempo_resposta_ms: r.tempo_resposta_ms, ultimo_ping: r.timestamp }
+            : item
         })
       )
 
       const onlineCount = results.filter((r) => r.online).length
-      showToast(`Varredura concluída! ${onlineCount} de ${results.length} equipamentos online.`)
+      showToast(`Varredura concluída! ${onlineCount} de ${results.length} endereços responderam ao ping.`)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       showToast(`Falha na varredura: ${msg}`)
@@ -1027,13 +1093,41 @@ export default function NetworkAssetsPage({
     try {
       const res = await bulkDeleteNetworkAssets(token, ids)
       const idsSet = new Set(ids)
-      setAssets((prev) => prev.filter((a) => a.id === null || !idsSet.has(a.id)))
+      setAssets((prev) =>
+        prev
+          .map((a) => {
+            if (a.id && idsSet.has(a.id)) {
+              if (a.ip && a.ip.trim()) {
+                // Limpa os dados dos ativos e deixa as linhas como IPs livres/disponíveis
+                return {
+                  ...a,
+                  id: null,
+                  nome: '—',
+                  tipo: '—',
+                  mac: null,
+                  patrimonio: null,
+                  fabricante: null,
+                  modelo: null,
+                  numero_serie: null,
+                  observacoes: null,
+                  status_online: null,
+                  tempo_resposta_ms: null,
+                  origem: 'livre',
+                }
+              }
+              return null
+            }
+            return a
+          })
+          .filter(Boolean) as NetworkAsset[]
+      )
       setSelecionados(new Set())
       if (inlineDraft && idsSet.has(inlineDraft.parentId)) {
         setInlineDraft(null)
       }
       setModalConfirmarExclusaoLote(false)
-      showToast(`${res.removidos || ids.length} ativos excluídos com sucesso!`)
+      showToast(`${res.removidos || ids.length} ativos excluídos. Os endereços IP foram liberados.`)
+      carregarFaixas()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       showToast(`Erro ao excluir em massa: ${msg}`)
@@ -1137,27 +1231,158 @@ export default function NetworkAssetsPage({
       },
     ]
 
-  const thSort = (chave: Ordem, rotulo: string, style?: React.CSSProperties) => (
-    <th style={style} className="sortable" onClick={() => alternarOrdem(chave)} aria-sort={ordem === chave ? (dirAsc ? 'ascending' : 'descending') : 'none'}>
-      {rotulo}
-      {ordem === chave && <Icon name={dirAsc ? 'sortAsc' : 'sortDesc'} size={12} className="na-sort" />}
-    </th>
-  )
+  const renderTh = (
+    chave: Ordem | null,
+    rotulo: string,
+    colKey?: 'ip' | 'nome' | 'filial' | 'tipo' | 'patrimonio' | 'mac',
+    style?: React.CSSProperties,
+  ) => {
+    const isSortable = Boolean(chave)
+    const hasSearch = Boolean(colKey)
+    const isSearchOpen = colKey ? Boolean(colSearchOpen[colKey]) : false
+    const searchVal =
+      colKey === 'ip' ? colBuscaIp :
+      colKey === 'nome' ? colBuscaNome :
+      colKey === 'filial' ? colBuscaFilial :
+      colKey === 'tipo' ? colBuscaTipo :
+      colKey === 'patrimonio' ? colBuscaPatrimonio :
+      colKey === 'mac' ? colBuscaMac : ''
+
+    const setSearchVal = (val: string) => {
+      if (colKey === 'ip') setColBuscaIp(val)
+      else if (colKey === 'nome') setColBuscaNome(val)
+      else if (colKey === 'filial') setColBuscaFilial(val)
+      else if (colKey === 'tipo') setColBuscaTipo(val)
+      else if (colKey === 'patrimonio') setColBuscaPatrimonio(val)
+      else if (colKey === 'mac') setColBuscaMac(val)
+    }
+
+    return (
+      <th style={style} className={`na-th-col ${isSortable ? 'sortable' : ''}`}>
+        <div className="na-th-content">
+          <div
+            className="na-th-title"
+            onClick={isSortable && chave ? () => alternarOrdem(chave) : undefined}
+            title={isSortable ? `Ordenar por ${rotulo}` : undefined}
+          >
+            <span>{rotulo}</span>
+            {isSortable && chave && ordem === chave && (
+              <Icon name={dirAsc ? 'sortAsc' : 'sortDesc'} size={12} className="na-sort" />
+            )}
+          </div>
+          {hasSearch && colKey && (
+            <button
+              type="button"
+              className={`na-th-search-btn ${searchVal ? 'has-filter' : ''} ${isSearchOpen ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleColSearch(colKey)
+              }}
+              title={searchVal ? `Filtro ativo: "${searchVal}". Clique para ajustar` : `Filtrar coluna ${rotulo}`}
+              aria-label={`Filtrar coluna ${rotulo}`}
+            >
+              <Icon name="search" size={12} />
+            </button>
+          )}
+        </div>
+        {hasSearch && colKey && isSearchOpen && (
+          <div className="na-th-search-box" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="text"
+              autoFocus
+              placeholder={`Filtrar ${rotulo.toLowerCase()}...`}
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+            />
+            {searchVal && (
+              <button
+                type="button"
+                className="na-th-search-clear"
+                onClick={() => setSearchVal('')}
+                title="Limpar filtro"
+              >
+                <Icon name="x" size={11} />
+              </button>
+            )}
+          </div>
+        )}
+      </th>
+    )
+  }
 
   return (
     <div className="na-page">
-      {/* CABEÇALHO */}
-      <header className="na-head">
-        <div>
-          <h1>Ativos de rede &amp; periféricos</h1>
-          <p>
-            Controle e teste de conectividade de ativos.
+      {/* BARRA SUPERIOR DE AÇÕES E MÉTRICAS */}
+      <div className="na-toolbar">
+        <div className="na-toolbar-left">
+          <div className="na-summary-strip">
+            <button
+              type="button"
+              className={`na-sum-pill total ${filtroStatus === 'todos' && filtroOcupacao === 'todos' ? 'active' : ''}`}
+              onClick={() => {
+                setFiltroStatus('todos')
+                setFiltroOcupacao('todos')
+              }}
+              title="Exibir todos os ativos"
+            >
+              <b>{statusCounts.todos}</b> Total
+            </button>
+            <button
+              type="button"
+              className={`na-sum-pill online ${filtroStatus === 'online' ? 'active' : ''}`}
+              onClick={() => setFiltroStatus((s) => (s === 'online' ? 'todos' : 'online'))}
+              title="Filtrar equipamentos online"
+            >
+              <i className="dot green" /> <b>{statusCounts.online}</b> Online
+            </button>
+            <button
+              type="button"
+              className={`na-sum-pill offline ${filtroStatus === 'offline' ? 'active' : ''}`}
+              onClick={() => setFiltroStatus((s) => (s === 'offline' ? 'todos' : 'offline'))}
+              title="Filtrar equipamentos offline"
+            >
+              <i className="dot red" /> <b>{statusCounts.offline}</b> Offline
+            </button>
+            <button
+              type="button"
+              className={`na-sum-pill livres ${filtroOcupacao === 'livres' ? 'active' : ''}`}
+              onClick={() => setFiltroOcupacao((o) => (o === 'livres' ? 'todos' : 'livres'))}
+              title="Filtrar endereços IP livres"
+            >
+              <i className="dot blue" /> <b>{ocupacaoCounts.livres}</b> Livres
+            </button>
+            <button
+              type="button"
+              className={`na-sum-pill estacoes ${filtroOcupacao === 'estacoes' ? 'active' : ''}`}
+              onClick={() => setFiltroOcupacao((o) => (o === 'estacoes' ? 'todos' : 'estacoes'))}
+              title="Filtrar estações de trabalho"
+            >
+              <b>{ocupacaoCounts.estacoes}</b> Estações
+            </button>
             {kpis.ultimoTeste && (
-              <span className="na-last"> Último teste: {kpis.ultimoTeste.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="na-last-test" title="Última verificação de conectividade">
+                Último teste: {kpis.ultimoTeste.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+              </span>
             )}
-          </p>
+          </div>
+
+          <button
+            type="button"
+            className="na-toggle-kpis-btn"
+            onClick={() => setShowKpiCards((v) => !v)}
+            title="Expandir ou recolher os cards detalhados por categoria"
+          >
+            {showKpiCards ? 'Ocultar cards' : 'Cards detalhados'}
+            <Icon name={showKpiCards ? 'chevronUp' : 'chevronDown'} size={12} />
+          </button>
         </div>
-        <div className="na-head-actions">
+
+        <div className="na-toolbar-actions">
+          {selecionados.size > 0 && canManage && (
+            <button className="btn danger" onClick={() => setModalConfirmarExclusaoLote(true)} title="Excluir ativos selecionados">
+              <Icon name="trash" /> Excluir ({selecionados.size})
+            </button>
+          )}
           <button className="btn" onClick={handleBaixarModelo} title="Baixar modelo de planilha pronto para preenchimento">
             <Icon name="download" /> Modelo CSV
           </button>
@@ -1170,11 +1395,6 @@ export default function NetworkAssetsPage({
             <Icon name="file" /> Exportar
           </button>
           {canManage && (
-            <button className="btn" onClick={abrirModalFaixas} title="Gerenciar faixas de IP e sub-redes (VLANs) por filial">
-              <Icon name="switch" /> Faixas de IP (VLANs)
-            </button>
-          )}
-          {canManage && (
             <button className="btn accent" onClick={abrirConfirmacaoScan} disabled={scanning} title="Testa conectividade e latência dos equipamentos filtrados">
               <Icon name="bolt" className={scanning ? 'na-spin' : ''} /> {scanning ? 'Verificando...' : 'Testar conexões'}
             </button>
@@ -1185,68 +1405,54 @@ export default function NetworkAssetsPage({
             </button>
           )}
         </div>
-      </header>
-
-      {/* KPIS */}
-      <div className="na-kpis">
-        {kpiCards.map((k) => (
-          <button key={k.id} type="button" className={`na-kpi tone-${k.tone} ${k.ativo ? 'on' : ''}`} onClick={() => aplicarKpi(k.id)} aria-pressed={k.ativo} title="Clique para filtrar">
-            <span className="na-kpi-ico">
-              <Icon name={k.icon} size={18} />
-            </span>
-            <span className="na-kpi-txt">
-              <span className="na-kpi-label">{k.label}</span>
-              <b>{k.value}</b>
-              {k.sub && <small>{k.sub}</small>}
-            </span>
-          </button>
-        ))}
       </div>
 
-      {/* ABAS DE OCUPAÇÃO (IPAM) */}
-      <div className="na-ocupacao-tabs">
-        {([
-          { id: 'todos', label: 'Todos os IPs', desc: 'Ativos, estações e livres' },
-          { id: 'ocupados', label: 'Ocupados', desc: 'Com equipamento vinculado' },
-          { id: 'livres', label: 'Apenas IPs Livres', desc: 'Disponíveis nas faixas' },
-          { id: 'estacoes', label: 'Apenas Estações', desc: 'Inventário de computadores' },
-          { id: 'ativos', label: 'Apenas Ativos de Rede', desc: 'Impressoras, switches, etc.' },
-        ] as const).map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`na-ocup-btn ${filtroOcupacao === tab.id ? 'active' : ''}`}
-            onClick={() => setFiltroOcupacao(tab.id)}
-            title={tab.desc}
-          >
-            {tab.label}
-            <span className="na-ocup-count">
-              {tab.id === 'todos' ? ocupacaoCounts.todos :
-               tab.id === 'ocupados' ? ocupacaoCounts.ocupados :
-               tab.id === 'livres' ? ocupacaoCounts.livres :
-               tab.id === 'estacoes' ? ocupacaoCounts.estacoes :
-               ocupacaoCounts.ativos}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* CARDS DETALHADOS COLAPSÁVEIS */}
+      {showKpiCards && (
+        <div className="na-kpis animate-down">
+          {kpiCards.map((k) => (
+            <button key={k.id} type="button" className={`na-kpi tone-${k.tone} ${k.ativo ? 'on' : ''}`} onClick={() => aplicarKpi(k.id)} aria-pressed={k.ativo} title="Clique para filtrar">
+              <span className="na-kpi-ico">
+                <Icon name={k.icon} size={18} />
+              </span>
+              <span className="na-kpi-txt">
+                <span className="na-kpi-label">{k.label}</span>
+                <b>{k.value}</b>
+                {k.sub && <small>{k.sub}</small>}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* FILTROS */}
+      {/* FILTROS UNIFICADOS */}
       <section className="na-filters">
         <div className="na-filters-row">
-          <div className="na-search">
-            <Icon name="search" size={15} />
-            <input
-              type="text"
-              placeholder="Buscar por nome, IP, MAC, patrimônio, local, modelo..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-            />
-            {busca && (
-              <button type="button" className="na-clear" onClick={() => setBusca('')} aria-label="Limpar busca">
-                <Icon name="x" size={13} />
+          <div className="na-ocupacao-tabs" style={{ marginBottom: 0 }}>
+            {([
+              { id: 'todos', label: 'Todos os IPs', desc: 'Ativos, estações e livres' },
+              { id: 'ocupados', label: 'Ocupados', desc: 'Com equipamento vinculado' },
+              { id: 'livres', label: 'Livres', desc: 'Disponíveis nas faixas' },
+              { id: 'estacoes', label: 'Estações', desc: 'Inventário de computadores' },
+              { id: 'ativos', label: 'Ativos de Rede', desc: 'Impressoras, switches, etc.' },
+            ] as const).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`na-ocup-btn ${filtroOcupacao === tab.id ? 'active' : ''}`}
+                onClick={() => setFiltroOcupacao(tab.id)}
+                title={tab.desc}
+              >
+                {tab.label}
+                <span className="na-ocup-count">
+                  {tab.id === 'todos' ? ocupacaoCounts.todos :
+                   tab.id === 'ocupados' ? ocupacaoCounts.ocupados :
+                   tab.id === 'livres' ? ocupacaoCounts.livres :
+                   tab.id === 'estacoes' ? ocupacaoCounts.estacoes :
+                   ocupacaoCounts.ativos}
+                </span>
               </button>
-            )}
+            ))}
           </div>
 
           <select value={filtroSite} onChange={(e) => setFiltroSite(e.target.value)} aria-label="Filial">
@@ -1275,11 +1481,12 @@ export default function NetworkAssetsPage({
             {siteOpcoes.semFilial > 0 && <option value="sem">Sem filial vinculada ({siteOpcoes.semFilial})</option>}
           </select>
 
-          {faixas.length > 0 && (
-            <select value={filtroFaixa} onChange={(e) => setFiltroFaixa(e.target.value)} aria-label="Faixa de IP">
-              <option value="todas">Todas as faixas de IP ({faixas.length})</option>
-              {faixas.map((f) => (
+          {faixasDisponiveis.length > 0 && (
+            <select value={filtroFaixa} onChange={(e) => setFiltroFaixa(e.target.value)} aria-label="Faixa de IP / VLAN">
+              <option value="todas">Todas as faixas de IP ({faixasDisponiveis.length})</option>
+              {faixasDisponiveis.map((f) => (
                 <option key={f.id} value={f.id}>
+                  {filtroSite === 'todos' && (f.site_codigo || f.site_nome) ? `[${f.site_codigo || f.site_nome}] ` : ''}
                   {f.nome} ({f.ip_inicio} - {f.ip_fim}) • {f.ips_livres} livres
                 </option>
               ))}
@@ -1317,19 +1524,6 @@ export default function NetworkAssetsPage({
         </div>
 
         <div className="na-filters-row na-row2">
-          <div className="na-seg" role="group" aria-label="Status de conexão">
-            {([
-              ['todos', 'Todos', ''],
-              ['online', 'Online', 'green'],
-              ['offline', 'Offline', 'red'],
-              ['nao_testado', 'Não testado', 'gray'],
-            ] as const).map(([id, label, cor]) => (
-              <button key={id} type="button" className={`${filtroStatus === id ? 'on' : ''}`} onClick={() => setFiltroStatus(id)}>
-                {cor && <i className={`dot ${cor}`} />}
-                {label} <span>{statusCounts[id]}</span>
-              </button>
-            ))}
-          </div>
 
           <div className="na-chips">
             {filtroGrupo && (
@@ -1346,6 +1540,24 @@ export default function NetworkAssetsPage({
             )}
             {filtroTipo !== 'todos' && (
               <span className="na-fchip">{filtroTipo}<button onClick={() => setFiltroTipo('todos')} aria-label="Remover filtro"><Icon name="x" size={11} /></button></span>
+            )}
+            {colBuscaIp && (
+              <span className="na-fchip">IP: {colBuscaIp}<button onClick={() => setColBuscaIp('')} aria-label="Limpar filtro de IP"><Icon name="x" size={11} /></button></span>
+            )}
+            {colBuscaNome && (
+              <span className="na-fchip">Nome: {colBuscaNome}<button onClick={() => setColBuscaNome('')} aria-label="Limpar filtro de Nome"><Icon name="x" size={11} /></button></span>
+            )}
+            {colBuscaFilial && (
+              <span className="na-fchip">Filial: {colBuscaFilial}<button onClick={() => setColBuscaFilial('')} aria-label="Limpar filtro de Filial"><Icon name="x" size={11} /></button></span>
+            )}
+            {colBuscaTipo && (
+              <span className="na-fchip">Tipo: {colBuscaTipo}<button onClick={() => setColBuscaTipo('')} aria-label="Limpar filtro de Tipo"><Icon name="x" size={11} /></button></span>
+            )}
+            {colBuscaPatrimonio && (
+              <span className="na-fchip">Patrimônio: {colBuscaPatrimonio}<button onClick={() => setColBuscaPatrimonio('')} aria-label="Limpar filtro de Patrimônio"><Icon name="x" size={11} /></button></span>
+            )}
+            {colBuscaMac && (
+              <span className="na-fchip">MAC: {colBuscaMac}<button onClick={() => setColBuscaMac('')} aria-label="Limpar filtro de MAC"><Icon name="x" size={11} /></button></span>
             )}
             {filtrosAtivos && (
               <button type="button" className="na-link" onClick={limparFiltros}>Limpar filtros</button>
@@ -1414,6 +1626,43 @@ export default function NetworkAssetsPage({
               </div>
             )}
 
+            {/* BARRA SUPERIOR DA TABELA / PAGINAÇÃO RÁPIDA */}
+            <div className="na-top-bar">
+              <div className="na-top-info">
+                Exibindo <b>{ativosFiltrados.length > 0 ? inicio + 1 : 0}-{Math.min(inicio + porPagina, ativosFiltrados.length)}</b> de <b>{ativosFiltrados.length}</b> equipamentos/IPs
+                {filtroSite === 'todos' && <span className="na-filiais-badge">Todas as Filiais</span>}
+              </div>
+              <div className="na-pager">
+                <label>
+                  Por página:
+                  <select value={porPagina} onChange={(e) => setPorPagina(+e.target.value)}>
+                    {[25, 50, 100, 200].map((n) => <option key={n}>{n}</option>)}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="btn icon"
+                  onClick={() => setPagina(paginaAtual - 1)}
+                  disabled={paginaAtual <= 1}
+                  title="Página anterior"
+                  aria-label="Página anterior"
+                >
+                  <Icon name="chevL" size={14} />
+                </button>
+                <span className="na-page-n">{paginaAtual} / {totalPaginas}</span>
+                <button
+                  type="button"
+                  className="btn icon"
+                  onClick={() => setPagina(paginaAtual + 1)}
+                  disabled={paginaAtual >= totalPaginas}
+                  title="Próxima página"
+                  aria-label="Próxima página"
+                >
+                  <Icon name="chevR" size={14} />
+                </button>
+              </div>
+            </div>
+
             <div className="na-scroll">
               <table className="na-table">
                 <thead>
@@ -1431,15 +1680,15 @@ export default function NetworkAssetsPage({
                         />
                       </th>
                     )}
-                    {thSort('status', 'Conexão', { width: 140 })}
-                    {thSort('ip', 'Endereço IP', { width: 145 })}
-                    {thSort('tipo', 'Tipo', { width: 140 })}
-                    {thSort('nome', 'Equipamento')}
-                    {thSort('filial', 'Localização / Filial')}
-                    {thSort('patrimonio', 'Patrimônio', { width: 125 })}
-                    <th style={{ width: 155 }}>MAC</th>
-                    <th style={{ width: 150 }}>Faixa / VLAN</th>
-                    {canManage && <th style={{ width: 110, textAlign: 'right' }}>Ações</th>}
+                    {renderTh('status', 'Conexão', undefined, { width: 130 })}
+                    {renderTh('ip', 'Endereço IP', 'ip', { width: 155 })}
+                    {renderTh('tipo', 'Tipo', 'tipo', { width: 130 })}
+                    {renderTh('nome', 'Equipamento', 'nome')}
+                    {renderTh('filial', 'Localização / Filial', 'filial')}
+                    {renderTh('patrimonio', 'Patrimônio', 'patrimonio', { width: 130 })}
+                    {renderTh(null, 'MAC', 'mac', { width: 155 })}
+                    {renderTh(null, 'Faixa / VLAN', undefined, { width: 140 })}
+                    {canManage && <th style={{ width: 100, textAlign: 'right' }}>Ações</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -1451,12 +1700,19 @@ export default function NetworkAssetsPage({
                     const sub = [a.fabricante, a.modelo].filter(Boolean).join(' ')
                     const isEstacao = a.origem === 'estacao'
                     const isLivre = a.origem === 'livre'
+                    const rowKey = a.id ? `asset-${a.id}` : `ip-${a.ip}-${idx}`
+                    const isExpanded = expandedId === rowKey
+                    const macFormatado = formatarMac(a.mac)
 
                     return (
-                      <React.Fragment key={a.id ? `asset-${a.id}` : `ip-${a.ip}-${idx}`}>
-                        <tr className={`${isSelected ? 'selected' : ''} ${isLivre ? 'na-row-livre' : ''}`}>
+                      <React.Fragment key={rowKey}>
+                        <tr
+                          className={`na-row ${isSelected ? 'selected' : ''} ${isLivre ? 'na-row-livre' : ''} ${isExpanded ? 'expanded' : ''}`}
+                          onClick={() => !isLivre && setExpandedId(isExpanded ? null : rowKey)}
+                          style={{ cursor: isLivre ? 'default' : 'pointer' }}
+                        >
                           {canManage && (
-                            <td className="na-td-check">
+                            <td className="na-td-check" onClick={(e) => e.stopPropagation()}>
                               {a.id ? (
                                 <input
                                   type="checkbox"
@@ -1471,51 +1727,74 @@ export default function NetworkAssetsPage({
                             </td>
                           )}
 
-                          <td>
+                          <td className="na-td-conn">
                             <div className="na-conn">
-                              <div>
-                                {isLivre ? (
+                              {isLivre ? (
+                                a.status_online === true ? (
+                                  <span className="na-st ping-ativo" title={`IP respondeu ao teste de ping (${a.tempo_resposta_ms ?? 0}ms), mas ainda não possui cadastro/vínculo`}>
+                                    <i className="dot orange" /> IP Ativo na Rede
+                                  </span>
+                                ) : (
                                   <span className="na-st livre" title="IP livre e disponível na faixa de rede">
                                     <i className="dot blue" /> Livre
                                   </span>
-                                ) : a.status_online === true ? (
-                                  <span className="na-st online" title={`Online. Latência: ${a.tempo_resposta_ms ?? 0}ms`}>
-                                    <i className="dot green" />{a.tempo_resposta_ms ? `${a.tempo_resposta_ms} ms` : 'Online'}
-                                  </span>
-                                ) : a.status_online === false ? (
-                                  <span className="na-st offline" title="Sem resposta ao teste">
-                                    <i className="dot red" />Offline
-                                  </span>
-                                ) : (
-                                  <span className="na-st untested" title="Ainda não testado">
-                                    <i className="dot gray" />Não testado
-                                  </span>
-                                )}
-                                {quando && !isLivre && <small className="na-when">{quando}</small>}
-                              </div>
+                                )
+                              ) : a.status_online === true ? (
+                                <span className="na-st online" title={`Online. Latência: ${a.tempo_resposta_ms ?? 0}ms`}>
+                                  <i className="dot green" />{a.tempo_resposta_ms ? `${a.tempo_resposta_ms} ms` : 'Online'}
+                                </span>
+                              ) : a.status_online === false ? (
+                                <span className="na-st offline" title="Sem resposta ao teste">
+                                  <i className="dot red" />Offline
+                                </span>
+                              ) : (
+                                <span className="na-st untested" title="Ainda não testado">
+                                  <i className="dot gray" />Não testado
+                                </span>
+                              )}
                               {a.ip && (
                                 <button
+                                  type="button"
                                   className="na-ping"
-                                  onClick={() => handlePingIndividual(a)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handlePingIndividual(a)
+                                  }}
                                   disabled={isPinging || scanning}
                                   title={isLivre ? 'Testar se este IP livre responde na rede' : 'Testar conectividade deste equipamento agora'}
                                   aria-label={`Testar ${a.nome}`}
                                 >
-                                  <Icon name="bolt" size={14} className={isPinging ? 'na-spin' : ''} />
+                                  <Icon name="bolt" size={13} className={isPinging ? 'na-spin' : ''} />
                                 </button>
                               )}
                             </div>
                           </td>
 
-                          <td>
+                          <td className="na-td-ip">
                             {a.ip ? (
                               <div className="na-copywrap">
-                                <button className="na-copy mono" onClick={() => copiarTexto(a.ip!, 'IP copiado!')} title="Clique para copiar o IP">
-                                  {a.ip}<Icon name="copy" size={12} />
+                                <button
+                                  type="button"
+                                  className="na-copy mono"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    copiarTexto(a.ip!, 'IP copiado!')
+                                  }}
+                                  title="Clique para copiar o IP"
+                                >
+                                  {a.ip}<Icon name="copy" size={11} />
                                 </button>
                                 {!isLivre && (
-                                  <a href={`http://${a.ip}`} target="_blank" rel="noreferrer" className="na-ext" title="Abrir painel web (porta 80)" aria-label="Abrir painel web">
-                                    <Icon name="external" size={13} />
+                                  <a
+                                    href={`http://${a.ip}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="na-ext"
+                                    title="Abrir painel web (porta 80)"
+                                    aria-label="Abrir painel web"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Icon name="external" size={12} />
                                   </a>
                                 )}
                               </div>
@@ -1524,79 +1803,102 @@ export default function NetworkAssetsPage({
                             )}
                           </td>
 
-                          <td>
+                          <td className="na-td-tipo">
                             {isLivre ? (
-                              <span className="na-tipo t-livre"><Icon name="check" size={12} /> Disponível</span>
+                              <span className="na-muted">—</span>
                             ) : (
                               <TipoPill tipo={a.tipo} />
                             )}
                           </td>
 
-                          <td>
-                            <div className="na-name">
+                          <td className="na-td-name">
+                            <div className="na-name-single">
+                              {!isLivre && (
+                                <button
+                                  type="button"
+                                  className={`na-expand-btn ${isExpanded ? 'open' : ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setExpandedId(isExpanded ? null : rowKey)
+                                  }}
+                                  title={isExpanded ? 'Recolher detalhes' : 'Clique para ver detalhes e licenças'}
+                                  aria-label="Expandir detalhes"
+                                >
+                                  <Icon name={isExpanded ? 'chevronUp' : 'chevronDown'} size={12} />
+                                </button>
+                              )}
                               {isLivre ? (
-                                <strong className="na-livre-name">(Disponível)</strong>
-                              ) : isEstacao ? (
-                                <>
-                                  <strong>{a.nome}</strong>
-                                  {a.sistema_operacional && (
-                                    <span className="na-tag-so" title={`Sistema Operacional: ${a.sistema_operacional}`}>
-                                      <Icon name={/windows/i.test(a.sistema_operacional) ? 'windows' : 'linux'} size={11} />
-                                      {a.sistema_operacional}
-                                    </span>
-                                  )}
-                                </>
-                              ) : (
-                                <>
-                                  <strong>{a.nome}</strong>
-                                  {sub && <span className="na-model">{sub}</span>}
-                                  {a.observacoes && (
-                                    <span className="na-obs" title={a.observacoes}>
-                                      <Icon name="note" size={11} /> {a.observacoes.split('\n')[0]}
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </td>
-
-                          <td>
-                            <div className="na-local">
-                              {a.localizacao && !isLivre && (
-                                <span><Icon name="pin" size={12} /> <b>{a.localizacao}</b></span>
-                              )}
-                              {a.site_codigo || a.site_nome ? (
-                                <span className={`na-filial k-${siteKind(a.site_codigo || '')}`}>
-                                  <Icon name="store" size={12} />
-                                  {a.site_codigo ? `${a.site_codigo} - ` : ''}{a.site_nome || ''}
-                                </span>
-                              ) : !a.localizacao ? (
                                 <span className="na-muted">—</span>
-                              ) : null}
+                              ) : (
+                                <strong className="na-title-text" title={a.nome}>{a.nome}</strong>
+                              )}
+                              {isEstacao && (
+                                <span className="na-badge-estacao" title="Estação integrada ao inventário">
+                                  Estação
+                                </span>
+                              )}
+                              {a.observacoes && !isLivre && (
+                                <span className="na-has-obs" title={`Observações: ${a.observacoes}`}>
+                                  <Icon name="note" size={11} />
+                                </span>
+                              )}
                             </div>
                           </td>
 
-                          <td>
+                          <td className="na-td-local">
+                            <div className="na-local-single">
+                              {a.site_codigo || a.site_nome ? (
+                                <span className={`na-filial-pill k-${siteKind(a.site_codigo || '')}`} title={a.localizacao ? `${a.site_codigo} - ${a.site_nome} (${a.localizacao})` : `${a.site_codigo} - ${a.site_nome}`}>
+                                  <Icon name="store" size={11} />
+                                  <span className="na-filial-txt">{a.site_codigo ? `${a.site_codigo} - ` : ''}{a.site_nome || ''}</span>
+                                </span>
+                              ) : a.localizacao && !isLivre ? (
+                                <span className="na-loc-text" title={a.localizacao}>
+                                  <Icon name="pin" size={11} /> {a.localizacao}
+                                </span>
+                              ) : (
+                                <span className="na-muted">—</span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="na-td-patrimonio">
                             {a.patrimonio ? (
-                              <button className="na-copy" onClick={() => copiarTexto(a.patrimonio!, 'Patrimônio copiado!')} title="Clique para copiar">
-                                {a.patrimonio}<Icon name="copy" size={12} />
+                              <button
+                                type="button"
+                                className="na-copy"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  copiarTexto(a.patrimonio!, 'Patrimônio copiado!')
+                                }}
+                                title="Clique para copiar"
+                              >
+                                {a.patrimonio}<Icon name="copy" size={11} />
                               </button>
                             ) : (
                               <span className="na-muted">—</span>
                             )}
                           </td>
 
-                          <td>
-                            {a.mac ? (
-                              <button className="na-copy mono" onClick={() => copiarTexto(a.mac!, 'MAC copiado!')} title="Clique para copiar o MAC">
-                                {a.mac}<Icon name="copy" size={12} />
+                          <td className="na-td-mac">
+                            {macFormatado ? (
+                              <button
+                                type="button"
+                                className="na-copy mono"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  copiarTexto(macFormatado, 'MAC copiado!')
+                                }}
+                                title="Clique para copiar o MAC"
+                              >
+                                {macFormatado}<Icon name="copy" size={11} />
                               </button>
                             ) : (
                               <span className="na-muted">—</span>
                             )}
                           </td>
 
-                          <td>
+                          <td className="na-td-vlan">
                             {a.faixa_nome ? (
                               <span className="na-tag-vlan" title={`Faixa de IP / VLAN: ${a.faixa_nome}`}>
                                 <Icon name="switch" size={11} /> {a.faixa_nome}
@@ -1607,7 +1909,7 @@ export default function NetworkAssetsPage({
                           </td>
 
                           {canManage && (
-                            <td style={{ textAlign: 'right' }}>
+                            <td style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
                               {isLivre ? (
                                 <button
                                   type="button"
@@ -1624,25 +1926,151 @@ export default function NetworkAssetsPage({
                               ) : (
                                 <div className="na-row-actions">
                                   <button
+                                    type="button"
                                     className="na-icon-btn"
                                     onClick={() => duplicarInline(a)}
                                     disabled={Boolean(inlineDraft)}
                                     title="Duplicar ativo (cria cópia abaixo para edição direta)"
                                     aria-label={`Duplicar ${a.nome}`}
                                   >
-                                    <Icon name="copy" size={15} />
+                                    <Icon name="copy" size={14} />
                                   </button>
-                                  <button className="na-icon-btn" onClick={() => abrirModalEditar(a)} title="Editar informações do ativo" aria-label={`Editar ${a.nome}`}>
-                                    <Icon name="edit" size={15} />
+                                  <button
+                                    type="button"
+                                    className="na-icon-btn"
+                                    onClick={() => abrirModalEditar(a)}
+                                    title="Editar informações do ativo"
+                                    aria-label={`Editar ${a.nome}`}
+                                  >
+                                    <Icon name="edit" size={14} />
                                   </button>
-                                  <button className="na-icon-btn danger" onClick={() => setAssetParaExcluir(a)} title="Excluir ativo do inventário" aria-label={`Excluir ${a.nome}`}>
-                                    <Icon name="trash" size={15} />
+                                  <button
+                                    type="button"
+                                    className="na-icon-btn danger"
+                                    onClick={() => setAssetParaExcluir(a)}
+                                    title="Excluir ativo do inventário"
+                                    aria-label={`Excluir ${a.nome}`}
+                                  >
+                                    <Icon name="trash" size={14} />
                                   </button>
                                 </div>
                               )}
                             </td>
                           )}
                         </tr>
+
+                        {/* DRAWER COLAPSÁVEL DE DETALHES */}
+                        {isExpanded && !isLivre && (
+                          <tr className="na-row-detail">
+                            <td colSpan={canManage ? 10 : 9}>
+                              <div className="na-detail-card">
+                                <div className="na-detail-grid">
+                                  {/* Seção 1: Sistema & Licenciamento */}
+                                  <div className="na-detail-section highlight">
+                                    <h5><Icon name="windows" size={13} /> Sistema &amp; Licenças</h5>
+                                    <div className="na-detail-fields">
+                                      <div className="na-dfield">
+                                        <span className="lbl">Sistema Operacional:</span>
+                                        <span className="val bold">
+                                          {a.sistema_operacional ? (
+                                            <>
+                                              <Icon name={/windows/i.test(a.sistema_operacional) ? 'windows' : /linux/i.test(a.sistema_operacional) ? 'linux' : 'server'} size={13} />
+                                              {a.sistema_operacional}
+                                            </>
+                                          ) : (
+                                            'Não identificado'
+                                          )}
+                                        </span>
+                                      </div>
+                                      {isEstacao && (
+                                        <>
+                                          <div className="na-dfield">
+                                            <span className="lbl">Serial Windows:</span>
+                                            <span className="val">
+                                              {a.serial_windows ? (
+                                                <span className="na-serial-badge has-key" title="Chave do Windows">{a.serial_windows}</span>
+                                              ) : (
+                                                <span className="na-serial-badge empty" title="Serial de Windows ainda não importado">— Não registrado —</span>
+                                              )}
+                                            </span>
+                                          </div>
+                                          <div className="na-dfield">
+                                            <span className="lbl">Serial Office:</span>
+                                            <span className="val">
+                                              {a.serial_office ? (
+                                                <span className="na-serial-badge has-key" title="Chave do Pacote Office">{a.serial_office}</span>
+                                              ) : (
+                                                <span className="na-serial-badge empty" title="Serial de Office ainda não importado">— Não registrado —</span>
+                                              )}
+                                            </span>
+                                          </div>
+                                        </>
+                                      )}
+                                      <div className="na-dfield">
+                                        <span className="lbl">Origem do cadastro:</span>
+                                        <span className="val">{isEstacao ? 'Estação integrada (Mesh / Inventário)' : 'Ativo manual / CSV'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Seção 2: Hardware & Especificações */}
+                                  <div className="na-detail-section">
+                                    <h5><Icon name="hardware" size={13} /> Especificações &amp; Local</h5>
+                                    <div className="na-detail-fields">
+                                      <div className="na-dfield">
+                                        <span className="lbl">Fabricante / Modelo:</span>
+                                        <span className="val">{sub || 'Não informado'}</span>
+                                      </div>
+                                      <div className="na-dfield">
+                                        <span className="lbl">Localização:</span>
+                                        <span className="val">{a.localizacao || 'Não especificada'}</span>
+                                      </div>
+                                      <div className="na-dfield">
+                                        <span className="lbl">Filial / Loja:</span>
+                                        <span className="val">{a.site_codigo ? `${a.site_codigo} - ${a.site_nome}` : (a.site_nome || 'Sem filial')}</span>
+                                      </div>
+                                      <div className="na-dfield">
+                                        <span className="lbl">VLAN / Faixa:</span>
+                                        <span className="val">{a.faixa_nome || 'Nenhuma faixa vinculada'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Seção 3: Rede & Observações */}
+                                  <div className="na-detail-section">
+                                    <h5><Icon name="bolt" size={13} /> Rede &amp; Observações</h5>
+                                    <div className="na-detail-fields">
+                                      <div className="na-dfield">
+                                        <span className="lbl">Endereço IP:</span>
+                                        <span className="val mono">{a.ip || '—'}</span>
+                                      </div>
+                                      <div className="na-dfield">
+                                        <span className="lbl">Endereço MAC:</span>
+                                        <span className="val mono">{macFormatado || '—'}</span>
+                                      </div>
+                                      <div className="na-dfield">
+                                        <span className="lbl">Último Ping:</span>
+                                        <span className="val">{a.ultimo_ping ? `${new Date(a.ultimo_ping).toLocaleString('pt-BR')} (${quando})` : 'Nunca testado'}</span>
+                                      </div>
+                                      {a.tempo_resposta_ms !== undefined && a.tempo_resposta_ms !== null && (
+                                        <div className="na-dfield">
+                                          <span className="lbl">Tempo de resposta:</span>
+                                          <span className="val">{a.tempo_resposta_ms} ms</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {a.observacoes && (
+                                      <div className="na-dfield full" style={{ marginTop: 6 }}>
+                                        <span className="lbl">Observações:</span>
+                                        <div className="na-detail-obs">{a.observacoes}</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
 
                         {canManage && isDraftOpen && inlineDraft && (
                           <tr className="na-row-inline">
@@ -1890,15 +2318,16 @@ export default function NetworkAssetsPage({
               <div className="na-grid g2">
                 <div className="field">
                   <label>Loja / filial vinculada</label>
-                  <select
+                  <SiteSelect
                     value={formSiteId}
-                    onChange={(e) => setFormSiteId(e.target.value)}
+                    onChange={(val) => setFormSiteId(val)}
+                    sites={sites}
+                    allowWithoutSite
+                    emptyLabel="(Sem filial vinculada)"
                     disabled={origemIpLivre}
-                    className={origemIpLivre ? 'na-input-locked' : ''}
-                  >
-                    <option value="">(Sem filial vinculada)</option>
-                    {sites.map((s) => <option key={s.id} value={s.id}>{s.code} - {s.name}</option>)}
-                  </select>
+                    fullWidth
+                    ariaLabel="Loja / filial vinculada"
+                  />
                   {origemIpLivre && (
                     <small className="na-fhint locked"><Icon name="lock" size={12} /> Filial vinculada à faixa da rede.</small>
                   )}
@@ -2084,184 +2513,7 @@ export default function NetworkAssetsPage({
         </Modal>
       )}
 
-      {/* =========== MODAL: GERENCIAR FAIXAS DE IP (VLANs / IPAM) =========== */}
-      {modalFaixasAberto && (
-        <Modal size="md" onClose={() => !salvandoFaixa && setModalFaixasAberto(false)}>
-          <div className="na-modal-head">
-            <h2>Faixas de IP &amp; VLANs por Filial</h2>
-            <button className="na-icon-btn" onClick={() => setModalFaixasAberto(false)} aria-label="Fechar"><Icon name="x" /></button>
-          </div>
 
-          <div className="na-ranges-container">
-            <div className="na-ranges-top">
-              <div className="field" style={{ minWidth: 260 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
-                  Selecione a Filial / Loja:
-                </label>
-                <select
-                  value={formFaixaSiteId}
-                  onChange={(e) => {
-                    setFormFaixaSiteId(e.target.value)
-                    cancelarEditarFaixa()
-                  }}
-                  style={{ width: '100%' }}
-                >
-                  {sites.map((s) => (
-                    <option key={s.id} value={s.id}>{s.code} - {s.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-                Pré-cadastre intervalos de IPs para listar endereços livres e dinamizar o inventário.
-              </div>
-            </div>
-
-            {/* Lista de Faixas Cadastradas para esta filial */}
-            <div>
-              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>
-                Faixas cadastradas nesta loja ({faixas.filter((f) => String(f.site_id) === formFaixaSiteId).length})
-              </h4>
-
-              {faixas.filter((f) => String(f.site_id) === formFaixaSiteId).length === 0 ? (
-                <div style={{ padding: '16px', background: 'var(--bg-alt)', borderRadius: 8, textAlign: 'center', color: 'var(--muted)', fontSize: 12.5 }}>
-                  Nenhuma faixa de IP cadastrada para esta filial. Cadastre uma faixa abaixo (ex: 192.168.4.1 até 192.168.4.254).
-                </div>
-              ) : (
-                <div className="na-ranges-list">
-                  {faixas.filter((f) => String(f.site_id) === formFaixaSiteId).map((f) => (
-                    <div key={f.id} className="na-range-card">
-                      <div className="na-range-info">
-                        <h4><Icon name="switch" size={14} /> {f.nome}</h4>
-                        <div className="na-range-ips">
-                          {f.ip_inicio} → {f.ip_fim}
-                          {f.gateway && <span style={{ marginLeft: 12, color: 'var(--muted)' }}>GW: {f.gateway}</span>}
-                          {f.mascara && <span style={{ marginLeft: 8, color: 'var(--muted)' }}>({f.mascara})</span>}
-                        </div>
-                        <div className="na-range-meta">
-                          <span className="na-range-pill total">Total: {f.total_ips} IPs</span>
-                          <span className="na-range-pill ocup">Ocupados: {f.ips_ocupados}</span>
-                          <span className="na-range-pill livres">Livres: {f.ips_livres}</span>
-                          {f.observacoes && <small style={{ color: 'var(--muted)' }}>• {f.observacoes}</small>}
-                        </div>
-                      </div>
-                      <div className="na-range-actions">
-                        <button
-                          type="button"
-                          className="na-icon-btn"
-                          onClick={() => iniciarEditarFaixa(f)}
-                          title="Editar faixa de IP"
-                        >
-                          <Icon name="edit" size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          className="na-icon-btn danger"
-                          onClick={() => handleExcluirFaixa(f.id)}
-                          disabled={excluindoFaixaId === f.id}
-                          title="Excluir faixa de IP"
-                        >
-                          <Icon name="trash" size={15} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Formulário de Adicionar / Editar Faixa */}
-            <div className="na-range-form-card">
-              <h4>
-                <Icon name={faixaEditando ? 'edit' : 'plus'} size={15} />
-                {faixaEditando ? `Editar Faixa: ${faixaEditando.nome}` : 'Adicionar Nova Faixa de IP'}
-              </h4>
-
-              <form onSubmit={handleSalvarFaixa} className="na-form">
-                <div className="na-grid g2">
-                  <div className="field span2">
-                    <label>Nome da Faixa / VLAN <span className="req">*</span></label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ex: VLAN 10 - PDVs e Caixas, VLAN 20 - Impressoras"
-                      value={formFaixaNome}
-                      onChange={(e) => setFormFaixaNome(e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>IP Inicial <span className="req">*</span></label>
-                    <input
-                      type="text"
-                      required
-                      className="mono"
-                      placeholder="Ex: 192.168.4.1"
-                      value={formFaixaIpInicio}
-                      onChange={(e) => setFormFaixaIpInicio(e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>IP Final <span className="req">*</span></label>
-                    <input
-                      type="text"
-                      required
-                      className="mono"
-                      placeholder="Ex: 192.168.4.254"
-                      value={formFaixaIpFim}
-                      onChange={(e) => setFormFaixaIpFim(e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Gateway (Opcional)</label>
-                    <input
-                      type="text"
-                      className="mono"
-                      placeholder="Ex: 192.168.4.254"
-                      value={formFaixaGateway}
-                      onChange={(e) => setFormFaixaGateway(e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Máscara de Sub-rede</label>
-                    <input
-                      type="text"
-                      className="mono"
-                      placeholder="Ex: 255.255.255.0 ou /24"
-                      value={formFaixaMascara}
-                      onChange={(e) => setFormFaixaMascara(e.target.value)}
-                    />
-                  </div>
-                  <div className="field span2">
-                    <label>Observações</label>
-                    <input
-                      type="text"
-                      placeholder="Anotações sobre esta sub-rede ou VLAN..."
-                      value={formFaixaObs}
-                      onChange={(e) => setFormFaixaObs(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
-                  {faixaEditando && (
-                    <button type="button" className="btn" onClick={cancelarEditarFaixa}>
-                      Cancelar edição
-                    </button>
-                  )}
-                  <button type="submit" className="btn primary" disabled={salvandoFaixa}>
-                    {salvandoFaixa ? 'Salvando...' : faixaEditando ? 'Salvar alterações da faixa' : '+ Cadastrar faixa de IP'}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div className="na-modal-foot" style={{ marginTop: 0 }}>
-              <button type="button" className="btn" onClick={() => setModalFaixasAberto(false)}>
-                Fechar
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
 
       {/* =========== MODAL: CONFIRMAR EXCLUSÃO =========== */}
       {assetParaExcluir && (

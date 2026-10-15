@@ -153,7 +153,8 @@ async def ping_direct_ip_route(
     ip: str = Query(..., min_length=7, description="Endereço IP para teste de conectividade"),
     current_user: User = Depends(get_current_user),
 ):
-    return await ping_direct(ip)
+    with Session(engine) as session:
+        return await ping_direct(ip, db=session, current_user=current_user)
 
 
 @router.post("/bulk-delete")
@@ -181,11 +182,13 @@ async def scan_batch(
     with Session(engine) as session:
         effective_asset_ids = payload.asset_ids if payload and payload.asset_ids else None
         effective_site_id = (payload.site_id if payload and payload.site_id else None) or site_id
+        effective_ips = payload.ips if payload and payload.ips else None
         return await scan_assets_batch(
             db=session,
             current_user=current_user,
             site_id=effective_site_id,
             asset_ids=effective_asset_ids,
+            ips=effective_ips,
         )
 
 

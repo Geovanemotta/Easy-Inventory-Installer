@@ -221,26 +221,13 @@ export default function RemoteAccessPage({
 
   return (
     <div className="remote-page-container">
-      {/* Banner Principal com Status */}
+      {/* Banner Principal com Status Compacto */}
       <div className="remote-banner">
         <div className="remote-banner-left">
-          <div className="remote-banner-icon">
-            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <line x1="8" y1="21" x2="16" y2="21" />
-              <line x1="12" y1="17" x2="12" y2="21" />
-              <circle cx="12" cy="10" r="2" />
-            </svg>
-          </div>
-          <div className="remote-banner-text">
-            <h2>
-              Acesso Remoto Integrado
-              <span className="remote-tag-live">MeshCentral Ativo</span>
-            </h2>
-            <p>
-              Controle remoto cooperativo (Desktop, transferência direta de arquivos e terminal nativo sem limite de conexões).
-            </p>
-          </div>
+          <span className="remote-tag-live">MeshCentral Ativo</span>
+          <span className="remote-banner-sub">
+            Controle remoto cooperativo (Desktop, arquivos e terminal sem limite de conexões)
+          </span>
         </div>
 
         {canAccessServerConsole && (

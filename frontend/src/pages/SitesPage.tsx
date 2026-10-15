@@ -2,16 +2,23 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import '../styles/pages/sites.css'
 import {
   createSite,
+  createSiteIpRange,
   deleteSite,
+  deleteSiteIpRange,
   getSites,
+  getSiteIpRanges,
   reclassifySites,
   simulateSiteMatch,
   updateSite,
+  updateSiteIpRange,
   type Site,
+  type SiteIpRange,
+  type SiteIpRangeInput,
   type SiteReclassifyResult,
   type SiteSimulationResult,
   type UserResponse,
 } from '../services/api'
+import SiteSelect from '../components/SiteSelect'
 
 type SitesPageProps = {
   token: string
@@ -62,6 +69,20 @@ export default function SitesPage({
   const [deletingSite, setDeletingSite] = useState<Site | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
+  // Estado das Faixas de IP / VLANs
+  const [modalFaixasOpen, setModalFaixasOpen] = useState(false)
+  const [faixas, setFaixas] = useState<SiteIpRange[]>([])
+  const [faixaEditando, setFaixaEditando] = useState<SiteIpRange | null>(null)
+  const [formFaixaSiteId, setFormFaixaSiteId] = useState<string>('')
+  const [formFaixaNome, setFormFaixaNome] = useState('')
+  const [formFaixaIpInicio, setFormFaixaIpInicio] = useState('')
+  const [formFaixaIpFim, setFormFaixaIpFim] = useState('')
+  const [formFaixaGateway, setFormFaixaGateway] = useState('')
+  const [formFaixaMascara, setFormFaixaMascara] = useState('255.255.255.0')
+  const [formFaixaObs, setFormFaixaObs] = useState('')
+  const [salvandoFaixa, setSalvandoFaixa] = useState(false)
+  const [excluindoFaixaId, setExcluindoFaixaId] = useState<number | null>(null)
+
   // Carregar Lojas
   const loadSites = useCallback(async () => {
     setLoading(true)
@@ -75,9 +96,106 @@ export default function SitesPage({
     }
   }, [token, showToast])
 
+  const carregarFaixas = useCallback(async () => {
+    try {
+      const data = await getSiteIpRanges(token)
+      setFaixas(data)
+    } catch (err: any) {
+      console.error('Erro ao carregar faixas de IP:', err)
+    }
+  }, [token])
+
   useEffect(() => {
     loadSites()
-  }, [loadSites])
+    carregarFaixas()
+  }, [loadSites, carregarFaixas])
+
+  function abrirModalFaixas(preSelectedSiteId?: number) {
+    setFaixaEditando(null)
+    setFormFaixaSiteId(preSelectedSiteId ? String(preSelectedSiteId) : sites.length > 0 ? String(sites[0].id) : '')
+    setFormFaixaNome('')
+    setFormFaixaIpInicio('')
+    setFormFaixaIpFim('')
+    setFormFaixaGateway('')
+    setFormFaixaMascara('255.255.255.0')
+    setFormFaixaObs('')
+    setModalFaixasOpen(true)
+  }
+
+  function iniciarEditarFaixa(f: SiteIpRange) {
+    setFaixaEditando(f)
+    setFormFaixaSiteId(String(f.site_id))
+    setFormFaixaNome(f.nome)
+    setFormFaixaIpInicio(f.ip_inicio)
+    setFormFaixaIpFim(f.ip_fim)
+    setFormFaixaGateway(f.gateway || '')
+    setFormFaixaMascara(f.mascara || '255.255.255.0')
+    setFormFaixaObs(f.observacoes || '')
+  }
+
+  function cancelarEditarFaixa() {
+    setFaixaEditando(null)
+    setFormFaixaNome('')
+    setFormFaixaIpInicio('')
+    setFormFaixaIpFim('')
+    setFormFaixaGateway('')
+    setFormFaixaMascara('255.255.255.0')
+    setFormFaixaObs('')
+  }
+
+  async function handleSalvarFaixa(e: React.FormEvent) {
+    e.preventDefault()
+    if (!formFaixaNome.trim() || !formFaixaIpInicio.trim() || !formFaixaIpFim.trim() || !formFaixaSiteId) {
+      showToast('Preencha os campos obrigatórios da faixa (Loja, Nome, IP Inicial e Final).')
+      return
+    }
+
+    setSalvandoFaixa(true)
+    try {
+      const payload: SiteIpRangeInput = {
+        site_id: Number(formFaixaSiteId),
+        nome: formFaixaNome.trim(),
+        ip_inicio: formFaixaIpInicio.trim(),
+        ip_fim: formFaixaIpFim.trim(),
+        gateway: formFaixaGateway.trim() || null,
+        mascara: formFaixaMascara.trim() || null,
+        observacoes: formFaixaObs.trim() || null,
+      }
+
+      if (faixaEditando) {
+        await updateSiteIpRange(token, faixaEditando.id, payload)
+        showToast('Faixa de IP atualizada com sucesso!')
+      } else {
+        await createSiteIpRange(token, payload)
+        showToast('Nova faixa de IP cadastrada com sucesso!')
+      }
+
+      cancelarEditarFaixa()
+      await carregarFaixas()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      showToast(`Erro ao salvar faixa: ${msg}`)
+    } finally {
+      setSalvandoFaixa(false)
+    }
+  }
+
+  async function handleExcluirFaixa(id: number) {
+    setExcluindoFaixaId(id)
+    try {
+      await deleteSiteIpRange(token, id)
+      showToast('Faixa de IP excluída com sucesso!')
+      if (faixaEditando?.id === id) {
+        cancelarEditarFaixa()
+      }
+      await carregarFaixas()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      showToast(`Erro ao excluir faixa: ${msg}`)
+    } finally {
+      setExcluindoFaixaId(null)
+    }
+  }
 
   // Contadores Globais
   const metrics = useMemo(() => {
@@ -285,19 +403,29 @@ export default function SitesPage({
     <div id="view-sites">
       {/* 1. CABEÇALHO */}
       <div className="sites-header">
-        <div className="sites-title-wrap">
-          <h1>
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <div className="sites-header-left">
+          <div className="sites-badge-total">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M11 11h2M11 15h2M16 11h2M16 15h2M3 7l9-4 9 4" />
             </svg>
-            Gerenciamento de Lojas &amp; Filiais
-          </h1>
-          <p>
-            Configure lojas, padrões de nomenclatura de computadores (tags de hostname) e automações de inventário.
-          </p>
+            <span><b>{sites.length}</b> filiais cadastradas</span>
+          </div>
         </div>
 
         <div className="sites-header-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => abrirModalFaixas()}
+            title="Gerenciar faixas de IP e sub-redes (VLANs) por filial"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
+            Faixas de IP (VLANs)
+          </button>
+
           <button
             type="button"
             className="btn btn-secondary"
@@ -461,27 +589,29 @@ export default function SitesPage({
                 <th style={{ width: '110px' }}>Código</th>
                 <th>Nome da Filial</th>
                 <th>Padrões de Nomenclatura (Hostname)</th>
-                <th style={{ width: '130px', textAlign: 'center' }}>Estações</th>
-                <th style={{ width: '130px', textAlign: 'center' }}>Ativos Rede</th>
+                <th style={{ width: '130px', textAlign: 'center' }}>VLANs / Faixas</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Estações</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Ativos Rede</th>
                 <th style={{ width: '140px', textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {loading && sites.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
                     Carregando lojas e filiais...
                   </td>
                 </tr>
               ) : filteredSites.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
                     Nenhuma loja encontrada para o filtro selecionado.
                   </td>
                 </tr>
               ) : (
                 filteredSites.map((site) => {
                   const isCombo = site.code.startsWith('CB') || site.code.startsWith('COMBO')
+                  const vlansCount = faixas.filter((f) => f.site_id === site.id).length
                   return (
                     <tr key={site.id}>
                       {/* Status */}
@@ -522,6 +652,28 @@ export default function SitesPage({
                             </span>
                           )}
                         </div>
+                      </td>
+
+                      {/* Contagem de VLANs / Faixas */}
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          className="site-count-pill clickable"
+                          title={vlansCount > 0 ? `${vlansCount} faixas de IP / VLANs configuradas. Clique para gerenciar.` : 'Nenhuma faixa cadastrada nesta loja. Clique para adicionar.'}
+                          onClick={() => {
+                            setFormFaixaSiteId(String(site.id))
+                            setModalFaixasOpen(true)
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="2" y="8" width="20" height="8" rx="1" />
+                            <circle cx="6" cy="12" r="1" />
+                            <circle cx="10" cy="12" r="1" />
+                            <circle cx="14" cy="12" r="1" />
+                            <circle cx="18" cy="12" r="1" />
+                          </svg>
+                          {vlansCount} {vlansCount === 1 ? 'VLAN' : 'VLANs'}
+                        </button>
                       </td>
 
                       {/* Contagem de Estações */}
@@ -1025,6 +1177,227 @@ export default function SitesPage({
                 disabled={actionLoading}
               >
                 {actionLoading ? 'Processando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+         7. MODAL DE FAIXAS DE IP & VLANS
+         ========================================================= */}
+      {modalFaixasOpen && (
+        <div className="sites-modal-overlay">
+          <div className="sites-modal-container sites-modal-lg">
+            <div className="sites-modal-header">
+              <h3>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+                Faixas de IP &amp; VLANs por Filial
+              </h3>
+              <button
+                type="button"
+                className="sites-modal-close"
+                onClick={() => !salvandoFaixa && setModalFaixasOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="sites-modal-body" style={{ maxHeight: 'calc(90vh - 120px)', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 260, flex: 1 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
+                      Selecione a Filial / Loja:
+                    </label>
+                    <SiteSelect
+                      value={formFaixaSiteId}
+                      onChange={(val) => {
+                        setFormFaixaSiteId(val)
+                        cancelarEditarFaixa()
+                      }}
+                      sites={sites}
+                      fullWidth
+                      ariaLabel="Selecione a Filial / Loja"
+                    />
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', maxWidth: 300 }}>
+                    Pré-cadastre faixas de IPs desta filial para organizar VLANs e mapear endereços livres.
+                  </div>
+                </div>
+
+                {/* Lista de Faixas Cadastradas */}
+                <div>
+                  <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>
+                    Faixas cadastradas nesta loja ({faixas.filter((f) => String(f.site_id) === formFaixaSiteId).length})
+                  </h4>
+
+                  {faixas.filter((f) => String(f.site_id) === formFaixaSiteId).length === 0 ? (
+                    <div style={{ padding: '16px', background: 'var(--bg-alt)', borderRadius: 8, textAlign: 'center', color: 'var(--muted)', fontSize: 12.5 }}>
+                      Nenhuma faixa de IP cadastrada para esta filial. Cadastre uma faixa abaixo (ex: 192.168.4.1 até 192.168.4.254).
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {faixas.filter((f) => String(f.site_id) === formFaixaSiteId).map((f) => (
+                        <div
+                          key={f.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 14px',
+                            background: 'var(--bg-alt)',
+                            border: '1px solid var(--line)',
+                            borderRadius: 8,
+                            gap: 12,
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--ink)' }}>
+                              {f.nome}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--ink-subtle)', fontFamily: 'monospace' }}>
+                              {f.ip_inicio} → {f.ip_fim}
+                              {f.gateway && <span style={{ marginLeft: 8, color: 'var(--muted)' }}>GW: {f.gateway}</span>}
+                              {f.mascara && <span style={{ marginLeft: 6, color: 'var(--muted)' }}>({f.mascara})</span>}
+                            </div>
+                            <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: 11, padding: '1px 6px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 4, color: 'var(--muted)' }}>
+                                Total: {f.total_ips} IPs
+                              </span>
+                              <span style={{ fontSize: 11, padding: '1px 6px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 4, color: '#ef4444' }}>
+                                Ocupados: {f.ips_ocupados}
+                              </span>
+                              <span style={{ fontSize: 11, padding: '1px 6px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.25)', borderRadius: 4, color: '#22c55e' }}>
+                                Livres: {f.ips_livres}
+                              </span>
+                              {f.observacoes && <span style={{ fontSize: 11, color: 'var(--muted)', alignSelf: 'center' }}>• {f.observacoes}</span>}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', height: 30, fontSize: 12 }}
+                              onClick={() => iniciarEditarFaixa(f)}
+                              title="Editar faixa de IP"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-danger"
+                              style={{ padding: '4px 8px', height: 30, fontSize: 12 }}
+                              onClick={() => handleExcluirFaixa(f.id)}
+                              disabled={excluindoFaixaId === f.id}
+                              title="Excluir faixa de IP"
+                            >
+                              Excluir
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Formulário de Adicionar / Editar Faixa */}
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, padding: 14 }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', margin: '0 0 12px 0' }}>
+                    {faixaEditando ? `Editar Faixa: ${faixaEditando.nome}` : 'Adicionar Nova Faixa de IP'}
+                  </h4>
+
+                  <form onSubmit={handleSalvarFaixa} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                      <div className="site-form-field" style={{ gridColumn: 'span 2' }}>
+                        <label>Nome da Faixa / VLAN *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ex: VLAN 10 - PDVs e Caixas, VLAN 20 - Impressoras"
+                          value={formFaixaNome}
+                          onChange={(e) => setFormFaixaNome(e.target.value)}
+                        />
+                      </div>
+                      <div className="site-form-field">
+                        <label>IP Inicial *</label>
+                        <input
+                          type="text"
+                          required
+                          className="mono"
+                          placeholder="Ex: 192.168.4.1"
+                          value={formFaixaIpInicio}
+                          onChange={(e) => setFormFaixaIpInicio(e.target.value)}
+                        />
+                      </div>
+                      <div className="site-form-field">
+                        <label>IP Final *</label>
+                        <input
+                          type="text"
+                          required
+                          className="mono"
+                          placeholder="Ex: 192.168.4.254"
+                          value={formFaixaIpFim}
+                          onChange={(e) => setFormFaixaIpFim(e.target.value)}
+                        />
+                      </div>
+                      <div className="site-form-field">
+                        <label>Gateway (Opcional)</label>
+                        <input
+                          type="text"
+                          className="mono"
+                          placeholder="Ex: 192.168.4.254"
+                          value={formFaixaGateway}
+                          onChange={(e) => setFormFaixaGateway(e.target.value)}
+                        />
+                      </div>
+                      <div className="site-form-field">
+                        <label>Máscara de Sub-rede</label>
+                        <input
+                          type="text"
+                          className="mono"
+                          placeholder="Ex: 255.255.255.0 ou /24"
+                          value={formFaixaMascara}
+                          onChange={(e) => setFormFaixaMascara(e.target.value)}
+                        />
+                      </div>
+                      <div className="site-form-field" style={{ gridColumn: 'span 2' }}>
+                        <label>Observações</label>
+                        <input
+                          type="text"
+                          placeholder="Anotações sobre esta sub-rede ou VLAN..."
+                          value={formFaixaObs}
+                          onChange={(e) => setFormFaixaObs(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+                      {faixaEditando && (
+                        <button type="button" className="btn btn-secondary" onClick={cancelarEditarFaixa}>
+                          Cancelar edição
+                        </button>
+                      )}
+                      <button type="submit" className="btn btn-primary" disabled={salvandoFaixa}>
+                        {salvandoFaixa ? 'Salvando...' : faixaEditando ? 'Salvar Alterações da Faixa' : '+ Cadastrar Faixa de IP'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div className="sites-modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setModalFaixasOpen(false)}
+              >
+                Fechar
               </button>
             </div>
           </div>
