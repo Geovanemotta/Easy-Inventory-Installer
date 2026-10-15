@@ -691,11 +691,15 @@ export default function NetworkAssetsPage({
         showToast('Ativo de rede atualizado com sucesso!')
       } else {
         const novo = await createNetworkAsset(token, payload)
-        setAssets((prev) => [novo, ...prev])
+        // Substitui imediatamente o registro livre pelo novo ativo na tabela
+        setAssets((prev) => [
+          novo,
+          ...prev.filter((item) => !(item.origem === 'livre' && item.ip === novo.ip)),
+        ])
         showToast('Ativo cadastrado com sucesso!')
       }
       setModalFormAberto(false)
-      carregarFaixas()
+      await Promise.all([carregarAtivos(), carregarFaixas()])
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       showToast(`Falha ao salvar: ${msg}`)
@@ -1472,7 +1476,7 @@ export default function NetworkAssetsPage({
                               <div>
                                 {isLivre ? (
                                   <span className="na-st livre" title="IP livre e disponível na faixa de rede">
-                                    <i className="dot green" /> Livre
+                                    <i className="dot blue" /> Livre
                                   </span>
                                 ) : a.status_online === true ? (
                                   <span className="na-st online" title={`Online. Latência: ${a.tempo_resposta_ms ?? 0}ms`}>

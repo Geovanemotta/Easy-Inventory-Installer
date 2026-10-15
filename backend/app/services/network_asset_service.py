@@ -195,10 +195,30 @@ def listar_network_assets(
     )
     if sites_permitidos is not None:
         stmt_devs = stmt_devs.where(Device.site_id.in_(sites_permitidos))
-    if site_id is not None:
-        stmt_devs = stmt_devs.where(Device.site_id == site_id)
 
-    devices_db = db.scalars(stmt_devs).all()
+    all_devs = db.scalars(stmt_devs).all()
+
+    # Todos os dispositivos ativos da empresa ocupam o seu respectivo IP na rede
+    for d in all_devs:
+        if d.ip and d.ip.strip():
+            occupied_ips.add(d.ip.strip())
+
+    # Se uma loja específica estiver selecionada, lista as estações dessa loja
+    # e também qualquer estação ativa cujo IP pertença a uma das faixas desta loja
+    def dev_visivel_na_loja(d: Device) -> bool:
+        if site_id is None:
+            return True
+        if d.site_id == site_id:
+            return True
+        if d.ip and parsed_ranges:
+            try:
+                v = int(ipaddress.IPv4Address(d.ip.strip()))
+                return any(s_int <= v <= e_int for _, s_int, e_int in parsed_ranges)
+            except Exception:
+                pass
+        return False
+
+    devices_db = [d for d in all_devs if dev_visivel_na_loja(d)]
     for d in devices_db:
         clean_ip = d.ip.strip() if d.ip else None
         site_nome = d.site.name if d.site else None
@@ -846,7 +866,6 @@ def listar_ip_ranges(
     asset_ips = db.scalars(
         select(NetworkAsset.ip).where(
             NetworkAsset.company_id == current_user.company_id,
-            NetworkAsset.site_id.in_(site_ids),
             NetworkAsset.ip.isnot(None),
         )
     ).all()
@@ -855,7 +874,6 @@ def listar_ip_ranges(
         select(Device.ip).where(
             Device.company_id == current_user.company_id,
             Device.active == True,
-            Device.site_id.in_(site_ids),
             Device.ip.isnot(None),
         )
     ).all()

@@ -1498,6 +1498,11 @@
   background: #94a3b8;
 }
 
+.dot.blue {
+  background: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
 .na-chips {
   display: flex;
   gap: 6px;
@@ -2816,19 +2821,19 @@
 }
 
 .na-st.livre {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
 }
 
 .na-tipo.t-livre {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  border-color: rgba(2, 132, 199, 0.25);
 }
 
 .na-livre-name {
-  color: #10b981 !important;
+  color: #0284c7 !important;
   font-style: italic;
   font-weight: 600;
 }
