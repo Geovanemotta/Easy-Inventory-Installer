@@ -649,17 +649,15 @@ export default function SitesPage({
                 </div>
 
                 {/* Status Ativo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label className="site-checkbox-label">
                   <input
                     type="checkbox"
                     id="site-active-check"
                     checked={formActive}
                     onChange={(e) => setFormActive(e.target.checked)}
                   />
-                  <label htmlFor="site-active-check" style={{ fontSize: '13px', cursor: 'pointer', color: 'var(--ink)' }}>
-                    Filial ativa no sistema de inventário
-                  </label>
-                </div>
+                  <span>Filial ativa no sistema de inventário</span>
+                </label>
 
                 {/* Box de Sugestões Inteligentes */}
                 {suggestedPatterns.length > 0 && (
@@ -898,8 +896,8 @@ export default function SitesPage({
                 Esta rotina avalia os hostnames dos computadores existentes no banco de dados contra os padrões cadastrados e atualiza a filial associada caso encontre correspondência.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)', cursor: 'pointer' }}>
+              <div className="reclass-scope-group">
+                <label className="reclass-scope-option">
                   <input
                     type="radio"
                     name="reclass-scope"
@@ -911,7 +909,7 @@ export default function SitesPage({
                   </span>
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)', cursor: 'pointer' }}>
+                <label className="reclass-scope-option">
                   <input
                     type="radio"
                     name="reclass-scope"

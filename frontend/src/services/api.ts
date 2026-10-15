@@ -230,6 +230,9 @@ export type RawInventoryItem = {
   id?: number
   hostname: string
   motivo_upgrade?: string | null
+  site_id?: number | null
+  site_code?: string | null
+  site_name?: string | null
   loja?: string | null
   ip?: string | null
   ip2?: string | null

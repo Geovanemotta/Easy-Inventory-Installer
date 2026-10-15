@@ -331,7 +331,7 @@
   margin-bottom: 4px;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select {
   width: 100%;
   padding: 8px 12px;
@@ -344,12 +344,13 @@ select {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
 select:focus {
   border-color: var(--brand);
   box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
   outline: none;
 }
+
 
 .btn {
   height: 38px;

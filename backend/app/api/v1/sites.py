@@ -468,6 +468,7 @@ def reclassify_sites(
                     )
                 )
                 dev.site_id = matched_site.id
+                dev.loja = matched_site.name
 
         session.commit()
 

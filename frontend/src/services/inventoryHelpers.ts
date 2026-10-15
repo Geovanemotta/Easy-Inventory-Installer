@@ -8,6 +8,9 @@ export type FilialInfo = {
   tipo: 'Loja' | 'Combo' | 'Matriz'
   num: number
   filial: string
+  site_id?: number | null
+  site_code?: string | null
+  site_name?: string | null
 }
 
 export type EnrichedMachine = RawInventoryItem & {
@@ -47,8 +50,81 @@ export const CATS: [keyof RawInventoryItem, string][] = [
   ['ferramentas', 'Ferramenta'],
 ]
 
-export function classificar(hostname?: string | null): FilialInfo {
+export function classificar(
+  hostname?: string | null,
+  siteCode?: string | null,
+  siteName?: string | null,
+  loja?: string | null,
+  siteId?: number | null,
+): FilialInfo {
   const h = String(hostname || '').trim().toUpperCase()
+  const sCode = String(siteCode || '').trim().toUpperCase()
+  const sName = String(siteName || loja || '').trim()
+
+  // 1. Identificação prioritária por filial cadastrada no banco de dados
+  if (sCode || sName) {
+    if (sCode === 'OUTROS' || sName.toUpperCase() === 'OUTROS') {
+      return {
+        tipo: 'Matriz',
+        num: 999,
+        filial: sName || 'OUTROS',
+        site_id: siteId,
+        site_code: sCode,
+        site_name: sName,
+      }
+    }
+
+    if (sCode === 'AC' || sCode === 'MATRIZ' || sName.toUpperCase().includes('MATRIZ')) {
+      return {
+        tipo: 'Matriz',
+        num: 0,
+        filial: sName || 'MATRIZ',
+        site_id: siteId,
+        site_code: sCode,
+        site_name: sName,
+      }
+    }
+
+    if (sCode.startsWith('CB') || sCode.startsWith('COMBO') || sName.toUpperCase().startsWith('COMBO')) {
+      const numMatch = sCode.match(/\d+/) || sName.match(/\d+/)
+      const num = numMatch ? parseInt(numMatch[0], 10) : 1
+      return {
+        tipo: 'Combo',
+        num,
+        filial: sName || ('COMBO-' + String(num).padStart(2, '0')),
+        site_id: siteId,
+        site_code: sCode,
+        site_name: sName,
+      }
+    }
+
+    if (/^\d{1,2}$/.test(sCode)) {
+      const num = parseInt(sCode, 10)
+      const pad = String(num).padStart(2, '0')
+      return {
+        tipo: 'Loja',
+        num,
+        filial: 'LOJA-' + pad,
+        site_id: siteId,
+        site_code: sCode,
+        site_name: sName,
+      }
+    }
+
+    // Lojas e Filiais customizadas criadas no painel (ex: "CP02", "POSTO-01", etc.)
+    const numMatch = sCode.match(/\d+/) || sName.match(/\d+/)
+    const num = numMatch ? parseInt(numMatch[0], 10) : 99
+    return {
+      tipo: 'Loja',
+      num,
+      filial: sName || sCode,
+      site_id: siteId,
+      site_code: sCode,
+      site_name: sName,
+    }
+  }
+
+  // 2. Fallback de reconhecimento automático por hostname (legado / offline)
   const mLoja = h.match(/^(?:LJ|L)(\d{1,2})[-_]/)
   if (mLoja && +mLoja[1] > 0) {
     return {
@@ -57,6 +133,7 @@ export function classificar(hostname?: string | null): FilialInfo {
       filial: 'LOJA-' + mLoja[1].padStart(2, '0'),
     }
   }
+
   const mCombo = h.match(/^(?:CB|C)(\d{1,2})[-_]/)
   if (mCombo && +mCombo[1] > 0) {
     return {
@@ -65,6 +142,18 @@ export function classificar(hostname?: string | null): FilialInfo {
       filial: 'COMBO-' + mCombo[1].padStart(2, '0'),
     }
   }
+
+  const mGenerico = h.match(/^([A-Z0-9]+)[-_]/)
+  if (mGenerico && mGenerico[1] && !['DESKTOP', 'NOTEBOOK', 'SRV', 'PC', 'WIN'].includes(mGenerico[1])) {
+    const prefixo = mGenerico[1]
+    const numMatch = prefixo.match(/\d+/)
+    return {
+      tipo: prefixo.startsWith('CB') ? 'Combo' : 'Loja',
+      num: numMatch ? parseInt(numMatch[0], 10) : 99,
+      filial: prefixo,
+    }
+  }
+
   return { tipo: 'Matriz', num: 0, filial: 'MATRIZ' }
 }
 
@@ -165,7 +254,7 @@ export function enriquecer(i: RawInventoryItem): EnrichedMachine {
   const win = /windows/i.test((i.sistema || '') + ' ' + (i.versao || ''))
   const o: EnrichedMachine = {
     ...i,
-    _f: classificar(i.hostname),
+    _f: classificar(i.hostname, i.site_code, i.site_name, i.loja, i.site_id),
     _p: pctDisco(i),
     _so: win ? 'Windows' : 'Linux',
     mac: normalizarMac(i.mac),

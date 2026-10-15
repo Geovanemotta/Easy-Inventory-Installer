@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import and_, func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.device import Device
 from app.models.device_history import DeviceHistory
@@ -506,9 +506,13 @@ def upsert_device_from_payload(
 
 
 def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str, Any]]:
-    query = select(Device).where(
-        Device.company_id == current_user.company_id,
-        Device.active.is_(True),
+    query = (
+        select(Device)
+        .options(selectinload(Device.site))
+        .where(
+            Device.company_id == current_user.company_id,
+            Device.active.is_(True),
+        )
     )
 
     role_slugs = [r.slug for r in current_user.roles] if current_user.roles else []
@@ -646,10 +650,18 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
             continue
         seen_hostnames.add(h_norm)
 
+        site_name = d.site.name if d.site else None
+        site_code = d.site.code if d.site else None
+        site_id = d.site_id
+        resolved_loja = site_name or d.loja or ""
+
         item: Dict[str, Any] = {
             "id": d.id,
             "hostname": d.hostname,
-            "loja": d.loja or "",
+            "site_id": site_id,
+            "site_code": site_code,
+            "site_name": site_name,
+            "loja": resolved_loja,
             "ip": d.ip or "",
             "mac": d.mac or "",
             "sistema": d.sistema or "",

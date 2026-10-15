@@ -689,3 +689,52 @@
   color: #34d399;
   font-weight: 600;
 }
+
+/* =========================================================
+   5. CHECKBOX & RADIO PROPORCIONAIS
+   ========================================================= */
+.site-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.reclass-scope-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reclass-scope-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+#view-sites input[type="checkbox"],
+#view-sites input[type="radio"],
+.sites-modal-container input[type="checkbox"],
+.sites-modal-container input[type="radio"] {
+  width: 17px !important;
+  height: 17px !important;
+  min-width: 17px !important;
+  min-height: 17px !important;
+  max-width: 17px !important;
+  max-height: 17px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer;
+  accent-color: var(--brand);
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
