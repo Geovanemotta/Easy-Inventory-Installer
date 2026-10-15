@@ -32,10 +32,17 @@ function updateMeshConfig() {
 
     data.settings.aliasPort = serverPort;
     data.settings.ignoreAgentHashCheck = true;
+    data.settings.allowFraming = true;
+    data.settings.allowedFramingOrigins = '*';
 
+    const hasCert = fs.existsSync(path.join(baseDir, 'nginx', 'certs', 'giassi.crt'));
     if (!data.domains) data.domains = {};
     if (data.domains['']) {
-      delete data.domains[''].certUrl;
+      if (hasCert) {
+        data.domains[''].certUrl = 'file:///opt/meshcentral/meshcentral-data/giassi.crt';
+      } else {
+        delete data.domains[''].certUrl;
+      }
       delete data.domains[''].dns;
       data.domains[''].ignoreAgentHashCheck = true;
       if (!data.domains[''].auth) {
@@ -43,7 +50,11 @@ function updateMeshConfig() {
       }
     }
     if (data.domains.local) {
-      delete data.domains.local.certUrl;
+      if (hasCert) {
+        data.domains.local.certUrl = 'file:///opt/meshcentral/meshcentral-data/giassi.crt';
+      } else {
+        delete data.domains.local.certUrl;
+      }
       delete data.domains.local.dns;
       data.domains.local.newAccounts = true;
     }

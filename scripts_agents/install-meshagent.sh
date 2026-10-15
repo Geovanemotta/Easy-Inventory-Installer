@@ -44,8 +44,13 @@ if systemctl is-active --quiet meshagent 2>/dev/null; then
     echo "[!] Detectado serviço 'meshagent' anterior em execução."
     echo "[+] Parando e atualizando serviço..."
     systemctl stop meshagent 2>/dev/null || true
+    if [[ -f "/usr/local/mesh_services/meshagent/meshagent" ]]; then
+        /usr/local/mesh_services/meshagent/meshagent -fulluninstall 2>/dev/null || true
+        rm -rf /usr/local/mesh_services/meshagent/meshagent.db 2>/dev/null || true
+    fi
     if [[ -f "/usr/local/meshagent/meshagent" ]]; then
         /usr/local/meshagent/meshagent -fulluninstall 2>/dev/null || true
+        rm -rf /usr/local/meshagent/meshagent.db 2>/dev/null || true
     fi
 fi
 

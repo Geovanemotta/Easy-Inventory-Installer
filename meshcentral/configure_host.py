@@ -42,12 +42,20 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
 
         settings["aliasPort"] = port
         settings["ignoreAgentHashCheck"] = True
+        settings["allowFraming"] = True
+        settings["allowedFramingOrigins"] = "*"
 
         # Atualiza domains
         domains = data.setdefault("domains", {})
+        cert_file = base_dir / "nginx" / "certs" / "giassi.crt"
+        has_cert = cert_file.exists()
+
         if "" in domains:
             domains[""]["ignoreAgentHashCheck"] = True
-            domains[""].pop("certUrl", None)
+            if has_cert:
+                domains[""]["certUrl"] = "file:///opt/meshcentral/meshcentral-data/giassi.crt"
+            else:
+                domains[""].pop("certUrl", None)
             # No MeshCentral, o dominio default "" NUNCA pode ter o campo "dns"
             domains[""].pop("dns", None)
 
@@ -56,7 +64,10 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
                 domains[""]["newAccounts"] = True
 
         if "local" in domains:
-            domains["local"].pop("certUrl", None)
+            if has_cert:
+                domains["local"]["certUrl"] = "file:///opt/meshcentral/meshcentral-data/giassi.crt"
+            else:
+                domains["local"].pop("certUrl", None)
             domains["local"].pop("dns", None)
             domains["local"]["newAccounts"] = True
 

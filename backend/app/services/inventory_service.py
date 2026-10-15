@@ -452,6 +452,69 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
     except Exception:
         history_counts = {}
 
+    # Carrega softwares e pacotes em lote para evitar consultas por dispositivo.
+    software_by_device: Dict[int, Dict[str, List[Dict[str, Any]]]] = {}
+    device_ids = [d.id for d in devices]
+
+    if device_ids:
+        software_rows = db.execute(
+            select(DeviceSoftware, Software)
+            .join(Software, Software.id == DeviceSoftware.software_id)
+            .where(
+                DeviceSoftware.device_id.in_(device_ids),
+                DeviceSoftware.installed.is_(True),
+                Software.company_id == current_user.company_id,
+            )
+            .order_by(Software.nome)
+        ).all()
+
+        device_software_ids = [ds.id for ds, _ in software_rows]
+        packages_by_device_software: Dict[int, List[Dict[str, str]]] = {}
+
+        if device_software_ids:
+            package_rows = db.scalars(
+                select(SoftwarePackage)
+                .where(
+                    SoftwarePackage.device_software_id.in_(device_software_ids)
+                )
+                .order_by(SoftwarePackage.pacote)
+            ).all()
+
+            for package in package_rows:
+                packages_by_device_software.setdefault(
+                    package.device_software_id, []
+                ).append({
+                    "pacote": package.pacote,
+                    "versao": package.versao,
+                })
+
+        categorias = {
+            "aplicativo": "aplicativos",
+            "aplicativos": "aplicativos",
+            "agente": "agentes",
+            "agentes": "agentes",
+            "runtime": "runtimes",
+            "runtimes": "runtimes",
+            "ferramenta": "ferramentas",
+            "ferramentas": "ferramentas",
+        }
+
+        for device_software, software in software_rows:
+            tipo = (software.tipo or "").strip().lower()
+            categoria = categorias.get(tipo, "aplicativos")
+
+            software_by_device.setdefault(
+                device_software.device_id, {}
+            ).setdefault(categoria, []).append({
+                "id": software.identifier,
+                "nome": software.nome,
+                "tipo": software.tipo or "",
+                "origem": software.origem or "",
+                "pacotes": packages_by_device_software.get(
+                    device_software.id, []
+                ),
+            })
+
     seen_hostnames = set()
     items = []
     for d in devices:
@@ -498,11 +561,16 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
             "firewall_confirmado_em": d.firewall_confirmado_em.strftime("%Y-%m-%d %H:%M:%S") if d.firewall_confirmado_em else "",
         }
 
-        # Inclui softwares se presentes em extra_data
+        # Mantém os dados legados como alternativa.
         if d.extra_data and isinstance(d.extra_data, dict):
             for cat in ("aplicativos", "agentes", "runtimes", "ferramentas"):
                 if cat in d.extra_data:
                     item[cat] = d.extra_data[cat]
+
+        # Os dados relacionais do PostgreSQL têm prioridade por categoria.
+        for cat, softwares in software_by_device.get(d.id, {}).items():
+            if softwares:
+                item[cat] = softwares
 
         items.append(item)
 

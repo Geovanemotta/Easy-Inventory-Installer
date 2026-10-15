@@ -39,7 +39,12 @@ echo "[3/3] Validando e recarregando Nginx..."
 if docker ps --format '{{.Names}}' | grep -q "giassi-nginx"; then
     docker exec giassi-nginx nginx -t
     docker exec giassi-nginx nginx -s reload
-    echo "[+] SUCESSO: Certificado aplicado sem parar o sistema!"
+    echo "[+] SUCESSO: Certificado aplicado no Nginx!"
+    if docker ps --format '{{.Names}}' | grep -q "giassi-meshcentral"; then
+        echo "[*] Reiniciando MeshCentral para carregar o novo certificado..."
+        docker restart giassi-meshcentral
+        echo "[+] SUCESSO: MeshCentral atualizado com o novo certificado!"
+    fi
 else
     echo "[i] Container giassi-nginx não está rodando. O certificado será usado no próximo start."
 fi

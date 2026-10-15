@@ -9,6 +9,7 @@
     "trustedProxy": true,
     "ignoreAgentHashCheck": true,
     "allowFraming": true,
+    "allowedFramingOrigins": "*",
     "sessionSameSite": "none",
     "webrtc": true,
     "wanonly": false,
@@ -41,7 +42,8 @@
         "ugrp//operadores_matriz"
       ],
       "userNameIsEmail": false,
-      "hideMeshCentral": false
+      "hideMeshCentral": false,
+      "certUrl": "file:///opt/meshcentral/meshcentral-data/giassi.crt"
     },
     "local": {
       "siteStyle": 2,

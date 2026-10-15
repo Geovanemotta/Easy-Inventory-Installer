@@ -53,8 +53,14 @@ Write-Host "[3/3] Validando e recarregando Nginx no container giassi-nginx..." -
 try {
     docker exec giassi-nginx nginx -t
     docker exec giassi-nginx nginx -s reload
-    Write-Host "[+] SUCESSO: Certificado aplicado sem parar o sistema!" -ForegroundColor Green
+    Write-Host "[+] SUCESSO: Certificado aplicado no Nginx!" -ForegroundColor Green
+    $runningMesh = docker ps --format '{{.Names}}' | Select-String "giassi-meshcentral"
+    if ($runningMesh) {
+        Write-Host "[*] Reiniciando MeshCentral para carregar o novo certificado..." -ForegroundColor Yellow
+        docker restart giassi-meshcentral
+        Write-Host "[+] SUCESSO: MeshCentral atualizado com o novo certificado!" -ForegroundColor Green
+    }
 }
 catch {
-    Write-Warning "Nginx não está rodando no momento. Os certificados serão usados na próxima inicialização."
+    Write-Warning "Containers não estão rodando no momento. Os certificados serão usados na próxima inicialização."
 }
