@@ -9,6 +9,7 @@ import {
   IconMouse,
   IconPrinter,
   IconSmartphone,
+  IconTerminal,
   IconUsb,
   IcoWin,
 } from '../components/Icons'
@@ -113,6 +114,25 @@ export default function InventoryPage({
   const [solicitandoFirewall, setSolicitandoFirewall] = useState<Record<number, boolean>>({})
   const [confirmandoFirewall, setConfirmandoFirewall] = useState<Record<number, boolean>>({})
   const [sshTargetDevice, setSshTargetDevice] = useState<EnrichedMachine | null>(null)
+  const [showCharts, setShowCharts] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('inv_show_charts') === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  const toggleShowCharts = () => {
+    setShowCharts((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem('inv_show_charts', String(next))
+      } catch {
+        // ignore
+      }
+      return next
+    })
+  }
 
   const handleOpenTerminal = (dev: EnrichedMachine) => {
     if (!canUseSsh) return
@@ -582,107 +602,39 @@ export default function InventoryPage({
 
   return (
     <section id="view-inv">
-      {/* Interactive Charts Panels */}
-      <div className="charts">
-        {/* 1) Donut: Distribuição por sistema */}
-        <section className="panel">
-          <h2>Distribuição por sistema</h2>
-          <p>Sistemas operacionais cadastrados</p>
-          {totalDistroSistema === 0 ? (
-            <div className="empty">Sem dados para os filtros atuais</div>
-          ) : (
-            <DonutChart
-              items={distroSistema}
-              total={totalDistroSistema}
-              activeItem={selectedVersao}
-              onItemClick={(n) => {
-                if (n === 'Outros') return
-                setSelectedVersao((cur) => (cur === n ? '' : n))
-                setPaginaAtual(1)
-              }}
-            />
-          )}
-        </section>
-
-        {/* 2) Donut: Status das máquinas */}
-        <section className="panel">
-          <h2>Status das máquinas</h2>
-          <p>Condição de conformidade e versão</p>
-          {totalDistroStatus === 0 ? (
-            <div className="empty">Sem dados para os filtros atuais</div>
-          ) : (
-            <DonutChart
-              items={distroStatus}
-              total={totalDistroStatus}
-              modoValor="qtd"
-              activeItem={
-                selectedStatus === 'OK'
-                  ? 'Atualizada'
-                  : selectedStatus === 'UPGRADE_REQUIRED'
-                    ? 'Atualização Necessária'
-                    : selectedStatus === 'OUTRO'
-                      ? 'Não Identificada'
-                      : ''
-              }
-              onItemClick={(label) => {
-                const code =
-                  label === 'Atualizada'
-                    ? 'OK'
-                    : label === 'Atualização Necessária'
-                      ? 'UPGRADE_REQUIRED'
-                      : label === 'Não Identificada'
-                        ? 'OUTRO'
-                        : ''
-                setSelectedStatus((cur) => (cur === code ? '' : code))
-                setPaginaAtual(1)
-              }}
-            />
-          )}
-        </section>
-
-        {/* 3) Donut: Tipo de unidade (Lojas, Combos, Matriz) */}
-        <section className="panel">
-          <h2>Tipo de unidade</h2>
-          <p>Lojas, combos e matriz</p>
-          {totalDistroTipo === 0 ? (
-            <div className="empty">Sem dados para os filtros atuais</div>
-          ) : (
-            <DonutChart
-              items={distroTipo}
-              total={totalDistroTipo}
-              modoValor="qtd"
-              activeItem={
-                tipoAtivo === 'Loja'
-                  ? 'Lojas'
-                  : tipoAtivo === 'Combo'
-                    ? 'Combos'
-                    : tipoAtivo === 'Matriz'
-                      ? 'Matriz'
-                      : ''
-              }
-              onItemClick={(label) => {
-                const code =
-                  label === 'Lojas'
-                    ? 'Loja'
-                    : label === 'Combos'
-                      ? 'Combo'
-                      : label === 'Matriz'
-                        ? 'Matriz'
-                        : ''
-                setTipoAtivo((cur) => (cur === code ? '' : code))
-                setSelectedFilial('')
-                setPaginaAtual(1)
-              }}
-            />
-          )}
-        </section>
+      {/* Top Header Bar */}
+      <div className="inv-header">
+        <div className="inv-header-title">
+          <h2>Estações de Trabalho</h2>
+          <span className="inv-count-badge">
+            {filtrados.length} {filtrados.length === 1 ? 'máquina' : 'máquinas'}
+            {filtrados.length !== inventario.length && ` de ${inventario.length}`}
+          </span>
+        </div>
+        <div className="inv-header-actions">
+          <button
+            type="button"
+            className={`btn btn-sm ${showCharts ? 'btn-active' : ''}`}
+            onClick={toggleShowCharts}
+            title={showCharts ? 'Ocultar painel de gráficos' : 'Exibir distribuição gráfica'}
+          >
+            📊 {showCharts ? 'Ocultar Gráficos' : 'Gráficos de Distribuição'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            onClick={exportarInventarioCSV}
+            title="Exportar inventário filtrado em formato CSV"
+          >
+            Exportar CSV
+          </button>
+        </div>
       </div>
 
-      {/* Stat Cards */}
+      {/* Stat Cards / KPI Strip (Alta Densidade) */}
       <div className="cards">
         <div
-          className={`card click ${selectedPlataforma === 'Linux' ? 'on' : ''
-            }`}
+          className={`card click ${selectedPlataforma === 'Linux' ? 'on' : ''}`}
           role="button"
           tabIndex={0}
           title="Clique para filtrar por Linux"
@@ -700,8 +652,7 @@ export default function InventoryPage({
         </div>
 
         <div
-          className={`card click ${selectedPlataforma === 'Windows' ? 'on' : ''
-            }`}
+          className={`card click ${selectedPlataforma === 'Windows' ? 'on' : ''}`}
           role="button"
           tabIndex={0}
           title="Clique para filtrar por Windows"
@@ -805,6 +756,104 @@ export default function InventoryPage({
           </div>
         </div>
       </div>
+
+      {/* Interactive Charts Panels (Colapsável) */}
+      {showCharts && (
+        <div className="charts charts-collapsible">
+          {/* 1) Donut: Distribuição por sistema */}
+          <section className="panel">
+            <h2>Distribuição por sistema</h2>
+            <p>Sistemas operacionais cadastrados</p>
+            {totalDistroSistema === 0 ? (
+              <div className="empty">Sem dados para os filtros atuais</div>
+            ) : (
+              <DonutChart
+                items={distroSistema}
+                total={totalDistroSistema}
+                activeItem={selectedVersao}
+                onItemClick={(n) => {
+                  if (n === 'Outros') return
+                  setSelectedVersao((cur) => (cur === n ? '' : n))
+                  setPaginaAtual(1)
+                }}
+              />
+            )}
+          </section>
+
+          {/* 2) Donut: Status das máquinas */}
+          <section className="panel">
+            <h2>Status das máquinas</h2>
+            <p>Condição de conformidade e versão</p>
+            {totalDistroStatus === 0 ? (
+              <div className="empty">Sem dados para os filtros atuais</div>
+            ) : (
+              <DonutChart
+                items={distroStatus}
+                total={totalDistroStatus}
+                modoValor="qtd"
+                activeItem={
+                  selectedStatus === 'OK'
+                    ? 'Atualizada'
+                    : selectedStatus === 'UPGRADE_REQUIRED'
+                      ? 'Atualização Necessária'
+                      : selectedStatus === 'OUTRO'
+                        ? 'Não Identificada'
+                        : ''
+                }
+                onItemClick={(label) => {
+                  const code =
+                    label === 'Atualizada'
+                      ? 'OK'
+                      : label === 'Atualização Necessária'
+                        ? 'UPGRADE_REQUIRED'
+                        : label === 'Não Identificada'
+                          ? 'OUTRO'
+                          : ''
+                  setSelectedStatus((cur) => (cur === code ? '' : code))
+                  setPaginaAtual(1)
+                }}
+              />
+            )}
+          </section>
+
+          {/* 3) Donut: Tipo de unidade (Lojas, Combos, Matriz) */}
+          <section className="panel">
+            <h2>Tipo de unidade</h2>
+            <p>Lojas, combos e matriz</p>
+            {totalDistroTipo === 0 ? (
+              <div className="empty">Sem dados para os filtros atuais</div>
+            ) : (
+              <DonutChart
+                items={distroTipo}
+                total={totalDistroTipo}
+                modoValor="qtd"
+                activeItem={
+                  tipoAtivo === 'Loja'
+                    ? 'Lojas'
+                    : tipoAtivo === 'Combo'
+                      ? 'Combos'
+                      : tipoAtivo === 'Matriz'
+                        ? 'Matriz'
+                        : ''
+                }
+                onItemClick={(label) => {
+                  const code =
+                    label === 'Lojas'
+                      ? 'Loja'
+                      : label === 'Combos'
+                        ? 'Combo'
+                        : label === 'Matriz'
+                          ? 'Matriz'
+                          : ''
+                  setTipoAtivo((cur) => (cur === code ? '' : code))
+                  setSelectedFilial('')
+                  setPaginaAtual(1)
+                }}
+              />
+            )}
+          </section>
+        </div>
+      )}
 
       {/* Filters Form */}
       <div className="filters">
@@ -998,14 +1047,25 @@ export default function InventoryPage({
         </div>
       </div>
 
-      {/* Main Table */}
       <div className="table-container">
         <table>
+          <colgroup>
+            <col style={{ width: '105px' }} />
+            <col style={{ width: '220px' }} />
+            <col style={{ width: '140px' }} />
+            <col style={{ width: '150px' }} />
+            <col style={{ width: '130px' }} />
+            <col style={{ width: '210px' }} />
+            <col style={{ width: '125px' }} />
+            {canUseSsh && <col style={{ width: '80px' }} />}
+            <col style={{ width: '120px' }} />
+          </colgroup>
           <thead>
             <tr>
               <th
-                className="sortable"
+                className="sortable col-filial"
                 onClick={() => handleSort('filial')}
+                style={{ width: '105px' }}
               >
                 Filial
                 {ordem === 'filial' && (
@@ -1015,8 +1075,9 @@ export default function InventoryPage({
                 )}
               </th>
               <th
-                className="sortable"
+                className="sortable col-hostname"
                 onClick={() => handleSort('hostname')}
+                style={{ width: '220px' }}
               >
                 Hostname
                 {ordem === 'hostname' && (
@@ -1026,8 +1087,9 @@ export default function InventoryPage({
                 )}
               </th>
               <th
-                className="sortable"
+                className="sortable col-ip"
                 onClick={() => handleSort('ip')}
+                style={{ width: '140px' }}
               >
                 IP
                 {ordem === 'ip' && (
@@ -1036,10 +1098,11 @@ export default function InventoryPage({
                   </span>
                 )}
               </th>
-              <th>MAC Address</th>
+              <th className="col-mac" style={{ width: '150px' }}>MAC Address</th>
               <th
-                className="sortable"
+                className="sortable col-disco"
                 onClick={() => handleSort('disco')}
+                style={{ width: '130px' }}
               >
                 Disco
                 {ordem === 'disco' && (
@@ -1048,13 +1111,13 @@ export default function InventoryPage({
                   </span>
                 )}
               </th>
-              <th>Sistema / Versão</th>
-              <th>Status</th>
-              {canUseSsh && <th style={{ width: '85px', textAlign: 'center' }}>Terminal</th>}
+              <th className="col-sistema" style={{ width: '210px' }}>Sistema / Versão</th>
+              <th className="col-status" style={{ width: '125px' }}>Status</th>
+              {canUseSsh && <th className="col-ssh" style={{ width: '80px', textAlign: 'center' }}>Terminal</th>}
               <th
-                className="sortable"
+                className="sortable col-patrimonio"
                 onClick={() => handleSort('patrimonio')}
-                style={{ textAlign: 'center', minWidth: '120px' }}
+                style={{ textAlign: 'center', width: '120px' }}
                 title="Ordenar por Patrimônio"
               >
                 Patrimônio
@@ -1108,7 +1171,7 @@ export default function InventoryPage({
                       }}
                       title={isExpanded ? 'Clique para recolher detalhes' : 'Clique para ver detalhes desta máquina'}
                     >
-                      <td>
+                      <td className="col-filial">
                         <span
                           className="filial"
                           style={
@@ -1121,11 +1184,14 @@ export default function InventoryPage({
                         </span>
                       </td>
 
-                      <td>
+                      <td className="col-hostname">
                         {(() => {
                           const conexao = obterStatusConexao(i.data_coleta)
+                          const isOffline = conexao.status === 'offline'
+                          const temAlerta = Boolean(i.alerta_hardware)
+                          const isFirewallPending = i.firewall_status === 'pendente'
                           return (
-                            <>
+                            <div className="hostname-cell-inner">
                               <div className="copy-field">
                                 <span
                                   className={`status-dot dot-${conexao.status}`}
@@ -1141,43 +1207,40 @@ export default function InventoryPage({
                                   <IconCopy />
                                 </button>
                               </div>
-                              {(i.alerta_hardware ||
-                                (i.history_count !== undefined && i.history_count > 0) ||
-                                conexao.status === 'offline' ||
-                                i.firewall_status === 'pendente') && (
-                                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                    {conexao.status === 'offline' && (
-                                      <span
-                                        className="badge-offline-hw"
-                                        title={`Sem envio de inventário há mais de 48h (Última coleta: ${i.data_coleta || 'sem data'})`}
-                                      >
-                                        🔴 Inativa (+48h)
-                                      </span>
-                                    )}
-                                    {i.alerta_hardware && (
-                                      <span
-                                        className="badge-alert-hw"
-                                        title={i.alerta_hardware}
-                                      >
-                                        ⚠️ {i.alerta_hardware.includes('Conflito MAC') ? 'Conflito MAC' : 'Alerta HW'}
-                                      </span>
-                                    )}
-                                    {i.firewall_status === 'pendente' && (
-                                      <span
-                                        className="badge-firewall-pending"
-                                        title={`Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
-                                      >
-                                        🟡 Nova / Firewall
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                            </>
+                              {(isOffline || temAlerta || isFirewallPending) && (
+                                <div className="hostname-badges">
+                                  {isOffline && (
+                                    <span
+                                      className="badge-offline-hw"
+                                      title={`Sem envio de inventário há mais de 48h (Última coleta: ${i.data_coleta || 'sem data'})`}
+                                    >
+                                      Inativa
+                                    </span>
+                                  )}
+                                  {temAlerta && (
+                                    <span
+                                      className="badge-alert-hw"
+                                      title={i.alerta_hardware || undefined}
+                                    >
+                                      ⚠️ {i.alerta_hardware?.includes('Conflito MAC') ? 'MAC' : 'Alerta'}
+                                    </span>
+                                  )}
+                                  {isFirewallPending && (
+                                    <span
+                                      className="badge-firewall-pending"
+                                      title={`Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
+                                    >
+                                      Firewall
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           )
                         })()}
                       </td>
 
-                      <td>
+                      <td className="col-ip">
                         <div className="copy-field">
                           <span>{i.ip || '-'}</span>
                           {i.ip && (
@@ -1201,7 +1264,7 @@ export default function InventoryPage({
                         </div>
                       </td>
 
-                      <td>
+                      <td className="col-mac">
                         <div className="copy-field">
                           <span className="mono">{i.mac || '-'}</span>
                           {i.mac && (
@@ -1217,7 +1280,7 @@ export default function InventoryPage({
                         </div>
                       </td>
 
-                      <td>
+                      <td className="col-disco">
                         {p !== null ? (
                           <div className={`disk ${nv}`}>
                             <div className="disk-top">
@@ -1250,37 +1313,29 @@ export default function InventoryPage({
                         )}
                       </td>
 
-                      <td>
-                        {i._so === 'Windows' ? <IcoWin /> : <IcoLnx />}
-                        <span>{versaoCompleta(i) || '-'}</span>
-                        {i.windows_release && (
-                          <span
-                            style={{
-                              marginLeft: '6px',
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              padding: '1px 5px',
-                              borderRadius: '4px',
-                              background: '#eff6ff',
-                              color: '#2563eb',
-                              border: '1px solid #bfdbfe',
-                              verticalAlign: 'middle',
-                            }}
-                            title={`Versão de lançamento: ${i.windows_release}`}
-                          >
-                            {i.windows_release}
-                          </span>
-                        )}
+                      <td className="col-sistema">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+                          {i._so === 'Windows' ? <IcoWin /> : <IcoLnx />}
+                          <span>{versaoCompleta(i) || '-'}</span>
+                          {i.windows_release && (
+                            <span
+                              className="badge-win-release"
+                              title={`Versão de lançamento: ${i.windows_release}`}
+                            >
+                              {i.windows_release}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
-                      <td>
+                      <td className="col-status">
                         <span className={`status ${statusCls}`}>
                           {statusTxt}
                         </span>
                       </td>
 
                       {canUseSsh && (
-                        <td style={{ textAlign: 'center' }}>
+                        <td className="col-ssh" style={{ textAlign: 'center', width: '80px' }}>
                           {isLinuxDevice(i) && i.ip ? (
                             <button
                               type="button"
@@ -1288,7 +1343,8 @@ export default function InventoryPage({
                               onClick={() => handleOpenTerminal(i)}
                               title={`Conectar via terminal SSH em ${i.hostname} (${i.ip})`}
                             >
-                              🖥️ SSH
+                              <IconTerminal />
+                              <span>SSH</span>
                             </button>
                           ) : (
                             <span
@@ -1301,7 +1357,7 @@ export default function InventoryPage({
                         </td>
                       )}
 
-                      <td style={{ textAlign: 'center' }}>
+                      <td className="col-patrimonio" style={{ textAlign: 'center', width: '120px' }}>
                         {(() => {
                           if (!i.patrimonio) {
                             return <span className="patrimonio-tag-table empty">—</span>
@@ -1324,7 +1380,7 @@ export default function InventoryPage({
                     {/* Accordion Row */}
                     {isExpanded && (
                       <tr className="details-row visible">
-                        <td colSpan={9}>
+                        <td colSpan={canUseSsh ? 9 : 8}>
                           <div className="details-content">
                             {/* Alerta de Hardware / Conflito de MAC */}
                             {i.alerta_hardware && (
@@ -1533,58 +1589,64 @@ export default function InventoryPage({
                                         )}
                                       </div>
                                     </div>
-                                    {i.fabricante && (
-                                      <div className="detail-item">
-                                        <div className="detail-label">
-                                          Fabricante
-                                        </div>
-                                        <div className="detail-value">
-                                          {i.fabricante}
-                                        </div>
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Fabricante
                                       </div>
-                                    )}
-                                    {i.modelo && (
-                                      <div className="detail-item">
-                                        <div className="detail-label">
-                                          Modelo
-                                        </div>
-                                        <div className="detail-value">
-                                          {i.modelo}
-                                        </div>
+                                      <div className="detail-value">
+                                        {i.fabricante || (
+                                          <span style={{ color: 'var(--ds-text-muted, #94a3b8)', fontWeight: 400 }}>—</span>
+                                        )}
                                       </div>
-                                    )}
-                                    {i.serial && (
-                                      <div className="detail-item">
-                                        <div className="detail-label">
-                                          Número de série
-                                        </div>
-                                        <div className="detail-value mono">
-                                          {i.serial}
-                                        </div>
+                                    </div>
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Modelo
                                       </div>
-                                    )}
-                                    {i.patrimonio && (
-                                      <div className="detail-item">
-                                        <div className="detail-label">
-                                          Número de Patrimônio
-                                        </div>
-                                        <div
-                                          className="detail-value mono"
-                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                                        >
-                                          <span>{i.patrimonio}</span>
-                                          <button
-                                            type="button"
-                                            className="copy-button"
-                                            onClick={() => copiarTexto(i.patrimonio!)}
-                                            title="Copiar Patrimônio"
-                                            aria-label="Copiar Patrimônio"
-                                          >
-                                            <IconCopy />
-                                          </button>
-                                        </div>
+                                      <div className="detail-value">
+                                        {i.modelo || (
+                                          <span style={{ color: 'var(--ds-text-muted, #94a3b8)', fontWeight: 400 }}>—</span>
+                                        )}
                                       </div>
-                                    )}
+                                    </div>
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Número de série
+                                      </div>
+                                      <div className="detail-value mono">
+                                        {i.serial || (
+                                          <span style={{ color: 'var(--ds-text-muted, #94a3b8)', fontWeight: 400 }}>—</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="detail-item">
+                                      <div className="detail-label">
+                                        Número de Patrimônio
+                                      </div>
+                                      <div
+                                        className="detail-value mono"
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                      >
+                                        {i.patrimonio ? (
+                                          <>
+                                            <span>{i.patrimonio}</span>
+                                            <button
+                                              type="button"
+                                              className="copy-button"
+                                              onClick={() => copiarTexto(i.patrimonio!)}
+                                              title="Copiar Patrimônio"
+                                              aria-label="Copiar Patrimônio"
+                                            >
+                                              <IconCopy />
+                                            </button>
+                                          </>
+                                        ) : (
+                                          <span style={{ color: 'var(--ds-text-muted, #94a3b8)', fontWeight: 400 }}>
+                                            Não informado
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </details>
 

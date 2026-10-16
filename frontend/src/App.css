@@ -24,6 +24,7 @@
 @import './styles/pages/reports.css';
 @import './styles/pages/network-assets.css';
 @import './styles/pages/active-directory.css';
+@import './styles/pages/licenses.css';
 
 /* 5. Refinamentos Globais de Interação e Modos */
 @import './styles/theme-overrides.css';

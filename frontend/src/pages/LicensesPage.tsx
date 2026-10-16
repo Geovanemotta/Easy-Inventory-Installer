@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import '../styles/pages/licenses.css'
 import {
   assignLicense,
   createLicense,

@@ -311,29 +311,50 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  height: 26px;
-  padding: 0 8px;
-  background: #0f172a;
-  color: #38bdf8;
-  border: 1px solid #334155;
-  border-radius: 5px;
+  height: 22px;
+  padding: 0 7px;
+  background: var(--ds-bg-surface-alt, #1e293b);
+  color: var(--ds-text-secondary, #94a3b8);
+  border: 1px solid var(--ds-line, #334155);
+  border-radius: var(--ds-radius-sm, 4px);
   font-size: 11px;
   font-weight: 600;
+  font-family: var(--ds-font-mono, monospace);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--ds-transition-fast, 0.15s ease);
   white-space: nowrap;
 }
 
+.btn-ssh-table svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.75;
+}
+
 .btn-ssh-table:hover {
-  background: #0284c7;
+  background: var(--ds-brand-subtle, rgba(2, 132, 199, 0.15));
+  border-color: var(--ds-brand, #0284c7);
+  color: var(--ds-brand, #0284c7);
+}
+
+.btn-ssh-table:hover svg {
+  opacity: 1;
+}
+
+[data-theme="light"] .btn-ssh-table {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .btn-ssh-table:hover {
+  background: #e0f2fe;
   border-color: #0284c7;
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+  color: #0284c7;
 }
 
 .btn-ssh-table:active {
-  transform: translateY(0);
+  opacity: 0.85;
 }
 
 .btn-ssh-mini {

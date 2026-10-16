@@ -1,8 +1,7 @@
 /* =========================================================
    HEADER (BARRA SUPERIOR ENTERPRISE)
    ========================================================= */
-.app-header,
-header {
+.app-header {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   color: var(--ink);
@@ -38,14 +37,14 @@ header {
   text-transform: uppercase;
 }
 
-header h1 {
+.app-header h1 {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--ink);
 }
 
-header p {
+.app-header p {
   font-size: 12.5px;
   color: var(--muted);
 }
