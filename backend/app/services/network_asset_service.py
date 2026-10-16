@@ -14,6 +14,7 @@ from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.device import Device
+from app.models.device_history import DeviceHistory
 from app.models.network_asset import NetworkAsset
 from app.models.site import Site
 from app.models.site_ip_range import SiteIpRange
@@ -798,18 +799,20 @@ def processar_csv_importacao(
         sites_map[clean_name] = s.id
         sites_map[c_name] = s.id
 
-    # Carrega todas as estações de trabalho ativas da empresa que possuem IP (proteção contra sobrescrita)
+    # Carrega todas as estações de trabalho ativas da empresa (proteção contra sobrescrita e sincronização de patrimônio)
     devices_db = db.scalars(
         select(Device).where(
             Device.company_id == current_user.company_id,
             Device.active == True,
-            Device.ip.isnot(None),
         )
     ).all()
     device_ip_map = {}
+    device_name_map = {}
     for dev in devices_db:
         if dev.ip and dev.ip.strip():
             device_ip_map[dev.ip.strip()] = dev
+        if dev.hostname and dev.hostname.strip():
+            device_name_map[dev.hostname.strip().lower()] = dev
 
     criados = 0
     atualizados = 0
@@ -838,22 +841,74 @@ def processar_csv_importacao(
         if ip:
             ip = ip.strip()
 
-        # Validação de proteção: Impede sobrescrever IP já pertencente a uma estação do inventário
+        patrimonio_raw = get_val("patrimonio")
+        patrimonio_formatado = None
+        if patrimonio_raw:
+            nums = re.sub(r"[^0-9]", "", patrimonio_raw.strip())
+            patrimonio_formatado = f"pat.{nums}" if nums else patrimonio_raw.strip()
+
+        # Validação de proteção: Impede sobrescrever estação de trabalho (por IP ou por Nome)
+        dev = None
+        motivo_match = None
         if ip and ip in device_ip_map:
             dev = device_ip_map[ip]
+            motivo_match = f"IP {ip}"
+        elif nome and nome.strip().lower() in device_name_map:
+            dev = device_name_map[nome.strip().lower()]
+            motivo_match = f"Nome '{nome}'"
+
+        if dev:
+            patrimonio_atualizado = False
+            antigo = dev.patrimonio
+
+            # Sincroniza o número de patrimônio se informado na linha da planilha
+            if patrimonio_formatado and antigo != patrimonio_formatado:
+                dev.patrimonio = patrimonio_formatado
+                dev.updated_at = datetime.utcnow()
+                db.add(
+                    DeviceHistory(
+                        device_id=dev.id,
+                        campo="PATRIMONIO",
+                        valor_anterior=antigo or "(vazio)",
+                        valor_novo=patrimonio_formatado,
+                    )
+                )
+                db.add(dev)
+                patrimonio_atualizado = True
+                atualizados += 1
+            else:
+                ignorados += 1
+
+            if patrimonio_atualizado:
+                msg = (
+                    f"Linha {num_linha}: Estação '{dev.hostname}' identificada ({motivo_match}). "
+                    f"Ativo mantido como estação de trabalho e patrimônio atualizado para '{patrimonio_formatado}'."
+                )
+            elif patrimonio_formatado and dev.patrimonio == patrimonio_formatado:
+                msg = (
+                    f"Linha {num_linha}: Estação '{dev.hostname}' identificada ({motivo_match}). "
+                    f"Ativo mantido como estação de trabalho (Patrimônio '{dev.patrimonio}' já vinculado)."
+                )
+            else:
+                msg = (
+                    f"Linha {num_linha}: Estação '{dev.hostname}' identificada ({motivo_match}) "
+                    f"(Patrimônio: {dev.patrimonio or 'N/A'}). Importação ignorada para não sobrescrever a estação."
+                )
+
             conflitos_estacao.append({
                 "linha": num_linha,
-                "ip": ip,
+                "ip": ip or dev.ip,
                 "nome_planilha": nome,
                 "estacao_nome": dev.hostname,
                 "estacao_patrimonio": dev.patrimonio,
-                "mensagem": f"Linha {num_linha}: O IP {ip} ('{nome}') já pertence à estação '{dev.hostname}' (Patrimônio: {dev.patrimonio or 'N/A'}). Importação ignorada para não sobrescrever a estação.",
+                "patrimonio_atualizado": patrimonio_atualizado,
+                "patrimonio_novo": patrimonio_formatado if patrimonio_raw else None,
+                "mensagem": msg,
             })
-            ignorados += 1
             continue
 
         mac = normalizar_mac(get_val("mac"))
-        patrimonio = get_val("patrimonio")
+        patrimonio = patrimonio_formatado
         fabricante = get_val("fabricante")
         modelo = get_val("modelo")
         numero_serie = get_val("numero_serie")
@@ -879,7 +934,10 @@ def processar_csv_importacao(
             asset = db.scalar(
                 select(NetworkAsset).where(
                     NetworkAsset.company_id == current_user.company_id,
-                    NetworkAsset.patrimonio == patrimonio,
+                    or_(
+                        NetworkAsset.patrimonio == patrimonio,
+                        NetworkAsset.patrimonio == patrimonio_raw,
+                    ),
                 )
             )
         if not asset and mac:

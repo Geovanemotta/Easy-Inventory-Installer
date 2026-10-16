@@ -608,6 +608,23 @@ tbody tr.row.row-expanded {
   color: var(--brand) !important;
 }
 
+.patrimonio-tag-table {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: #dc2626; /* Vermelho negrito padrão planilha Google */
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.patrimonio-tag-table.empty {
+  color: var(--muted, #94a3b8);
+  font-weight: 400;
+  font-family: inherit;
+  font-size: 13px;
+}
+
 
 .details-row {
   display: none;

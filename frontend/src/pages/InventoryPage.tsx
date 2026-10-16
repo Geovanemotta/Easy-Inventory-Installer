@@ -333,6 +333,9 @@ export default function InventoryPage({
         case 'disco':
           res = (b._p ?? -1) - (a._p ?? -1) || porHost(a, b)
           break
+        case 'patrimonio':
+          res = txt(a.patrimonio, b.patrimonio) || porHost(a, b)
+          break
         case 'coleta':
           res = txt(b.data_coleta, a.data_coleta)
           break
@@ -528,6 +531,7 @@ export default function InventoryPage({
       'Filial',
       'Plataforma',
       'Hostname',
+      'Patrimônio',
       'IP',
       'IPs adicionais',
       'MAC',
@@ -547,6 +551,7 @@ export default function InventoryPage({
         i._f.filial,
         i._so,
         i.hostname,
+        i.patrimonio || '',
         i.ip,
         i._extras.join(' '),
         i.mac,
@@ -1046,7 +1051,19 @@ export default function InventoryPage({
               <th>Sistema / Versão</th>
               <th>Status</th>
               {canUseSsh && <th style={{ width: '85px', textAlign: 'center' }}>Terminal</th>}
-              <th>Detalhes</th>
+              <th
+                className="sortable"
+                onClick={() => handleSort('patrimonio')}
+                style={{ textAlign: 'center', minWidth: '120px' }}
+                title="Ordenar por Patrimônio"
+              >
+                Patrimônio
+                {ordem === 'patrimonio' && (
+                  <span className="dir">
+                    {sortDir > 0 ? '▲' : '▼'}
+                  </span>
+                )}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -1284,13 +1301,23 @@ export default function InventoryPage({
                         </td>
                       )}
 
-                      <td>
-                        <button
-                          className="details-button"
-                          onClick={() => toggleDetails(i.hostname, i.id)}
-                        >
-                          {isExpanded ? 'Fechar' : 'Detalhes'}
-                        </button>
+                      <td style={{ textAlign: 'center' }}>
+                        {(() => {
+                          if (!i.patrimonio) {
+                            return <span className="patrimonio-tag-table empty">—</span>
+                          }
+                          const raw = String(i.patrimonio).trim()
+                          const nums = raw.replace(/\D/g, '')
+                          const displayPat = nums ? `pat.${nums}` : raw
+                          return (
+                            <span
+                              className="patrimonio-tag-table"
+                              title={`Patrimônio: ${displayPat} (Clique na linha para ver detalhes)`}
+                            >
+                              {displayPat}
+                            </span>
+                          )
+                        })()}
                       </td>
                     </tr>
 

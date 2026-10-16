@@ -3462,6 +3462,33 @@ button.na-sum-pill b {
   color: var(--ink);
 }
 
+.na-conflict-pat-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 1.5px 7px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  font-weight: 600;
+  font-size: 11px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.na-conflict-pat-unchanged {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 1.5px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--muted);
+  font-size: 11px;
+  border: 1px solid var(--line-subtle);
+}
+
 /* Modal de Faixas de IP (VLANs) */
 .na-ranges-container {
   display: flex;

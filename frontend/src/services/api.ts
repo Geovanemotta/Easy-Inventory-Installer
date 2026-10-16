@@ -1016,6 +1016,8 @@ export type ImportStationConflict = {
   nome_planilha: string
   estacao_nome: string
   estacao_patrimonio?: string | null
+  patrimonio_atualizado?: boolean
+  patrimonio_novo?: string | null
   mensagem: string
 }
 

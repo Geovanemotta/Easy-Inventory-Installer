@@ -2430,7 +2430,7 @@ export default function NetworkAssetsPage({
               <ul>
                 <li>Compatível com cópia do <b>Google Planilhas</b> e arquivos <b>.CSV do Excel</b>.</li>
                 <li>A coluna <code>LOCALIZAÇAO</code> com valores como <code>LJXX</code> ou <code>CBXX</code> associa a filial automaticamente.</li>
-                <li><b>Proteção ativa de computadores:</b> se algum IP no CSV já pertencer a uma estação de trabalho cadastrada, ele será protegido e listado como aviso.</li>
+                <li><b>Proteção ativa &amp; Sincronização de Patrimônio:</b> se algum IP ou nome no CSV pertencer a uma estação de trabalho cadastrada, a estação é mantida protegida e seu <b>número de patrimônio</b> é sincronizado automaticamente se informado na planilha.</li>
               </ul>
             </div>
 
@@ -2473,18 +2473,30 @@ export default function NetworkAssetsPage({
                   <div className="na-import-conflict-box">
                     <div className="na-conflict-header">
                       <Icon name="alert" size={18} />
-                      <span>{resultadoImport.conflitos_estacao.length} estação(ões) protegida(s) de sobrescrita</span>
+                      <span>{resultadoImport.conflitos_estacao.length} estação(ões) de trabalho identificada(s)</span>
                     </div>
                     <p>
-                      Os seguintes IPs na planilha pertencem a computadores do inventário e foram ignorados para evitar perda de dados:
+                      As seguintes máquinas pertencem ao inventário de computadores. Elas foram mantidas e tiveram seu patrimônio atualizado quando informado:
                     </p>
                     <div className="na-conflict-list">
                       {resultadoImport.conflitos_estacao.map((c, idx) => (
                         <div key={idx} className="na-conflict-item">
-                          <span className="na-conflict-ip">{c.ip}</span>
+                          <span className="na-conflict-ip">{c.ip || '—'}</span>
                           <span className="na-conflict-detail">
-                            Linha {c.linha}: <b>{c.nome_planilha}</b> conflitou com estação <b>{c.estacao_nome}</b>
-                            {c.estacao_patrimonio ? ` (Patrimônio: ${c.estacao_patrimonio})` : ''}
+                            Linha {c.linha}: <b>{c.nome_planilha}</b> (Estação <b>{c.estacao_nome}</b>)
+                            {c.patrimonio_atualizado ? (
+                              <span className="na-conflict-pat-updated">
+                                <Icon name="check" size={11} /> Patrimônio atualizado: <b>{c.patrimonio_novo}</b>
+                              </span>
+                            ) : c.estacao_patrimonio ? (
+                              <span className="na-conflict-pat-unchanged">
+                                Patrimônio mantido: <b>{c.estacao_patrimonio}</b>
+                              </span>
+                            ) : (
+                              <span className="na-conflict-pat-unchanged">
+                                Sem patrimônio no CSV
+                              </span>
+                            )}
                           </span>
                         </div>
                       ))}
