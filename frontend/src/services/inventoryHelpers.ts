@@ -274,6 +274,15 @@ export function enriquecer(i: RawInventoryItem): EnrichedMachine {
   return o
 }
 
+export function isSubnet88(ip: string | null | undefined): boolean {
+  if (!ip) return false
+  const parts = ip.trim().split('.')
+  if (parts.length !== 4) return false
+  const [a, b, c, d] = parts.map((p) => Number(p))
+  if (a !== 192 || b !== 168 || c !== 88) return false
+  return !isNaN(d) && d >= 0 && d <= 255
+}
+
 export function isLinuxDevice(m?: { _so?: string; sistema?: string | null } | null): boolean {
   if (!m) return false
   if (m._so === 'Linux') return true

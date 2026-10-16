@@ -210,6 +210,32 @@ class Device(Base):
         nullable=True,
     )
 
+    ip_definitivo: Mapped[str | None] = mapped_column(
+        String(45),
+        nullable=True,
+    )
+
+    licenca_windows_solicitada: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    motivo_alteracao: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    observacao_admin: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    so_anterior: Mapped[str | None] = mapped_column(
+        String(150),
+        nullable=True,
+    )
+
     active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,

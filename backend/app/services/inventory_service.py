@@ -1,3 +1,4 @@
+import ipaddress
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -256,7 +257,24 @@ IGNORED_HISTORY_FIELDS = {
 }
 
 
-def registrar_drift(db: Session, device_id: int, campo: str, ant: Any, novo: Any):
+def is_subnet_88(ip_str: Optional[str]) -> bool:
+    if not ip_str:
+        return False
+    try:
+        ip_obj = ipaddress.IPv4Address(ip_str.strip())
+        return ip_obj in ipaddress.IPv4Network("192.168.88.0/24")
+    except Exception:
+        return False
+
+
+def registrar_drift(
+    db: Session,
+    device_id: int,
+    campo: str,
+    ant: Any,
+    novo: Any,
+    alterado_por: Optional[str] = None,
+):
     if campo in IGNORED_HISTORY_FIELDS:
         return
 
@@ -269,6 +287,7 @@ def registrar_drift(db: Session, device_id: int, campo: str, ant: Any, novo: Any
                 campo=campo,
                 valor_anterior=s_ant[:1000],
                 valor_novo=s_novo[:1000],
+                alterado_por=alterado_por,
                 data_alteracao=datetime.utcnow(),
             )
         )
@@ -696,6 +715,12 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
             "firewall_solicitado_em": d.firewall_solicitado_em.strftime("%Y-%m-%d %H:%M:%S") if d.firewall_solicitado_em else "",
             "firewall_confirmado_por": d.firewall_confirmado_por or "",
             "firewall_confirmado_em": d.firewall_confirmado_em.strftime("%Y-%m-%d %H:%M:%S") if d.firewall_confirmado_em else "",
+            "ip_definitivo": d.ip_definitivo or "",
+            "licenca_windows_solicitada": bool(d.licenca_windows_solicitada),
+            "motivo_alteracao": d.motivo_alteracao or "",
+            "observacao_admin": d.observacao_admin or "",
+            "so_anterior": d.so_anterior or "",
+            "is_rede_formatacao": is_subnet_88(d.ip),
         }
 
         # Mantém os dados legados como alternativa.

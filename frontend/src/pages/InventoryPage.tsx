@@ -13,15 +13,17 @@ import {
   IconUsb,
   IcoWin,
 } from '../components/Icons'
+import { DeviceReviewModal } from '../components/DeviceReviewModal'
 import {
-  confirmarDeviceFirewall,
-  solicitarDeviceFirewall,
   updateDevicePatrimonio,
+  lookupPatrimonio,
+  solicitarRecadastroDevice,
   type AnaliseUsuario,
   type AppItem,
   type HistoryItem,
   type ItemVarLog,
   type PastaUsuario,
+  type PatrimonioLookupResult,
   type PerifericoItem,
   type UnidadeDisco,
 } from '../services/api'
@@ -32,6 +34,7 @@ import {
   fmtMB,
   ipNum,
   isLinuxDevice,
+  isSubnet88,
   nivelDisco,
   obterStatusConexao,
   ORDEM_TIPO,
@@ -102,17 +105,23 @@ export default function InventoryPage({
   const [filtroAlerta, setFiltroAlerta] = useState<boolean>(false)
   const [filtroInativas, setFiltroInativas] = useState<boolean>(false)
   const [filtroFirewall, setFiltroFirewall] = useState<'' | 'pendente'>('')
+  const [filtroFormatadas, setFiltroFormatadas] = useState<boolean>(false)
   const [ordem, setOrdem] = useState<string>('filial')
   const [sortDir, setSortDir] = useState<number>(1)
   const [porPagina, setPorPagina] = useState<number>(50)
   const [paginaAtual, setPaginaAtual] = useState<number>(1)
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
 
-  // Estado para patrimônio e ações de firewall
+  // Estado para patrimônio e ações de homologação/recadastro
   const [patrimonioInputs, setPatrimonioInputs] = useState<Record<number, string>>({})
   const [salvandoPatrimonio, setSalvandoPatrimonio] = useState<Record<number, boolean>>({})
   const [solicitandoFirewall, setSolicitandoFirewall] = useState<Record<number, boolean>>({})
-  const [confirmandoFirewall, setConfirmandoFirewall] = useState<Record<number, boolean>>({})
+  const [reviewModalDeviceId, setReviewModalDeviceId] = useState<number | null>(null)
+  const [patrimonioLookups, setPatrimonioLookups] = useState<Record<number, PatrimonioLookupResult | null>>({})
+  const [buscandoPatrimonio, setBuscandoPatrimonio] = useState<Record<number, boolean>>({})
+  const [confirmacaoMudancaSo, setConfirmacaoMudancaSo] = useState<Record<number, boolean>>({})
+  const [licencaWindowsCheck, setLicencaWindowsCheck] = useState<Record<number, boolean>>({})
+  const [motivoRecadastro] = useState<Record<number, string>>({})
   const [sshTargetDevice, setSshTargetDevice] = useState<EnrichedMachine | null>(null)
   const [showCharts, setShowCharts] = useState<boolean>(() => {
     try {
@@ -176,7 +185,38 @@ export default function InventoryPage({
     }
   }
 
-  async function handleSolicitarFirewall(item: EnrichedMachine) {
+  async function handleConsultarPatrimonio(item: EnrichedMachine, val?: string) {
+    if (!item.id) return
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+
+    const rawVal =
+      val !== undefined
+        ? val
+        : patrimonioInputs[item.id] !== undefined
+          ? patrimonioInputs[item.id]
+          : item.patrimonio
+            ? item.patrimonio.replace(/\D/g, '')
+            : ''
+
+    const digits = rawVal.replace(/\D/g, '')
+    if (!digits) {
+      setPatrimonioLookups((prev) => ({ ...prev, [item.id!]: null }))
+      return
+    }
+
+    setBuscandoPatrimonio((prev) => ({ ...prev, [item.id!]: true }))
+    try {
+      const res = await lookupPatrimonio(token, digits, item.id)
+      setPatrimonioLookups((prev) => ({ ...prev, [item.id!]: res }))
+    } catch {
+      // ignore
+    } finally {
+      setBuscandoPatrimonio((prev) => ({ ...prev, [item.id!]: false }))
+    }
+  }
+
+  async function handleSolicitarRecadastro(item: EnrichedMachine) {
     if (!item.id) return
     const token = localStorage.getItem('access_token')
     if (!token) return
@@ -188,43 +228,46 @@ export default function InventoryPage({
           ? item.patrimonio.replace(/\D/g, '')
           : ''
 
+    const digits = rawVal.replace(/\D/g, '')
+    if (!digits) {
+      alert('Por favor, informe ao menos os números do patrimônio antes de solicitar homologação.')
+      return
+    }
+
+    const lookup = patrimonioLookups[item.id]
+    const temDivergenciaSo = Boolean(lookup?.comparativo?.so_divergente)
+    const confirmouSo = Boolean(confirmacaoMudancaSo[item.id])
+
+    if (temDivergenciaSo && !confirmouSo) {
+      alert(
+        'Divergência de Sistema Operacional detectada! Por favor, marque a caixa de confirmação declarando que a alteração de sistema operacional é intencional antes de enviar.'
+      )
+      return
+    }
+
     setSolicitandoFirewall((prev) => ({ ...prev, [item.id!]: true }))
     try {
-      const res = await solicitarDeviceFirewall(token, item.id, rawVal.trim() || undefined)
+      const res = await solicitarRecadastroDevice(token, item.id, {
+        patrimonio: digits,
+        confirmacao_mudanca_so: confirmouSo,
+        licenca_windows_solicitada: Boolean(licencaWindowsCheck[item.id]),
+        motivo: motivoRecadastro[item.id]?.trim() || undefined,
+      })
+
       onUpdateDevice?.({
         id: item.id,
         firewall_status: 'pendente',
-        patrimonio: rawVal.trim() ? `pat.${rawVal.trim()}` : item.patrimonio,
+        patrimonio: res.patrimonio,
         firewall_solicitado_em: new Date().toISOString(),
+        licenca_windows_solicitada: res.licenca_windows_solicitada,
       })
-      showToast?.(res.message || 'Máquina marcada para homologação no Firewall!')
+
+      showToast?.(res.message || 'Solicitação de recadastro e homologação enviada com sucesso!')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       alert(msg)
     } finally {
       setSolicitandoFirewall((prev) => ({ ...prev, [item.id!]: false }))
-    }
-  }
-
-  async function handleConfirmarFirewall(item: EnrichedMachine) {
-    if (!item.id) return
-    const token = localStorage.getItem('access_token')
-    if (!token) return
-
-    setConfirmandoFirewall((prev) => ({ ...prev, [item.id!]: true }))
-    try {
-      const res = await confirmarDeviceFirewall(token, item.id)
-      onUpdateDevice?.({
-        id: item.id,
-        firewall_status: 'confirmado',
-        firewall_confirmado_em: new Date().toISOString(),
-      })
-      showToast?.(res.message || `Máquina ${item.hostname} liberada no Firewall!`)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      alert(msg)
-    } finally {
-      setConfirmandoFirewall((prev) => ({ ...prev, [item.id!]: false }))
     }
   }
 
@@ -239,6 +282,7 @@ export default function InventoryPage({
     setFiltroAlerta(false)
     setFiltroInativas(false)
     setFiltroFirewall('')
+    setFiltroFormatadas(false)
     setOrdem('filial')
     setSortDir(1)
     setPaginaAtual(1)
@@ -317,6 +361,7 @@ export default function InventoryPage({
       if (filtroAlerta && !i.alerta_hardware) return false
       if (filtroInativas && obterStatusConexao(i.data_coleta).status !== 'offline') return false
       if (filtroFirewall && i.firewall_status !== filtroFirewall) return false
+      if (filtroFormatadas && !isSubnet88(i.ip)) return false
 
       return true
     },
@@ -331,6 +376,7 @@ export default function InventoryPage({
       filtroAlerta,
       filtroInativas,
       filtroFirewall,
+      filtroFormatadas,
     ]
   )
 
@@ -411,6 +457,14 @@ export default function InventoryPage({
     () =>
       inventario.filter(
         (i: EnrichedMachine) => i.firewall_status === 'pendente'
+      ).length,
+    [inventario]
+  )
+
+  const bancada88Count = useMemo(
+    () =>
+      inventario.filter(
+        (i: EnrichedMachine) => isSubnet88(i.ip)
       ).length,
     [inventario]
   )
@@ -753,6 +807,29 @@ export default function InventoryPage({
           </div>
           <div className="card-sub">
             {novasFirewallCount > 0 ? 'Aguardando liberação' : 'Nenhuma pendente'}
+          </div>
+        </div>
+
+        <div
+          className={`card click ${filtroFormatadas ? 'on' : ''}`}
+          role="button"
+          tabIndex={0}
+          title="Clique para filtrar máquinas recém-formatadas na bancada (sub-rede 192.168.88.0/24)"
+          onClick={() => {
+            setFiltroFormatadas((f) => !f)
+            setPaginaAtual(1)
+          }}
+          style={{ '--c': '#2563eb' } as React.CSSProperties}
+        >
+          <div className="card-title">🛠️ Bancada (192.168.88.x)</div>
+          <div
+            className="card-value"
+            style={bancada88Count > 0 ? { color: '#2563eb' } : undefined}
+          >
+            {bancada88Count}
+          </div>
+          <div className="card-sub">
+            {bancada88Count > 0 ? 'Máquinas em bancada' : 'Nenhuma na bancada'}
           </div>
         </div>
       </div>
@@ -1228,7 +1305,18 @@ export default function InventoryPage({
                                   {isFirewallPending && (
                                     <span
                                       className="badge-firewall-pending"
-                                      title={`Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`}
+                                      style={{ cursor: canConfirmFirewall ? 'pointer' : 'default' }}
+                                      onClick={(e) => {
+                                        if (canConfirmFirewall && i.id) {
+                                          e.stopPropagation()
+                                          setReviewModalDeviceId(i.id)
+                                        }
+                                      }}
+                                      title={
+                                        canConfirmFirewall
+                                          ? 'Clique para revisar e homologar cadastro do equipamento'
+                                          : `Máquina nova aguardando cadastro no Firewall. Solicitada por: ${i.firewall_solicitado_por || 'Operador'} ${i.patrimonio ? `(${i.patrimonio})` : ''}`
+                                      }
                                     >
                                       Firewall
                                     </span>
@@ -1242,7 +1330,7 @@ export default function InventoryPage({
 
                       <td className="col-ip">
                         <div className="copy-field">
-                          <span>{i.ip || '-'}</span>
+                          <span className={isSubnet88(i.ip) ? 'ip-bench-highlight' : ''}>{i.ip || '-'}</span>
                           {i.ip && (
                             <button
                               className="copy-button"
@@ -1252,6 +1340,22 @@ export default function InventoryPage({
                             >
                               <IconCopy />
                             </button>
+                          )}
+                          {isSubnet88(i.ip) && (
+                            <span
+                              className="badge-bench-pill"
+                              title="Máquina com IP provisório na bancada de formatação (192.168.88.x)"
+                            >
+                              Bancada
+                            </span>
+                          )}
+                          {i.licenca_windows_solicitada && (
+                            <span
+                              className="badge-license-pill"
+                              title="Nova licença Windows necessária"
+                            >
+                              Win Lic
+                            </span>
                           )}
                           {i._extras.length > 0 && (
                             <span
@@ -1793,12 +1897,17 @@ export default function InventoryPage({
                                           : ''
                                     const isSavingPat = Boolean(salvandoPatrimonio[i.id!])
                                     const isSolicitando = Boolean(solicitandoFirewall[i.id!])
-                                    const isConfirmando = Boolean(confirmandoFirewall[i.id!])
+
+                                    const lookup = patrimonioLookups[i.id!]
+                                    const isBuscando = Boolean(buscandoPatrimonio[i.id!])
+                                    const temDivergenciaSo = Boolean(lookup?.comparativo?.so_divergente)
+                                    const confirmouSo = Boolean(confirmacaoMudancaSo[i.id!])
+                                    const querLicenca = Boolean(licencaWindowsCheck[i.id!] || i.licenca_windows_solicitada)
 
                                     return (
                                       <div className="firewall-homolog-card">
                                         <div className="firewall-card-grid">
-                                          {/* Coluna 1: Input de Patrimônio */}
+                                          {/* Coluna 1: Input de Patrimônio e Alertas */}
                                           <div className="firewall-field-box">
                                             <div className="detail-label" style={{ marginBottom: '6px' }}>
                                               {isLocked ? 'Patrimônio Cadastrado no Firewall' : 'Número de Patrimônio'}
@@ -1818,48 +1927,116 @@ export default function InventoryPage({
                                                     ...prev,
                                                     [i.id!]: digits,
                                                   }))
+                                                  if (!digits) {
+                                                    setPatrimonioLookups((prev) => ({ ...prev, [i.id!]: null }))
+                                                  }
+                                                }}
+                                                onBlur={() => {
+                                                  if (!isLocked && currentNum.trim()) {
+                                                    handleConsultarPatrimonio(i, currentNum)
+                                                  }
                                                 }}
                                                 onKeyDown={(e) => {
                                                   if (e.key === 'Enter' && !isLocked) {
-                                                    handleSalvarPatrimonio(i)
+                                                    handleConsultarPatrimonio(i, currentNum)
                                                   }
                                                 }}
                                               />
                                               {!isLocked && (
-                                                <button
-                                                  type="button"
-                                                  className="btn-save-pat"
-                                                  onClick={() => handleSalvarPatrimonio(i)}
-                                                  disabled={isSavingPat}
-                                                  title="Salvar número de patrimônio"
-                                                >
-                                                  {isSavingPat ? '...' : 'Salvar'}
-                                                </button>
+                                                <div style={{ display: 'flex', gap: '4px' }}>
+                                                  <button
+                                                    type="button"
+                                                    className="btn-save-pat"
+                                                    onClick={() => handleConsultarPatrimonio(i, currentNum)}
+                                                    disabled={isBuscando || !currentNum.trim()}
+                                                    title="Consultar se o patrimônio já existe no inventário"
+                                                  >
+                                                    {isBuscando ? '...' : '🔍 Checar'}
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    className="btn-save-pat"
+                                                    style={{ background: '#0284c7' }}
+                                                    onClick={() => handleSalvarPatrimonio(i)}
+                                                    disabled={isSavingPat || !currentNum.trim()}
+                                                    title="Salvar apenas número de patrimônio"
+                                                  >
+                                                    {isSavingPat ? '...' : 'Salvar'}
+                                                  </button>
+                                                </div>
                                               )}
-
                                             </div>
+
+                                            {/* Alerta de Patrimônio Existente */}
+                                            {lookup && lookup.exists && lookup.existing_device && (
+                                              <div className="review-alert-box warning" style={{ marginTop: '8px', fontSize: '12px' }}>
+                                                ⚠️ <b>Patrimônio já cadastrado:</b> Pertence a{' '}
+                                                <b>{lookup.existing_device.hostname}</b> ({lookup.existing_device.loja || 'Sem Loja'})
+                                                &bull; IP {lookup.existing_device.ip || '—'} &bull; SO {lookup.existing_device.sistema}
+                                              </div>
+                                            )}
+
+                                            {/* Alerta de Divergência de SO */}
+                                            {temDivergenciaSo && lookup && (
+                                              <div className="review-alert-box danger" style={{ marginTop: '8px', fontSize: '12px' }}>
+                                                ⚡ <b>Mudança de SO detectada:</b> Anterior era{' '}
+                                                <b>{lookup.comparativo?.so_anterior}</b> e o atual é{' '}
+                                                <b>{lookup.comparativo?.so_atual || i.sistema}</b>.
+                                                <div style={{ marginTop: '6px' }}>
+                                                  <label className="checkbox-container" style={{ fontSize: '12px' }}>
+                                                    <input
+                                                      type="checkbox"
+                                                      checked={confirmouSo}
+                                                      onChange={(e) =>
+                                                        setConfirmacaoMudancaSo((prev) => ({
+                                                          ...prev,
+                                                          [i.id!]: e.target.checked,
+                                                        }))
+                                                      }
+                                                    />
+                                                    <span>Confirmo alteração intencional de SO</span>
+                                                  </label>
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {/* Opção de Nova Licença Windows */}
+                                            {!isLocked && (
+                                              <div style={{ marginTop: '8px' }}>
+                                                <label className="checkbox-container" style={{ fontSize: '12px' }}>
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={querLicenca}
+                                                    onChange={(e) =>
+                                                      setLicencaWindowsCheck((prev) => ({
+                                                        ...prev,
+                                                        [i.id!]: e.target.checked,
+                                                      }))
+                                                    }
+                                                  />
+                                                  <span>⭐ Nova licença Windows necessária</span>
+                                                </label>
+                                              </div>
+                                            )}
+
                                             {isLocked ? (
-                                              <div className="patrimonio-lock-msg">
+                                              <div className="patrimonio-lock-msg" style={{ marginTop: '6px' }}>
                                                 🔒 Homologado pelo administrador. Edição bloqueada.
                                               </div>
                                             ) : (
-                                              <div className="patrimonio-hint">
-                                                Digite apenas os números.
+                                              <div className="patrimonio-hint" style={{ marginTop: '4px' }}>
+                                                Digite os números e clique em Checar.
                                               </div>
                                             )}
                                           </div>
 
-                                          {/* Coluna 2: Status e Ações do Firewall */}
+                                          {/* Coluna 2: Status e Ações do Firewall / Homologação */}
                                           <div className="firewall-action-box">
-                                            {/* <div className="detail-label" style={{ marginBottom: '6px' }}>
-                                             Status do Firewall &amp; Esteira
-                                           </div> */}
-
                                             <div className="firewall-status-content">
                                               {i.firewall_status === 'pendente' ? (
                                                 <div className="firewall-status-detail pending">
                                                   <div className="firewall-status-title">
-                                                    🟡 Aguardando Cadastro no Firewall
+                                                    🟡 Aguardando Homologação / Cadastro
                                                   </div>
                                                   <div className="firewall-meta">
                                                     {i.firewall_solicitado_por && (
@@ -1868,12 +2045,17 @@ export default function InventoryPage({
                                                     {i.firewall_solicitado_em && (
                                                       <span> em {new Date(i.firewall_solicitado_em).toLocaleString('pt-BR')}</span>
                                                     )}
+                                                    {i.licenca_windows_solicitada && (
+                                                      <span style={{ display: 'block', color: '#854d0e', fontWeight: 600, marginTop: '2px' }}>
+                                                        ⭐ Nova licença Windows solicitada
+                                                      </span>
+                                                    )}
                                                   </div>
                                                 </div>
                                               ) : i.firewall_status === 'confirmado' ? (
                                                 <div className="firewall-status-detail confirmed">
                                                   <div className="firewall-status-title">
-                                                    🟢 Liberado e Homologado no Firewall
+                                                    🟢 Liberado e Homologado no Inventário
                                                   </div>
                                                   <div className="firewall-meta">
                                                     {i.firewall_confirmado_por && (
@@ -1882,15 +2064,20 @@ export default function InventoryPage({
                                                     {i.firewall_confirmado_em && (
                                                       <span> em {new Date(i.firewall_confirmado_em).toLocaleString('pt-BR')}</span>
                                                     )}
+                                                    {i.ip_definitivo && (
+                                                      <span style={{ display: 'block', color: '#1e40af', fontWeight: 600, marginTop: '2px' }}>
+                                                        IP Definitivo: {i.ip_definitivo}
+                                                      </span>
+                                                    )}
                                                   </div>
                                                 </div>
                                               ) : (
                                                 <div className="firewall-status-detail regular">
                                                   <div className="firewall-status-title">
-                                                    ⚪ Máquina Operacional Regular
+                                                    ⚪ Máquina Aguardando Cadastro
                                                   </div>
                                                   <div className="firewall-meta">
-                                                    Solicitar cadastro novo no firewall.
+                                                    Solicite a homologação e recadastro desta máquina.
                                                   </div>
                                                 </div>
                                               )}
@@ -1900,23 +2087,22 @@ export default function InventoryPage({
                                                   <button
                                                     type="button"
                                                     className="btn-solicitar-firewall"
-                                                    onClick={() => handleSolicitarFirewall(i)}
-                                                    disabled={isSolicitando}
-                                                    title="Marcar máquina como nova e enviar para homologação no firewall"
+                                                    onClick={() => handleSolicitarRecadastro(i)}
+                                                    disabled={isSolicitando || !currentNum.trim()}
+                                                    title="Solicitar homologação e recadastro definitivo"
                                                   >
-                                                    {isSolicitando ? 'Marcando...' : '🏷️ Marcar para Firewall (Nova)'}
+                                                    {isSolicitando ? 'Enviando...' : '🏷️ Solicitar Recadastro / Homologação'}
                                                   </button>
                                                 )}
 
-                                                {canConfirmFirewall && i.firewall_status === 'pendente' && (
+                                                {canConfirmFirewall && (
                                                   <button
                                                     type="button"
-                                                    className="btn-confirmar-firewall"
-                                                    onClick={() => handleConfirmarFirewall(i)}
-                                                    disabled={isConfirmando}
-                                                    title="Confirmar cadastro no firewall e travar patrimônio"
+                                                    className="btn-confirmar-firewall btn-revisar-cadastro"
+                                                    onClick={() => setReviewModalDeviceId(i.id!)}
+                                                    title="Abrir modal para revisar dados, correspondência de patrimônio e selecionar IP definitivo"
                                                   >
-                                                    {isConfirmando ? 'Confirmando...' : '✓ Confirmar cadastro no Firewall'}
+                                                    📋 Revisar e Concluir Cadastro
                                                   </button>
                                                 )}
                                               </div>
@@ -2679,6 +2865,27 @@ export default function InventoryPage({
           device={sshTargetDevice}
           token={localStorage.getItem('access_token') || ''}
           onClose={() => setSshTargetDevice(null)}
+        />
+      )}
+
+      {reviewModalDeviceId && (
+        <DeviceReviewModal
+          deviceId={reviewModalDeviceId}
+          token={localStorage.getItem('access_token') || ''}
+          onClose={() => setReviewModalDeviceId(null)}
+          onSuccess={(updated) => {
+            onUpdateDevice?.({
+              id: updated.id,
+              ip: updated.ip_definitivo || updated.ip,
+              ip_definitivo: updated.ip_definitivo,
+              firewall_status: updated.firewall_status,
+              patrimonio: updated.patrimonio,
+              loja: updated.loja,
+              site_id: updated.site_id,
+            })
+            setReviewModalDeviceId(null)
+          }}
+          showToast={showToast}
         />
       )}
     </section>

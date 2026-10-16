@@ -40,4 +40,9 @@ class DeviceHistory(Base):
         index=True,
     )
 
+    alterado_por: Mapped[str | None] = mapped_column(
+        String(150),
+        nullable=True,
+    )
+
     device = relationship("Device", back_populates="history")

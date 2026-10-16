@@ -276,6 +276,12 @@ export type RawInventoryItem = {
   firewall_solicitado_em?: string | null
   firewall_confirmado_por?: string | null
   firewall_confirmado_em?: string | null
+  ip_definitivo?: string | null
+  licenca_windows_solicitada?: boolean
+  motivo_alteracao?: string | null
+  observacao_admin?: string | null
+  so_anterior?: string | null
+  is_rede_formatacao?: boolean
 }
 
 export interface PerifericoItem {
@@ -922,6 +928,216 @@ export async function confirmarDeviceFirewall(
     throw new Error(err.detail || 'Erro ao confirmar cadastro no firewall.')
   }
   return response.json()
+}
+
+export interface PatrimonioLookupResult {
+  exists: boolean
+  patrimonio_formatado: string
+  message?: string
+  existing_device?: {
+    id: number
+    hostname: string
+    loja: string
+    site_id?: number | null
+    ip: string
+    mac: string
+    sistema: string
+    versao: string
+    patrimonio: string
+    familia_so: string
+  }
+  comparativo?: {
+    so_divergente: boolean
+    so_anterior: string
+    so_atual: string
+    familia_anterior: string
+    familia_atual: string
+    mac_divergente: boolean
+    mac_anterior: string
+    mac_atual: string
+    host_divergente: boolean
+    host_anterior: string
+    host_atual: string
+    parece_mesmo_equipamento: boolean
+  }
+}
+
+export async function lookupPatrimonio(
+  token: string,
+  patrimonio: string,
+  currentDeviceId?: number,
+): Promise<PatrimonioLookupResult> {
+  const params = new URLSearchParams({ patrimonio })
+  if (currentDeviceId) params.append('current_device_id', String(currentDeviceId))
+  const res = await fetch(`${API_URL}/devices/patrimonio/lookup?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao consultar patrimônio.')
+  }
+  return res.json()
+}
+
+export interface SolicitarRecadastroPayload {
+  patrimonio: string
+  confirmacao_mudanca_so?: boolean
+  licenca_windows_solicitada?: boolean
+  motivo?: string
+}
+
+export async function solicitarRecadastroDevice(
+  token: string,
+  deviceId: number,
+  payload: SolicitarRecadastroPayload,
+): Promise<{
+  status: string
+  device_id: number
+  firewall_status: string
+  patrimonio: string
+  licenca_windows_solicitada: boolean
+  message: string
+}> {
+  const res = await fetch(`${API_URL}/devices/${deviceId}/solicitar-recadastro`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao solicitar recadastro.')
+  }
+  return res.json()
+}
+
+export interface DeviceApprovalContext {
+  device: {
+    id: number
+    hostname: string
+    ip: string
+    ip_definitivo: string
+    mac: string
+    sistema: string
+    versao: string
+    loja: string
+    site_id?: number | null
+    patrimonio: string
+    firewall_status: string
+    firewall_solicitado_por: string
+    firewall_solicitado_em: string
+    licenca_windows_solicitada: boolean
+    motivo_alteracao: string
+    so_anterior: string
+    is_rede_formatacao: boolean
+  }
+  existing_asset?: {
+    id: number
+    hostname: string
+    ip: string
+    mac: string
+    sistema: string
+    versao: string
+    loja: string
+    site_id?: number | null
+    patrimonio: string
+  } | null
+  divergencias: Array<{ campo: string; anterior: string; atual: string }>
+  so_divergente: boolean
+  network_context: {
+    resolved_site_id?: number | null
+    sites: Array<{ id: number; name: string; code: string }>
+    faixas: Array<{
+      id: number
+      nome: string
+      ip_inicio: string
+      ip_fim: string
+      gateway: string
+      mascara: string
+    }>
+    ips_ocupados: string[]
+    ip_anterior_sugerido: string
+  }
+}
+
+export async function getDeviceApprovalContext(
+  token: string,
+  deviceId: number,
+): Promise<DeviceApprovalContext> {
+  const res = await fetch(`${API_URL}/devices/${deviceId}/approval-context`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao carregar contexto de aprovação.')
+  }
+  return res.json()
+}
+
+export interface AprovarCadastroPayload {
+  site_id: number
+  ip_definitivo: string
+  vincular_ativo_existente_id?: number | null
+  patrimonio?: string | null
+  observacao_admin?: string | null
+  confirmar_sobrescrita_ip?: boolean
+}
+
+export async function aprovarCadastroDevice(
+  token: string,
+  deviceId: number,
+  payload: AprovarCadastroPayload,
+): Promise<{
+  status: string
+  device_id: number
+  hostname: string
+  ip: string
+  ip_definitivo: string
+  mac: string
+  patrimonio: string
+  site_id: number
+  site_name: string
+  firewall_status: string
+  firewall_confirmado_por: string
+  message: string
+}> {
+  const res = await fetch(`${API_URL}/devices/${deviceId}/aprovar-cadastro`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    const errorObj = new Error(err.detail || 'Erro ao aprovar cadastro.')
+    ;(errorObj as any).status = res.status
+    throw errorObj
+  }
+  return res.json()
+}
+
+export async function rejeitarCadastroDevice(
+  token: string,
+  deviceId: number,
+  motivo: string,
+): Promise<{ status: string; device_id: number; message: string }> {
+  const res = await fetch(`${API_URL}/devices/${deviceId}/rejeitar-cadastro`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ motivo }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao rejeitar cadastro.')
+  }
+  return res.json()
 }
 
 /* =========================================================
