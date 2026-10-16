@@ -12,7 +12,26 @@ set -e
 # 1) Argumento de linha de comando: ./agent-linux.sh http://ip:8000/api/v1/inventory/receive
 # 2) Variável de ambiente: export GIASSI_SERVER_URL="http://ip:8000/api/v1/inventory/receive"
 # 3) Fallback padrão
-URL_SERVIDOR="${GIASSI_SERVER_URL:-"http://localhost:8000/api/v1/inventory/receive"}"
+DIRETORIO="/var/lib/giassi-inventory"
+ARQUIVO_ATUAL="$DIRETORIO/inventory.json"
+ARQUIVO_ULTIMO="$DIRETORIO/inventory.last.json"
+ARQUIVO_URL="$DIRETORIO/server_url"
+
+mkdir -p "$DIRETORIO"
+
+# Se houver URL salva de execução anterior bem-sucedida e GIASSI_SERVER_URL não foi definida
+if [[ -z "$GIASSI_SERVER_URL" && -f "$ARQUIVO_URL" ]]; then
+    SAVED_URL=$(cat "$ARQUIVO_URL" 2>/dev/null | tr -d '\r\n')
+    if [[ -n "$SAVED_URL" ]]; then
+        URL_PADRAO="$SAVED_URL"
+    else
+        URL_PADRAO="http://localhost:8000/api/v1/inventory/receive"
+    fi
+else
+    URL_PADRAO="http://localhost:8000/api/v1/inventory/receive"
+fi
+
+URL_SERVIDOR="${GIASSI_SERVER_URL:-"$URL_PADRAO"}"
 FORCAR_ENVIO=false
 
 for arg in "$@"; do
@@ -26,11 +45,10 @@ for arg in "$@"; do
     esac
 done
 
-DIRETORIO="/var/lib/giassi-inventory"
-ARQUIVO_ATUAL="$DIRETORIO/inventory.json"
-ARQUIVO_ULTIMO="$DIRETORIO/inventory.last.json"
-
-mkdir -p "$DIRETORIO"
+# Garante que a URL sempre termine com o endpoint correto da API
+if [[ "$URL_SERVIDOR" != */api/v1/inventory/receive* ]]; then
+    URL_SERVIDOR="${URL_SERVIDOR%/}/api/v1/inventory/receive"
+fi
 
 # ----------------------------------------------------------
 # Dependências essenciais
@@ -723,17 +741,60 @@ if [[ "$FORCAR_ENVIO" != true && -f "$ARQUIVO_ULTIMO" ]]; then
 fi
 
 if [[ "$DEVE_ENVIAR" == true ]]; then
+    enviar_inventario() {
+        local url="$1"
+        curl -sS -k \
+            --connect-timeout 8 \
+            --max-time 30 \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data @"$ARQUIVO_ATUAL" \
+            "$url" 2>&1 || echo "ERRO_CONEXAO"
+    }
+
     echo "[*] Enviando inventário para: $URL_SERVIDOR"
-    RESPOSTA=$(curl -sS -k \
-        --connect-timeout 10 \
-        --max-time 30 \
-        -H "Content-Type: application/json; charset=utf-8" \
-        --data @"$ARQUIVO_ATUAL" \
-        "$URL_SERVIDOR" || echo "ERRO_CONEXAO")
+    RESPOSTA=$(enviar_inventario "$URL_SERVIDOR")
+
+    # Se houve falha de conexão na porta configurada, tenta automaticamente portas alternativas
+    if [[ "$RESPOSTA" == *"ERRO_CONEXAO"* || "$RESPOSTA" == *"Failed to connect"* || "$RESPOSTA" == *"Connection refused"* || "$RESPOSTA" == *"Failed connect to"* ]]; then
+        echo "[!] Falha ao conectar em $URL_SERVIDOR. Testando portas alternativas dinamicamente..."
+        
+        URLS_ALT=()
+        if [[ "$URL_SERVIDOR" =~ ^https://([^:/]+)(:443)?(/.*)$ ]]; then
+            H_B="${BASH_REMATCH[1]}"
+            P_B="${BASH_REMATCH[3]}"
+            URLS_ALT+=("https://${H_B}:9292${P_B}" "http://${H_B}:8000${P_B}")
+        elif [[ "$URL_SERVIDOR" =~ ^https://([^:/]+):([0-9]+)(/.*)$ ]]; then
+            H_B="${BASH_REMATCH[1]}"
+            PORTA_A="${BASH_REMATCH[2]}"
+            P_B="${BASH_REMATCH[3]}"
+            if [[ "$PORTA_A" == "9292" ]]; then
+                URLS_ALT+=("https://${H_B}${P_B}" "http://${H_B}:8000${P_B}")
+            else
+                URLS_ALT+=("https://${H_B}:9292${P_B}" "https://${H_B}${P_B}")
+            fi
+        elif [[ "$URL_SERVIDOR" =~ ^http://([^:/]+)(:[0-9]+)?(/.*)$ ]]; then
+            H_B="${BASH_REMATCH[1]}"
+            P_B="${BASH_REMATCH[3]}"
+            URLS_ALT+=("https://${H_B}:9292${P_B}" "https://${H_B}${P_B}")
+        fi
+
+        for alt in "${URLS_ALT[@]}"; do
+            echo "[*] Tentando porta alternativa: $alt"
+            RESPOSTA_ALT=$(enviar_inventario "$alt")
+            if [[ "$RESPOSTA_ALT" == *"OK"* || "$RESPOSTA_ALT" == *"ok"* || "$RESPOSTA_ALT" == *"device_id"* ]]; then
+                echo "[+] Conexão bem-sucedida através da porta alternativa: $alt"
+                URL_SERVIDOR="$alt"
+                RESPOSTA="$RESPOSTA_ALT"
+                echo "$alt" > "$ARQUIVO_URL" 2>/dev/null || true
+                break
+            fi
+        done
+    fi
 
     # Suporta tanto "OK" textual quanto resposta JSON {"status":"ok"...}
     if [[ "$RESPOSTA" == *"OK"* || "$RESPOSTA" == *"ok"* || "$RESPOSTA" == *"device_id"* ]]; then
         cp "$ARQUIVO_ATUAL" "$ARQUIVO_ULTIMO"
+        echo "$URL_SERVIDOR" > "$ARQUIVO_URL" 2>/dev/null || true
         echo "[+] Inventário enviado e atualizado com sucesso!"
     else
         echo "[-] Falha ao enviar inventário."

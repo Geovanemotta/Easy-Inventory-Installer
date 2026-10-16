@@ -233,6 +233,13 @@ def listar_network_assets(
         serial_off = getattr(d, "serial_office", None) or (d.extra_data.get("serial_office") if isinstance(d.extra_data, dict) else None)
         lat_estacao = d.extra_data.get("tempo_resposta_ms") if isinstance(d.extra_data, dict) else None
         st_online_estacao = d.extra_data.get("status_online") if isinstance(d.extra_data, dict) else None
+        ping_raw = d.extra_data.get("ultimo_ping") if isinstance(d.extra_data, dict) else None
+        dt_ping = None
+        if ping_raw:
+            try:
+                dt_ping = datetime.fromisoformat(ping_raw)
+            except Exception:
+                dt_ping = None
         dev_item = NetworkAssetOut(
             id=None,
             company_id=d.company_id,
@@ -249,7 +256,7 @@ def listar_network_assets(
             numero_serie=None,
             localizacao=site_nome or d.loja or "Estação",
             status_online=st_online_estacao,
-            ultimo_ping=d.data_coleta,
+            ultimo_ping=dt_ping,
             tempo_resposta_ms=lat_estacao,
             observacoes=None,  # Sem observações duplicadas
             origem="estacao",
@@ -579,8 +586,7 @@ async def ping_direct(
             )
         )
         if dev:
-            # IMPORTANTE: NÃO alterar dev.status (ele armazena conformidade de SO: OK / UPGRADE_REQUIRED)
-            dev.data_coleta = now
+            # IMPORTANTE: NÃO alterar dev.status (conformidade de SO) nem dev.data_coleta (inventário do agente)
             extra = dict(dev.extra_data or {})
             extra["status_online"] = online
             extra["ultimo_ping"] = now.isoformat()
@@ -685,8 +691,7 @@ async def scan_assets_batch(
     for d in devs_to_update:
         if d.ip and d.ip in res_map:
             on, lat = res_map[d.ip]
-            # IMPORTANTE: NÃO alterar d.status (ele armazena conformidade de SO: OK / UPGRADE_REQUIRED)
-            d.data_coleta = now
+            # IMPORTANTE: NÃO alterar d.status (conformidade de SO) nem d.data_coleta (inventário do agente)
             extra = dict(d.extra_data or {})
             extra["status_online"] = on
             extra["ultimo_ping"] = now.isoformat()

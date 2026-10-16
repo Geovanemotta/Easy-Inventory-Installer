@@ -3,27 +3,41 @@
 # Compatível com Windows 10, 11 e Windows Server (PowerShell 5.1+)
 # ==========================================================
 
-[CmdletBinding()]
-param(
-    [Parameter(Position = 0)]
-    [string]$ServerURL = $(if ($env:GIASSI_SERVER_URL) { $env:GIASSI_SERVER_URL } else { "http://localhost:8000/api/v1/inventory/receive" }),
-    
-    [Parameter()]
-    [switch]$Force
-)
-
-$ErrorActionPreference = "SilentlyContinue"
-
 # ----------------------------------------------------------
 # CONFIGURAÇÕES E DIRETÓRIOS
 # ----------------------------------------------------------
 $BaseDir = "C:\ProgramData\GiassiInventory"
 $InventoryFile = Join-Path $BaseDir "inventory.json"
 $LastInventoryFile = Join-Path $BaseDir "inventory.last.json"
+$SavedUrlFile = Join-Path $BaseDir "server_url.txt"
 
 if (-not (Test-Path $BaseDir)) {
     New-Item -ItemType Directory -Path $BaseDir -Force | Out-Null
 }
+
+$DefaultURL = "http://localhost:8000/api/v1/inventory/receive"
+if (Test-Path $SavedUrlFile) {
+    try {
+        $Cached = (Get-Content $SavedUrlFile -Raw).Trim()
+        if ($Cached) { $DefaultURL = $Cached }
+    } catch { }
+}
+
+[CmdletBinding()]
+param(
+    [Parameter(Position = 0)]
+    [string]$ServerURL = $(if ($env:GIASSI_SERVER_URL) { $env:GIASSI_SERVER_URL } else { $DefaultURL }),
+    
+    [Parameter()]
+    [switch]$Force
+)
+
+# Garante que a URL sempre termine com o endpoint correto da API
+if ($ServerURL -notmatch "/api/v1/inventory/receive") {
+    $ServerURL = $ServerURL.TrimEnd('/') + "/api/v1/inventory/receive"
+}
+
+$ErrorActionPreference = "SilentlyContinue"
 
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host " AGENTE DE INVENTÁRIO GIASSI - WINDOWS " -ForegroundColor Cyan
@@ -580,26 +594,60 @@ if (-not $Force -and (Test-Path $LastInventoryFile)) {
 # ----------------------------------------------------------
 if ($Enviar) {
     try {
-        Write-Host "[*] Enviando dados para o servidor..." -ForegroundColor Yellow
+        function Enviar-Payload([string]$TargetUrl) {
+            Write-Host "[*] Enviando dados para: $TargetUrl" -ForegroundColor Yellow
+            return Invoke-RestMethod `
+                -Uri $TargetUrl `
+                -Method Post `
+                -ContentType "application/json; charset=utf-8" `
+                -Headers @{ "Accept" = "application/json, text/plain" } `
+                -Body ([System.Text.Encoding]::UTF8.GetBytes($Json)) `
+                -TimeoutSec 15
+        }
 
-        # Garante suporte a TLS 1.2 e certificados corporativos / internos
+        $Response = $null
         try {
-            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-            [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
-        } catch { }
+            $Response = Enviar-Payload -TargetUrl $ServerURL
+        }
+        catch {
+            Write-Host "[!] Falha ao conectar em $ServerURL. Testando portas alternativas dinamicamente..." -ForegroundColor Yellow
+            
+            $AltUrls = @()
+            if ($ServerURL -match "^https://([^:/]+)(:443)?(/.*)$") {
+                $h = $Matches[1]; $p = $Matches[3]
+                $AltUrls += "https://${h}:9292$p", "http://${h}:8000$p"
+            }
+            elseif ($ServerURL -match "^https://([^:/]+):([0-9]+)(/.*)$") {
+                $h = $Matches[1]; $porta = $Matches[2]; $p = $Matches[3]
+                if ($porta -eq "9292") {
+                    $AltUrls += "https://${h}$p", "http://${h}:8000$p"
+                } else {
+                    $AltUrls += "https://${h}:9292$p", "https://${h}$p"
+                }
+            }
+            elseif ($ServerURL -match "^http://([^:/]+)(:[0-9]+)?(/.*)$") {
+                $h = $Matches[1]; $p = $Matches[3]
+                $AltUrls += "https://${h}:9292$p", "https://${h}$p"
+            }
 
-        $Response = Invoke-RestMethod `
-            -Uri $ServerURL `
-            -Method Post `
-            -ContentType "application/json; charset=utf-8" `
-            -Headers @{ "Accept" = "application/json, text/plain" } `
-            -Body ([System.Text.Encoding]::UTF8.GetBytes($Json)) `
-            -TimeoutSec 30
+            foreach ($alt in $AltUrls) {
+                try {
+                    Write-Host "[*] Tentando porta alternativa: $alt" -ForegroundColor Cyan
+                    $Response = Enviar-Payload -TargetUrl $alt
+                    if ($Response) {
+                        $ServerURL = $alt
+                        Write-Host "[+] Conexão bem-sucedida via porta alternativa: $alt" -ForegroundColor Green
+                        break
+                    }
+                } catch { }
+            }
+        }
 
         $RespStr = ($Response | Out-String).Trim()
 
         if ($RespStr -match "OK" -or $RespStr -match "ok" -or $Response.status -eq "ok" -or $Response.device_id) {
             Copy-Item -Path $InventoryFile -Destination $LastInventoryFile -Force
+            try { [System.IO.File]::WriteAllText($SavedUrlFile, $ServerURL, [System.Text.Encoding]::UTF8) } catch { }
             Write-Host "[+] Inventário enviado com sucesso!" -ForegroundColor Green
         }
         else {

@@ -43,6 +43,8 @@ services:
       PYTHONPATH: "/app"
       ENVIRONMENT: "${ENVIRONMENT:-production}"
       ENABLE_SWAGGER_DOCS: "${ENABLE_SWAGGER_DOCS:-false}"
+      PORT_HTTPS: "${PORT_HTTPS:-443}"
+      PORT_HTTP: "${PORT_HTTP:-80}"
 
     ports:
       - "127.0.0.1:8000:8000"

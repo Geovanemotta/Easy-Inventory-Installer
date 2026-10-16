@@ -1,3 +1,5 @@
+import os
+import re
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse
@@ -14,12 +16,27 @@ if not AGENTS_DIR.exists() or not (AGENTS_DIR / "agent-linux.sh").exists():
 
 def get_server_base_url(request: Request) -> str:
     """
-    Detecta o endereço e porta do servidor a partir dos headers HTTP
-    (suporta proxies reversos como Nginx/Traefik).
+    Detecta dinamicamente o protocolo, endereço e porta real do servidor,
+    preservando portas personalizadas (ex: 9292, 8000, 8443) tanto através
+    do cabeçalho Host do cliente quanto de proxies reversos e variáveis de ambiente.
     """
-    proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+    proto = request.headers.get("x-forwarded-proto") or request.url.scheme or "http"
     host = request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc
+
+    # Se a porta foi passada separadamente via header (ex: X-Forwarded-Port) e ainda não está no host
+    fwd_port = request.headers.get("x-forwarded-port")
+    if host and ":" not in host and fwd_port:
+        if (proto == "http" and fwd_port != "80") or (proto == "https" and fwd_port != "443"):
+            host = f"{host}:{fwd_port}"
+
+    # Fallback via variável de ambiente caso o proxy tenha omitido a porta
+    if host and ":" not in host:
+        port_env = os.getenv("PORT_HTTPS" if proto == "https" else "PORT_HTTP")
+        if port_env and port_env not in ("80", "443"):
+            host = f"{host}:{port_env}"
+
     return f"{proto}://{host}"
+
 
 
 @router.get("/linux", response_class=PlainTextResponse)
