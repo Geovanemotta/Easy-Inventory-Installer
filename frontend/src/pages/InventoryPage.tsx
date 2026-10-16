@@ -169,6 +169,11 @@ export default function InventoryPage({
       return
     }
 
+    if (!canManage && !isSubnet88(item.ip) && Boolean(item.patrimonio)) {
+      alert('O patrimônio deste equipamento não pode ser alterado fora da faixa de preparação.')
+      return
+    }
+
     const token = localStorage.getItem('access_token')
     if (!token) return
 
@@ -231,6 +236,11 @@ export default function InventoryPage({
     const digits = rawVal.replace(/\D/g, '')
     if (!digits) {
       alert('Por favor, informe ao menos os números do patrimônio antes de solicitar homologação.')
+      return
+    }
+
+    if (!canManage && !isSubnet88(item.ip) && Boolean(item.patrimonio)) {
+      alert('O patrimônio deste equipamento não pode ser alterado fora da faixa de preparação.')
       return
     }
 
@@ -1888,7 +1898,8 @@ export default function InventoryPage({
 
 
                                   {(() => {
-                                    const isLocked = i.firewall_status === 'confirmado' && !canManage
+                                    const isPatrimonioLockedForOperator = !canManage && !isSubnet88(i.ip) && Boolean(i.patrimonio)
+                                    const isLocked = isPatrimonioLockedForOperator || (i.firewall_status === 'confirmado' && !canManage)
                                     const currentNum =
                                       patrimonioInputs[i.id!] !== undefined
                                         ? patrimonioInputs[i.id!]
@@ -1912,38 +1923,40 @@ export default function InventoryPage({
                                             <div className="detail-label" style={{ marginBottom: '6px' }}>
                                               {isLocked ? 'Patrimônio Cadastrado no Firewall' : 'Número de Patrimônio'}
                                             </div>
-                                            <div className="patrimonio-input-group">
-                                              <span className="patrimonio-prefix">pat.</span>
-                                              <input
-                                                type="text"
-                                                className={`patrimonio-input ${isLocked ? 'locked' : ''}`}
-                                                placeholder="00000"
-                                                maxLength={12}
-                                                value={currentNum}
-                                                disabled={isLocked || isSavingPat}
-                                                onChange={(e) => {
-                                                  const digits = e.target.value.replace(/\D/g, '')
-                                                  setPatrimonioInputs((prev) => ({
-                                                    ...prev,
-                                                    [i.id!]: digits,
-                                                  }))
-                                                  if (!digits) {
-                                                    setPatrimonioLookups((prev) => ({ ...prev, [i.id!]: null }))
-                                                  }
-                                                }}
-                                                onBlur={() => {
-                                                  if (!isLocked && currentNum.trim()) {
-                                                    handleConsultarPatrimonio(i, currentNum)
-                                                  }
-                                                }}
-                                                onKeyDown={(e) => {
-                                                  if (e.key === 'Enter' && !isLocked) {
-                                                    handleConsultarPatrimonio(i, currentNum)
-                                                  }
-                                                }}
-                                              />
+                                            <div className="patrimonio-controls-row">
+                                              <div className="patrimonio-input-group">
+                                                <span className="patrimonio-prefix">pat.</span>
+                                                <input
+                                                  type="text"
+                                                  className={`patrimonio-input ${isLocked ? 'locked' : ''}`}
+                                                  placeholder="00000"
+                                                  maxLength={12}
+                                                  value={currentNum}
+                                                  disabled={isLocked || isSavingPat}
+                                                  onChange={(e) => {
+                                                    const digits = e.target.value.replace(/\D/g, '')
+                                                    setPatrimonioInputs((prev) => ({
+                                                      ...prev,
+                                                      [i.id!]: digits,
+                                                    }))
+                                                    if (!digits) {
+                                                      setPatrimonioLookups((prev) => ({ ...prev, [i.id!]: null }))
+                                                    }
+                                                  }}
+                                                  onBlur={() => {
+                                                    if (!isLocked && currentNum.trim()) {
+                                                      handleConsultarPatrimonio(i, currentNum)
+                                                    }
+                                                  }}
+                                                  onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !isLocked) {
+                                                      handleConsultarPatrimonio(i, currentNum)
+                                                    }
+                                                  }}
+                                                />
+                                              </div>
                                               {!isLocked && (
-                                                <div style={{ display: 'flex', gap: '4px' }}>
+                                                <div className="patrimonio-btn-group">
                                                   <button
                                                     type="button"
                                                     className="btn-save-pat"
@@ -2019,7 +2032,11 @@ export default function InventoryPage({
                                               </div>
                                             )}
 
-                                            {isLocked ? (
+                                            {isPatrimonioLockedForOperator ? (
+                                              <div className="patrimonio-lock-msg" style={{ marginTop: '6px' }}>
+                                                🔒 O patrimônio deste equipamento não pode ser alterado fora da faixa de preparação.
+                                              </div>
+                                            ) : isLocked ? (
                                               <div className="patrimonio-lock-msg" style={{ marginTop: '6px' }}>
                                                 🔒 Homologado pelo administrador. Edição bloqueada.
                                               </div>
@@ -2067,6 +2084,26 @@ export default function InventoryPage({
                                                     {i.ip_definitivo && (
                                                       <span style={{ display: 'block', color: '#1e40af', fontWeight: 600, marginTop: '2px' }}>
                                                         IP Definitivo: {i.ip_definitivo}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ) : i.firewall_status === 'rejeitado' ? (
+                                                <div className="firewall-status-detail rejected">
+                                                  <div className="firewall-status-title" style={{ color: '#dc2626' }}>
+                                                    🔴 Solicitação Rejeitada pelo Administrador
+                                                  </div>
+                                                  <div className="firewall-meta">
+                                                    {i.observacao_admin ? (
+                                                      <div className="reject-reason-view">
+                                                        <b>Motivo da rejeição:</b> {i.observacao_admin}
+                                                      </div>
+                                                    ) : (
+                                                      <span>A solicitação anterior foi rejeitada pelo administrador.</span>
+                                                    )}
+                                                    {i.firewall_solicitado_em && (
+                                                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+                                                        Atualizado em {new Date(i.firewall_solicitado_em).toLocaleString('pt-BR')}
                                                       </span>
                                                     )}
                                                   </div>

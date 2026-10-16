@@ -2768,12 +2768,26 @@ button.na-sum-pill b {
 }
 
 .na-grid.g2 {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .na-grid.g3 {
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .na-grid.g2,
+  .na-grid.g3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.na-form input,
+.na-form select,
+.na-form textarea {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .na-form .field {

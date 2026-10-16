@@ -1035,6 +1035,9 @@ export interface DeviceApprovalContext {
   }
   existing_asset?: {
     id: number
+    tipo_origem?: string
+    linked_device_id?: number | null
+    linked_network_asset_id?: number | null
     hostname: string
     ip: string
     mac: string
@@ -1043,7 +1046,18 @@ export interface DeviceApprovalContext {
     loja: string
     site_id?: number | null
     patrimonio: string
+    origem?: string
   } | null
+  tem_conflito?: boolean
+  conflitos?: Array<{
+    id: number
+    tipo_registro: string
+    hostname: string
+    ip?: string
+    mac?: string
+    loja?: string
+    site_id?: number
+  }>
   divergencias: Array<{ campo: string; anterior: string; atual: string }>
   so_divergente: boolean
   network_context: {
@@ -1059,6 +1073,7 @@ export interface DeviceApprovalContext {
     }>
     ips_ocupados: string[]
     ip_anterior_sugerido: string
+    ip_confiavel?: boolean
   }
 }
 
@@ -1080,6 +1095,7 @@ export interface AprovarCadastroPayload {
   site_id: number
   ip_definitivo: string
   vincular_ativo_existente_id?: number | null
+  vincular_network_asset_id?: number | null
   patrimonio?: string | null
   observacao_admin?: string | null
   confirmar_sobrescrita_ip?: boolean

@@ -136,11 +136,23 @@ export const DeviceReviewModal: React.FC<DeviceReviewModalProps> = ({
 
     setSubmitting(true)
     try {
+      const linkedDevId =
+        vincularAtivo && context?.existing_asset
+          ? context.existing_asset.linked_device_id ??
+            (context.existing_asset.tipo_origem === 'device' ? context.existing_asset.id : null)
+          : null
+
+      const linkedNetId =
+        vincularAtivo && context?.existing_asset
+          ? context.existing_asset.linked_network_asset_id ??
+            (context.existing_asset.tipo_origem === 'network_asset' ? context.existing_asset.id : null)
+          : null
+
       const res = await aprovarCadastroDevice(token, deviceId, {
         site_id: Number(selectedSiteId),
         ip_definitivo: ipDefinitivo.trim(),
-        vincular_ativo_existente_id:
-          vincularAtivo && context?.existing_asset ? context.existing_asset.id : null,
+        vincular_ativo_existente_id: linkedDevId,
+        vincular_network_asset_id: linkedNetId,
         patrimonio: context?.device.patrimonio || null,
         observacao_admin: observacaoAdmin.trim() || null,
         confirmar_sobrescrita_ip: confirmarSobrescrita,
@@ -406,14 +418,59 @@ export const DeviceReviewModal: React.FC<DeviceReviewModalProps> = ({
                   <h3 className="section-step-title">Correspondência com Ativo Existente no Inventário</h3>
                 </div>
 
+                {context.tem_conflito && (
+                  <div className="review-alert-box conflict" style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      <span style={{ fontSize: '20px' }}>⚠️</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#b45309', marginBottom: '4px' }}>
+                          Inconsistência Cadastral: Múltiplos Ativos com o Mesmo Patrimônio
+                        </div>
+                        <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#92400e', lineHeight: 1.4 }}>
+                          O patrimônio <b>{context.device.patrimonio}</b> foi localizado em mais de um registro no sistema.
+                          O sistema não selecionou nenhum registro arbitrariamente. Analise as ocorrências abaixo:
+                        </p>
+                        <div className="conflict-list">
+                          {context.conflitos?.map((c) => (
+                            <div key={`${c.tipo_registro}-${c.id}`} className="conflict-item">
+                              <span className="badge-conflict-type">{c.tipo_registro}</span>
+                              <span className="conflict-host">{c.hostname}</span>
+                              <span className="conflict-ip font-mono">{c.ip || 'Sem IP'}</span>
+                              <span className="conflict-loja">{c.loja || 'Sem Loja'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {context.existing_asset ? (
                   <div>
                     <div className="review-alert-box warning">
                       ⚠️ <b>Patrimônio já cadastrado no inventário!</b> O número{' '}
-                      <b>{context.device.patrimonio}</b> já pertence ao equipamento{' '}
+                      <b>{context.device.patrimonio}</b> pertence ao{' '}
+                      <b>
+                        {context.existing_asset.tipo_origem === 'network_asset'
+                          ? 'ativo de rede importado'
+                          : 'equipamento'}
+                      </b>{' '}
                       <b>{context.existing_asset.hostname}</b> da filial{' '}
-                      <b>{context.existing_asset.loja || 'Não definida'}</b>.
+                      <b>{context.existing_asset.loja || 'Não definida'}</b>
+                      {context.existing_asset.tipo_origem === 'network_asset' && (
+                        <span className="badge-origin-net" style={{ marginLeft: '8px' }}>
+                          📦 Ativo Importado ({context.existing_asset.origem || 'Planilha'})
+                        </span>
+                      )}
+                      .
                     </div>
+
+                    {!context.network_context.ip_confiavel && (
+                      <div className="review-alert-box info" style={{ marginTop: '8px' }}>
+                        ℹ️ <b>Ativo sem IP anterior de rede:</b> O equipamento foi identificado pelo patrimônio, mas
+                        não possui um IP de rede fixo registrado no banco. O IP definitivo deve ser definido na Seção C.
+                      </div>
+                    )}
 
                     {context.so_divergente && (
                       <div className="review-alert-box danger" style={{ marginTop: '8px' }}>
@@ -423,81 +480,94 @@ export const DeviceReviewModal: React.FC<DeviceReviewModalProps> = ({
                       </div>
                     )}
 
-                    {/* Tabela Comparativa Lado a Lado */}
-                    <table className="compare-table" style={{ marginTop: '14px' }}>
-                      <thead>
-                        <tr>
-                          <th>Atributo</th>
-                          <th>Cadastro Existente (Anterior)</th>
-                          <th>Nova Solicitação (Bancada)</th>
-                          <th>Situação</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td><b>Patrimônio</b></td>
-                          <td>{context.existing_asset.patrimonio}</td>
-                          <td>{context.device.patrimonio}</td>
-                          <td><span className="badge-match">Identificador Físico</span></td>
-                        </tr>
-                        <tr>
-                          <td><b>Hostname</b></td>
-                          <td>{context.existing_asset.hostname}</td>
-                          <td>{context.device.hostname}</td>
-                          <td>
-                            {context.existing_asset.hostname.toLowerCase() ===
-                            context.device.hostname.toLowerCase() ? (
-                              <span className="badge-match">Igual</span>
-                            ) : (
-                              <span className="badge-diff">Alterado</span>
-                            )}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><b>Endereço MAC</b></td>
-                          <td className="font-mono">{context.existing_asset.mac || '—'}</td>
-                          <td className="font-mono">{context.device.mac || '—'}</td>
-                          <td>
-                            {context.existing_asset.mac?.toLowerCase() ===
-                            context.device.mac?.toLowerCase() ? (
-                              <span className="badge-match">Igual</span>
-                            ) : (
-                              <span className="badge-diff">Novo MAC (Troca)</span>
-                            )}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><b>Sistema Operacional</b></td>
-                          <td>{context.existing_asset.sistema} {context.existing_asset.versao}</td>
-                          <td>{context.device.sistema} {context.device.versao}</td>
-                          <td>
-                            {context.so_divergente ? (
-                              <span className="badge-danger-diff">SO Modificado</span>
-                            ) : (
-                              <span className="badge-match">Compatível</span>
-                            )}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><b>IP na Loja</b></td>
-                          <td className="font-mono">{context.existing_asset.ip || '—'}</td>
-                          <td className="font-mono">{context.device.ip}</td>
-                          <td><span className="badge-diff">IP de Bancada</span></td>
-                        </tr>
-                        <tr>
-                          <td><b>Filial / Loja</b></td>
-                          <td>{context.existing_asset.loja || '—'}</td>
-                          <td>{context.device.loja || '—'}</td>
-                          <td>
-                            {context.existing_asset.site_id === context.device.site_id ? (
-                              <span className="badge-match">Mesma Loja</span>
-                            ) : (
-                              <span className="badge-diff">Transferência de Filial</span>
-                            )}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    {/* Tabela Comparativa Lado a Lado (com wrapper para rolagem responsiva) */}
+                    <div className="compare-table-wrapper" style={{ marginTop: '14px' }}>
+                      <table className="compare-table">
+                        <thead>
+                          <tr>
+                            <th>Atributo</th>
+                            <th>
+                              Cadastro Existente{' '}
+                              {context.existing_asset.tipo_origem === 'network_asset'
+                                ? '(Ativo Importado)'
+                                : '(Anterior)'}
+                            </th>
+                            <th>Nova Solicitação (Bancada)</th>
+                            <th>Situação</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><b>Patrimônio</b></td>
+                            <td>{context.existing_asset.patrimonio}</td>
+                            <td>{context.device.patrimonio}</td>
+                            <td><span className="badge-match">Identificador Físico</span></td>
+                          </tr>
+                          <tr>
+                            <td><b>Hostname</b></td>
+                            <td>{context.existing_asset.hostname}</td>
+                            <td>{context.device.hostname}</td>
+                            <td>
+                              {context.existing_asset.hostname.toLowerCase() ===
+                              context.device.hostname.toLowerCase() ? (
+                                <span className="badge-match">Igual</span>
+                              ) : (
+                                <span className="badge-diff">Alterado</span>
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><b>Endereço MAC</b></td>
+                            <td className="font-mono">{context.existing_asset.mac || '—'}</td>
+                            <td className="font-mono">{context.device.mac || '—'}</td>
+                            <td>
+                              {context.existing_asset.mac?.toLowerCase() ===
+                              context.device.mac?.toLowerCase() ? (
+                                <span className="badge-match">Igual</span>
+                              ) : (
+                                <span className="badge-diff">Novo MAC (Troca)</span>
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><b>Sistema Operacional</b></td>
+                            <td>{context.existing_asset.sistema || '—'} {context.existing_asset.versao || ''}</td>
+                            <td>{context.device.sistema} {context.device.versao}</td>
+                            <td>
+                              {context.so_divergente ? (
+                                <span className="badge-danger-diff">SO Modificado</span>
+                              ) : (
+                                <span className="badge-match">Compatível</span>
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><b>IP Cadastrado</b></td>
+                            <td className="font-mono">{context.existing_asset.ip || '(não registrado)'}</td>
+                            <td className="font-mono">{context.device.ip}</td>
+                            <td>
+                              {context.existing_asset.ip ? (
+                                <span className="badge-match">IP Recuperado</span>
+                              ) : (
+                                <span className="badge-diff">Sem IP Prévio</span>
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><b>Filial / Loja</b></td>
+                            <td>{context.existing_asset.loja || '—'}</td>
+                            <td>{context.device.loja || '—'}</td>
+                            <td>
+                              {context.existing_asset.site_id === context.device.site_id ? (
+                                <span className="badge-match">Mesma Loja</span>
+                              ) : (
+                                <span className="badge-diff">Transferência de Filial</span>
+                              )}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
 
                     <div className="link-option-box" style={{ marginTop: '12px' }}>
                       <label className="checkbox-container">
@@ -507,8 +577,15 @@ export const DeviceReviewModal: React.FC<DeviceReviewModalProps> = ({
                           onChange={(e) => setVincularAtivo(e.target.checked)}
                         />
                         <span>
-                          <b>Vincular esta solicitação ao ativo existente</b> (preserva a identidade física
-                          do ativo, transfere o histórico anterior e evita cadastros duplicados no sistema).
+                          <b>
+                            Vincular esta solicitação ao ativo existente (
+                            {context.existing_asset.tipo_origem === 'network_asset'
+                              ? 'ativo importado de rede'
+                              : 'estação cadastrada'}
+                            )
+                          </b>{' '}
+                          &mdash; preserva a identidade física do ativo, atualiza o IP e MAC no inventário e
+                          evita cadastros duplicados no sistema.
                         </span>
                       </label>
                     </div>
@@ -672,22 +749,39 @@ export const DeviceReviewModal: React.FC<DeviceReviewModalProps> = ({
                   </div>
                 ) : (
                   <div className="reject-box-panel">
-                    <h4 style={{ margin: '0 0 8px', color: '#b91c1c' }}>Rejeitar Solicitação de Cadastro</h4>
-                    <p style={{ margin: '0 0 8px', fontSize: '13px', color: 'var(--text-secondary, #64748b)' }}>
-                      Informe obrigatoriamente a justificativa para a rejeição. O equipamento permanecerá com
-                      status rejeitado e o operador será notificado no inventário.
-                    </p>
-                    <textarea
-                      className="form-input-review"
-                      style={{ height: '80px', resize: 'vertical' }}
-                      placeholder="Descreva o motivo da rejeição (ex: patrimônio informado divergente da etiqueta física)..."
-                      value={motivoRejeicao}
-                      onChange={(e) => setMotivoRejeicao(e.target.value)}
-                    />
-                    <div className="review-actions-bar" style={{ marginTop: '12px' }}>
+                    <div className="reject-box-header">
+                      <div className="reject-box-icon">🛑</div>
+                      <div>
+                        <h4 className="reject-box-title">Rejeitar Solicitação de Cadastro</h4>
+                        <p className="reject-box-desc">
+                          Informe a justificativa obrigatória para a rejeição. O equipamento permanecerá com status
+                          rejeitado e o motivo ficará registrado no histórico para visualização pelo operador.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="reject-form-group">
+                      <label className="reject-label">
+                        Motivo da rejeição <span className="reject-required">*</span>
+                      </label>
+                      <textarea
+                        className="reject-textarea"
+                        placeholder="Descreva o motivo da rejeição (ex: patrimônio informado divergente da etiqueta física, faixa incorreta, etc.)..."
+                        value={motivoRejeicao}
+                        onChange={(e) => setMotivoRejeicao(e.target.value)}
+                        rows={4}
+                      />
+                      {!motivoRejeicao.trim() && (
+                        <span className="reject-validation-msg">
+                          O preenchimento do motivo é obrigatório para confirmar a rejeição.
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="review-actions-bar" style={{ marginTop: '16px' }}>
                       <button
                         type="button"
-                        className="btn-save-pat"
+                        className="btn-review-cancel"
                         onClick={() => setModoRejeicao(false)}
                         disabled={submitting}
                       >
@@ -695,11 +789,11 @@ export const DeviceReviewModal: React.FC<DeviceReviewModalProps> = ({
                       </button>
                       <button
                         type="button"
-                        className="btn-review-reject"
+                        className="btn-review-reject-confirm"
                         onClick={handleRejeitar}
                         disabled={submitting || !motivoRejeicao.trim()}
                       >
-                        {submitting ? 'Rejeitando...' : 'Confirmar Rejeição'}
+                        {submitting ? 'Rejeitando...' : '✕ Confirmar Rejeição'}
                       </button>
                     </div>
                   </div>

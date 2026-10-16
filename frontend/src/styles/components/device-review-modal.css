@@ -650,3 +650,222 @@
 .font-mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
+
+/* ==========================================================
+   COMPARE TABLE & CONFLICTS & ASSET ORIGIN
+   ========================================================== */
+.compare-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  background: var(--bg-surface, #ffffff);
+}
+
+.compare-table {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+}
+
+.badge-origin-net {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.review-alert-box.conflict {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+}
+
+.conflict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.conflict-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  flex-wrap: wrap;
+}
+
+.badge-conflict-type {
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.conflict-host {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.conflict-ip {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.conflict-loja {
+  color: var(--text-secondary, #64748b);
+  margin-left: auto;
+}
+
+/* ==========================================================
+   REJECTION BOX PANEL (THEMED & STRUCTURED)
+   ========================================================== */
+.reject-box-panel {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.05);
+}
+
+[data-theme="dark"] .reject-box-panel {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.reject-box-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reject-box-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.reject-box-title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.reject-box-desc {
+  margin: 0;
+  font-size: 13px;
+  color: #7f1d1d;
+  line-height: 1.45;
+}
+
+[data-theme="dark"] .reject-box-desc {
+  color: #fca5a5;
+}
+
+.reject-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reject-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+[data-theme="dark"] .reject-label {
+  color: #fca5a5;
+}
+
+.reject-required {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.reject-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 90px;
+  padding: 10px 12px;
+  border: 1px solid #f87171;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-primary, #0f172a);
+  background: #ffffff;
+  resize: vertical;
+  line-height: 1.45;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.reject-textarea:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+[data-theme="dark"] .reject-textarea {
+  background: var(--bg-surface-elevated, #1e293b);
+  border-color: #ef4444;
+  color: #f8fafc;
+}
+
+.reject-validation-msg {
+  font-size: 12px;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.btn-review-reject-confirm {
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.25);
+}
+
+.btn-review-reject-confirm:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-review-cancel {
+  background: transparent;
+  color: var(--text-secondary, #64748b);
+  border: 1px solid var(--border-color, #cbd5e1);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-review-cancel:hover:not(:disabled) {
+  background: var(--border-color, #f1f5f9);
+  color: var(--text-primary, #0f172a);
+}
+

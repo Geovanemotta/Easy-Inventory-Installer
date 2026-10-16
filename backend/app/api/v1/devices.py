@@ -36,9 +36,20 @@ class DeviceAprovarCadastroIn(BaseModel):
     site_id: int
     ip_definitivo: str
     vincular_ativo_existente_id: int | None = None
+    vincular_network_asset_id: int | None = None
     patrimonio: str | None = None
     observacao_admin: str | None = None
     confirmar_sobrescrita_ip: bool = False
+
+
+def is_valid_ipv4_non_bench(ip_str: str | None) -> bool:
+    if not ip_str or not str(ip_str).strip():
+        return False
+    try:
+        addr = ipaddress.IPv4Address(str(ip_str).strip())
+        return not is_subnet_88(str(addr))
+    except Exception:
+        return False
 
 
 class DeviceRejeitarCadastroIn(BaseModel):
@@ -454,10 +465,22 @@ def update_device_patrimonio(
             raise HTTPException(status_code=400, detail="O patrimônio deve conter dígitos numéricos (ex: pat.35192).")
         patrimonio_formatado = f"pat.{nums}"
 
+        # Bloqueio de alteração de patrimônio existente fora da faixa 192.168.88.0/24 para operador
+        if not admin_flag:
+            dev_is_bench = is_subnet_88(device.ip)
+            dev_has_pat = bool(device.patrimonio and device.patrimonio.strip())
+            if not dev_is_bench and dev_has_pat:
+                if device.patrimonio.strip().lower() != patrimonio_formatado.lower():
+                    raise HTTPException(
+                        status_code=403,
+                        detail="O patrimônio deste equipamento não pode ser alterado fora da faixa de preparação (192.168.88.0/24).",
+                    )
+
         antigo = device.patrimonio
         device.patrimonio = patrimonio_formatado
         device.updated_at = datetime.utcnow()
 
+        operador_nome = current_user.full_name or current_user.username
         if antigo != patrimonio_formatado:
             session.add(
                 DeviceHistory(
@@ -465,6 +488,8 @@ def update_device_patrimonio(
                     campo="PATRIMONIO",
                     valor_anterior=antigo or "(vazio)",
                     valor_novo=patrimonio_formatado,
+                    alterado_por=operador_nome,
+                    data_alteracao=datetime.utcnow(),
                 )
             )
 
@@ -505,7 +530,17 @@ def solicitar_firewall(
         if payload and payload.patrimonio:
             nums = re.sub(r"[^0-9]", "", payload.patrimonio.strip())
             if nums:
-                device.patrimonio = f"pat.{nums}"
+                pat_novo = f"pat.{nums}"
+                if not is_admin_user(current_user):
+                    dev_is_bench = is_subnet_88(device.ip)
+                    dev_has_pat = bool(device.patrimonio and device.patrimonio.strip())
+                    if not dev_is_bench and dev_has_pat:
+                        if device.patrimonio.strip().lower() != pat_novo.lower():
+                            raise HTTPException(
+                                status_code=403,
+                                detail="O patrimônio deste equipamento não pode ser alterado fora da faixa de preparação (192.168.88.0/24).",
+                            )
+                device.patrimonio = pat_novo
 
         operador_nome = current_user.full_name or current_user.username
         device.firewall_status = "pendente"
@@ -590,9 +625,9 @@ def lookup_patrimonio(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Consulta em tempo real se o número de patrimônio informado já existe no inventário.
-    Retorna os dados cadastrais do ativo existente e análise de discrepâncias
-    (troca de SO, MAC divergente, hostname divergente).
+    Consulta em tempo real se o número de patrimônio informado já existe no inventário
+    (pesquisando tanto em estações Device quanto em ativos importados NetworkAsset).
+    Retorna os dados cadastrais do ativo existente, IP sugerido e análise de discrepâncias.
     """
     nums = re.sub(r"[^0-9]", "", patrimonio.strip())
     if not nums:
@@ -601,7 +636,8 @@ def lookup_patrimonio(
     pat_formatado = f"pat.{nums}"
 
     with Session(engine) as session:
-        stmt = (
+        # 1. Busca em Device (estações de trabalho ativas)
+        stmt_dev = (
             select(Device)
             .options(selectinload(Device.site))
             .where(
@@ -614,15 +650,76 @@ def lookup_patrimonio(
             )
         )
         if current_device_id:
-            stmt = stmt.where(Device.id != current_device_id)
+            stmt_dev = stmt_dev.where(Device.id != current_device_id)
 
-        existing = session.scalar(stmt)
-        if not existing:
+        matching_devs = session.scalars(stmt_dev).all()
+
+        # 2. Busca em NetworkAsset (ativos de rede e importações de planilha)
+        stmt_net = (
+            select(NetworkAsset)
+            .options(selectinload(NetworkAsset.site))
+            .where(
+                NetworkAsset.company_id == current_user.company_id,
+                or_(
+                    NetworkAsset.patrimonio.ilike(pat_formatado),
+                    NetworkAsset.patrimonio.ilike(f"%{nums}%"),
+                ),
+            )
+        )
+        matching_nets = session.scalars(stmt_net).all()
+
+        if not matching_devs and not matching_nets:
             return {
                 "exists": False,
                 "patrimonio_formatado": pat_formatado,
                 "message": "Nenhum ativo anterior encontrado com este patrimônio.",
             }
+
+        # Conflitos / Inconsistências se houver múltiplos registros
+        conflitos = []
+        for d in matching_devs:
+            d_loja = d.site.name if d.site else d.loja or ""
+            conflitos.append({
+                "id": d.id,
+                "tipo_registro": "estacao",
+                "hostname": d.hostname,
+                "ip": d.ip,
+                "mac": d.mac,
+                "loja": d_loja,
+                "site_id": d.site_id,
+            })
+        for n in matching_nets:
+            n_loja = n.site.name if n.site else n.localizacao or ""
+            conflitos.append({
+                "id": n.id,
+                "tipo_registro": "ativo_rede",
+                "hostname": n.nome,
+                "ip": n.ip,
+                "mac": n.mac,
+                "loja": n_loja,
+                "site_id": n.site_id,
+            })
+
+        tem_conflito = len(conflitos) > 1
+        if len(matching_devs) == 1 and len(matching_nets) == 1:
+            dev_candidate = matching_devs[0]
+            net_candidate = matching_nets[0]
+            same_ip = bool(dev_candidate.ip and net_candidate.ip and dev_candidate.ip == net_candidate.ip)
+            same_mac = bool(
+                dev_candidate.mac
+                and net_candidate.mac
+                and dev_candidate.mac.lower().replace("-", ":") == net_candidate.mac.lower().replace("-", ":")
+            )
+            same_name = bool(
+                dev_candidate.hostname
+                and net_candidate.nome
+                and dev_candidate.hostname.lower() == net_candidate.nome.lower()
+            )
+            if same_ip or same_mac or same_name or (dev_candidate.site_id and dev_candidate.site_id == net_candidate.site_id):
+                tem_conflito = False
+
+        existing_dev = matching_devs[0] if matching_devs else None
+        existing_net = matching_nets[0] if matching_nets else None
 
         curr_dev = None
         if current_device_id:
@@ -633,42 +730,88 @@ def lookup_patrimonio(
                 )
             )
 
-        so_ant = f"{existing.sistema or ''} {existing.versao or ''}".strip()
-        fam_ant = classificar_familia_so(existing.sistema, existing.versao)
+        linked_dev_id = existing_dev.id if existing_dev else None
+        linked_net_id = existing_net.id if existing_net else None
+
+        if existing_dev:
+            tipo_origem = "ambos" if existing_net else "device"
+            old_hostname = existing_dev.hostname or (existing_net.nome if existing_net else "")
+            old_loja = (
+                existing_dev.site.name
+                if existing_dev.site
+                else (
+                    existing_dev.loja
+                    or (existing_net.site.name if (existing_net and existing_net.site) else (existing_net.localizacao if existing_net else ""))
+                )
+            )
+            old_site_id = existing_dev.site_id or (existing_net.site_id if existing_net else None)
+
+            # Prioriza IP corporativo válido de NetworkAsset ou Device (que não seja da bancada .88)
+            old_ip = ""
+            if existing_net and is_valid_ipv4_non_bench(existing_net.ip):
+                old_ip = existing_net.ip.strip()
+            elif is_valid_ipv4_non_bench(existing_dev.ip):
+                old_ip = existing_dev.ip.strip()
+            elif is_valid_ipv4_non_bench(existing_dev.ip_definitivo):
+                old_ip = existing_dev.ip_definitivo.strip()
+
+            old_mac = existing_dev.mac or (existing_net.mac if existing_net else "")
+            old_so = f"{existing_dev.sistema or ''} {existing_dev.versao or ''}".strip()
+            fam_ant = classificar_familia_so(existing_dev.sistema, existing_dev.versao)
+            origem_val = getattr(existing_dev, "origem", "estacao")
+        else:
+            tipo_origem = "network_asset"
+            old_hostname = existing_net.nome or ""
+            old_loja = existing_net.site.name if existing_net.site else (existing_net.localizacao or "")
+            old_site_id = existing_net.site_id
+            old_ip = existing_net.ip.strip() if is_valid_ipv4_non_bench(existing_net.ip) else ""
+            old_mac = existing_net.mac or ""
+            old_so = existing_net.tipo or "Ativo Importado"
+            fam_ant = classificar_familia_so(existing_net.tipo, existing_net.modelo)
+            origem_val = existing_net.origem or "planilha"
 
         so_atual = f"{curr_dev.sistema or ''} {curr_dev.versao or ''}".strip() if curr_dev else ""
         fam_atual = classificar_familia_so(curr_dev.sistema, curr_dev.versao) if curr_dev else ""
+        so_divergente = bool(curr_dev and existing_dev and fam_ant != fam_atual)
 
-        so_divergente = bool(curr_dev and fam_ant != fam_atual)
-
-        mac_ant = existing.mac or ""
+        mac_ant = old_mac
         mac_atual = curr_dev.mac or "" if curr_dev else ""
-        mac_divergente = bool(curr_dev and mac_ant.lower().replace("-", ":") != mac_atual.lower().replace("-", ":"))
+        mac_divergente = bool(
+            curr_dev
+            and mac_ant
+            and mac_atual
+            and mac_ant.lower().replace("-", ":") != mac_atual.lower().replace("-", ":")
+        )
 
-        host_ant = existing.hostname or ""
+        host_ant = old_hostname
         host_atual = curr_dev.hostname or "" if curr_dev else ""
-        host_divergente = bool(curr_dev and host_ant.lower() != host_atual.lower())
-
-        site_name = existing.site.name if existing.site else existing.loja or ""
+        host_divergente = bool(curr_dev and host_ant and host_atual and host_ant.lower() != host_atual.lower())
 
         return {
             "exists": True,
             "patrimonio_formatado": pat_formatado,
+            "tipo_origem": tipo_origem,
+            "linked_device_id": linked_dev_id,
+            "linked_network_asset_id": linked_net_id,
+            "tem_conflito": tem_conflito,
+            "conflitos": conflitos if tem_conflito else [],
             "existing_device": {
-                "id": existing.id,
-                "hostname": existing.hostname,
-                "loja": site_name,
-                "site_id": existing.site_id,
-                "ip": existing.ip or "",
-                "mac": existing.mac or "",
-                "sistema": existing.sistema or "",
-                "versao": existing.versao or "",
-                "patrimonio": existing.patrimonio or pat_formatado,
+                "id": linked_dev_id or linked_net_id,
+                "tipo_origem": tipo_origem,
+                "hostname": old_hostname,
+                "loja": old_loja,
+                "site_id": old_site_id,
+                "ip": old_ip,
+                "mac": old_mac,
+                "sistema": old_so,
+                "versao": (existing_dev.versao if existing_dev else (existing_net.modelo or "")) or "",
+                "patrimonio": pat_formatado,
                 "familia_so": fam_ant,
+                "origem": origem_val,
             },
             "comparativo": {
                 "so_divergente": so_divergente,
-                "so_anterior": so_ant,
+                "so_anterior": old_so,
                 "so_atual": so_atual,
                 "familia_anterior": fam_ant,
                 "familia_atual": fam_atual,
@@ -678,6 +821,7 @@ def lookup_patrimonio(
                 "host_divergente": host_divergente,
                 "host_anterior": host_ant,
                 "host_atual": host_atual,
+                "ip_anterior": old_ip,
                 "parece_mesmo_equipamento": not mac_divergente and not host_divergente,
             },
         }
@@ -691,7 +835,8 @@ def solicitar_recadastro(
 ):
     """
     Submissão do cadastro/recadastro realizada pelo operador.
-    Valida patrimônio, detecta divergência de SO e registra licença Windows se informada.
+    Valida patrimônio, bloqueia alteração fora da bancada .88 para patrimônio preenchido,
+    detecta divergência de SO e registra licença Windows se informada.
     """
     with Session(engine) as session:
         device = session.scalar(
@@ -714,6 +859,19 @@ def solicitar_recadastro(
             raise HTTPException(status_code=400, detail="O patrimônio deve conter números válidos.")
         pat_formatado = f"pat.{nums}"
 
+        # Bloqueio estrito de alteração de patrimônio fora da faixa 192.168.88.0/24 para operador
+        admin_flag = is_admin_user(current_user)
+        if not admin_flag:
+            dev_is_bench = is_subnet_88(device.ip)
+            dev_has_pat = bool(device.patrimonio and device.patrimonio.strip())
+            if not dev_is_bench and dev_has_pat:
+                if device.patrimonio.strip().lower() != pat_formatado.lower():
+                    raise HTTPException(
+                        status_code=403,
+                        detail="O patrimônio deste equipamento não pode ser alterado fora da faixa de preparação (192.168.88.0/24).",
+                    )
+
+        # Busca ativo existente correspondente em Device
         existing_other = session.scalar(
             select(Device).where(
                 Device.company_id == current_user.company_id,
@@ -798,8 +956,8 @@ def get_approval_context(
     """
     Retorna todo o contexto estruturado para o Modal de Ajuste Cadastral:
     Seção A: Dados recebidos da máquina
-    Seção B: Correspondência com ativo existente
-    Seção C: Loja resolvida, faixas de IP e IPs ocupados
+    Seção B: Correspondência com ativo existente (pesquisando em Device e NetworkAsset)
+    Seção C: Loja resolvida, faixas de IP, IPs ocupados e sugestão de IP anterior
     """
     with Session(engine) as session:
         device = session.scalar(
@@ -816,53 +974,196 @@ def get_approval_context(
         is_88 = is_subnet_88(device.ip)
         site_name = device.site.name if device.site else device.loja or ""
 
-        existing_other = None
-        divergencias = []
-        so_divergente = False
+        matching_devs = []
+        matching_nets = []
+        conflitos = []
+        tem_conflito = False
+
         if device.patrimonio:
             nums = re.sub(r"[^0-9]", "", device.patrimonio)
             if nums:
-                existing_other = session.scalar(
+                pat_formatado = f"pat.{nums}"
+                # 1. Busca em Device
+                matching_devs = session.scalars(
                     select(Device)
                     .options(selectinload(Device.site))
                     .where(
                         Device.company_id == current_user.company_id,
                         or_(
-                            Device.patrimonio.ilike(f"pat.{nums}"),
+                            Device.patrimonio.ilike(pat_formatado),
                             Device.patrimonio.ilike(f"%{nums}%"),
                         ),
                         Device.id != device.id,
                         Device.active.is_(True),
                     )
-                )
+                ).all()
 
-        if existing_other:
-            old_host = existing_other.hostname or ""
+                # 2. Busca em NetworkAsset
+                matching_nets = session.scalars(
+                    select(NetworkAsset)
+                    .options(selectinload(NetworkAsset.site))
+                    .where(
+                        NetworkAsset.company_id == current_user.company_id,
+                        or_(
+                            NetworkAsset.patrimonio.ilike(pat_formatado),
+                            NetworkAsset.patrimonio.ilike(f"%{nums}%"),
+                        ),
+                    )
+                ).all()
+
+        for d in matching_devs:
+            d_loja = d.site.name if d.site else d.loja or ""
+            conflitos.append({
+                "id": d.id,
+                "tipo_registro": "estacao",
+                "hostname": d.hostname,
+                "ip": d.ip,
+                "mac": d.mac,
+                "loja": d_loja,
+                "site_id": d.site_id,
+            })
+        for n in matching_nets:
+            n_loja = n.site.name if n.site else n.localizacao or ""
+            conflitos.append({
+                "id": n.id,
+                "tipo_registro": "ativo_rede",
+                "hostname": n.nome,
+                "ip": n.ip,
+                "mac": n.mac,
+                "loja": n_loja,
+                "site_id": n.site_id,
+            })
+
+        tem_conflito = len(conflitos) > 1
+        if len(matching_devs) == 1 and len(matching_nets) == 1:
+            dev_candidate = matching_devs[0]
+            net_candidate = matching_nets[0]
+            same_ip = bool(dev_candidate.ip and net_candidate.ip and dev_candidate.ip == net_candidate.ip)
+            same_mac = bool(
+                dev_candidate.mac
+                and net_candidate.mac
+                and dev_candidate.mac.lower().replace("-", ":") == net_candidate.mac.lower().replace("-", ":")
+            )
+            same_name = bool(
+                dev_candidate.hostname
+                and net_candidate.nome
+                and dev_candidate.hostname.lower() == net_candidate.nome.lower()
+            )
+            if same_ip or same_mac or same_name or (dev_candidate.site_id and dev_candidate.site_id == net_candidate.site_id):
+                tem_conflito = False
+
+        existing_dev = matching_devs[0] if matching_devs else None
+        existing_net = matching_nets[0] if matching_nets else None
+
+        existing_asset_dict = None
+        divergencias = []
+        so_divergente = False
+        ip_anterior_sugerido = ""
+        resolved_site_id = device.site_id
+
+        if existing_dev or existing_net:
+            linked_dev_id = existing_dev.id if existing_dev else None
+            linked_net_id = existing_net.id if existing_net else None
+
+            if existing_dev:
+                tipo_orig = "ambos" if existing_net else "device"
+                host_val = existing_dev.hostname or (existing_net.nome if existing_net else "")
+                loja_val = (
+                    existing_dev.site.name
+                    if existing_dev.site
+                    else (
+                        existing_dev.loja
+                        or (existing_net.site.name if (existing_net and existing_net.site) else (existing_net.localizacao if existing_net else ""))
+                    )
+                )
+                site_id_val = existing_dev.site_id or (existing_net.site_id if existing_net else None)
+
+                # Prioriza IP de rede de trabalho (que não seja da faixa de formatação .88)
+                ip_val = ""
+                if existing_net and is_valid_ipv4_non_bench(existing_net.ip):
+                    ip_val = existing_net.ip.strip()
+                elif is_valid_ipv4_non_bench(existing_dev.ip):
+                    ip_val = existing_dev.ip.strip()
+                elif is_valid_ipv4_non_bench(existing_dev.ip_definitivo):
+                    ip_val = existing_dev.ip_definitivo.strip()
+
+                mac_val = existing_dev.mac or (existing_net.mac if existing_net else "")
+                so_val = existing_dev.sistema or ""
+                versao_val = existing_dev.versao or ""
+                origem_val = getattr(existing_dev, "origem", "estacao")
+            else:
+                tipo_orig = "network_asset"
+                host_val = existing_net.nome or ""
+                loja_val = existing_net.site.name if existing_net.site else (existing_net.localizacao or "")
+                site_id_val = existing_net.site_id
+                ip_val = existing_net.ip.strip() if is_valid_ipv4_non_bench(existing_net.ip) else ""
+                mac_val = existing_net.mac or ""
+                so_val = existing_net.tipo or "Ativo Importado"
+                versao_val = existing_net.modelo or ""
+                origem_val = existing_net.origem or "planilha"
+
+            existing_asset_dict = {
+                "id": linked_dev_id or linked_net_id,
+                "tipo_origem": tipo_orig,
+                "linked_device_id": linked_dev_id,
+                "linked_network_asset_id": linked_net_id,
+                "hostname": host_val,
+                "ip": ip_val,
+                "mac": mac_val,
+                "sistema": so_val,
+                "versao": versao_val,
+                "loja": loja_val,
+                "site_id": site_id_val,
+                "patrimonio": device.patrimonio or "",
+                "origem": origem_val,
+            }
+
+            if not resolved_site_id and site_id_val:
+                resolved_site_id = site_id_val
+
+            # Divergências
+            old_host = host_val or ""
             new_host = device.hostname or ""
-            if old_host.lower() != new_host.lower():
+            if old_host and new_host and old_host.lower() != new_host.lower():
                 divergencias.append({"campo": "Hostname", "anterior": old_host, "atual": new_host})
 
-            old_ip = existing_other.ip or ""
-            new_ip = device.ip or ""
-            if old_ip != new_ip:
-                divergencias.append({"campo": "IP", "anterior": old_ip, "atual": new_ip})
+            old_ip_disp = ip_val or "(não registrado)"
+            new_ip_disp = device.ip or ""
+            if old_ip_disp != new_ip_disp:
+                divergencias.append({"campo": "IP", "anterior": old_ip_disp, "atual": new_ip_disp})
 
-            old_mac = existing_other.mac or ""
-            new_mac = device.mac or ""
-            if old_mac.lower().replace("-", ":") != new_mac.lower().replace("-", ":"):
-                divergencias.append({"campo": "MAC", "anterior": old_mac, "atual": new_mac})
+            old_mac_disp = mac_val or ""
+            new_mac_disp = device.mac or ""
+            if old_mac_disp and new_mac_disp and old_mac_disp.lower().replace("-", ":") != new_mac_disp.lower().replace("-", ":"):
+                divergencias.append({"campo": "MAC", "anterior": old_mac_disp, "atual": new_mac_disp})
 
-            old_so = f"{existing_other.sistema or ''} {existing_other.versao or ''}".strip()
-            new_so = f"{device.sistema or ''} {device.versao or ''}".strip()
-            fam_old = classificar_familia_so(existing_other.sistema, existing_other.versao)
-            fam_new = classificar_familia_so(device.sistema, device.versao)
-            if fam_old != fam_new or old_so.lower() != new_so.lower():
-                so_divergente = (fam_old != fam_new)
-                divergencias.append({"campo": "Sistema Operacional", "anterior": old_so, "atual": new_so})
+            if existing_dev:
+                old_so_str = f"{existing_dev.sistema or ''} {existing_dev.versao or ''}".strip()
+                new_so_str = f"{device.sistema or ''} {device.versao or ''}".strip()
+                fam_old = classificar_familia_so(existing_dev.sistema, existing_dev.versao)
+                fam_new = classificar_familia_so(device.sistema, device.versao)
+                if fam_old != fam_new or old_so_str.lower() != new_so_str.lower():
+                    so_divergente = (fam_old != fam_new)
+                    divergencias.append({"campo": "Sistema Operacional", "anterior": old_so_str, "atual": new_so_str})
 
-        resolved_site_id = device.site_id
-        if not resolved_site_id and existing_other and existing_other.site_id:
-            resolved_site_id = existing_other.site_id
+            # Sugestão de IP:
+            # 1. IP corporativo anterior de NetworkAsset ou Device
+            if ip_val and is_valid_ipv4_non_bench(ip_val):
+                ip_anterior_sugerido = ip_val
+            elif device.ip_definitivo and is_valid_ipv4_non_bench(device.ip_definitivo):
+                ip_anterior_sugerido = device.ip_definitivo
+            elif device.ip and is_valid_ipv4_non_bench(device.ip):
+                ip_anterior_sugerido = device.ip
+            else:
+                ip_anterior_sugerido = ""
+        else:
+            # Equipamento novo (sem correspondência anterior)
+            if device.ip_definitivo and is_valid_ipv4_non_bench(device.ip_definitivo):
+                ip_anterior_sugerido = device.ip_definitivo
+            elif device.ip and is_valid_ipv4_non_bench(device.ip):
+                ip_anterior_sugerido = device.ip
+            else:
+                ip_anterior_sugerido = ""
 
         all_sites = session.scalars(
             select(Site)
@@ -916,14 +1217,6 @@ def get_approval_context(
                 if ip_val:
                     ips_ocupados.add(ip_val)
 
-        ip_anterior_sugerido = ""
-        if existing_other and existing_other.ip and not is_subnet_88(existing_other.ip):
-            ip_anterior_sugerido = existing_other.ip
-        elif device.ip_definitivo:
-            ip_anterior_sugerido = device.ip_definitivo
-        elif device.ip and not is_88:
-            ip_anterior_sugerido = device.ip
-
         return {
             "device": {
                 "id": device.id,
@@ -944,17 +1237,9 @@ def get_approval_context(
                 "so_anterior": device.so_anterior or "",
                 "is_rede_formatacao": is_88,
             },
-            "existing_asset": {
-                "id": existing_other.id,
-                "hostname": existing_other.hostname,
-                "ip": existing_other.ip or "",
-                "mac": existing_other.mac or "",
-                "sistema": existing_other.sistema or "",
-                "versao": existing_other.versao or "",
-                "loja": existing_other.site.name if existing_other.site else existing_other.loja or "",
-                "site_id": existing_other.site_id,
-                "patrimonio": existing_other.patrimonio or "",
-            } if existing_other else None,
+            "existing_asset": existing_asset_dict,
+            "tem_conflito": tem_conflito,
+            "conflitos": conflitos if tem_conflito else [],
             "divergencias": divergencias,
             "so_divergente": so_divergente,
             "network_context": {
@@ -963,6 +1248,7 @@ def get_approval_context(
                 "faixas": faixas_list,
                 "ips_ocupados": sorted(list(ips_ocupados)),
                 "ip_anterior_sugerido": ip_anterior_sugerido,
+                "ip_confiavel": bool(ip_anterior_sugerido),
             },
         }
 
@@ -1025,6 +1311,7 @@ def aprovar_cadastro(
             select(NetworkAsset).where(
                 NetworkAsset.company_id == current_user.company_id,
                 NetworkAsset.ip == ip_def,
+                NetworkAsset.id != (payload.vincular_network_asset_id or -1),
             )
         )
 
@@ -1039,7 +1326,7 @@ def aprovar_cadastro(
         ip_antigo = device.ip
         site_antigo = device.loja
 
-        # Se vinculando a um ativo existente no recadastro
+        # Se vinculando a um ativo existente em Device no recadastro
         if payload.vincular_ativo_existente_id and payload.vincular_ativo_existente_id != device.id:
             antigo_ativo = session.scalar(
                 select(Device).where(
@@ -1061,6 +1348,27 @@ def aprovar_cadastro(
                 antigo_ativo.active = False
                 antigo_ativo.updated_at = datetime.utcnow()
 
+        # Se vinculando a um ativo existente em NetworkAsset
+        if payload.vincular_network_asset_id:
+            antigo_net = session.scalar(
+                select(NetworkAsset).where(
+                    NetworkAsset.id == payload.vincular_network_asset_id,
+                    NetworkAsset.company_id == current_user.company_id,
+                )
+            )
+            if antigo_net:
+                antigo_net.ip = ip_def
+                if device.mac:
+                    antigo_net.mac = device.mac
+                if device.hostname:
+                    antigo_net.nome = device.hostname
+                antigo_net.site_id = target_site.id
+                antigo_net.updated_at = datetime.utcnow()
+                antigo_obs = antigo_net.observacoes or ""
+                nova_obs = f"Homologado e sincronizado com a estação '{device.hostname}' por {admin_nome} em {datetime.utcnow().strftime('%d/%m/%Y %H:%M')}."
+                antigo_net.observacoes = f"{antigo_obs}\n{nova_obs}".strip() if antigo_obs else nova_obs
+                session.add(antigo_net)
+
         device.site_id = target_site.id
         device.loja = target_site.name
         device.ip = ip_def
@@ -1068,7 +1376,20 @@ def aprovar_cadastro(
         if payload.patrimonio:
             nums = re.sub(r"[^0-9]", "", payload.patrimonio)
             if nums:
-                device.patrimonio = f"pat.{nums}"
+                novo_pat = f"pat.{nums}"
+                if device.patrimonio != novo_pat:
+                    antigo_pat = device.patrimonio
+                    device.patrimonio = novo_pat
+                    session.add(
+                        DeviceHistory(
+                            device_id=device.id,
+                            campo="PATRIMONIO",
+                            valor_anterior=antigo_pat or "(vazio)",
+                            valor_novo=novo_pat,
+                            alterado_por=admin_nome,
+                            data_alteracao=datetime.utcnow(),
+                        )
+                    )
         device.firewall_status = "confirmado"
         device.firewall_confirmado_por = admin_nome
         device.firewall_confirmado_em = datetime.utcnow()
@@ -1132,7 +1453,7 @@ def rejeitar_cadastro(
 
     motivo = payload.motivo.strip()
     if not motivo:
-        raise HTTPException(status_code=400, detail="É necessário informar o motivo da rejeição.")
+        raise HTTPException(status_code=400, detail="O preenchimento do motivo da rejeição é obrigatório.")
 
     with Session(engine) as session:
         device = session.scalar(
