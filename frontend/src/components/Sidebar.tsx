@@ -10,8 +10,8 @@ type UserInfo = {
 }
 
 type SidebarProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites'
-  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites') => void
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses'
+  irPara: (v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses') => void
   inventarioCount: number
   currentUser: UserInfo | null
   onLogout: () => void
@@ -157,6 +157,20 @@ export default function Sidebar({
               <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M11 11h2M11 15h2M16 11h2M16 15h2M3 7l9-4 9 4" />
             </svg>
             <span className="nav-label">Lojas &amp; Filiais</span>
+          </button>
+        )}
+
+        {(isAdmin || currentUser?.roles?.includes('operador_matriz')) && (
+          <button
+            type="button"
+            className={`nav ${view === 'licenses' ? 'on' : ''}`}
+            onClick={() => irPara('licenses')}
+            title="Controle de licenças e seriais de Windows e Office"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+            </svg>
+            <span className="nav-label">Licenças</span>
           </button>
         )}
 

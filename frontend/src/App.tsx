@@ -13,6 +13,7 @@ import NetworkAssetsPage from './pages/NetworkAssetsPage'
 import RemoteAccessPage from './pages/RemoteAccessPage'
 import ReportsPage from './pages/ReportsPage'
 import SitesPage from './pages/SitesPage'
+import LicensesPage from './pages/LicensesPage'
 import {
   clearDeviceAlert,
   deleteDevice,
@@ -69,7 +70,7 @@ export default function App() {
   const [rawInventory, setRawInventory] = useState<RawInventoryItem[]>([])
   const [loading, setLoading] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<string>('-')
-  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites'>('inv')
+  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses'>('inv')
   const [toast, setToast] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -150,7 +151,7 @@ export default function App() {
     }
   }
 
-  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites') {
+  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses') {
     setView(v)
     window.location.hash = v
   }
@@ -347,16 +348,16 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '')
-    if (['rel', 'apps', 'ad', 'net', 'remote', 'sites'].includes(hash)) {
-      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites')
+    if (['rel', 'apps', 'ad', 'net', 'remote', 'sites', 'licenses'].includes(hash)) {
+      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses')
     } else {
       setView('inv')
     }
 
     const onHashChange = () => {
       const h = window.location.hash.replace('#', '')
-      if (['rel', 'apps', 'ad', 'net', 'remote', 'sites'].includes(h)) {
-        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites')
+      if (['rel', 'apps', 'ad', 'net', 'remote', 'sites', 'licenses'].includes(h)) {
+        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses')
       } else {
         setView('inv')
       }
@@ -365,10 +366,13 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
-  // Restrição de perfis: apenas administradores têm acesso a apps, ad e sites
+  // Restrição de perfis: apenas administradores têm acesso a apps, ad e sites; licenses para admin e operador_matriz
   useEffect(() => {
     const isAdmin = Boolean(currentUser?.is_superadmin || currentUser?.roles?.includes('admin'))
+    const isMatriz = Boolean(currentUser?.roles?.includes('operador_matriz'))
     if (currentUser && !isAdmin && (view === 'apps' || view === 'ad' || view === 'sites')) {
+      irPara('inv')
+    } else if (currentUser && !isAdmin && !isMatriz && view === 'licenses') {
       irPara('inv')
     }
   }, [currentUser, view])
@@ -512,6 +516,14 @@ export default function App() {
               currentUser={currentUser}
               showToast={showToast}
               onRefreshInventory={() => carregarDados()}
+            />
+          )}
+
+          {view === 'licenses' && (
+            <LicensesPage
+              token={localStorage.getItem('access_token') || ''}
+              currentUser={currentUser}
+              showToast={showToast}
             />
           )}
         </div>

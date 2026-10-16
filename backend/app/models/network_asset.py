@@ -100,6 +100,16 @@ class NetworkAsset(Base):
         default="manual",
     )
 
+    serial_windows: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    serial_office: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

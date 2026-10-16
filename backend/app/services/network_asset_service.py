@@ -18,8 +18,10 @@ from app.models.device_history import DeviceHistory
 from app.models.network_asset import NetworkAsset
 from app.models.site import Site
 from app.models.site_ip_range import SiteIpRange
+from app.models.software_license import SoftwareLicense
 from app.models.user import User
 from app.models.user_site_access import user_site_access
+from app.services.license_service import calcular_mapa_uso_chaves, normalizar_chave
 from app.schemas.network_asset import (
     ImportResultOut,
     NetworkAssetCreate,
@@ -117,6 +119,8 @@ def formatar_asset_out(asset: NetworkAsset) -> NetworkAssetOut:
         tempo_resposta_ms=asset.tempo_resposta_ms,
         observacoes=asset.observacoes,
         origem=asset.origem,
+        serial_windows=asset.serial_windows,
+        serial_office=asset.serial_office,
         created_at=asset.created_at,
         updated_at=asset.updated_at,
     )
@@ -387,6 +391,8 @@ def criar_network_asset(
         numero_serie=data.numero_serie.strip() if data.numero_serie else None,
         localizacao=data.localizacao.strip() if data.localizacao else None,
         observacoes=data.observacoes.strip() if data.observacoes else None,
+        serial_windows=data.serial_windows.strip() if getattr(data, "serial_windows", None) and data.serial_windows.strip() else None,
+        serial_office=data.serial_office.strip() if getattr(data, "serial_office", None) and data.serial_office.strip() else None,
         origem="manual",
     )
     db.add(asset)
@@ -735,6 +741,10 @@ def mapear_colunas_csv(header: List[str]) -> Dict[str, int]:
             col_map["numero_serie"] = idx
         elif c in ("observacao", "observacoes", "obs", "detalhes"):
             col_map["observacoes"] = idx
+        elif c in ("serialwindows", "chavewindows", "licencawindows", "winserial", "keywindows", "chavewin", "windowskey"):
+            col_map["serial_windows"] = idx
+        elif c in ("serialoffice", "chaveoffice", "licencaoffice", "officeserial", "keyoffice", "officekey"):
+            col_map["serial_office"] = idx
     return col_map
 
 
@@ -820,6 +830,13 @@ def processar_csv_importacao(
     erros = []
     conflitos_estacao = []
 
+    # Mapa de controle de licenças e cotas para validação
+    lics_db = db.scalars(
+        select(SoftwareLicense).where(SoftwareLicense.company_id == current_user.company_id)
+    ).all()
+    lic_map = {l.chave.upper().strip(): l for l in lics_db}
+    uso_lic_map = calcular_mapa_uso_chaves(db, current_user.company_id)
+
     for num_linha, row in enumerate(linhas[1:], start=2):
         if not row or not any(row):
             continue
@@ -878,6 +895,46 @@ def processar_csv_importacao(
                 atualizados += 1
             else:
                 ignorados += 1
+
+            # Sincronização de seriais Windows e Office respeitando cotas disponíveis
+            win_raw = get_val("serial_windows")
+            off_raw = get_val("serial_office")
+            win_key = normalizar_chave(win_raw)
+            off_key = normalizar_chave(off_raw)
+
+            if win_key:
+                if win_key in lic_map:
+                    lic_obj = lic_map[win_key]
+                    u = uso_lic_map.get(win_key, 0)
+                    if dev.serial_windows and dev.serial_windows.upper() == win_key:
+                        pass
+                    elif u >= lic_obj.quantidade_total:
+                        erros.append(f"Linha {num_linha}: Chave Windows '{win_key}' esgotada no controle de licenças. Atribuição cancelada.")
+                        win_key = None
+                if win_key and dev.serial_windows != win_key:
+                    ant_win = dev.serial_windows
+                    dev.serial_windows = win_key
+                    dev.updated_at = datetime.utcnow()
+                    uso_lic_map[win_key] = uso_lic_map.get(win_key, 0) + 1
+                    db.add(DeviceHistory(device_id=dev.id, campo="SERIAL_WINDOWS", valor_anterior=ant_win or "(vazio)", valor_novo=win_key))
+                    db.add(dev)
+
+            if off_key:
+                if off_key in lic_map:
+                    lic_obj = lic_map[off_key]
+                    u = uso_lic_map.get(off_key, 0)
+                    if dev.serial_office and dev.serial_office.upper() == off_key:
+                        pass
+                    elif u >= lic_obj.quantidade_total:
+                        erros.append(f"Linha {num_linha}: Chave Office '{off_key}' esgotada no controle de licenças. Atribuição cancelada.")
+                        off_key = None
+                if off_key and dev.serial_office != off_key:
+                    ant_off = dev.serial_office
+                    dev.serial_office = off_key
+                    dev.updated_at = datetime.utcnow()
+                    uso_lic_map[off_key] = uso_lic_map.get(off_key, 0) + 1
+                    db.add(DeviceHistory(device_id=dev.id, campo="SERIAL_OFFICE", valor_anterior=ant_off or "(vazio)", valor_novo=off_key))
+                    db.add(dev)
 
             if patrimonio_atualizado:
                 msg = (
@@ -955,6 +1012,32 @@ def processar_csv_importacao(
                 )
             )
 
+        # Validação de seriais para Ativo de Rede
+        win_raw = get_val("serial_windows")
+        off_raw = get_val("serial_office")
+        win_key = normalizar_chave(win_raw)
+        off_key = normalizar_chave(off_raw)
+
+        if win_key and win_key in lic_map:
+            lic_obj = lic_map[win_key]
+            u = uso_lic_map.get(win_key, 0)
+            cur_key = asset.serial_windows if asset else None
+            if not (cur_key and cur_key.upper() == win_key) and u >= lic_obj.quantidade_total:
+                erros.append(f"Linha {num_linha}: Chave Windows '{win_key}' esgotada no controle de licenças.")
+                win_key = None
+            elif win_key:
+                uso_lic_map[win_key] = u + 1
+
+        if off_key and off_key in lic_map:
+            lic_obj = lic_map[off_key]
+            u = uso_lic_map.get(off_key, 0)
+            cur_key = asset.serial_office if asset else None
+            if not (cur_key and cur_key.upper() == off_key) and u >= lic_obj.quantidade_total:
+                erros.append(f"Linha {num_linha}: Chave Office '{off_key}' esgotada no controle de licenças.")
+                off_key = None
+            elif off_key:
+                uso_lic_map[off_key] = u + 1
+
         try:
             if asset:
                 # Atualização
@@ -968,6 +1051,8 @@ def processar_csv_importacao(
                 if modelo: asset.modelo = modelo
                 if numero_serie: asset.numero_serie = numero_serie
                 if localizacao: asset.localizacao = localizacao
+                if win_key: asset.serial_windows = win_key
+                if off_key: asset.serial_office = off_key
                 if observacoes:
                     asset.observacoes = (
                         f"{asset.observacoes}\n{observacoes}" if asset.observacoes else observacoes
@@ -989,6 +1074,8 @@ def processar_csv_importacao(
                     modelo=modelo,
                     numero_serie=numero_serie,
                     localizacao=localizacao,
+                    serial_windows=win_key,
+                    serial_office=off_key,
                     observacoes=observacoes,
                     origem="planilha",
                 )

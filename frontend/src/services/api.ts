@@ -1355,3 +1355,241 @@ export async function getRemoteAccessConfig(token: string): Promise<RemoteAccess
   return response.json()
 }
 
+/* =========================================================
+   CONTROLE DE LICENÇAS E SERIAIS (WINDOWS / OFFICE)
+   ========================================================= */
+
+export type License = {
+  id: number
+  company_id: number
+  site_id?: number | null
+  site_nome?: string | null
+  site_codigo?: string | null
+  categoria: 'windows' | 'office' | 'outro' | string
+  software_nome: string
+  chave: string
+  tipo_licenca?: string | null
+  nota_fiscal?: string | null
+  quantidade_total: number
+  quantidade_em_uso: number
+  quantidade_disponivel: number
+  esgotada: boolean
+  observacoes?: string | null
+  data_aquisicao?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type LicenseInput = {
+  site_id?: number | null
+  categoria: string
+  software_nome: string
+  chave: string
+  tipo_licenca?: string | null
+  nota_fiscal?: string | null
+  quantidade_total: number
+  observacoes?: string | null
+  data_aquisicao?: string | null
+}
+
+export type LicenseAvailable = {
+  id: number
+  chave: string
+  software_nome: string
+  categoria: string
+  tipo_licenca?: string | null
+  nota_fiscal?: string | null
+  site_id?: number | null
+  site_nome?: string | null
+  quantidade_total: number
+  quantidade_em_uso: number
+  quantidade_disponivel: number
+  esgotada: boolean
+}
+
+export type LicenseDeviceItem = {
+  id: number
+  hostname: string
+  tipo: string
+  ip?: string | null
+  site_nome?: string | null
+  site_codigo?: string | null
+  patrimonio?: string | null
+  slot: 'windows' | 'office'
+  origem: 'estacao' | 'ativo'
+  data_coleta?: string | null
+}
+
+export type LicenseStats = {
+  total_licencas: number
+  total_em_uso: number
+  total_disponiveis: number
+  total_esgotadas: number
+  por_categoria: Record<string, { total: number; em_uso: number; disponivel: number; esgotadas: number }>
+  por_filial: Array<{ filial: string; total: number; em_uso: number; disponivel: number }>
+}
+
+export type LicenseAssignInput = {
+  device_id?: number | null
+  network_asset_id?: number | null
+  slot: 'windows' | 'office'
+  chave?: string | null
+}
+
+export async function getLicenses(
+  token: string,
+  params?: {
+    site_id?: number | null
+    categoria?: string | null
+    status?: string | null
+    search?: string | null
+    software_nome?: string | null
+  },
+): Promise<License[]> {
+  const q = new URLSearchParams()
+  if (params?.site_id !== undefined && params?.site_id !== null) q.set('site_id', String(params.site_id))
+  if (params?.categoria && params.categoria !== 'todos') q.set('categoria', params.categoria)
+  if (params?.status && params.status !== 'todas') q.set('status', params.status)
+  if (params?.search && params.search.trim()) q.set('search', params.search.trim())
+  if (params?.software_nome && params.software_nome !== 'todos') q.set('software_nome', params.software_nome)
+
+  const url = `${API_URL}/licenses${q.toString() ? `?${q.toString()}` : ''}`
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao carregar licenças.')
+  }
+  return response.json()
+}
+
+export async function getLicenseStats(
+  token: string,
+  site_id?: number | null,
+): Promise<LicenseStats> {
+  const q = new URLSearchParams()
+  if (site_id !== undefined && site_id !== null) q.set('site_id', String(site_id))
+
+  const url = `${API_URL}/licenses/stats${q.toString() ? `?${q.toString()}` : ''}`
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao carregar estatísticas de licenças.')
+  }
+  return response.json()
+}
+
+export async function getAvailableLicenses(
+  token: string,
+  params?: {
+    categoria?: string | null
+    site_id?: number | null
+    chave_atual?: string | null
+  },
+): Promise<LicenseAvailable[]> {
+  const q = new URLSearchParams()
+  if (params?.categoria) q.set('categoria', params.categoria)
+  if (params?.site_id !== undefined && params?.site_id !== null) q.set('site_id', String(params.site_id))
+  if (params?.chave_atual) q.set('chave_atual', params.chave_atual)
+
+  const url = `${API_URL}/licenses/available${q.toString() ? `?${q.toString()}` : ''}`
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao buscar licenças disponíveis.')
+  }
+  return response.json()
+}
+
+export async function getLicenseDevices(
+  token: string,
+  license_id: number,
+): Promise<LicenseDeviceItem[]> {
+  const response = await fetch(`${API_URL}/licenses/${license_id}/devices`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao carregar computadores vinculados.')
+  }
+  return response.json()
+}
+
+export async function createLicense(
+  token: string,
+  data: LicenseInput,
+): Promise<License> {
+  const response = await fetch(`${API_URL}/licenses`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao cadastrar licença.')
+  }
+  return response.json()
+}
+
+export async function updateLicense(
+  token: string,
+  id: number,
+  data: Partial<LicenseInput>,
+): Promise<License> {
+  const response = await fetch(`${API_URL}/licenses/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao atualizar licença.')
+  }
+  return response.json()
+}
+
+export async function deleteLicense(
+  token: string,
+  id: number,
+): Promise<{ success: boolean; message: string; em_uso_no_momento: number }> {
+  const response = await fetch(`${API_URL}/licenses/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao excluir licença.')
+  }
+  return response.json()
+}
+
+export async function assignLicense(
+  token: string,
+  data: LicenseAssignInput,
+): Promise<{ success: boolean; slot: string; chave: string | null; message: string }> {
+  const response = await fetch(`${API_URL}/licenses/assign`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erro ao atribuir licença.')
+  }
+  return response.json()
+}
+

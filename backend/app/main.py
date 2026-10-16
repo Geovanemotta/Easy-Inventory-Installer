@@ -76,6 +76,12 @@ app.include_router(
     prefix="/api/v1",
 )
 
+from app.api.v1.licenses import router as licenses_router
+app.include_router(
+    licenses_router,
+    prefix="/api/v1",
+)
+
 from app.api.v1.agents import router as agents_router
 from app.api.v1.ad import router as ad_router
 from app.api.v1.terminal import router as terminal_router

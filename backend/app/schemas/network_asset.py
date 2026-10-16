@@ -15,6 +15,8 @@ class NetworkAssetBase(BaseModel):
     numero_serie: Optional[str] = Field(default=None, description="Número de série")
     localizacao: Optional[str] = Field(default=None, description="Local físico ou setor (ex: Frente de Caixa 02)")
     observacoes: Optional[str] = Field(default=None, description="Anotações e detalhes adicionais")
+    serial_windows: Optional[str] = Field(default=None, description="Serial/Licença do Windows")
+    serial_office: Optional[str] = Field(default=None, description="Serial/Licença do Office")
 
 
 class NetworkAssetCreate(NetworkAssetBase):
@@ -33,6 +35,8 @@ class NetworkAssetUpdate(BaseModel):
     numero_serie: Optional[str] = None
     localizacao: Optional[str] = None
     observacoes: Optional[str] = None
+    serial_windows: Optional[str] = None
+    serial_office: Optional[str] = None
 
 
 class NetworkAssetOut(NetworkAssetBase):

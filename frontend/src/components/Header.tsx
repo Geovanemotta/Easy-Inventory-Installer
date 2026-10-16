@@ -1,5 +1,5 @@
 type HeaderProps = {
-  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites'
+  view: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses'
   lastUpdate: string
   loading: boolean
   isSuperAdmin: boolean
@@ -32,6 +32,8 @@ export default function Header({
       ? { tag: 'APLICATIVOS', color: '#fbbf24' }
       : view === 'sites'
       ? { tag: 'LOJAS & FILIAIS', color: '#a78bfa' }
+      : view === 'licenses'
+      ? { tag: 'LICENÇAS & SERIAIS', color: '#38bdf8' }
       : { tag: 'ACTIVE DIRECTORY', color: '#f472b6' }
 
   return (

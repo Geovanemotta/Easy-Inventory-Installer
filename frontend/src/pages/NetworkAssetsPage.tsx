@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  assignLicense,
   bulkDeleteNetworkAssets,
   createNetworkAsset,
   deleteNetworkAsset,
   downloadNetworkAssetTemplate,
+  getAvailableLicenses,
   getNetworkAssets,
   getSiteIpRanges,
   getSites,
@@ -13,6 +15,7 @@ import {
   scanNetworkAssetsBatch,
   updateNetworkAsset,
   type ImportResult,
+  type LicenseAvailable,
   type NetworkAsset,
   type NetworkAssetInput,
   type Site,
@@ -124,6 +127,7 @@ const ICONS = {
   windows: 'M3 5.5L10.5 4.5V11.5H3V5.5ZM11.5 4.3L21 3V11.5H11.5V4.3ZM3 12.5H10.5V19.5L3 18.5V12.5ZM11.5 12.5H21V21L11.5 19.7V12.5Z',
   linux: 'M12 2C9.5 2 8 4 8 6C8 7.5 7.5 9 6.5 10C5.5 11 5 12.5 5 14C5 17.5 8 21 12 21C16 21 19 17.5 19 14C19 12.5 18.5 11 17.5 10C16.5 9 16 7.5 16 6C16 4 14.5 2 12 2Z',
   lock: 'M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-12 0V7a5 5 0 0 1 10 0v4',
+  key: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
 } as const
 
 function Icon({ name, size = 16, className = '' }: { name: keyof typeof ICONS; size?: number; className?: string }) {
@@ -334,6 +338,19 @@ export default function NetworkAssetsPage({
   const [formModelo, setFormModelo] = useState('')
   const [formNumeroSerie, setFormNumeroSerie] = useState('')
   const [formObservacoes, setFormObservacoes] = useState('')
+  const [formSerialWindows, setFormSerialWindows] = useState('')
+  const [formSerialOffice, setFormSerialOffice] = useState('')
+
+  // Modal Atribuir / Desvincular Licença Rápida
+  const [modalAtribuirLicencaAberto, setModalAtribuirLicencaAberto] = useState(false)
+  const [ativoAlvoLicenca, setAtivoAlvoLicenca] = useState<NetworkAsset | null>(null)
+  const [slotAlvoLicenca, setSlotAlvoLicenca] = useState<'windows' | 'office'>('windows')
+  const [licencasDisponiveis, setLicencasDisponiveis] = useState<LicenseAvailable[]>([])
+  const [carregandoLicencasDisp, setCarregandoLicencasDisp] = useState(false)
+  const [chaveSelecionada, setChaveSelecionada] = useState('')
+  const [chaveCustomizada, setChaveCustomizada] = useState('')
+  const [modoChaveCustom, setModoChaveCustom] = useState(false)
+  const [atribuindoLicenca, setAtribuindoLicenca] = useState(false)
 
   // Modal Importação CSV
   const [modalImportAberto, setModalImportAberto] = useState(false)
@@ -405,12 +422,13 @@ export default function NetworkAssetsPage({
       else if (modalConfirmarScan) setModalConfirmarScan(false)
       else if (modalFormAberto && !formSalvarCarregando) setModalFormAberto(false)
       else if (modalImportAberto && !importandoCsv) setModalImportAberto(false)
+      else if (modalAtribuirLicencaAberto && !atribuindoLicenca) setModalAtribuirLicencaAberto(false)
       else if (expandedId) setExpandedId(null)
       else if (Object.values(colSearchOpen).some(Boolean)) setColSearchOpen({})
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [inlineDraft, salvandoInline, modalConfirmarExclusaoLote, excluindoLote, assetParaExcluir, excluindoAsset, modalConfirmarScan, modalFormAberto, formSalvarCarregando, modalImportAberto, importandoCsv, expandedId, colSearchOpen])
+  }, [inlineDraft, salvandoInline, modalConfirmarExclusaoLote, excluindoLote, assetParaExcluir, excluindoAsset, modalConfirmarScan, modalFormAberto, formSalvarCarregando, modalImportAberto, importandoCsv, modalAtribuirLicencaAberto, atribuindoLicenca, expandedId, colSearchOpen])
 
   async function carregarSites() {
     try {
@@ -706,6 +724,8 @@ export default function NetworkAssetsPage({
     setFormModelo('')
     setFormNumeroSerie('')
     setFormObservacoes('')
+    setFormSerialWindows('')
+    setFormSerialOffice('')
     setModalFormAberto(true)
   }
 
@@ -733,6 +753,8 @@ export default function NetworkAssetsPage({
     setFormModelo(a.modelo || '')
     setFormNumeroSerie(a.numero_serie || '')
     setFormObservacoes(a.observacoes || '')
+    setFormSerialWindows(a.serial_windows || '')
+    setFormSerialOffice(a.serial_office || '')
     setModalFormAberto(true)
   }
 
@@ -774,6 +796,8 @@ export default function NetworkAssetsPage({
       modelo: formModelo.trim() || null,
       numero_serie: formNumeroSerie.trim() || null,
       observacoes: formObservacoes.trim() || null,
+      serial_windows: formSerialWindows.trim() || null,
+      serial_office: formSerialOffice.trim() || null,
     }
 
     try {
@@ -797,6 +821,100 @@ export default function NetworkAssetsPage({
       showToast(`Falha ao salvar: ${msg}`)
     } finally {
       setFormSalvarCarregando(false)
+    }
+  }
+
+  /* ---------------- Módulo de Licenciamento Dinâmico ---------------- */
+  async function abrirModalAtribuirLicenca(asset: NetworkAsset, slot: 'windows' | 'office') {
+    setAtivoAlvoLicenca(asset)
+    setSlotAlvoLicenca(slot)
+    const atual = slot === 'windows' ? asset.serial_windows : asset.serial_office
+    setChaveSelecionada(atual || '')
+    setChaveCustomizada(atual || '')
+    setModoChaveCustom(false)
+    setModalAtribuirLicencaAberto(true)
+    setCarregandoLicencasDisp(true)
+    try {
+      const list = await getAvailableLicenses(token, {
+        categoria: slot === 'windows' ? 'windows' : 'office',
+        site_id: asset.site_id,
+        chave_atual: atual,
+      })
+      setLicencasDisponiveis(list || [])
+      // Se a chave atual não estiver na lista de lotes cadastrados, abre no modo manual
+      if (atual && !list.some((l) => l.chave.toUpperCase() === atual.toUpperCase())) {
+        setModoChaveCustom(true)
+      }
+    } catch (err) {
+      console.warn('Erro ao carregar licenças disponíveis:', err)
+    } finally {
+      setCarregandoLicencasDisp(false)
+    }
+  }
+
+  async function handleSalvarAtribuicaoLicenca(e: React.FormEvent) {
+    e.preventDefault()
+    if (!ativoAlvoLicenca) return
+    const chaveFinal = modoChaveCustom ? chaveCustomizada.trim() : chaveSelecionada.trim()
+    setAtribuindoLicenca(true)
+    try {
+      const isEstacao = ativoAlvoLicenca.origem === 'estacao'
+      const res = await assignLicense(token, {
+        device_id: isEstacao ? (ativoAlvoLicenca.device_id || undefined) : undefined,
+        network_asset_id: !isEstacao ? (ativoAlvoLicenca.id || undefined) : undefined,
+        slot: slotAlvoLicenca,
+        chave: chaveFinal || null,
+      })
+      // Atualiza imediatamente na lista da tela
+      setAssets((prev) =>
+        prev.map((item) => {
+          const match = isEstacao
+            ? (item.device_id === ativoAlvoLicenca.device_id && item.origem === 'estacao')
+            : (item.id === ativoAlvoLicenca.id && item.origem !== 'estacao')
+          if (!match) return item
+          return {
+            ...item,
+            ...(slotAlvoLicenca === 'windows' ? { serial_windows: res.chave } : { serial_office: res.chave }),
+          }
+        })
+      )
+      showToast(res.message || 'Licença atribuída com sucesso!')
+      setModalAtribuirLicencaAberto(false)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      showToast(`Falha ao atribuir licença: ${msg}`)
+    } finally {
+      setAtribuindoLicenca(false)
+    }
+  }
+
+  async function handleDesvincularRapido(asset: NetworkAsset, slot: 'windows' | 'office') {
+    const nomeSlot = slot === 'windows' ? 'Windows' : 'Office'
+    if (!window.confirm(`Deseja remover / desvincular a chave de ${nomeSlot} do equipamento “${asset.nome}”?`)) return
+    try {
+      const isEstacao = asset.origem === 'estacao'
+      const res = await assignLicense(token, {
+        device_id: isEstacao ? (asset.device_id || undefined) : undefined,
+        network_asset_id: !isEstacao ? (asset.id || undefined) : undefined,
+        slot,
+        chave: null,
+      })
+      setAssets((prev) =>
+        prev.map((item) => {
+          const match = isEstacao
+            ? (item.device_id === asset.device_id && item.origem === 'estacao')
+            : (item.id === asset.id && item.origem !== 'estacao')
+          if (!match) return item
+          return {
+            ...item,
+            ...(slot === 'windows' ? { serial_windows: null } : { serial_office: null }),
+          }
+        })
+      )
+      showToast(res.message || `Licença de ${nomeSlot} desvinculada!`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      showToast(`Erro ao desvincular: ${msg}`)
     }
   }
 
@@ -1982,30 +2100,70 @@ export default function NetworkAssetsPage({
                                           )}
                                         </span>
                                       </div>
-                                      {isEstacao && (
-                                        <>
-                                          <div className="na-dfield">
-                                            <span className="lbl">Serial Windows:</span>
-                                            <span className="val">
-                                              {a.serial_windows ? (
-                                                <span className="na-serial-badge has-key" title="Chave do Windows">{a.serial_windows}</span>
-                                              ) : (
-                                                <span className="na-serial-badge empty" title="Serial de Windows ainda não importado">— Não registrado —</span>
+                                      <div className="na-dfield">
+                                        <span className="lbl">Serial Windows:</span>
+                                        <div className="val na-serial-field-row">
+                                          {a.serial_windows ? (
+                                            <span className="na-serial-badge has-key" title="Chave do Windows">{a.serial_windows}</span>
+                                          ) : (
+                                            <span className="na-serial-badge empty" title="Serial de Windows não vinculado">— Não registrado —</span>
+                                          )}
+                                          {canManage && (
+                                            <div className="na-serial-actions-group">
+                                              {a.serial_windows && (
+                                                <button
+                                                  type="button"
+                                                  className="na-serial-btn-remove"
+                                                  onClick={(e) => { e.stopPropagation(); handleDesvincularRapido(a, 'windows') }}
+                                                  title="Remover / Desvincular chave do Windows"
+                                                >
+                                                  ✕
+                                                </button>
                                               )}
-                                            </span>
-                                          </div>
-                                          <div className="na-dfield">
-                                            <span className="lbl">Serial Office:</span>
-                                            <span className="val">
-                                              {a.serial_office ? (
-                                                <span className="na-serial-badge has-key" title="Chave do Pacote Office">{a.serial_office}</span>
-                                              ) : (
-                                                <span className="na-serial-badge empty" title="Serial de Office ainda não importado">— Não registrado —</span>
+                                              <button
+                                                type="button"
+                                                className="na-serial-btn-assign"
+                                                onClick={(e) => { e.stopPropagation(); abrirModalAtribuirLicenca(a, 'windows') }}
+                                                title="Atribuir ou alterar licença do Windows"
+                                              >
+                                                {a.serial_windows ? 'Alterar' : '+ Atribuir'}
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="na-dfield">
+                                        <span className="lbl">Serial Office:</span>
+                                        <div className="val na-serial-field-row">
+                                          {a.serial_office ? (
+                                            <span className="na-serial-badge has-key" title="Chave do Pacote Office">{a.serial_office}</span>
+                                          ) : (
+                                            <span className="na-serial-badge empty" title="Serial de Office não vinculado">— Não registrado —</span>
+                                          )}
+                                          {canManage && (
+                                            <div className="na-serial-actions-group">
+                                              {a.serial_office && (
+                                                <button
+                                                  type="button"
+                                                  className="na-serial-btn-remove"
+                                                  onClick={(e) => { e.stopPropagation(); handleDesvincularRapido(a, 'office') }}
+                                                  title="Remover / Desvincular chave do Office"
+                                                >
+                                                  ✕
+                                                </button>
                                               )}
-                                            </span>
-                                          </div>
-                                        </>
-                                      )}
+                                              <button
+                                                type="button"
+                                                className="na-serial-btn-assign"
+                                                onClick={(e) => { e.stopPropagation(); abrirModalAtribuirLicenca(a, 'office') }}
+                                                title="Atribuir ou alterar licença do Office"
+                                              >
+                                                {a.serial_office ? 'Alterar' : '+ Atribuir'}
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
                                       <div className="na-dfield">
                                         <span className="lbl">Origem do cadastro:</span>
                                         <span className="val">{isEstacao ? 'Estação integrada (Mesh / Inventário)' : 'Ativo manual / CSV'}</span>
@@ -2403,6 +2561,34 @@ export default function NetworkAssetsPage({
               </div>
             </fieldset>
 
+            <fieldset>
+              <legend>Licenciamento (Windows / Office)</legend>
+              <div className="na-grid g2">
+                <div className="field">
+                  <label>Serial Windows</label>
+                  <input
+                    type="text"
+                    className="mono"
+                    placeholder="Ex: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+                    value={formSerialWindows}
+                    onChange={(e) => setFormSerialWindows(e.target.value)}
+                  />
+                  <small className="na-fhint">Chave de ativação do sistema operacional Windows.</small>
+                </div>
+                <div className="field">
+                  <label>Serial Office</label>
+                  <input
+                    type="text"
+                    className="mono"
+                    placeholder="Ex: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+                    value={formSerialOffice}
+                    onChange={(e) => setFormSerialOffice(e.target.value)}
+                  />
+                  <small className="na-fhint">Chave de ativação do pacote Office / M365.</small>
+                </div>
+              </div>
+            </fieldset>
+
             <div className="na-modal-foot">
               <button type="button" className="btn" onClick={() => setModalFormAberto(false)}>Cancelar</button>
               <button type="submit" className="btn primary" disabled={formSalvarCarregando}>
@@ -2581,6 +2767,152 @@ export default function NetworkAssetsPage({
               </button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* =========== MODAL: ATRIBUIR / ALTERAR LICENÇA =========== */}
+      {modalAtribuirLicencaAberto && ativoAlvoLicenca && (
+        <Modal onClose={() => !atribuindoLicenca && setModalAtribuirLicencaAberto(false)}>
+          <div className="na-modal-head">
+            <h2>
+              <Icon name="key" size={18} /> Atribuir Chave ({slotAlvoLicenca === 'windows' ? 'Windows' : 'Office'})
+            </h2>
+            <button
+              className="na-icon-btn"
+              onClick={() => setModalAtribuirLicencaAberto(false)}
+              aria-label="Fechar"
+              disabled={atribuindoLicenca}
+            >
+              <Icon name="x" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSalvarAtribuicaoLicenca} className="na-form">
+            <div className="na-assign-target-info">
+              <div>
+                <span className="lbl">Equipamento:</span>
+                <b>{ativoAlvoLicenca.nome}</b>
+              </div>
+              <div>
+                <span className="lbl">IP:</span>
+                <code>{ativoAlvoLicenca.ip || '—'}</code>
+              </div>
+              <div>
+                <span className="lbl">Filial:</span>
+                <span>{ativoAlvoLicenca.site_codigo ? `${ativoAlvoLicenca.site_codigo} - ${ativoAlvoLicenca.site_nome}` : (ativoAlvoLicenca.site_nome || 'Geral')}</span>
+              </div>
+              <div>
+                <span className="lbl">Tipo:</span>
+                <span>{ativoAlvoLicenca.tipo}</span>
+              </div>
+            </div>
+
+            <div className="na-assign-mode-toggle">
+              <button
+                type="button"
+                className={`btn sm ${!modoChaveCustom ? 'primary' : ''}`}
+                onClick={() => setModoChaveCustom(false)}
+              >
+                Selecionar Lote Cadastrado
+              </button>
+              <button
+                type="button"
+                className={`btn sm ${modoChaveCustom ? 'primary' : ''}`}
+                onClick={() => setModoChaveCustom(true)}
+              >
+                Digitar Chave Manual
+              </button>
+            </div>
+
+            {!modoChaveCustom ? (
+              <div className="field">
+                <label>Lotes de Licenças Disponíveis ({slotAlvoLicenca === 'windows' ? 'Windows' : 'Office'})</label>
+                {carregandoLicencasDisp ? (
+                  <div className="na-loading-inline" style={{ padding: '16px', textAlign: 'center', color: 'var(--muted)' }}>
+                    Carregando lotes de licenças disponíveis...
+                  </div>
+                ) : licencasDisponiveis.length === 0 ? (
+                  <div className="na-empty-box" style={{ padding: '16px', textAlign: 'center', background: 'var(--bg-alt)', borderRadius: '6px', border: '1px dashed var(--line)' }}>
+                    <p style={{ margin: '0 0 6px 0', fontWeight: 500 }}>Nenhum lote com saldo disponível encontrado.</p>
+                    <small style={{ color: 'var(--muted)' }}>Você pode alternar acima para "Digitar Chave Manual" ou cadastrar novos lotes no módulo de Licenças.</small>
+                  </div>
+                ) : (
+                  <div className="na-license-lot-select-list">
+                    {licencasDisponiveis.map((lic) => {
+                      const isSelected = chaveSelecionada.toUpperCase() === lic.chave.toUpperCase()
+                      return (
+                        <div
+                          key={lic.id}
+                          className={`na-license-lot-option ${isSelected ? 'selected' : ''} ${lic.esgotada && !isSelected ? 'disabled' : ''}`}
+                          onClick={() => {
+                            if (!lic.esgotada || isSelected) {
+                              setChaveSelecionada(lic.chave)
+                            }
+                          }}
+                        >
+                          <div className="na-lot-opt-radio">
+                            <input
+                              type="radio"
+                              name="licenca_opcao"
+                              checked={isSelected}
+                              onChange={() => setChaveSelecionada(lic.chave)}
+                              disabled={lic.esgotada && !isSelected}
+                            />
+                          </div>
+                          <div className="na-lot-opt-details">
+                            <div className="na-lot-opt-title">
+                              <strong>{lic.software_nome}</strong>
+                              <span className="badge sm primary">{lic.tipo_licenca || 'OEM'}</span>
+                              {lic.nota_fiscal && <span className="badge sm muted">NF: {lic.nota_fiscal}</span>}
+                            </div>
+                            <div className="na-lot-opt-key mono">{lic.chave}</div>
+                            <div className="na-lot-opt-meta">
+                              <span>Disponíveis: <b>{lic.quantidade_disponivel}</b> de {lic.quantidade_total}</span>
+                              {lic.site_nome && <span> • Loja: {lic.site_nome}</span>}
+                              {lic.esgotada && <span className="na-badge-danger">Esgotada</span>}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="field">
+                <label>Chave do Produto (Serial)</label>
+                <input
+                  type="text"
+                  className="mono"
+                  placeholder="Ex: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+                  value={chaveCustomizada}
+                  onChange={(e) => setChaveCustomizada(e.target.value)}
+                  autoFocus
+                />
+                <small className="na-fhint">
+                  Pode digitar com ou sem hífens. O sistema formatará automaticamente no padrão de 25 caracteres da Microsoft.
+                </small>
+              </div>
+            )}
+
+            <div className="na-modal-foot">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setModalAtribuirLicencaAberto(false)}
+                disabled={atribuindoLicenca}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={atribuindoLicenca || (!modoChaveCustom && !chaveSelecionada.trim()) || (modoChaveCustom && !chaveCustomizada.trim())}
+              >
+                {atribuindoLicenca ? 'Atribuindo...' : 'Salvar Atribuição'}
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
     </div>
