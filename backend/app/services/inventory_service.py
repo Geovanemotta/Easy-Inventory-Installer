@@ -248,12 +248,22 @@ def identificar_site(
     return None
 
 
-
 IGNORED_HISTORY_FIELDS = {
     "USUARIO",
     "DOMINIO",
     "RUSTDESK_ID",
     "PERIFERICOS",
+}
+
+SOFTWARE_CATEGORIAS = {
+    "aplicativo": "aplicativos",
+    "aplicativos": "aplicativos",
+    "agente": "agentes",
+    "agentes": "agentes",
+    "runtime": "runtimes",
+    "runtimes": "runtimes",
+    "ferramenta": "ferramentas",
+    "ferramentas": "ferramentas",
 }
 
 
@@ -634,20 +644,9 @@ def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str,
                     "versao": package.versao,
                 })
 
-        categorias = {
-            "aplicativo": "aplicativos",
-            "aplicativos": "aplicativos",
-            "agente": "agentes",
-            "agentes": "agentes",
-            "runtime": "runtimes",
-            "runtimes": "runtimes",
-            "ferramenta": "ferramentas",
-            "ferramentas": "ferramentas",
-        }
-
         for device_software, software in software_rows:
             tipo = (software.tipo or "").strip().lower()
-            categoria = categorias.get(tipo, "aplicativos")
+            categoria = SOFTWARE_CATEGORIAS.get(tipo, "aplicativos")
 
             software_by_device.setdefault(
                 device_software.device_id, {}

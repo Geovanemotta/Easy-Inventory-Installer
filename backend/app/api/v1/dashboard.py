@@ -1,3 +1,5 @@
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -12,6 +14,15 @@ from app.models import (
     User,
 )
 from app.models.user_site_access import user_site_access
+from app.schemas.dashboard import (
+    DashboardDevicesBySite,
+    DashboardDevicesByStatus,
+    DashboardDevicesByVersion,
+    DashboardDevicesMetrics,
+    DashboardSitesMetrics,
+    DashboardSoftwareMetrics,
+    DashboardSummaryResponse,
+)
 
 
 router = APIRouter(
@@ -20,94 +31,68 @@ router = APIRouter(
 )
 
 
+def _is_global_user(user: User) -> bool:
+    """Verifica se o usuário possui escopo global (superadmin, admin ou operador da matriz)."""
+    if user.is_superadmin:
+        return True
+    roles = [r.slug for r in user.roles] if user.roles else []
+    return any(r in ("admin", "operador_matriz") for r in roles)
+
+
 @router.get("/summary")
 def dashboard_summary(
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Retorna os indicadores consolidados do painel administrativo (dispositivos, filiais, softwares,
+    distribuição por sistema operacional e por filial), respeitando as permissões de filial do usuário.
+    """
     with Session(engine) as session:
+        is_global = _is_global_user(current_user)
 
         # -----------------------------------------
-        # DEVICES VISÍVEIS PARA O USUÁRIO
+        # 1. FILTROS DE ESCOPO (Empresa e Filiais Permitidas)
         # -----------------------------------------
-
         device_filter = [
             Device.company_id == current_user.company_id,
         ]
+        site_filter = [
+            Site.company_id == current_user.company_id,
+            Site.active.is_(True),
+        ]
 
-        if not current_user.is_superadmin:
+        if not is_global:
             allowed_sites = (
                 select(user_site_access.c.site_id)
-                .where(
-                    user_site_access.c.user_id == current_user.id
-                )
+                .where(user_site_access.c.user_id == current_user.id)
             )
-
-            device_filter.append(
-                Device.site_id.in_(allowed_sites)
-            )
+            device_filter.append(Device.site_id.in_(allowed_sites))
+            site_filter.append(Site.id.in_(allowed_sites))
 
         # -----------------------------------------
-        # TOTAL DE DEVICES
+        # 2. MÉTRICAS GERAIS (Total de Devices e Ativos)
         # -----------------------------------------
-
         total_devices = session.scalar(
-            select(func.count(Device.id))
-            .where(*device_filter)
+            select(func.count(Device.id)).where(*device_filter)
         ) or 0
 
         active_devices = session.scalar(
-            select(func.count(Device.id))
-            .where(
+            select(func.count(Device.id)).where(
                 *device_filter,
                 Device.active.is_(True),
             )
         ) or 0
 
-        # -----------------------------------------
-        # TOTAL DE SITES VISÍVEIS
-        # -----------------------------------------
-
-        if current_user.is_superadmin:
-
-            total_sites = session.scalar(
-                select(func.count(Site.id))
-                .where(
-                    Site.company_id == current_user.company_id,
-                    Site.active.is_(True),
-                )
-            ) or 0
-
-        else:
-
-            total_sites = session.scalar(
-                select(func.count(Site.id))
-                .where(
-                    Site.company_id == current_user.company_id,
-                    Site.active.is_(True),
-                    Site.id.in_(
-                        select(user_site_access.c.site_id)
-                        .where(
-                            user_site_access.c.user_id
-                            == current_user.id
-                        )
-                    ),
-                )
-            ) or 0
+        total_sites = session.scalar(
+            select(func.count(Site.id)).where(*site_filter)
+        ) or 0
 
         # -----------------------------------------
-        # SOFTWARES UTILIZADOS NOS DEVICES
+        # 3. SOFTWARES DISTINTOS UTILIZADOS
         # -----------------------------------------
-
         total_software = session.scalar(
-            select(
-                func.count(
-                    func.distinct(DeviceSoftware.software_id)
-                )
-            )
-            .join(
-                Device,
-                Device.id == DeviceSoftware.device_id,
-            )
+            select(func.count(func.distinct(DeviceSoftware.software_id)))
+            .join(Device, Device.id == DeviceSoftware.device_id)
             .where(
                 *device_filter,
                 DeviceSoftware.installed.is_(True),
@@ -115,9 +100,8 @@ def dashboard_summary(
         ) or 0
 
         # -----------------------------------------
-        # DEVICES POR SITE
+        # 4. DISPOSITIVOS AGRUPADOS POR FILIAL
         # -----------------------------------------
-
         devices_by_site_rows = session.execute(
             select(
                 Site.id,
@@ -125,34 +109,14 @@ def dashboard_summary(
                 Site.code,
                 func.count(Device.id),
             )
-            .join(
-                Device,
-                Device.site_id == Site.id,
-                isouter=True,
-            )
-            .where(
-                Site.company_id == current_user.company_id,
-                Site.active.is_(True),
-                (
-                    Site.id.in_(
-                        select(user_site_access.c.site_id)
-                        .where(
-                            user_site_access.c.user_id
-                            == current_user.id
-                        )
-                    )
-                    if not current_user.is_superadmin
-                    else True
-                ),
-            )
+            .join(Device, Device.site_id == Site.id, isouter=True)
+            .where(*site_filter)
             .group_by(
                 Site.id,
                 Site.name,
                 Site.code,
             )
-            .order_by(
-                Site.code
-            )
+            .order_by(Site.code)
         ).all()
 
         devices_by_site = [
@@ -162,32 +126,20 @@ def dashboard_summary(
                 "code": site_code,
                 "total": total,
             }
-            for (
-                site_id,
-                site_name,
-                site_code,
-                total,
-            ) in devices_by_site_rows
+            for site_id, site_name, site_code, total in devices_by_site_rows
         ]
 
         # -----------------------------------------
-        # DEVICES POR VERSÃO DO SISTEMA
+        # 5. DISPOSITIVOS POR VERSÃO DE SISTEMA OPERACIONAL
         # -----------------------------------------
-
         devices_by_version_rows = session.execute(
             select(
                 Device.versao,
                 func.count(Device.id),
             )
-            .where(
-                *device_filter,
-            )
-            .group_by(
-                Device.versao,
-            )
-            .order_by(
-                func.count(Device.id).desc()
-            )
+            .where(*device_filter)
+            .group_by(Device.versao)
+            .order_by(func.count(Device.id).desc())
         ).all()
 
         devices_by_version = [
@@ -199,23 +151,16 @@ def dashboard_summary(
         ]
 
         # -----------------------------------------
-        # DEVICES POR STATUS
+        # 6. DISPOSITIVOS POR STATUS OPERACIONAL
         # -----------------------------------------
-
         devices_by_status_rows = session.execute(
             select(
                 Device.status,
                 func.count(Device.id),
             )
-            .where(
-                *device_filter,
-            )
-            .group_by(
-                Device.status,
-            )
-            .order_by(
-                func.count(Device.id).desc()
-            )
+            .where(*device_filter)
+            .group_by(Device.status)
+            .order_by(func.count(Device.id).desc())
         ).all()
 
         devices_by_status = [

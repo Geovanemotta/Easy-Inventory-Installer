@@ -55,7 +55,7 @@ class TestPatrimonioRecadastro(unittest.TestCase):
             cls.admin_user_id = admin.id if admin else None
             
             operator = session.scalar(
-                select(User).join(User.roles).where(Role.slug.in_(["operator", "operador_matriz"])).limit(1)
+                select(User).join(User.roles).where(Role.slug == "operador_matriz").limit(1)
             )
             cls.operator_user_id = operator.id if operator else None
 
@@ -284,7 +284,7 @@ class TestPatrimonioRecadastro(unittest.TestCase):
         ativo_existente = Device(
             company_id=self.company.id,
             site_id=self.site1.id,
-            hostname="TEST-PLACA-PC",
+            hostname="TEST-PLACA-PC-OLD",
             ip="192.168.11.226",
             mac="aa:11:bb:22:cc:33",
             sistema="Windows",
@@ -323,6 +323,7 @@ class TestPatrimonioRecadastro(unittest.TestCase):
                 ip_definitivo="192.168.11.226",
                 vincular_ativo_existente_id=ativo_existente.id,
                 patrimonio="666004",
+                confirmar_sobrescrita_ip=True,
             ),
             current_user=self.admin_user,
         )
