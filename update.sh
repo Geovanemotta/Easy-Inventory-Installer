@@ -14,6 +14,25 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
 
+SKIP_GIT_PULL=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --no-pull|--skip-pull)
+            SKIP_GIT_PULL=true
+            ;;
+        --help|-h)
+            echo ""
+            echo -e "${BOLD}Uso:${NC} $0 [opções]"
+            echo ""
+            echo -e "  ${CYAN}--no-pull, --skip-pull${NC}  Recompila frontend, aplica migrações e atualiza containers sem executar 'git pull'"
+            echo -e "  ${CYAN}--help, -h${NC}              Exibe esta ajuda"
+            echo ""
+            exit 0
+            ;;
+    esac
+done
+
 echo ""
 echo -e "${CYAN}==================================================================${NC}"
 echo -e "${BOLD}${CYAN}   SISTEMA DE INVENTÁRIO - ATUALIZAÇÃO AUTOMÁTICA${NC}"
@@ -57,8 +76,19 @@ check_corporate_ca() {
 check_corporate_ca
 
 # ------------------------------------------------------------------------------
-# 1. Checagem do Docker Compose
+# 1. Checagem do Docker e Docker Compose
 # ------------------------------------------------------------------------------
+if ! command -v docker &> /dev/null; then
+    echo -e "${RED}[X] Docker não foi encontrado neste servidor!${NC}"
+    exit 1
+fi
+
+if ! docker info &> /dev/null; then
+    echo -e "${RED}[X] O serviço do Docker não está rodando ou seu usuário não tem permissão.${NC}"
+    echo "    Tente rodar com: sudo ./update.sh"
+    exit 1
+fi
+
 if docker compose version &> /dev/null; then
     DOCKER_COMPOSE="docker compose"
 elif command -v docker-compose &> /dev/null; then
@@ -72,7 +102,12 @@ fi
 # ------------------------------------------------------------------------------
 # 2. Puxa atualizações do Git (se for repositório git)
 # ------------------------------------------------------------------------------
-if [ -d ".git" ]; then
+# Evita erro de 'dubious ownership' ao rodar com sudo
+git config --global --add safe.directory "$PWD" 2>/dev/null || true
+
+if [ "$SKIP_GIT_PULL" = true ]; then
+    echo -e "${YELLOW}[1/5] Opção --no-pull ativada. Pulando 'git pull'.${NC}"
+elif [ -d ".git" ]; then
     echo -e "${YELLOW}[1/5] Baixando novidades do repositório Git...${NC}"
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
     echo " [*] Branch atual: $CURRENT_BRANCH"
@@ -85,7 +120,8 @@ if [ -d ".git" ]; then
         echo " Possíveis causas e como resolver:"
         echo " 1) Bloqueio no Firewall: Certifique-se de que o domínio 'github.com' (porta 443 TCP) está liberado."
         echo " 2) Erro de SSL: Se o firewall faz inspeção SSL, garanta que a CA corporativa está instalada."
-        echo " 3) Alterações locais conflitantes: Execute 'git status' para verificar."
+        echo " 3) Alterações locais não commitadas: Execute 'git status' para verificar."
+        echo "    Para rodar a atualização sem git pull, use: ./update.sh --no-pull"
         echo -e "${RED}==================================================================${NC}"
         exit 1
     fi
@@ -95,27 +131,41 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 2.1 Sincronização do Endereço do Servidor (MeshCentral & Agentes)
+# 3. Carregamento do .env e Sincronização de Host/Portas
 # ------------------------------------------------------------------------------
-if [ -f ".env" ]; then
-    ENV_SERVER_HOST=$(grep -E '^\s*SERVER_HOST\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d ' ' || true)
-    if [ -n "$ENV_SERVER_HOST" ]; then
-        SERVER_HOST="$ENV_SERVER_HOST"
-    fi
-    ENV_PORT_MESHCENTRAL=$(grep -E '^\s*PORT_MESHCENTRAL\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d ' ' || true)
-    if [ -n "$ENV_PORT_MESHCENTRAL" ]; then
-        PORT_MESHCENTRAL="$ENV_PORT_MESHCENTRAL"
-    fi
-fi
+load_env_config() {
+    if [ -f ".env" ]; then
+        ENV_SERVER_HOST=$(grep -E '^\s*SERVER_HOST\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_PORT_HTTPS=$(grep -E '^\s*PORT_HTTPS\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_PORT_HTTP=$(grep -E '^\s*PORT_HTTP\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_PORT_MESHCENTRAL=$(grep -E '^\s*PORT_MESHCENTRAL\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_POSTGRES_DB=$(grep -E '^\s*POSTGRES_DB\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_POSTGRES_USER=$(grep -E '^\s*POSTGRES_USER\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
 
-if [ -z "$SERVER_HOST" ]; then
-    DETECTED_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
-    if [ -z "$DETECTED_IP" ]; then
-        DETECTED_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}')
+        [ -n "$ENV_SERVER_HOST" ] && SERVER_HOST="$ENV_SERVER_HOST"
+        [ -n "$ENV_PORT_HTTPS" ] && PORT_HTTPS="$ENV_PORT_HTTPS"
+        [ -n "$ENV_PORT_HTTP" ] && PORT_HTTP="$ENV_PORT_HTTP"
+        [ -n "$ENV_PORT_MESHCENTRAL" ] && PORT_MESHCENTRAL="$ENV_PORT_MESHCENTRAL"
+        [ -n "$ENV_POSTGRES_DB" ] && POSTGRES_DB="$ENV_POSTGRES_DB"
+        [ -n "$ENV_POSTGRES_USER" ] && POSTGRES_USER="$ENV_POSTGRES_USER"
     fi
-    SERVER_HOST=${DETECTED_IP:-"localhost"}
-fi
-PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
+
+    if [ -z "$SERVER_HOST" ]; then
+        DETECTED_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+        if [ -z "$DETECTED_IP" ]; then
+            DETECTED_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}')
+        fi
+        SERVER_HOST=${DETECTED_IP:-"localhost"}
+    fi
+
+    PORT_HTTPS=${PORT_HTTPS:-443}
+    PORT_HTTP=${PORT_HTTP:-80}
+    PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
+    POSTGRES_DB=${POSTGRES_DB:-"giassi_inventory"}
+    POSTGRES_USER=${POSTGRES_USER:-"giassi_app"}
+}
+
+load_env_config
 
 echo " [*] Sincronizando endereço do servidor nos módulos de Acesso Remoto (${SERVER_HOST}:${PORT_MESHCENTRAL})..."
 if [ ! -f "meshcentral/config.json" ] && [ -f "meshcentral/config.json.example" ]; then
@@ -129,9 +179,9 @@ elif command -v node &>/dev/null; then
     node meshcentral/configure_host.js "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
 fi
 
-# ------------------------------------------------------------------------------
-# 3. Recompilar o Frontend (React / Vite)
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------
+# 4. Recompilar o Frontend (React / Vite)
+# --------------------------------------------------------------
 echo -e "${YELLOW}[2/5] Compilando painel frontend...${NC}"
 
 CA_VOLUME=""
@@ -139,24 +189,49 @@ if [ -f "/etc/ssl/certs/ca-certificates.crt" ]; then
     CA_VOLUME="-v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro -e NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt"
 fi
 
-NODE_VER="0"
+NODE_BIN=""
+NPM_BIN=""
+
+# 1. Checa se o comando node padrão é >= 20
 if command -v node &> /dev/null; then
-    NODE_VER=$(node -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+    VER=$(node -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+    if [ "$VER" -ge 20 ] 2>/dev/null; then
+        NODE_BIN=$(command -v node)
+        NPM_BIN=$(command -v npm 2>/dev/null || echo "npm")
+    fi
+fi
+
+# 2. Se executando com sudo e o node do root for < 20, verifica se o usuário chamador possui Node 20+ (ex: via NVM)
+if [ -z "$NODE_BIN" ] && [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+    USER_HOME=$(getent passwd "$SUDO_USER" 2>/dev/null | cut -d: -f6)
+    if [ -d "$USER_HOME/.nvm/versions/node" ]; then
+        CANDIDATE=$(find "$USER_HOME/.nvm/versions/node" -maxdepth 2 -name "node" 2>/dev/null | sort -V | tail -n 1)
+        if [ -n "$CANDIDATE" ] && [ -x "$CANDIDATE" ]; then
+            C_VER=$("$CANDIDATE" -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+            if [ "$C_VER" -ge 20 ] 2>/dev/null; then
+                NODE_BIN="$CANDIDATE"
+                NPM_BIN="$(dirname "$CANDIDATE")/npm"
+                echo " [*] Detectado Node.js local v$("$NODE_BIN" -v) no perfil do usuário $SUDO_USER."
+            fi
+        fi
+    fi
 fi
 
 COMPILED=false
 
-# O Vite 8 / Rolldown exige Node.js 20+. Se o Node local for anterior (ex: Node 18 ao rodar com sudo),
-# usa direto o container isolado node:20-alpine para evitar avisos EBADENGINE e SyntaxError: styleText
-if [ "$NODE_VER" -ge 20 ] 2>/dev/null && [ -f "frontend/package.json" ]; then
-    echo " [*] Usando Node.js local do servidor (v$(node -v))..."
-    if (cd frontend && npm install --no-audit --no-fund && npm run build); then
+# O Vite 8 / Rolldown exige Node.js 20+.
+if [ -n "$NODE_BIN" ] && [ -x "$NODE_BIN" ] && [ -f "frontend/package.json" ]; then
+    echo " [*] Usando Node.js local do servidor (v$("$NODE_BIN" -v))..."
+    ORIG_PATH="$PATH"
+    export PATH="$(dirname "$NODE_BIN"):$PATH"
+    if (cd frontend && "$NPM_BIN" install --no-audit --no-fund && "$NPM_BIN" run build); then
         COMPILED=true
     else
         echo -e "${YELLOW} [!] Compilação local falhou. Tentando via container Node.js 20...${NC}"
     fi
-elif [ "$NODE_VER" -gt 0 ] 2>/dev/null; then
-    echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é inferior ao exigido pelo Vite 8 (Node 20+)."
+    export PATH="$ORIG_PATH"
+elif command -v node &> /dev/null; then
+    echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é anterior ao v20 (Vite 8 requer Node 20+)."
     echo "     Usando container isolado 'node:20-alpine' para compilação garantida..."
 fi
 
@@ -166,6 +241,11 @@ if [ "$COMPILED" = false ]; then
     if docker run --rm -v "$(pwd)/frontend:/app" $CA_VOLUME -w /app node:20-alpine sh -c "npm install --no-audit --no-fund && npm run build"; then
         COMPILED=true
     fi
+fi
+
+# Ajusta permissões dos arquivos gerados caso tenha rodado via sudo ou container root
+if [ -n "$SUDO_USER" ]; then
+    chown -R "$SUDO_USER":"$SUDO_USER" frontend/dist frontend/node_modules 2>/dev/null || true
 fi
 
 if [ "$COMPILED" = false ]; then
@@ -192,7 +272,7 @@ fi
 echo -e "${GREEN}[✓] Frontend compilado com sucesso em ./frontend/dist!${NC}"
 
 # ------------------------------------------------------------------------------
-# 4. Reconstrução e reinicialização dos containers (sem tocar em volumes)
+# 5. Reconstrução e reinicialização dos containers (sem tocar em volumes)
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[3/5] Reconstruindo imagens Docker e aplicando alterações...${NC}"
 
@@ -225,12 +305,13 @@ if ! $DOCKER_COMPOSE up -d --build; then
 fi
 
 # ------------------------------------------------------------------------------
-# 5. Aguardar PostgreSQL estar pronto antes de rodar migrações
+# 6. Aguardar PostgreSQL estar pronto antes de rodar migrações
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[4/5] Aguardando o banco de dados PostgreSQL estar operacional...${NC}"
 MAX_ATTEMPTS=30
 ATTEMPT=0
-until $DOCKER_COMPOSE exec -T postgres pg_isready &>/dev/null; do
+until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-giassi_app}" -d "${POSTGRES_DB:-giassi_inventory}" &>/dev/null || \
+      $DOCKER_COMPOSE exec -T postgres pg_isready &>/dev/null; do
     ATTEMPT=$((ATTEMPT + 1))
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
         echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL responder na porta 5432.${NC}"
@@ -243,7 +324,7 @@ done
 echo -e "${GREEN}[✓] PostgreSQL pronto para conexões.${NC}"
 
 # ------------------------------------------------------------------------------
-# 6. Executar migrações estruturais do banco de dados (Alembic) e sincronizar perfis
+# 7. Executar migrações estruturais do banco (Alembic) e sincronizar perfis
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[5/5] Aplicando novas migrações e sincronizando perfis no banco...${NC}"
 
@@ -252,10 +333,12 @@ if ! $DOCKER_COMPOSE exec -T backend alembic upgrade head; then
     exit 1
 fi
 
+echo " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
 $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
 
 # Sincronizar grupos e permissões restritas no MeshCentral (Operadores Matriz - rights: 8)
+echo " [*] Sincronizando grupos e permissões restritas no MeshCentral..."
 $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
 $DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
 
@@ -267,6 +350,8 @@ until $DOCKER_COMPOSE exec -T meshcentral netstat -tuln 2>/dev/null | grep -q ":
     ATTEMPT=$((ATTEMPT + 1))
     sleep 1
 done
+
+echo " [*] Recarregando proxy Nginx..."
 $DOCKER_COMPOSE exec -T nginx nginx -s reload 2>/dev/null || true
 
 echo -e "${GREEN}[✓] Banco de dados e papéis estruturalmente atualizados sem perda de dados.${NC}"
@@ -274,17 +359,42 @@ echo -e "${GREEN}[✓] Banco de dados e papéis estruturalmente atualizados sem 
 # Limpeza de imagens órfãs antigas
 docker image prune -f >/dev/null 2>&1 || true
 
+# ------------------------------------------------------------------------------
+# 8. Conclusão e Resumo da Atualização
+# ------------------------------------------------------------------------------
+if [ "$PORT_HTTPS" = "443" ]; then
+    URL_PAINEL="https://${SERVER_HOST}"
+else
+    URL_PAINEL="https://${SERVER_HOST}:${PORT_HTTPS}"
+fi
+
 echo ""
 echo -e "${CYAN}==================================================================${NC}"
 echo -e "${BOLD}${GREEN}   SISTEMA ATUALIZADO COM SUCESSO! 🚀${NC}"
 echo -e "${CYAN}==================================================================${NC}"
+echo -e " ${BOLD}Painel de Acesso:${NC}     ${GREEN}${URL_PAINEL}${NC}"
+echo -e " ${BOLD}Porta HTTPS:${NC}          ${CYAN}${PORT_HTTPS:-443}${NC}"
+echo -e " ${BOLD}Porta HTTP:${NC}           ${CYAN}${PORT_HTTP:-80}${NC}"
+echo -e " ${BOLD}Porta MeshCentral:${NC}    ${CYAN}${PORT_MESHCENTRAL:-4443}${NC}"
+echo -e " ${BOLD}Banco de Dados:${NC}       ${GREEN}100% preservado com novas tabelas e perfis.${NC}"
+
 if [ -d ".git" ]; then
     LAST_COMMIT=$(git log -1 --pretty=format:"%h - %s (%cr)" 2>/dev/null || echo "")
     if [ -n "$LAST_COMMIT" ]; then
-        echo -e " ${BOLD}Versão instalada:${NC} ${CYAN}${LAST_COMMIT}${NC}"
+        echo -e " ${BOLD}Versão instalada:${NC}     ${CYAN}${LAST_COMMIT}${NC}"
     fi
 fi
-echo -e " ${BOLD}Status dos serviços:${NC}"
+
+echo -e "------------------------------------------------------------------"
+echo -e " ${BOLD}Comandos para instalar / atualizar os agentes nas máquinas:${NC}"
+echo ""
+echo -e " ${BOLD}• Windows (PowerShell como Administrador):${NC}"
+echo -e "   ${CYAN}irm ${URL_PAINEL}/api/v1/agent/windows | iex${NC}"
+echo ""
+echo -e " ${BOLD}• Linux (Terminal / Bash como Root):${NC}"
+echo -e "   ${CYAN}curl -sSL ${URL_PAINEL}/api/v1/agent/linux | sudo bash${NC}"
+echo -e "------------------------------------------------------------------"
+echo -e " ${BOLD}Status dos serviços Docker:${NC}"
 $DOCKER_COMPOSE ps
 echo -e "${CYAN}==================================================================${NC}"
 echo ""

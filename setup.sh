@@ -92,7 +92,52 @@ fi
 echo -e "${GREEN}[✓] Docker e Docker Compose operacionais.${NC}"
 echo ""
 
-# Função reutilizável para compilação garantida do frontend
+# ------------------------------------------------------------------------------
+# Funções Utilitárias Compartilhadas
+# ------------------------------------------------------------------------------
+
+# Carrega variáveis do .env de maneira segura e tolerante a espaços/aspas
+load_env_config() {
+    if [ -f ".env" ]; then
+        ENV_SERVER_HOST=$(grep -E '^\s*SERVER_HOST\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_PORT_HTTPS=$(grep -E '^\s*PORT_HTTPS\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_PORT_HTTP=$(grep -E '^\s*PORT_HTTP\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_PORT_MESHCENTRAL=$(grep -E '^\s*PORT_MESHCENTRAL\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_POSTGRES_DB=$(grep -E '^\s*POSTGRES_DB\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_POSTGRES_USER=$(grep -E '^\s*POSTGRES_USER\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_POSTGRES_PASSWORD=$(grep -E '^\s*POSTGRES_PASSWORD\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        ENV_JWT_SECRET=$(grep -E '^\s*JWT_SECRET_KEY\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+
+        [ -n "$ENV_SERVER_HOST" ] && SERVER_HOST="$ENV_SERVER_HOST"
+        [ -n "$ENV_PORT_HTTPS" ] && PORT_HTTPS="$ENV_PORT_HTTPS"
+        [ -n "$ENV_PORT_HTTP" ] && PORT_HTTP="$ENV_PORT_HTTP"
+        [ -n "$ENV_PORT_MESHCENTRAL" ] && PORT_MESHCENTRAL="$ENV_PORT_MESHCENTRAL"
+        [ -n "$ENV_POSTGRES_DB" ] && POSTGRES_DB="$ENV_POSTGRES_DB"
+        [ -n "$ENV_POSTGRES_USER" ] && POSTGRES_USER="$ENV_POSTGRES_USER"
+        [ -n "$ENV_POSTGRES_PASSWORD" ] && POSTGRES_PASSWORD="$ENV_POSTGRES_PASSWORD"
+        [ -n "$ENV_JWT_SECRET" ] && JWT_SECRET="$ENV_JWT_SECRET"
+    fi
+
+    SERVER_HOST=${SERVER_HOST:-"localhost"}
+    PORT_HTTPS=${PORT_HTTPS:-443}
+    PORT_HTTP=${PORT_HTTP:-80}
+    PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
+    POSTGRES_DB=${POSTGRES_DB:-"giassi_inventory"}
+    POSTGRES_USER=${POSTGRES_USER:-"giassi_app"}
+}
+
+# Retorna a URL completa do painel web respeitando portas alternativas
+get_panel_url() {
+    local host="${SERVER_HOST:-localhost}"
+    local port="${PORT_HTTPS:-443}"
+    if [ "$port" = "443" ]; then
+        echo "https://${host}"
+    else
+        echo "https://${host}:${port}"
+    fi
+}
+
+# Função reutilizável para compilação garantida do frontend (Node 20+ local ou container)
 compile_frontend() {
     echo -e "${YELLOW}[*] Compilando painel frontend...${NC}"
 
@@ -101,23 +146,52 @@ compile_frontend() {
         CA_VOLUME="-v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro -e NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt"
     fi
 
-    local NODE_VER="0"
+    local NODE_BIN=""
+    local NPM_BIN=""
+
+    # 1. Checa se o comando node padrão é >= 20
     if command -v node &> /dev/null; then
-        NODE_VER=$(node -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+        local VER
+        VER=$(node -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+        if [ "$VER" -ge 20 ] 2>/dev/null; then
+            NODE_BIN=$(command -v node)
+            NPM_BIN=$(command -v npm 2>/dev/null || echo "npm")
+        fi
+    fi
+
+    # 2. Se executando com sudo e o node do root for < 20, verifica se o usuário chamador possui Node 20+ (ex: via NVM)
+    if [ -z "$NODE_BIN" ] && [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+        local USER_HOME
+        USER_HOME=$(getent passwd "$SUDO_USER" 2>/dev/null | cut -d: -f6)
+        if [ -d "$USER_HOME/.nvm/versions/node" ]; then
+            local CANDIDATE
+            CANDIDATE=$(find "$USER_HOME/.nvm/versions/node" -maxdepth 2 -name "node" 2>/dev/null | sort -V | tail -n 1)
+            if [ -n "$CANDIDATE" ] && [ -x "$CANDIDATE" ]; then
+                local C_VER
+                C_VER=$("$CANDIDATE" -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+                if [ "$C_VER" -ge 20 ] 2>/dev/null; then
+                    NODE_BIN="$CANDIDATE"
+                    NPM_BIN="$(dirname "$CANDIDATE")/npm"
+                    echo " [*] Detectado Node.js local v$("$NODE_BIN" -v) no perfil do usuário $SUDO_USER."
+                fi
+            fi
+        fi
     fi
 
     local COMPILED=false
 
-    # O Vite 8 / Rolldown exige Node.js 20+. Se o Node local for anterior (ex: Node 18 ao rodar com sudo),
-    # usa direto o container isolado node:20-alpine para evitar avisos EBADENGINE e SyntaxError: styleText
-    if [ "$NODE_VER" -ge 20 ] 2>/dev/null && [ -f "frontend/package.json" ]; then
-        echo " [*] Usando Node.js local do servidor (v$(node -v))..."
-        if (cd frontend && npm install --no-audit --no-fund && npm run build); then
+    # O Vite 8 / Rolldown exige Node.js 20+.
+    if [ -n "$NODE_BIN" ] && [ -x "$NODE_BIN" ] && [ -f "frontend/package.json" ]; then
+        echo " [*] Usando Node.js local do servidor (v$("$NODE_BIN" -v))..."
+        local ORIG_PATH="$PATH"
+        export PATH="$(dirname "$NODE_BIN"):$PATH"
+        if (cd frontend && "$NPM_BIN" install --no-audit --no-fund && "$NPM_BIN" run build); then
             COMPILED=true
         else
             echo -e "${YELLOW} [!] Compilação local falhou. Tentando via container Node.js 20...${NC}"
         fi
-    elif [ "$NODE_VER" -gt 0 ] 2>/dev/null; then
+        export PATH="$ORIG_PATH"
+    elif command -v node &> /dev/null; then
         echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é anterior ao v20 (Vite 8 requer Node 20+)."
         echo "     Usando container isolado 'node:20-alpine' para compilação garantida..."
     fi
@@ -128,6 +202,11 @@ compile_frontend() {
         if docker run --rm -v "$(pwd)/frontend:/app" $CA_VOLUME -w /app node:20-alpine sh -c "npm install --no-audit --no-fund && npm run build"; then
             COMPILED=true
         fi
+    fi
+
+    # Ajusta permissões dos arquivos gerados caso tenha rodado via sudo ou container root
+    if [ -n "$SUDO_USER" ]; then
+        chown -R "$SUDO_USER":"$SUDO_USER" frontend/dist frontend/node_modules 2>/dev/null || true
     fi
 
     if [ "$COMPILED" = false ]; then
@@ -154,6 +233,112 @@ compile_frontend() {
     echo -e "${GREEN}[✓] Frontend compilado com sucesso em ./frontend/dist!${NC}"
 }
 
+# Sincroniza configurações dinâmicas de host e portas no MeshCentral e agentes
+sync_meshcentral_host() {
+    echo " [*] Sincronizando endereço do servidor nos módulos de Acesso Remoto (${SERVER_HOST:-localhost}:${PORT_MESHCENTRAL:-4443})..."
+    if [ ! -f "meshcentral/config.json" ] && [ -f "meshcentral/config.json.example" ]; then
+        echo " [*] Inicializando meshcentral/config.json a partir do modelo de exemplo..."
+        cp "meshcentral/config.json.example" "meshcentral/config.json"
+    fi
+
+    if command -v python3 &>/dev/null; then
+        python3 meshcentral/configure_host.py "${SERVER_HOST:-localhost}" "${PORT_MESHCENTRAL:-4443}" 2>/dev/null || true
+    elif command -v node &>/dev/null; then
+        node meshcentral/configure_host.js "${SERVER_HOST:-localhost}" "${PORT_MESHCENTRAL:-4443}" 2>/dev/null || true
+    fi
+}
+
+# Aguarda PostgreSQL estar saudável para conexões
+wait_for_postgres() {
+    echo " [*] Aguardando o banco de dados PostgreSQL estar operacional..."
+    local MAX_ATTEMPTS=30
+    local ATTEMPT=0
+    until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-giassi_app}" -d "${POSTGRES_DB:-giassi_inventory}" &>/dev/null || \
+          $DOCKER_COMPOSE exec -T postgres pg_isready &>/dev/null; do
+        ATTEMPT=$((ATTEMPT + 1))
+        if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+            echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL responder na porta 5432.${NC}"
+            $DOCKER_COMPOSE logs --tail 20 postgres
+            exit 1
+        fi
+        sleep 1
+    done
+    echo -e "${GREEN}[✓] PostgreSQL operacional.${NC}"
+}
+
+# Aplica migrações Alembic, sincroniza perfis e recarrega Nginx
+apply_database_migrations_and_roles() {
+    echo " [*] Aplicando migrações estruturais do banco de dados (Alembic)..."
+    if ! $DOCKER_COMPOSE exec -T backend alembic upgrade head; then
+        echo -e "${RED}[X] Erro ao aplicar migrações Alembic no banco de dados.${NC}"
+        exit 1
+    fi
+
+    echo " [*] Sincronizando perfis do sistema (Operador Matriz) e permissões..."
+    $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
+    $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
+
+    echo " [*] Sincronizando grupos e permissões restritas no MeshCentral..."
+    $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
+    $DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
+
+    echo " [*] Aguardando inicialização do serviço MeshCentral (porta 4430)..."
+    local MAX_ATTEMPTS=20
+    local ATTEMPT=0
+    until $DOCKER_COMPOSE exec -T meshcentral netstat -tuln 2>/dev/null | grep -q ":4430" || [ $ATTEMPT -ge $MAX_ATTEMPTS ]; do
+        ATTEMPT=$((ATTEMPT + 1))
+        sleep 1
+    done
+
+    echo " [*] Recarregando proxy Nginx..."
+    $DOCKER_COMPOSE exec -T nginx nginx -s reload 2>/dev/null || true
+}
+
+# Exibe o sumário final completo de conclusão
+show_completion_summary() {
+    local title="$1"
+    local URL_PAINEL
+    URL_PAINEL=$(get_panel_url)
+
+    echo ""
+    echo -e "${CYAN}==================================================================${NC}"
+    echo -e "${BOLD}${GREEN}   ${title} 🚀${NC}"
+    echo -e "${CYAN}==================================================================${NC}"
+    echo -e " ${BOLD}Painel de Acesso:${NC}     ${GREEN}${URL_PAINEL}${NC}"
+    if [ -n "$ADMIN_USER" ]; then
+        echo -e " ${BOLD}Usuário Admin:${NC}        ${YELLOW}${ADMIN_USER}${NC}"
+    fi
+    if [ -n "$COMPANY_NAME" ]; then
+        echo -e " ${BOLD}Empresa:${NC}              ${CYAN}${COMPANY_NAME}${NC}"
+    fi
+    echo -e " ${BOLD}Porta HTTPS:${NC}          ${CYAN}${PORT_HTTPS:-443}${NC}"
+    echo -e " ${BOLD}Porta HTTP:${NC}           ${CYAN}${PORT_HTTP:-80}${NC}"
+    echo -e " ${BOLD}Porta MeshCentral:${NC}    ${CYAN}${PORT_MESHCENTRAL:-4443}${NC}"
+    echo -e " ${BOLD}Banco de Dados:${NC}       ${GREEN}100% preservado com novas tabelas e perfis.${NC}"
+    if [ -d ".git" ]; then
+        local LAST_COMMIT
+        LAST_COMMIT=$(git log -1 --pretty=format:"%h - %s (%cr)" 2>/dev/null || echo "")
+        if [ -n "$LAST_COMMIT" ]; then
+            echo -e " ${BOLD}Versão instalada:${NC}     ${CYAN}${LAST_COMMIT}${NC}"
+        fi
+    fi
+    echo -e "------------------------------------------------------------------"
+    echo -e " ${BOLD}Comandos para instalar / atualizar os agentes nas máquinas:${NC}"
+    echo ""
+    echo -e " ${BOLD}• Windows (PowerShell como Administrador):${NC}"
+    echo -e "   ${CYAN}irm ${URL_PAINEL}/api/v1/agent/windows | iex${NC}"
+    echo ""
+    echo -e " ${BOLD}• Linux (Terminal / Bash como Root):${NC}"
+    echo -e "   ${CYAN}curl -sSL ${URL_PAINEL}/api/v1/agent/linux | sudo bash${NC}"
+    echo -e "------------------------------------------------------------------"
+    echo -e " ${YELLOW}[i] Dica de Certificado SSL:${NC}"
+    echo -e "     Caso deseje usar o certificado oficial da sua empresa, basta"
+    echo -e "     substituir os arquivos em: ${BOLD}./nginx/certs/giassi.crt${NC} e ${BOLD}.key${NC}"
+    echo -e "     e rodar: ${BOLD}$DOCKER_COMPOSE exec -T nginx nginx -s reload${NC}"
+    echo -e "${CYAN}==================================================================${NC}"
+    echo ""
+}
+
 # ------------------------------------------------------------------------------
 # 2. Detecção de Instalação Existente (Modo Upgrade Seguro vs Nova Instalação)
 # ------------------------------------------------------------------------------
@@ -174,30 +359,10 @@ if [ -f ".env" ]; then
         echo ""
         echo -e "${GREEN}[✓] Iniciando Atualização Segura (sem perda de dados)...${NC}"
 
-        # Carrega variáveis do .env existente
-        if [ -f ".env" ]; then
-            ENV_SERVER_HOST=$(grep -E '^\s*SERVER_HOST\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d ' ' || true)
-            if [ -n "$ENV_SERVER_HOST" ]; then
-                SERVER_HOST="$ENV_SERVER_HOST"
-            fi
-            ENV_PORT_MESHCENTRAL=$(grep -E '^\s*PORT_MESHCENTRAL\s*=' .env | head -n 1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d ' ' || true)
-            if [ -n "$ENV_PORT_MESHCENTRAL" ]; then
-                PORT_MESHCENTRAL="$ENV_PORT_MESHCENTRAL"
-            fi
-        fi
-
-        PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
-        echo " [*] Sincronizando endereço do servidor nos módulos de Acesso Remoto (${SERVER_HOST:-localhost}:${PORT_MESHCENTRAL})..."
-        if command -v python3 &>/dev/null; then
-            python3 meshcentral/configure_host.py "${SERVER_HOST:-localhost}" "$PORT_MESHCENTRAL" 2>/dev/null || true
-        elif command -v node &>/dev/null; then
-            node meshcentral/configure_host.js "${SERVER_HOST:-localhost}" "$PORT_MESHCENTRAL" 2>/dev/null || true
-        fi
-
-        # Compilar frontend
+        load_env_config
+        sync_meshcentral_host
         compile_frontend
 
-        # Subir containers mantendo volumes intactos
         echo -e "${YELLOW}[*] Atualizando e iniciando containers Docker...${NC}"
         if ! $DOCKER_COMPOSE up -d --build; then
             echo ""
@@ -227,53 +392,9 @@ if [ -f ".env" ]; then
             exit 1
         fi
 
-        # Aguardar PostgreSQL estar pronto
-        echo " [*] Aguardando o banco de dados PostgreSQL estar operacional..."
-        MAX_ATTEMPTS=30
-        ATTEMPT=0
-        until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" &>/dev/null; do
-            ATTEMPT=$((ATTEMPT + 1))
-            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-                echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL responder na porta 5432.${NC}"
-                $DOCKER_COMPOSE logs --tail 20 postgres
-                exit 1
-            fi
-            sleep 1
-        done
-        echo -e "${GREEN}[✓] PostgreSQL operacional.${NC}"
-
-        # Aplicar migrações estruturais do banco (Alembic) e papéis
-        echo " [*] Aplicando migrações estruturais do banco de dados..."
-        $DOCKER_COMPOSE exec -T backend alembic upgrade head
-        echo " [*] Sincronizando novos perfis (Operador Matriz) e permissões..."
-        $DOCKER_COMPOSE exec -T backend python -m app.seeds.seed_turnkey --sync-roles 2>/dev/null || \
-        $DOCKER_COMPOSE exec -T backend python -m app.seeds.sync_roles 2>/dev/null || true
-        $DOCKER_COMPOSE exec -T meshcentral node /opt/meshcentral/ensure_permissions.js 2>/dev/null || true
-        $DOCKER_COMPOSE restart meshcentral 2>/dev/null || true
-
-        # Aguardar MeshCentral abrir a porta 4430 e sincronizar Nginx (evita 502 Bad Gateway)
-        echo " [*] Aguardando inicialização do serviço MeshCentral (porta 4430)..."
-        MAX_ATTEMPTS=20
-        ATTEMPT=0
-        until $DOCKER_COMPOSE exec -T meshcentral netstat -tuln 2>/dev/null | grep -q ":4430" || [ $ATTEMPT -ge $MAX_ATTEMPTS ]; do
-            ATTEMPT=$((ATTEMPT + 1))
-            sleep 1
-        done
-        $DOCKER_COMPOSE exec -T nginx nginx -s reload 2>/dev/null || true
-
-        echo ""
-        echo -e "${CYAN}==================================================================${NC}"
-        echo -e "${BOLD}${GREEN}   SISTEMA ATUALIZADO COM SUCESSO! 🚀${NC}"
-        echo -e "${CYAN}==================================================================${NC}"
-        if [ "$PORT_HTTPS" -eq 443 ] 2>/dev/null; then
-            URL_PAINEL="https://${SERVER_HOST:-localhost}"
-        else
-            URL_PAINEL="https://${SERVER_HOST:-localhost}:${PORT_HTTPS:-443}"
-        fi
-        echo -e " ${BOLD}Painel de Acesso:${NC}     ${GREEN}${URL_PAINEL}${NC}"
-        echo -e " ${BOLD}Banco de Dados:${NC}       ${GREEN}100% preservado com novas tabelas e perfis.${NC}"
-        echo -e "${CYAN}==================================================================${NC}"
-        echo ""
+        wait_for_postgres
+        apply_database_migrations_and_roles
+        show_completion_summary "SISTEMA ATUALIZADO COM SUCESSO!"
         exit 0
     fi
 fi
@@ -284,6 +405,9 @@ fi
 echo -e "${YELLOW}[2/6] Coleta de parâmetros da instalação:${NC}"
 echo "------------------------------------------------------------------"
 
+# Pré-carrega valores existentes do .env (se houver) como defaults
+load_env_config
+
 # Detecta IP primário da máquina
 HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 if [ -z "$HOST_IP" ]; then
@@ -292,6 +416,8 @@ fi
 if [ -z "$HOST_IP" ]; then
     HOST_IP="127.0.0.1"
 fi
+
+DEFAULT_HOST="${ENV_SERVER_HOST:-$HOST_IP}"
 
 # Nome da Empresa
 read -p " Nome da empresa [Giassi Supermercados]: " INPUT_COMPANY_NAME
@@ -304,25 +430,33 @@ read -p " Identificador curto / slug da empresa [$DEFAULT_SLUG]: " INPUT_COMPANY
 COMPANY_SLUG=${INPUT_COMPANY_SLUG:-"$DEFAULT_SLUG"}
 
 # IP ou DNS do Servidor
-read -p " IP ou DNS de acesso ao servidor [$HOST_IP]: " INPUT_SERVER_HOST
-SERVER_HOST=${INPUT_SERVER_HOST:-"$HOST_IP"}
+read -p " IP ou DNS de acesso ao servidor [$DEFAULT_HOST]: " INPUT_SERVER_HOST
+SERVER_HOST=${INPUT_SERVER_HOST:-"$DEFAULT_HOST"}
 
 # Portas Web
-read -p " Porta HTTPS [443]: " INPUT_PORT_HTTPS
-PORT_HTTPS=${INPUT_PORT_HTTPS:-443}
+DEFAULT_PORT_HTTPS="${ENV_PORT_HTTPS:-443}"
+read -p " Porta HTTPS [$DEFAULT_PORT_HTTPS]: " INPUT_PORT_HTTPS
+PORT_HTTPS=${INPUT_PORT_HTTPS:-"$DEFAULT_PORT_HTTPS"}
 
-read -p " Porta HTTP [80]: " INPUT_PORT_HTTP
-PORT_HTTP=${INPUT_PORT_HTTP:-80}
+DEFAULT_PORT_HTTP="${ENV_PORT_HTTP:-80}"
+read -p " Porta HTTP [$DEFAULT_PORT_HTTP]: " INPUT_PORT_HTTP
+PORT_HTTP=${INPUT_PORT_HTTP:-"$DEFAULT_PORT_HTTP"}
+
+DEFAULT_PORT_MESHCENTRAL="${ENV_PORT_MESHCENTRAL:-4443}"
+read -p " Porta MeshCentral [$DEFAULT_PORT_MESHCENTRAL]: " INPUT_PORT_MESHCENTRAL
+PORT_MESHCENTRAL=${INPUT_PORT_MESHCENTRAL:-"$DEFAULT_PORT_MESHCENTRAL"}
 
 # Banco de Dados
-read -p " Nome do banco de dados [${COMPANY_SLUG}_inventory]: " INPUT_POSTGRES_DB
-POSTGRES_DB=${INPUT_POSTGRES_DB:-"${COMPANY_SLUG}_inventory"}
+DEFAULT_DB="${ENV_POSTGRES_DB:-${COMPANY_SLUG}_inventory}"
+read -p " Nome do banco de dados [$DEFAULT_DB]: " INPUT_POSTGRES_DB
+POSTGRES_DB=${INPUT_POSTGRES_DB:-"$DEFAULT_DB"}
 
-read -p " Usuário do banco de dados [${COMPANY_SLUG}_app]: " INPUT_POSTGRES_USER
-POSTGRES_USER=${INPUT_POSTGRES_USER:-"${COMPANY_SLUG}_app"}
+DEFAULT_USER="${ENV_POSTGRES_USER:-${COMPANY_SLUG}_app}"
+read -p " Usuário do banco de dados [$DEFAULT_USER]: " INPUT_POSTGRES_USER
+POSTGRES_USER=${INPUT_POSTGRES_USER:-"$DEFAULT_USER"}
 
-# Senha do Banco
-SUGGESTED_DB_PASS=$(openssl rand -hex 8 2>/dev/null || date +%s | sha256sum | head -c 16)
+# Senha do Banco (preserva senha existente se houver)
+SUGGESTED_DB_PASS="${ENV_POSTGRES_PASSWORD:-$(openssl rand -hex 8 2>/dev/null || date +%s | sha256sum | head -c 16)}"
 read -p " Senha do banco de dados [$SUGGESTED_DB_PASS]: " INPUT_POSTGRES_PASS
 POSTGRES_PASSWORD=${INPUT_POSTGRES_PASS:-"$SUGGESTED_DB_PASS"}
 
@@ -370,8 +504,10 @@ echo ""
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[3/6] Gerando variáveis de ambiente (.env) e chaves JWT...${NC}"
 
-# Chave secreta de 256 bits criptográfica
-JWT_SECRET=$(openssl rand -hex 32 2>/dev/null || python3 -c "import secrets; print(secrets.token_hex(32))" 2>/dev/null || date +%s%N | sha256sum | head -c 64)
+# Chave secreta de 256 bits criptográfica (preserva existente se houver)
+if [ -z "$JWT_SECRET" ]; then
+    JWT_SECRET=$(openssl rand -hex 32 2>/dev/null || python3 -c "import secrets; print(secrets.token_hex(32))" 2>/dev/null || date +%s%N | sha256sum | head -c 64)
+fi
 
 cat <<EOF > .env
 POSTGRES_DB=${POSTGRES_DB}
@@ -383,17 +519,12 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=1440
 SERVER_HOST=${SERVER_HOST}
 PORT_HTTP=${PORT_HTTP}
 PORT_HTTPS=${PORT_HTTPS}
+PORT_MESHCENTRAL=${PORT_MESHCENTRAL}
 EOF
 
 echo -e "${GREEN}[✓] Arquivo .env gerado com sucesso.${NC}"
 
-PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
-echo " [*] Sincronizando IP do servidor nos módulos de Acesso Remoto (${SERVER_HOST}:${PORT_MESHCENTRAL})..."
-if command -v python3 &>/dev/null; then
-    python3 meshcentral/configure_host.py "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
-elif command -v node &>/dev/null; then
-    node meshcentral/configure_host.js "$SERVER_HOST" "$PORT_MESHCENTRAL" 2>/dev/null || true
-fi
+sync_meshcentral_host
 
 # ------------------------------------------------------------------------------
 # 5. Compilação do Frontend
@@ -451,19 +582,7 @@ if ! $DOCKER_COMPOSE up -d --build; then
     exit 1
 fi
 
-echo " [*] Aguardando o banco de dados PostgreSQL ficar pronto para conexões..."
-MAX_ATTEMPTS=30
-ATTEMPT=0
-until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" &>/dev/null; do
-    ATTEMPT=$((ATTEMPT + 1))
-    if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-        echo -e "${RED}[X] Tempo limite esgotado esperando o PostgreSQL responder na porta 5432.${NC}"
-        $DOCKER_COMPOSE logs --tail 20 postgres
-        exit 1
-    fi
-    sleep 1
-done
-echo -e "${GREEN}[✓] Banco de dados PostgreSQL online.${NC}"
+wait_for_postgres
 
 echo " [*] Executando migrações estruturais do banco (Alembic)..."
 $DOCKER_COMPOSE exec -T backend alembic upgrade head
@@ -497,32 +616,5 @@ $DOCKER_COMPOSE exec -T nginx nginx -s reload 2>/dev/null || true
 # ------------------------------------------------------------------------------
 # 7. Conclusão e Resumo da Instalação
 # ------------------------------------------------------------------------------
-echo ""
-echo -e "${CYAN}==================================================================${NC}"
-echo -e "${BOLD}${GREEN}   INSTALAÇÃO CONCLUÍDA COM SUCESSO! 🚀${NC}"
-echo -e "${CYAN}==================================================================${NC}"
-if [ "$PORT_HTTPS" -eq 443 ]; then
-    URL_PAINEL="https://${SERVER_HOST}"
-else
-    URL_PAINEL="https://${SERVER_HOST}:${PORT_HTTPS}"
-fi
-
-echo -e " ${BOLD}Painel de Acesso:${NC}     ${GREEN}${URL_PAINEL}${NC}"
-echo -e " ${BOLD}Usuário Admin:${NC}        ${YELLOW}${ADMIN_USER}${NC}"
-echo -e " ${BOLD}Empresa:${NC}              ${CYAN}${COMPANY_NAME}${NC}"
-echo -e "------------------------------------------------------------------"
-echo -e " ${BOLD}Comandos para instalar os agentes nas máquinas:${NC}"
-echo ""
-echo -e " ${BOLD}• Windows (PowerShell como Administrador):${NC}"
-echo -e "   ${CYAN}irm ${URL_PAINEL}/api/v1/agent/windows | iex${NC}"
-echo ""
-echo -e " ${BOLD}• Linux (Terminal / Bash como Root):${NC}"
-echo -e "   ${CYAN}curl -sSL ${URL_PAINEL}/api/v1/agent/linux | sudo bash${NC}"
-echo -e "------------------------------------------------------------------"
-echo -e " ${YELLOW}[i] Dica de Certificado SSL:${NC}"
-echo -e "     Um certificado auto-assinado válido por 10 anos foi gerado."
-echo -e "     Caso deseje usar o certificado oficial da sua empresa, basta"
-echo -e "     substituir os arquivos em: ${BOLD}./nginx/certs/giassi.crt${NC} e ${BOLD}.key${NC}"
-echo -e "     e rodar: ${BOLD}docker exec giassi-nginx nginx -s reload${NC}"
-echo -e "${CYAN}==================================================================${NC}"
-echo ""
+show_completion_summary "INSTALAÇÃO CONCLUÍDA COM SUCESSO!"
+exit 0
