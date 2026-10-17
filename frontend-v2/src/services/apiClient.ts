@@ -1,22 +1,19 @@
 import { LoginResponse, User, Verify2FAResponse } from '@/types/auth';
 
-export const API_URL =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location.port === '5173'
-    ? 'http://localhost:8000/api/v1'
-    : '/api/v1');
+export const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
-const TOKEN_KEY = 'giassi_token';
+const TOKEN_KEY = 'access_token';
 
 export const authStorage = {
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('giassi_token');
   },
   setToken(token: string): void {
     localStorage.setItem(TOKEN_KEY, token);
   },
   removeToken(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('giassi_token');
   },
 };
 

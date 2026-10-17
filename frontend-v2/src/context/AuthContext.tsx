@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@/types/auth';
-import { authStorage, getCurrentUser, login as apiLogin, logout as apiLogout } from '@/services/apiClient';
+import { LoginResponse, User, Verify2FAResponse } from '@/types/auth';
+import {
+  authStorage,
+  getCurrentUser,
+  login as apiLogin,
+  logout as apiLogout,
+  verify2FA as apiVerify2FA,
+} from '@/services/apiClient';
 
 interface AuthContextType {
   user: User | null;
@@ -8,7 +14,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isMatrizOperator: boolean;
-  login: (username: string, pass: string) => Promise<void>;
+  login: (username: string, pass: string) => Promise<LoginResponse>;
+  verify2FA: (tempToken: string, code: string) => Promise<Verify2FAResponse>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -42,11 +49,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUser();
   }, []);
 
-  const handleLogin = async (username: string, pass: string) => {
+  const handleLogin = async (username: string, pass: string): Promise<LoginResponse> => {
     const res = await apiLogin(username, pass);
     if (res.access_token) {
       await fetchUser();
     }
+    return res;
+  };
+
+  const handleVerify2FA = async (tempToken: string, code: string): Promise<Verify2FAResponse> => {
+    const res = await apiVerify2FA(tempToken, code);
+    if (res.access_token) {
+      await fetchUser();
+    }
+    return res;
   };
 
   const handleLogout = () => {
@@ -67,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin,
         isMatrizOperator,
         login: handleLogin,
+        verify2FA: handleVerify2FA,
         logout: handleLogout,
         refreshUser: fetchUser,
       }}
