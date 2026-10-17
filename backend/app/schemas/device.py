@@ -217,6 +217,7 @@ class DeviceListItem(BaseModel):
     sistema: Optional[str] = None
     versao: Optional[str] = None
     status: Optional[str] = None
+    alerta_hardware: Optional[str] = None
     processador: Optional[str] = None
     ram_total: Optional[str] = None
     disco_total: Optional[str] = None

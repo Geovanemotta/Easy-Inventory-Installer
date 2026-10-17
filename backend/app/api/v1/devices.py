@@ -398,6 +398,7 @@ def list_devices(
                     "sistema": device.sistema,
                     "versao": device.versao,
                     "status": device.status,
+                    "alerta_hardware": device.alerta_hardware,
                     "processador": device.processador,
                     "ram_total": device.ram_total,
                     "disco_total": device.disco_total,
