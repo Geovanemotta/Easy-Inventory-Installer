@@ -202,7 +202,7 @@ if ($npmCmd) {
     cmd.exe /c "npm run build"
     Pop-Location
 } else {
-    docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine sh -c "npm install; npm run build"
+    docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-bookworm-slim sh -c "npm install; npm run build"
 }
 Write-Host "[✓] Frontend compilado com sucesso em ./frontend/dist!" -ForegroundColor Green
 

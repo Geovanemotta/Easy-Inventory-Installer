@@ -219,26 +219,54 @@ fi
 
 COMPILED=false
 
-# O Vite 8 / Rolldown exige Node.js 20+.
+# O Vite exige Node.js 20+.
 if [ -n "$NODE_BIN" ] && [ -x "$NODE_BIN" ] && [ -f "frontend/package.json" ]; then
     echo " [*] Usando Node.js local do servidor (v$("$NODE_BIN" -v))..."
     ORIG_PATH="$PATH"
     export PATH="$(dirname "$NODE_BIN"):$PATH"
-    if (cd frontend && "$NPM_BIN" install --no-audit --no-fund && "$NPM_BIN" run build); then
+    echo " -> [1/2] Instalando dependências NPM (pode levar ~1 min na 1ª vez)..."
+    rm -rf frontend/node_modules/.*-* 2>/dev/null || true
+    if ! (cd frontend && "$NPM_BIN" install --no-audit --no-fund); then
+        echo -e "${YELLOW} [!] Falha no npm install local. Limpando node_modules e tentando novamente...${NC}"
+        rm -rf frontend/node_modules
+        (cd frontend && "$NPM_BIN" install --no-audit --no-fund) || true
+    fi
+    echo " -> [2/2] Gerando build de produção (tsc & vite build)..."
+    if (cd frontend && "$NPM_BIN" run build); then
         COMPILED=true
     else
         echo -e "${YELLOW} [!] Compilação local falhou. Tentando via container Node.js 20...${NC}"
     fi
     export PATH="$ORIG_PATH"
 elif command -v node &> /dev/null; then
-    echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é anterior ao v20 (Vite 8 requer Node 20+)."
-    echo "     Usando container isolado 'node:20-alpine' para compilação garantida..."
+    echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é anterior ao v20 (Vite requer Node 20+)."
+    echo "     Usando container isolado 'node:20-bookworm-slim' (Debian/glibc) para compilação garantida..."
 fi
 
-# Se não compilou localmente, compila via container node:20-alpine com a CA do firewall montada
+# Se não compilou localmente, compila via container node:20-bookworm-slim com a CA do firewall montada
 if [ "$COMPILED" = false ]; then
-    echo " [*] Compilando via container Node.js 20..."
-    if docker run --rm -v "$(pwd)/frontend:/app" $CA_VOLUME -w /app node:20-alpine sh -c "npm install --no-audit --no-fund && npm run build"; then
+    echo " [*] Compilando via container Node.js 20 (node:20-bookworm-slim)..."
+    rm -rf frontend/node_modules/.*-* 2>/dev/null || true
+
+    BUILD_SCRIPT='
+        set -e
+        echo " -> [1/2] Instalando dependências NPM (pode levar ~1 min na 1ª vez)..."
+        rm -rf /app/node_modules/.*-* 2>/dev/null || true
+        if ! npm install --no-audit --no-fund; then
+            echo " [!] Conflito ou resíduo em node_modules detectado. Limpando diretório e reinstalando do zero..."
+            rm -rf /app/node_modules
+            npm install --no-audit --no-fund
+        fi
+        echo " -> [2/2] Gerando build de produção (tsc & vite build)..."
+        if ! npm run build; then
+            echo " [!] Falha no build inicial. Tentando compilar após reset limpo de node_modules..."
+            rm -rf /app/node_modules /app/dist
+            npm install --no-audit --no-fund
+            npm run build
+        fi
+    '
+
+    if docker run --rm -v "$(pwd)/frontend:/app" $CA_VOLUME -w /app node:20-bookworm-slim sh -c "$BUILD_SCRIPT"; then
         COMPILED=true
     fi
 fi
@@ -263,7 +291,7 @@ if [ "$COMPILED" = false ]; then
     echo "    Certifique-se de que 'registry.npmjs.org' (porta 443 TCP) está liberado."
     echo ""
     echo -e " 3) ${BOLD}Versão do Node.js:${NC}"
-    echo "    O Vite 8 exige Node.js 20+. O instalador tentou usar o container 'node:20-alpine'."
+    echo "    O Vite exige Node.js 20+. O instalador tentou usar o container 'node:20-bookworm-slim'."
     echo "    Verifique se o Docker consegue baixar imagens do Docker Hub."
     echo -e "${RED}==================================================================${NC}"
     exit 1

@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 #  SISTEMA DE INVENTÁRIO - SCRIPT DE ATUALIZAÇÃO CONTÍNUA (WINDOWS / POWERSHELL)
 #  Puxa as novidades do Git, recompila o frontend, aplica migrações e
 #  reinicia os containers com downtime mínimo (sem perder nenhum dado).
@@ -33,8 +33,8 @@ if ($npmCmd) {
     cmd.exe /c "npm run build"
     Pop-Location
 } else {
-    Write-Host " [*] Compilando via container Node.js..."
-    docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-alpine sh -c "npm install; npm run build"
+    Write-Host " [*] Compilando via container Node.js (node:20-bookworm-slim)..."
+    docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-bookworm-slim sh -c "npm install; npm run build"
 }
 Write-Host "[✓] Frontend compilado com sucesso." -ForegroundColor Green
 
