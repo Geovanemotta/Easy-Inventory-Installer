@@ -1,0 +1,274 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  BrowserComplianceSummary,
+  SoftwareCatalogItem,
+  SoftwareCatalogKPIs,
+  SoftwareCatalogResponse,
+} from '@/types/software';
+import { Site } from '@/types/site';
+import { softwareService } from '@/services/softwareService';
+import { siteService } from '@/services/siteService';
+
+import { AppsKpiStrip } from './components/AppsKpiStrip';
+import { BrowserComplianceBanner } from './components/BrowserComplianceBanner';
+import { AppsFilters } from './components/AppsFilters';
+import { AppsTable } from './components/AppsTable';
+import { SoftwareDevicesDrawer } from './components/SoftwareDevicesDrawer';
+import { DevicesWithoutAppsDrawer } from './components/DevicesWithoutAppsDrawer';
+
+export const AppsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [items, setItems] = useState<SoftwareCatalogItem[]>([]);
+  const [kpis, setKpis] = useState<SoftwareCatalogKPIs | null>(null);
+  const [navegadores, setNavegadores] = useState<BrowserComplianceSummary[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filtros
+  const [search, setSearch] = useState('');
+  const [siteId, setSiteId] = useState<string>('todos');
+  const [plataforma, setPlataforma] = useState<string>('todas');
+  const [categoria, setCategoria] = useState<string>('todas');
+
+  // Drawer de máquinas de software específico
+  const [selectedSoftware, setSelectedSoftware] = useState<SoftwareCatalogItem | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Drawer de máquinas sem/com inventário
+  const [isSemAppsDrawerOpen, setIsSemAppsDrawerOpen] = useState(false);
+  const [semAppsDrawerMode, setSemAppsDrawerMode] = useState<'sem_apps' | 'com_apps'>('sem_apps');
+
+  // Carregar lista de filiais uma única vez
+  useEffect(() => {
+    siteService
+      .listSites()
+      .then((res) => setSites(res))
+      .catch((err) => console.error('Erro ao carregar lojas:', err));
+  }, []);
+
+  // Carregar catálogo de softwares e KPIs
+  const loadCatalog = useCallback(() => {
+    setLoading(true);
+    const siteIdNum = siteId !== 'todos' ? Number(siteId) : undefined;
+
+    softwareService
+      .getCatalog({
+        site_id: siteIdNum,
+        plataforma,
+        categoria,
+        search,
+      })
+      .then((res: SoftwareCatalogResponse) => {
+        setItems(res.items || []);
+        setKpis(res.kpis);
+        if (res.navegadores_conformidade) {
+          setNavegadores(res.navegadores_conformidade);
+        }
+      })
+      .catch((err) => {
+        console.error('Erro ao carregar catálogo de softwares:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [siteId, plataforma, categoria, search]);
+
+  useEffect(() => {
+    loadCatalog();
+  }, [loadCatalog]);
+
+  const handleSelectSoftware = (software: SoftwareCatalogItem) => {
+    setSelectedSoftware(software);
+    setIsDrawerOpen(true);
+  };
+
+  const handleSelectSoftwareById = (softwareId: number) => {
+    const item = items.find((i) => i.id === softwareId);
+    if (item) {
+      setSelectedSoftware(item);
+      setIsDrawerOpen(true);
+    } else {
+      const navItem = navegadores.find((n) => n.software_id === softwareId);
+      if (navItem) {
+        setSelectedSoftware({
+          id: navItem.software_id,
+          identifier: navItem.identifier,
+          nome: navItem.software_nome,
+          tipo: 'aplicativo',
+          origem: 'canonical',
+          total_instalacoes: navItem.total_instalacoes,
+          percentual_parque: 0,
+          total_versoes: 1,
+          total_atualizadas: navItem.total_atualizadas,
+          total_desatualizadas: navItem.total_desatualizadas,
+          taxa_conformidade: navItem.taxa_conformidade,
+          versao_mais_recente: navItem.mais_recente,
+          versoes: [],
+        });
+        setIsDrawerOpen(true);
+      }
+    }
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    setSelectedSoftware(null);
+  };
+
+  const handleResetFilters = () => {
+    setSearch('');
+    setSiteId('todos');
+    setPlataforma('todas');
+    setCategoria('todas');
+  };
+
+  const handleOpenSemApps = () => {
+    setSemAppsDrawerMode('sem_apps');
+    setIsSemAppsDrawerOpen(true);
+  };
+
+  const handleOpenComApps = () => {
+    setSemAppsDrawerMode('com_apps');
+    setIsSemAppsDrawerOpen(true);
+  };
+
+  const handleCloseSemAppsDrawer = () => {
+    setIsSemAppsDrawerOpen(false);
+  };
+
+  const handleNavigateSemApps = () => {
+    const params = new URLSearchParams();
+    params.set('sem_apps', 'true');
+    if (siteId !== 'todos') {
+      params.set('site_id', siteId);
+    }
+    navigate(`/devices?${params.toString()}`);
+  };
+
+  const handleExportCatalogCsv = () => {
+    if (items.length === 0) return;
+    const headers = [
+      'Nome do Software',
+      'Identificador',
+      'Categoria',
+      'Versão Mais Recente (Parque)',
+      'Total de Versões Distintas',
+      'Total de Instalações',
+      'Percentual da Frota (%)',
+      'Atualizadas',
+      'Desatualizadas',
+      'Taxa de Conformidade (%)',
+    ];
+    const rows = items.map((item) => [
+      item.nome,
+      item.identifier,
+      item.tipo,
+      item.versao_mais_recente || item.ultima_versao || 'N/D',
+      item.total_versoes,
+      item.total_instalacoes,
+      `${item.percentual_parque}%`,
+      item.total_atualizadas ?? 0,
+      item.total_desatualizadas ?? 0,
+      `${item.taxa_conformidade ?? 100}%`,
+    ]);
+
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')),
+    ].join('\r\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `catalogo_softwares_giassi.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Cabeçalho da Página */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-800">
+              Catálogo de Aplicativos & Softwares
+            </h1>
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+              {kpis?.total_softwares ?? 0} softwares
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Visão unificada de softwares, agentes, runtimes e ferramentas instaladas nas estações Linux e Windows
+          </p>
+        </div>
+      </div>
+
+      {/* Faixa de KPIs Operacionais */}
+      <AppsKpiStrip
+        kpis={kpis}
+        categoriaAtiva={categoria}
+        onSelectCategoria={(cat) => setCategoria(cat)}
+        onOpenSemApps={handleOpenSemApps}
+        onOpenComApps={handleOpenComApps}
+        onNavigateSemApps={handleNavigateSemApps}
+        loading={loading}
+      />
+
+      {/* Painel de Conformidade de Navegadores (Destaque Google Chrome) */}
+      <BrowserComplianceBanner
+        browsers={navegadores}
+        onSelectSoftware={handleSelectSoftwareById}
+        loading={loading}
+      />
+
+      {/* Filtros de Busca, Filial e Plataforma com Botão de Limpar */}
+      <AppsFilters
+        search={search}
+        onSearchChange={setSearch}
+        siteId={siteId}
+        onSiteChange={setSiteId}
+        sites={sites}
+        plataforma={plataforma}
+        onPlataformaChange={setPlataforma}
+        categoria={categoria}
+        onCategoriaChange={setCategoria}
+        onRefresh={loadCatalog}
+        onResetFilters={handleResetFilters}
+        onExportCsv={handleExportCatalogCsv}
+        loading={loading}
+        totalFiltered={items.length}
+      />
+
+      {/* Tabela do Catálogo Paginada */}
+      <AppsTable
+        items={items}
+        totalFleet={kpis?.total_maquinas_inventariadas ?? 0}
+        onSelectSoftware={handleSelectSoftware}
+        selectedSoftwareId={selectedSoftware?.id}
+        loading={loading}
+      />
+
+      {/* Drawer de Máquinas do Software Paginado e com SSH */}
+      <SoftwareDevicesDrawer
+        software={selectedSoftware}
+        isOpen={isDrawerOpen}
+        onClose={handleCloseDrawer}
+        siteIdFilter={siteId}
+      />
+
+      {/* Drawer Lateral de Máquinas sem/com Inventário de Aplicativos */}
+      <DevicesWithoutAppsDrawer
+        isOpen={isSemAppsDrawerOpen}
+        onClose={handleCloseSemAppsDrawer}
+        mode={semAppsDrawerMode}
+        siteIdFilter={siteId}
+      />
+    </div>
+  );
+};
+
+export default AppsPage;

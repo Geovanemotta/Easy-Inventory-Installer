@@ -1,7 +1,7 @@
 import ipaddress
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
@@ -303,11 +303,197 @@ def registrar_drift(
         )
 
 
+DUMMY_MACS = {"02:00:4c:4f:4f:50", "00:00:00:00:00:00", ""}
+
+DUMMY_SERIALS = {
+    "to be filled by o.e.m.",
+    "to be filled by o.e.m",
+    "none",
+    "0",
+    "00000000",
+    "12345678",
+    "123456789",
+    "0123456789",
+    "default string",
+    "system serial number",
+    "chassis serial number",
+    "system manufacturer",
+    "not applicable",
+    "not specified",
+    "n/a",
+    "na",
+    "unknown",
+    "undefined",
+    "empty",
+    "o.e.m.",
+    "type2 - board serial number",
+    "base board serial number",
+    "standard",
+    "chassis serial",
+    "serial number",
+    "serialnumber",
+    "invalid",
+    "null",
+    "all",
+    "prodfamily",
+    "",
+}
+
+
+def is_generic_serial(serial_str: Optional[str]) -> bool:
+    """Verifica se um serial de chassi/placa-mãe é genérico de montagem OEM ou máquina virtual."""
+    if not serial_str:
+        return True
+    s = str(serial_str).strip().lower()
+    if s in DUMMY_SERIALS or len(s) < 4:
+        return True
+    if len(set(s)) == 1:
+        return True
+    for prefix in (
+        "to be filled",
+        "default string",
+        "not specified",
+        "not applicable",
+        "system serial",
+        "chassis serial",
+        "base board",
+        "serial number",
+    ):
+        if s.startswith(prefix):
+            return True
+def sincronizar_software_dispositivo(
+    db: Session,
+    device: Device,
+    software_payload: Dict[str, Any],
+    data_coleta: Optional[datetime] = None,
+) -> None:
+    """
+    Persiste e sincroniza todos os aplicativos, agentes, runtimes e ferramentas enviados
+    pelos agentes Linux ou Windows nas tabelas relacionais software, device_software e software_packages.
+    """
+    if not software_payload or not isinstance(software_payload, dict):
+        return
+
+    ts = data_coleta or datetime.utcnow()
+    seen_software_ids = set()
+
+    for categoria in ("aplicativos", "agentes", "runtimes", "ferramentas"):
+        itens = software_payload.get(categoria)
+        if not isinstance(itens, list):
+            continue
+
+        for item in itens:
+            if not isinstance(item, dict):
+                continue
+
+            raw_id = str(item.get("id") or item.get("nome") or "").strip()
+            if not raw_id:
+                continue
+
+            identifier = raw_id[:150]
+            nome = str(item.get("nome") or identifier).strip()[:255]
+            tipo = str(item.get("tipo") or categoria).strip()[:50]
+            origem = str(item.get("origem") or "").strip()[:50] or None
+
+            # 1. Catálogo de software da empresa
+            software = db.scalar(
+                select(Software).where(
+                    Software.company_id == device.company_id,
+                    Software.identifier == identifier,
+                )
+            )
+            if not software:
+                software = Software(
+                    company_id=device.company_id,
+                    identifier=identifier,
+                    nome=nome,
+                    tipo=tipo,
+                    origem=origem,
+                    active=True,
+                    created_at=ts,
+                    updated_at=ts,
+                )
+                db.add(software)
+                db.flush()
+            else:
+                software.nome = nome
+                software.tipo = tipo
+                software.active = True
+                software.updated_at = ts
+
+            seen_software_ids.add(software.id)
+
+            # 2. Vínculo do dispositivo com o software
+            device_software = db.scalar(
+                select(DeviceSoftware).where(
+                    DeviceSoftware.device_id == device.id,
+                    DeviceSoftware.software_id == software.id,
+                )
+            )
+            if not device_software:
+                device_software = DeviceSoftware(
+                    device_id=device.id,
+                    software_id=software.id,
+                    installed=True,
+                    first_seen_at=ts,
+                    last_seen_at=ts,
+                )
+                db.add(device_software)
+                db.flush()
+            else:
+                device_software.installed = True
+                device_software.last_seen_at = ts
+
+            # 3. Pacotes específicos vinculados ao software da máquina
+            pacotes = item.get("pacotes")
+            if isinstance(pacotes, list) and pacotes:
+                pacotes_vistos = set()
+                for p in pacotes:
+                    if not isinstance(p, dict):
+                        continue
+                    pkg_nome = str(p.get("pacote") or "").strip()[:255]
+                    pkg_ver = str(p.get("versao") or "1.0").strip()[:255]
+                    if not pkg_nome or pkg_nome in pacotes_vistos:
+                        continue
+                    pacotes_vistos.add(pkg_nome)
+
+                    sw_pkg = db.scalar(
+                        select(SoftwarePackage).where(
+                            SoftwarePackage.device_software_id == device_software.id,
+                            SoftwarePackage.pacote == pkg_nome,
+                        )
+                    )
+                    if not sw_pkg:
+                        sw_pkg = SoftwarePackage(
+                            device_software_id=device_software.id,
+                            pacote=pkg_nome,
+                            versao=pkg_ver,
+                            first_seen_at=ts,
+                            last_seen_at=ts,
+                        )
+                        db.add(sw_pkg)
+                    else:
+                        sw_pkg.versao = pkg_ver
+                        sw_pkg.last_seen_at = ts
+
+    # 4. Desmarca como installed os softwares que deixaram de ser reportados
+    if seen_software_ids:
+        all_ds = db.scalars(
+            select(DeviceSoftware).where(
+                DeviceSoftware.device_id == device.id,
+                DeviceSoftware.installed.is_(True),
+            )
+        ).all()
+        for ds in all_ds:
+            if ds.software_id not in seen_software_ids:
+                ds.installed = False
+
+
 def upsert_device_from_payload(
     db: Session,
     dados: Dict[str, Any],
     company_id: int = 1,
-) -> Device:
+) -> Tuple[Device, str]:
     hostname = str(dados.get("hostname", "")).strip()
     ip = str(dados.get("ip", "")).strip() or None
     mac = normalizar_mac(dados.get("mac"))
@@ -315,7 +501,7 @@ def upsert_device_from_payload(
     if not hostname:
         raise ValueError("Hostname ausente no payload")
 
-    # Localiza se já existe pelo hostname (case-insensitive)
+    # 1. Localiza se já existe pelo hostname (case-insensitive)
     query = (
         select(Device)
         .where(
@@ -332,7 +518,34 @@ def upsert_device_from_payload(
         for extra_d in matches[1:]:
             db.delete(extra_d)
 
-    DUMMY_MACS = {"02:00:4c:4f:4f:50", "00:00:00:00:00:00", ""}
+    # 2. Se não localizou por hostname, tenta localizar por MAC (se não for MAC dummy)
+    if not device and mac and mac.lower() not in DUMMY_MACS:
+        query_mac = (
+            select(Device)
+            .where(
+                Device.company_id == company_id,
+                Device.mac == mac,
+            )
+            .order_by(Device.updated_at.desc())
+        )
+        mac_matches = db.scalars(query_mac).all()
+        if mac_matches:
+            device = mac_matches[0]
+
+    # 3. Se ainda não localizou, tenta localizar por Serial válido (NUNCA por serial genérico/OEM)
+    serial_limpo = str(dados.get("serial", "")).strip()
+    if not device and serial_limpo and not is_generic_serial(serial_limpo):
+        query_serial = (
+            select(Device)
+            .where(
+                Device.company_id == company_id,
+                Device.serial.ilike(serial_limpo),
+            )
+            .order_by(Device.updated_at.desc())
+        )
+        serial_matches = db.scalars(query_serial).all()
+        if serial_matches:
+            device = serial_matches[0]
 
     # Checagem de Conflito de MAC (Anti-troca de HD/SSD ou Clonagem de Disco)
     conflito_mac_outro = None
@@ -355,6 +568,7 @@ def upsert_device_from_payload(
         if isinstance(dados.get(cat), list):
             software_payload[cat] = dados[cat]
 
+    action = "updated" if device else "created"
     if device:
         # 1. Alerta de Conflito de MAC com outro equipamento
         if conflito_mac_outro:
@@ -449,9 +663,11 @@ def upsert_device_from_payload(
             device.perifericos = dados.get("perifericos") or []
         if software_payload:
             device.extra_data = software_payload
+            sincronizar_software_dispositivo(db, device, software_payload, data_col)
 
-        device.data_coleta = data_col
+        device.data_coleta = data_col or datetime.utcnow()
         device.active = True
+        device.company_id = company_id or 1
         device.updated_at = datetime.utcnow()
     else:
         # Cria novo dispositivo
@@ -511,6 +727,9 @@ def upsert_device_from_payload(
         db.add(device)
         db.flush()
 
+        if software_payload:
+            sincronizar_software_dispositivo(db, device, software_payload, data_col)
+
         db.add(
             DeviceHistory(
                 device_id=device.id,
@@ -531,7 +750,8 @@ def upsert_device_from_payload(
 
     db.commit()
     db.refresh(device)
-    return device
+    device._action = action
+    return device, action
 
 
 def get_devices_for_dashboard(db: Session, current_user: User) -> List[Dict[str, Any]]:

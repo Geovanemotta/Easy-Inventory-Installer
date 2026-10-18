@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from collections import defaultdict
 
 from fastapi import HTTPException
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.device import Device
@@ -208,6 +208,14 @@ def obter_estatisticas_licencas(
 
     total_disp = max(0, total_licencas - total_em_uso)
 
+    stmt_pending = select(func.count(Device.id)).where(
+        Device.company_id == current_user.company_id,
+        Device.licenca_windows_solicitada == True,
+    )
+    if site_id is not None and site_id > 0:
+        stmt_pending = stmt_pending.where(Device.site_id == site_id)
+    solicitacoes_pendentes = db.scalar(stmt_pending) or 0
+
     filiais_list = [
         {
             "filial": f_nome,
@@ -223,6 +231,7 @@ def obter_estatisticas_licencas(
         total_em_uso=total_em_uso,
         total_disponiveis=total_disp,
         total_esgotadas=total_esgotadas,
+        solicitacoes_pendentes=solicitacoes_pendentes,
         por_categoria=por_cat,
         por_filial=filiais_list,
     )
@@ -526,6 +535,17 @@ def atribuir_licenca_ativo(
 
     norm_chave = normalizar_chave(data.chave) if data.chave else None
 
+    # Resolve alvo (Device vs NetworkAsset)
+    dev_target_id = None
+    asset_target_id = None
+    if data.device_id:
+        dev_target_id = abs(data.device_id)
+    elif data.network_asset_id:
+        if data.network_asset_id < 0:
+            dev_target_id = abs(data.network_asset_id)
+        else:
+            asset_target_id = data.network_asset_id
+
     # Se for vincular uma chave, valida disponibilidade no módulo de licenças
     lic_obj: Optional[SoftwareLicense] = None
     if norm_chave:
@@ -542,14 +562,14 @@ def atribuir_licenca_ativo(
 
             # Verifica se o próprio ativo já tem essa chave atribuída (não consome slot extra)
             ja_tem = False
-            if data.device_id:
-                d_cur = db.get(Device, data.device_id)
+            if dev_target_id:
+                d_cur = db.get(Device, dev_target_id)
                 if d_cur:
                     cur_key = (d_cur.serial_windows if slot == "windows" else d_cur.serial_office) or ""
                     if cur_key.strip().upper() == norm_chave:
                         ja_tem = True
-            elif data.network_asset_id:
-                a_cur = db.get(NetworkAsset, data.network_asset_id)
+            elif asset_target_id:
+                a_cur = db.get(NetworkAsset, asset_target_id)
                 if a_cur:
                     cur_key = (a_cur.serial_windows if slot == "windows" else a_cur.serial_office) or ""
                     if cur_key.strip().upper() == norm_chave:
@@ -563,10 +583,10 @@ def atribuir_licenca_ativo(
                 )
 
     # Aplicação no alvo
-    if data.device_id:
+    if dev_target_id:
         dev = db.scalar(
             select(Device).where(
-                Device.id == data.device_id,
+                Device.id == dev_target_id,
                 Device.company_id == current_user.company_id,
             )
         )
@@ -591,10 +611,10 @@ def atribuir_licenca_ativo(
                 )
             )
 
-    elif data.network_asset_id:
+    elif asset_target_id:
         asset = db.scalar(
             select(NetworkAsset).where(
-                NetworkAsset.id == data.network_asset_id,
+                NetworkAsset.id == asset_target_id,
                 NetworkAsset.company_id == current_user.company_id,
             )
         )

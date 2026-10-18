@@ -14,6 +14,7 @@ RUN apt-get update \
     && pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org -r requirements.txt
 
 COPY app ./app
+COPY scripts_agents ./scripts_agents
 
 EXPOSE 8000
 

@@ -2,6 +2,15 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
+class SiteKPIs(BaseModel):
+    total_sites: int = 0
+    active_sites: int = 0
+    inactive_sites: int = 0
+    total_devices: int = 0
+    total_network_assets: int = 0
+    total_ip_ranges: int = 0
+
+
 class SiteResponse(BaseModel):
     id: int
     company_id: int
@@ -11,6 +20,7 @@ class SiteResponse(BaseModel):
     identifiers: List[str] = []
     devices_count: int = 0
     network_assets_count: int = 0
+    ip_ranges_count: int = 0
 
     class Config:
         from_attributes = True

@@ -1,576 +1,69 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import './App.css'
-import AgentInstallModal from './components/AgentInstallModal'
-import DeleteDeviceModal from './components/DeleteDeviceModal'
-import Header from './components/Header'
-import Sidebar from './components/Sidebar'
-import SshTerminalModal, { abrirTerminalSshPopup } from './components/SshTerminalModal'
-import ActiveDirectoryPage from './pages/ActiveDirectoryPage'
-import AppsPage from './pages/AppsPage'
-import InventoryPage from './pages/InventoryPage'
-import Login from './pages/Login'
-import NetworkAssetsPage from './pages/NetworkAssetsPage'
-import RemoteAccessPage from './pages/RemoteAccessPage'
-import ReportsPage from './pages/ReportsPage'
-import SitesPage from './pages/SitesPage'
-import LicensesPage from './pages/LicensesPage'
-import {
-  clearDeviceAlert,
-  deleteDevice,
-  getCurrentUser,
-  getDeviceHistory,
-  getInventoryData,
-  type HistoryItem,
-  type RawInventoryItem,
-  type UserResponse,
-} from './services/api'
-import {
-  enriquecer,
-  ORDEM_TIPO,
-  type EnrichedMachine,
-} from './services/inventoryHelpers'
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { ProtectedRoute } from '@/components/common/ProtectedRoute';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { LoginPage } from '@/pages/LoginPage';
+import { DevicesPage } from '@/pages/devices/DevicesPage';
 
-export default function App() {
-  const [loggedIn, setLoggedIn] = useState<boolean>(() => {
-    return Boolean(localStorage.getItem('access_token'))
-  })
-  const [currentUser, setCurrentUser] = useState<UserResponse | null>(() => {
-    try {
-      const saved = localStorage.getItem('current_user')
-      return saved ? JSON.parse(saved) : null
-    } catch {
-      return null
-    }
-  })
+import { SitesPage } from '@/pages/sites/SitesPage';
+import { NetworkAssetsPage } from '@/pages/network-assets/NetworkAssetsPage';
+import { AppsPage } from '@/pages/apps/AppsPage';
+import { LicensesPage } from '@/pages/licenses/LicensesPage';
+import ReportsPage from '@/pages/reports/ReportsPage';
+import RemoteAccessPage from '@/pages/remote-access/RemoteAccessPage';
+import ActiveDirectoryPage from '@/pages/active-directory/ActiveDirectoryPage';
 
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const saved = localStorage.getItem('app_theme')
-    if (saved === 'dark' || saved === 'light') return saved
-    return 'dark'
-  })
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('app_theme', theme)
-  }, [theme])
-
-  const handleToggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
-  }, [])
-
-
-  const canUseSsh = useMemo(() => {
-    return Boolean(
-      currentUser?.is_superadmin ||
-      currentUser?.roles?.includes('admin') ||
-      currentUser?.roles?.includes('operador_matriz')
-    )
-  }, [currentUser])
-
-  const [rawInventory, setRawInventory] = useState<RawInventoryItem[]>([])
-  const [loading, setLoading] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState<string>('-')
-  const [view, setView] = useState<'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses'>('inv')
-  const [toast, setToast] = useState<string | null>(null)
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Target machine para navegação vinda de relatórios ou apps
-  const [inventoryTarget, setInventoryTarget] = useState<string | null>(null)
-
-  // Histórico de alterações e auditoria de hardware drift
-  const [historicoMap, setHistoricoMap] = useState<Record<number, HistoryItem[]>>({})
-  const [loadingHistorico, setLoadingHistorico] = useState<Record<number, boolean>>({})
-
-  // Modais globais
-  const [showAgentModal, setShowAgentModal] = useState<boolean>(false)
-  const [deviceParaExcluir, setDeviceParaExcluir] = useState<EnrichedMachine | null>(null)
-  const [excluindoDevice, setExcluindoDevice] = useState<boolean>(false)
-
-  // Terminal SSH: standalone popup e fallback modal
-  const terminalDeviceId = useMemo(() => {
-    const hash = window.location.hash
-    if (hash.startsWith('#terminal')) {
-      const q = hash.includes('?') ? hash.split('?')[1] : hash.includes('&') ? hash.split('&')[1] : ''
-      const params = new URLSearchParams(q)
-      const id = params.get('id')
-      return id ? Number(id) : null
-    }
-    return null
-  }, [])
-
-  const [standaloneDevice, setStandaloneDevice] = useState<EnrichedMachine | null>(() => {
-    if (!terminalDeviceId) return null
-    try {
-      const cached = localStorage.getItem(`terminal_device_${terminalDeviceId}`)
-      if (cached) return JSON.parse(cached)
-    } catch {}
-    return null
-  })
-
-  useEffect(() => {
-    if (terminalDeviceId && !standaloneDevice) {
-      const token = localStorage.getItem('access_token')
-      if (token) {
-        getInventoryData(token).then((data) => {
-          const found = (data.items || []).find((d: RawInventoryItem) => d.id === terminalDeviceId)
-          if (found) {
-            setStandaloneDevice(enriquecer(found))
-          }
-        }).catch(console.error)
-      }
-    }
-  }, [terminalDeviceId, standaloneDevice])
-
-  const [sshModalDevice, setSshModalDevice] = useState<EnrichedMachine | null>(null)
-
-  const handleOpenSsh = useCallback((device: EnrichedMachine) => {
-    if (!canUseSsh) return
-    const opened = abrirTerminalSshPopup(device)
-    if (!opened) {
-      setSshModalDevice(device)
-    }
-  }, [canUseSsh])
-
-  const showToast = useCallback((msg: string, duration = 2400) => {
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current)
-    }
-    setToast(msg)
-    toastTimerRef.current = setTimeout(() => {
-      setToast(null)
-      toastTimerRef.current = null
-    }, duration)
-  }, [])
-
-  async function copiarTexto(texto: string) {
-    try {
-      await navigator.clipboard.writeText(texto)
-      showToast('Copiado!', 1500)
-    } catch {
-      showToast('Erro ao copiar')
-    }
+const ApplicationsRoute: React.FC = () => {
+  const { isAdmin, loading } = useAuth();
+  if (loading) return null;
+  if (!isAdmin) {
+    return <Navigate to="/devices" replace />;
   }
+  return <AppsPage />;
+};
 
-  function irPara(v: 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses') {
-    setView(v)
-    window.location.hash = v
+const LicensesRoute: React.FC = () => {
+  const { isAdmin, loading } = useAuth();
+  if (loading) return null;
+  if (!isAdmin) {
+    return <Navigate to="/devices" replace />;
   }
+  return <LicensesPage />;
+};
 
-  function abrirMaquinaNoInventario(hostname: string) {
-    setInventoryTarget(hostname)
-    irPara('inv')
-  }
-
-  async function carregarHistorico(deviceId: number) {
-    const token = localStorage.getItem('access_token')
-    if (!token) return
-    setLoadingHistorico((prev) => ({ ...prev, [deviceId]: true }))
-    try {
-      const data = await getDeviceHistory(token, deviceId)
-      setHistoricoMap((prev) => ({ ...prev, [deviceId]: data }))
-    } catch (err: unknown) {
-      console.error('Erro ao carregar histórico:', err)
-      showToast('Erro ao carregar histórico')
-    } finally {
-      setLoadingHistorico((prev) => ({ ...prev, [deviceId]: false }))
-    }
-  }
-
-  async function handleLimparAlerta(deviceId: number) {
-    const token = localStorage.getItem('access_token')
-    if (!token) return
-    try {
-      await clearDeviceAlert(token, deviceId)
-      setRawInventory((prev) =>
-        prev.map((d) => (d.id === deviceId ? { ...d, alerta_hardware: null } : d))
-      )
-      await carregarHistorico(deviceId)
-      showToast('Alerta resolvido com sucesso!')
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      alert(msg)
-    }
-  }
-
-  async function handleConfirmarExclusao() {
-    if (!deviceParaExcluir || !deviceParaExcluir.id) return
-    const token = localStorage.getItem('access_token')
-    if (!token) return
-    setExcluindoDevice(true)
-    try {
-      const devId = deviceParaExcluir.id
-      const host = deviceParaExcluir.hostname
-      await deleteDevice(token, devId)
-      setRawInventory((prev) => prev.filter((d) => d.id !== devId))
-      setDeviceParaExcluir(null)
-      showToast(`Máquina ${host} excluída com sucesso!`)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      alert(`Falha ao excluir: ${msg}`)
-    } finally {
-      setExcluindoDevice(false)
-    }
-  }
-
-  function handleUpdateDeviceLocal(updated: Partial<RawInventoryItem> & { id: number }) {
-    setRawInventory((prev) =>
-      prev.map((d) => (d.id === updated.id ? { ...d, ...updated } : d))
-    )
-  }
-
-  const inventario: EnrichedMachine[] = useMemo(() => {
-    const seen = new Set<string>()
-    const unique: RawInventoryItem[] = []
-    for (const item of rawInventory) {
-      const key = (item.hostname || '').toUpperCase().trim()
-      if (key && seen.has(key)) {
-        continue
-      }
-      if (key) seen.add(key)
-      unique.push(item)
-    }
-    return unique.map(enriquecer)
-  }, [rawInventory])
-
-  const filiaisOpcoes = useMemo(() => {
-    const fm = new Map<
-      string,
-      { filial: string; tipo: string; num: number; n: number }
-    >()
-    inventario.forEach((i: EnrichedMachine) => {
-      const cur = fm.get(i._f.filial) || {
-        filial: i._f.filial,
-        tipo: i._f.tipo,
-        num: i._f.num,
-        n: 0,
-      }
-      cur.n++
-      fm.set(i._f.filial, cur)
-    })
-    return [...fm.values()].sort(
-      (a, b) =>
-        (ORDEM_TIPO[a.tipo] ?? 99) - (ORDEM_TIPO[b.tipo] ?? 99) ||
-        a.num - b.num
-    )
-  }, [inventario])
-
-  async function handleLogin(token: string) {
-    try {
-      localStorage.setItem('access_token', token)
-      setLoggedIn(true)
-      const user = await getCurrentUser(token)
-      setCurrentUser(user)
-      localStorage.setItem('current_user', JSON.stringify(user))
-      await carregarDados(token)
-    } catch (err) {
-      console.error('Erro ao obter dados do usuário:', err)
-      await carregarDados(token)
-    }
-  }
-
-  function handleLogout() {
-    try {
-      const currentHost = window.location.hostname
-      const meshHost = currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1'
-        ? currentHost
-        : 'localhost'
-      const logoutUrl = `https://${meshHost}:4443/logout`
-      const ifr = document.createElement('iframe')
-      ifr.style.display = 'none'
-      ifr.src = logoutUrl
-      document.body.appendChild(ifr)
-      setTimeout(() => {
-        try { ifr.remove() } catch (_) {}
-      }, 2500)
-    } catch (e) {
-      console.warn('Erro ao encerrar sessão MeshCentral:', e)
-    }
-
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('current_user')
-    setCurrentUser(null)
-    setLoggedIn(false)
-    setRawInventory([])
-  }
-
-  async function carregarDados(tokenParam?: string) {
-    const token =
-      (typeof tokenParam === 'string' && tokenParam.trim() ? tokenParam.trim() : undefined) ||
-      localStorage.getItem('access_token')
-    if (!token) {
-      console.warn('Sem token de acesso.')
-      return
-    }
-
-    try {
-      setLoading(true)
-      const data = await getInventoryData(token)
-      setRawInventory(data.items || [])
-      setLastUpdate(new Date().toLocaleTimeString('pt-BR'))
-    } catch (err: unknown) {
-      console.error('Erro ao carregar inventário:', err)
-      const msg = err instanceof Error ? err.message : String(err)
-      if (msg.includes('Sessão expirada') || msg.includes('401')) {
-        handleLogout()
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token')
-    if (!token) {
-      setLoggedIn(false)
-      return
-    }
-
-    // Carrega dados imediatamente se o token existir
-    carregarDados(token)
-
-    // Valida credenciais e permissões com /auth/me
-    getCurrentUser(token)
-      .then((user) => {
-        setCurrentUser(user)
-        localStorage.setItem('current_user', JSON.stringify(user))
-        setLoggedIn(true)
-      })
-      .catch((err: unknown) => {
-        console.warn('Validação de sessão em background:', err)
-        const msg = err instanceof Error ? err.message : String(err)
-        // Só desloga se o token foi explicitamente rejeitado pelo servidor com 401
-        // Se a requisição foi abortada por F5 ou erro de rede transitório, preserva o token!
-        if (msg.includes('Sessão expirada') || msg.includes('401') || msg.includes('Usuário ou senha inválidos')) {
-          handleLogout()
-        }
-      })
-  }, [])
-
-  useEffect(() => {
-    const hash = window.location.hash.replace('#', '')
-    if (['rel', 'apps', 'ad', 'net', 'remote', 'sites', 'licenses'].includes(hash)) {
-      setView(hash as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses')
-    } else {
-      setView('inv')
-    }
-
-    const onHashChange = () => {
-      const h = window.location.hash.replace('#', '')
-      if (['rel', 'apps', 'ad', 'net', 'remote', 'sites', 'licenses'].includes(h)) {
-        setView(h as 'inv' | 'rel' | 'apps' | 'ad' | 'net' | 'remote' | 'sites' | 'licenses')
-      } else {
-        setView('inv')
-      }
-    }
-    window.addEventListener('hashchange', onHashChange)
-    return () => window.removeEventListener('hashchange', onHashChange)
-  }, [])
-
-  // Restrição de perfis: apenas administradores têm acesso a apps, ad e sites; licenses para admin e operador_matriz
-  useEffect(() => {
-    const isAdmin = Boolean(currentUser?.is_superadmin || currentUser?.roles?.includes('admin'))
-    const isMatriz = Boolean(currentUser?.roles?.includes('operador_matriz'))
-    if (currentUser && !isAdmin && (view === 'apps' || view === 'ad' || view === 'sites')) {
-      irPara('inv')
-    } else if (currentUser && !isAdmin && !isMatriz && view === 'licenses') {
-      irPara('inv')
-    }
-  }, [currentUser, view])
-
-  // Atualização periódica em background (5 minutos)
-  useEffect(() => {
-    if (!loggedIn) return
-    const timer = setInterval(() => {
-      const t = localStorage.getItem('access_token')
-      if (t) carregarDados(t)
-    }, 300000)
-    return () => clearInterval(timer)
-  }, [loggedIn])
-
-  if (terminalDeviceId) {
-    if (!loggedIn) {
-      return <Login onLogin={handleLogin} />
-    }
-    if (!canUseSsh) {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#090d16', color: '#f87171', fontFamily: 'sans-serif', textAlign: 'center', padding: '20px' }}>
-          <h2 style={{ marginBottom: '10px' }}>🚫 Acesso Restrito</h2>
-          <p style={{ color: '#94a3b8', maxWidth: '400px' }}>O perfil de Operador de Loja não possui permissão para acessar o Terminal SSH.</p>
-        </div>
-      )
-    }
-    if (!standaloneDevice) {
-      return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#090d16', color: '#94a3b8', fontFamily: 'monospace' }}>
-          <span>Carregando dados da máquina #{terminalDeviceId} para terminal SSH...</span>
-        </div>
-      )
-    }
-    return (
-      <div style={{ width: '100vw', height: '100vh', background: '#090d16', overflow: 'hidden' }}>
-        <SshTerminalModal
-          device={standaloneDevice}
-          token={localStorage.getItem('access_token') || ''}
-          onClose={() => window.close()}
-          standalone={true}
-          currentUser={currentUser}
-        />
-      </div>
-    )
-  }
-
-  if (!loggedIn) {
-    return <Login onLogin={handleLogin} />
-  }
-
+export const App: React.FC = () => {
   return (
-    <div className="app" data-theme={theme}>
-      {/* Sidebar de Navegação */}
-      <Sidebar
-        view={view}
-        irPara={irPara}
-        inventarioCount={inventario.length}
-        currentUser={currentUser}
-        onLogout={handleLogout}
-      />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Rota Pública de Autenticação */}
+          <Route path="/login" element={<LoginPage />} />
 
-      {/* Área Principal de Conteúdo */}
-      <main>
-        <Header
-          view={view}
-          lastUpdate={lastUpdate}
-          loading={loading}
-          isSuperAdmin={Boolean(currentUser?.is_superadmin)}
-          theme={theme}
-          onToggleTheme={handleToggleTheme}
-          onRefresh={() => carregarDados()}
-          onOpenAgentModal={() => setShowAgentModal(true)}
-        />
+          {/* Rotas Protegidas com Layout Base e 8 Módulos */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Navigate to="/devices" replace />} />
+              <Route path="/devices" element={<DevicesPage />} />
+              <Route path="/network-assets" element={<NetworkAssetsPage />} />
+              <Route path="/remote-access" element={<RemoteAccessPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/applications" element={<ApplicationsRoute />} />
+              <Route path="/apps" element={<Navigate to="/applications" replace />} />
+              <Route path="/software" element={<Navigate to="/applications" replace />} />
+              <Route path="/sites" element={<SitesPage />} />
+              <Route path="/licenses" element={<LicensesRoute />} />
+              <Route path="/ad" element={<ActiveDirectoryPage />} />
+              <Route path="/active-directory" element={<ActiveDirectoryPage />} />
+            </Route>
+          </Route>
 
-        <div className="container">
-          {view === 'inv' && (
-            <InventoryPage
-              inventario={inventario}
-              filiaisOpcoes={filiaisOpcoes}
-              isSuperAdmin={Boolean(currentUser?.is_superadmin)}
-              userRoles={currentUser?.roles || []}
-              loading={loading}
-              historicoMap={historicoMap}
-              loadingHistorico={loadingHistorico}
-              onLoadHistorico={carregarHistorico}
-              onClearAlert={handleLimparAlerta}
-              onRequestDelete={(device) => setDeviceParaExcluir(device)}
-              copiarTexto={copiarTexto}
-              inventoryTarget={inventoryTarget}
-              onClearTarget={() => setInventoryTarget(null)}
-              onUpdateDevice={handleUpdateDeviceLocal}
-              showToast={showToast}
-              onOpenSsh={handleOpenSsh}
-            />
-          )}
+          {/* Rota Fallback */}
+          <Route path="*" element={<Navigate to="/devices" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+};
 
-          {view === 'rel' && (
-            <ReportsPage
-              inventario={inventario}
-              filiaisOpcoes={filiaisOpcoes}
-              isSuperAdmin={Boolean(currentUser?.is_superadmin)}
-              abrirMaquinaNoInventario={abrirMaquinaNoInventario}
-            />
-          )}
-
-          {view === 'net' && (
-            <NetworkAssetsPage
-              token={localStorage.getItem('access_token') || ''}
-              isSuperAdmin={Boolean(currentUser?.is_superadmin)}
-              userRoles={currentUser?.roles || []}
-              showToast={showToast}
-            />
-          )}
-
-          {view === 'remote' && (
-            <RemoteAccessPage
-              inventario={inventario}
-              currentUser={currentUser}
-              onOpenSsh={handleOpenSsh}
-              copiarTexto={copiarTexto}
-              showToast={showToast}
-            />
-          )}
-
-          {view === 'apps' && (
-            <AppsPage
-              inventario={inventario}
-              abrirMaquinaNoInventario={abrirMaquinaNoInventario}
-              onOpenSsh={handleOpenSsh}
-              canUseSsh={canUseSsh}
-            />
-          )}
-
-          {view === 'ad' && (
-            <ActiveDirectoryPage showToast={showToast} />
-          )}
-
-          {view === 'sites' && (
-            <SitesPage
-              token={localStorage.getItem('access_token') || ''}
-              currentUser={currentUser}
-              showToast={showToast}
-              onRefreshInventory={() => carregarDados()}
-            />
-          )}
-
-          {view === 'licenses' && (
-            <LicensesPage
-              token={localStorage.getItem('access_token') || ''}
-              currentUser={currentUser}
-              showToast={showToast}
-            />
-          )}
-        </div>
-      </main>
-
-      {/* Modal de Instalação dos Agentes */}
-      <AgentInstallModal
-        isOpen={showAgentModal}
-        onClose={() => setShowAgentModal(false)}
-      />
-
-      {/* Modal de Confirmação de Exclusão de Máquina */}
-      <DeleteDeviceModal
-        device={deviceParaExcluir}
-        isDeleting={excluindoDevice}
-        onConfirm={handleConfirmarExclusao}
-        onCancel={() => setDeviceParaExcluir(null)}
-      />
-
-      {/* Modal Fallback de Terminal SSH */}
-      {canUseSsh && sshModalDevice && (
-        <SshTerminalModal
-          device={sshModalDevice}
-          token={localStorage.getItem('access_token') || ''}
-          onClose={() => setSshModalDevice(null)}
-          currentUser={currentUser}
-        />
-      )}
-
-      {/* Notificação Toast Flutuante */}
-      {toast && (
-        <div
-          className={`toast ${
-            toast.toLowerCase().includes('erro') || toast.toLowerCase().includes('falha')
-              ? 'toast-error'
-              : 'toast-success'
-          }`}
-          role="status"
-          aria-live="polite"
-        >
-          <span className="toast-icon">
-            {toast.toLowerCase().includes('erro') || toast.toLowerCase().includes('falha') ? '⚠️' : '✓'}
-          </span>
-          <span className="toast-text">{toast}</span>
-        </div>
-      )}
-    </div>
-  )
-}
-
+export default App;

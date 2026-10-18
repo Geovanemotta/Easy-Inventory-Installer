@@ -118,23 +118,30 @@ async def receive_inventory(
     # 1. Persistência relacional no PostgreSQL
     with Session(engine) as session:
         try:
-            device = upsert_device_from_payload(session, dados, company_id=1)
+            res = upsert_device_from_payload(session, dados, company_id=1)
+            if isinstance(res, tuple):
+                device, action = res
+            else:
+                device = res
+                action = getattr(device, "_action", "updated")
             device_id = device.id
+            device_hostname = device.hostname
         except Exception as e:
             session.rollback()
             raise HTTPException(status_code=500, detail=f"Erro ao salvar no banco: {e}")
 
     # 2. Backup assíncrono em disco na pasta correspondente à loja
-    salvar_backup_inventario_disco(hostname, dados)
+    salvar_backup_inventario_disco(device_hostname, dados)
 
-    # 3. Resposta compatível com JSON ou PlainText ("OK")
+    # 3. Resposta compatível com JSON ou PlainText
     accept = request.headers.get("accept", "")
-    if "application/json" in accept:
-        return {
-            "status": "ok",
-            "device_id": device_id,
-            "hostname": hostname,
-            "database": "saved",
-        }
+    if "text/plain" in accept and "application/json" not in accept:
+        return PlainTextResponse(f"OK device_id={device_id} hostname={device_hostname} action={action}", status_code=200)
 
-    return PlainTextResponse("OK", status_code=200)
+    return {
+        "status": "ok",
+        "device_id": device_id,
+        "hostname": device_hostname,
+        "action": action,
+        "database": "saved",
+    }

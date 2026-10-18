@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.dependencies.auth import get_current_user
@@ -10,12 +11,14 @@ from app.models import (
     NetworkAsset,
     Site,
     SiteIdentifier,
+    SiteIpRange,
     User,
     user_site_access,
 )
 from app.schemas.site import (
     ReclassifiedDeviceItem,
     SiteCreate,
+    SiteKPIs,
     SiteReclassifyRequest,
     SiteReclassifyResponse,
     SiteResponse,
@@ -108,6 +111,16 @@ def list_sites(
             ).all()
         )
 
+        range_counts = dict(
+            session.execute(
+                select(SiteIpRange.site_id, func.count(SiteIpRange.id))
+                .where(
+                    SiteIpRange.company_id == current_user.company_id,
+                )
+                .group_by(SiteIpRange.site_id)
+            ).all()
+        )
+
         return [
             SiteResponse(
                 id=s.id,
@@ -122,9 +135,70 @@ def list_sites(
                 ],
                 devices_count=device_counts.get(s.id, 0),
                 network_assets_count=asset_counts.get(s.id, 0),
+                ip_ranges_count=range_counts.get(s.id, 0),
             )
             for s in sites
         ]
+
+
+@router.get("/kpis", response_model=SiteKPIs)
+def get_sites_kpis(
+    current_user: User = Depends(get_current_user),
+):
+    with Session(engine) as session:
+        is_admin = current_user.is_superadmin or any(
+            r.slug == "admin" for r in (current_user.roles or [])
+        )
+        base_sites = select(Site.id, Site.active).where(Site.company_id == current_user.company_id)
+        if not is_admin:
+            base_sites = (
+                base_sites.join(
+                    user_site_access,
+                    user_site_access.c.site_id == Site.id,
+                )
+                .where(
+                    Site.active.is_(True),
+                    user_site_access.c.user_id == current_user.id,
+                )
+            )
+
+        sites_data = session.execute(base_sites).all()
+        allowed_site_ids = [row[0] for row in sites_data]
+        total_sites = len(sites_data)
+        active_sites = sum(1 for row in sites_data if row[1])
+        inactive_sites = total_sites - active_sites
+
+        dev_q = select(func.count(Device.id)).where(
+            Device.company_id == current_user.company_id,
+            Device.active.is_(True),
+        )
+        asset_q = select(func.count(NetworkAsset.id)).where(
+            NetworkAsset.company_id == current_user.company_id,
+        )
+        range_q = select(func.count(SiteIpRange.id)).where(
+            SiteIpRange.company_id == current_user.company_id,
+        )
+
+        if not is_admin:
+            if allowed_site_ids:
+                dev_q = dev_q.where(Device.site_id.in_(allowed_site_ids))
+                asset_q = asset_q.where(NetworkAsset.site_id.in_(allowed_site_ids))
+                range_q = range_q.where(SiteIpRange.site_id.in_(allowed_site_ids))
+            else:
+                return SiteKPIs()
+
+        total_devices = session.scalar(dev_q) or 0
+        total_assets = session.scalar(asset_q) or 0
+        total_ranges = session.scalar(range_q) or 0
+
+        return SiteKPIs(
+            total_sites=total_sites,
+            active_sites=active_sites,
+            inactive_sites=inactive_sites,
+            total_devices=total_devices,
+            total_network_assets=total_assets,
+            total_ip_ranges=total_ranges,
+        )
 
 
 @router.post(
@@ -160,33 +234,65 @@ def create_site(
         )
 
     with Session(engine) as session:
-        existing = session.scalar(
+        existing_code = session.scalar(
             select(Site).where(
                 Site.company_id == current_user.company_id,
-                Site.code == code,
+                func.lower(Site.code) == code.lower(),
             )
         )
-        if existing:
+        if existing_code:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Já existe uma filial cadastrada com o código '{code}'.",
+                detail=f"Já existe uma filial cadastrada com o código {code}.",
             )
 
-        site = Site(
-            company_id=current_user.company_id,
-            name=name,
-            code=code,
-            active=payload.active,
+        existing_name = session.scalar(
+            select(Site).where(
+                Site.company_id == current_user.company_id,
+                func.lower(Site.name) == name.lower(),
+            )
         )
-        session.add(site)
-        session.flush()
+        if existing_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Já existe uma filial cadastrada com o nome {name}.",
+            )
 
+        clean_idents: List[str] = []
         seen = set()
-        saved_idents: List[str] = []
-        for ident_raw in payload.identifiers:
+        for ident_raw in (payload.identifiers or []):
             ident = ident_raw.strip().upper()
             if ident and ident not in seen:
                 seen.add(ident)
+                clean_idents.append(ident)
+
+        if clean_idents:
+            ident_conflict = session.execute(
+                select(SiteIdentifier.identifier, Site.name)
+                .join(Site, Site.id == SiteIdentifier.site_id)
+                .where(
+                    SiteIdentifier.company_id == current_user.company_id,
+                    func.lower(SiteIdentifier.identifier).in_([i.lower() for i in clean_idents]),
+                )
+            ).first()
+            if ident_conflict:
+                conf_ident, conf_site = ident_conflict
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"O padrão de nomenclatura {conf_ident} já está vinculado à filial {conf_site}.",
+                )
+
+        try:
+            site = Site(
+                company_id=current_user.company_id,
+                name=name,
+                code=code,
+                active=payload.active,
+            )
+            session.add(site)
+            session.flush()
+
+            for ident in clean_idents:
                 session.add(
                     SiteIdentifier(
                         company_id=current_user.company_id,
@@ -195,10 +301,15 @@ def create_site(
                         active=True,
                     )
                 )
-                saved_idents.append(ident)
 
-        session.commit()
-        session.refresh(site)
+            session.commit()
+            session.refresh(site)
+        except IntegrityError:
+            session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Erro de integridade: já existe uma filial com esses dados cadastrais.",
+            )
 
         return SiteResponse(
             id=site.id,
@@ -206,7 +317,7 @@ def create_site(
             name=site.name,
             code=site.code,
             active=site.active,
-            identifiers=saved_idents,
+            identifiers=clean_idents,
             devices_count=0,
             network_assets_count=0,
         )
@@ -245,20 +356,19 @@ def update_site(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="O código não pode ser vazio.",
                 )
-            if new_code != site.code:
-                conflict = session.scalar(
-                    select(Site).where(
-                        Site.company_id == current_user.company_id,
-                        Site.code == new_code,
-                        Site.id != site.id,
-                    )
+            conflict_code = session.scalar(
+                select(Site).where(
+                    Site.company_id == current_user.company_id,
+                    func.lower(Site.code) == new_code.lower(),
+                    Site.id != site.id,
                 )
-                if conflict:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"O código '{new_code}' já está sendo utilizado por outra filial.",
-                    )
-                site.code = new_code
+            )
+            if conflict_code:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Já existe uma filial cadastrada com o código {new_code}.",
+                )
+            site.code = new_code
 
         if payload.name is not None:
             new_name = payload.name.strip()
@@ -267,33 +377,73 @@ def update_site(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="O nome da loja não pode ser vazio.",
                 )
+            conflict_name = session.scalar(
+                select(Site).where(
+                    Site.company_id == current_user.company_id,
+                    func.lower(Site.name) == new_name.lower(),
+                    Site.id != site.id,
+                )
+            )
+            if conflict_name:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Já existe uma filial cadastrada com o nome {new_name}.",
+                )
             site.name = new_name
 
         if payload.active is not None:
             site.active = payload.active
 
         if payload.identifiers is not None:
-            session.execute(
-                delete(SiteIdentifier).where(
-                    SiteIdentifier.site_id == site.id,
-                )
-            )
+            clean_idents = []
             seen = set()
             for ident_raw in payload.identifiers:
                 ident = ident_raw.strip().upper()
                 if ident and ident not in seen:
                     seen.add(ident)
-                    session.add(
-                        SiteIdentifier(
-                            company_id=current_user.company_id,
-                            site_id=site.id,
-                            identifier=ident,
-                            active=True,
-                        )
+                    clean_idents.append(ident)
+
+            if clean_idents:
+                ident_conflict = session.execute(
+                    select(SiteIdentifier.identifier, Site.name)
+                    .join(Site, Site.id == SiteIdentifier.site_id)
+                    .where(
+                        SiteIdentifier.company_id == current_user.company_id,
+                        SiteIdentifier.site_id != site.id,
+                        func.lower(SiteIdentifier.identifier).in_([i.lower() for i in clean_idents]),
+                    )
+                ).first()
+                if ident_conflict:
+                    conf_ident, conf_site = ident_conflict
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"O padrão de nomenclatura {conf_ident} já está vinculado à filial {conf_site}.",
                     )
 
-        session.commit()
-        session.refresh(site)
+            session.execute(
+                delete(SiteIdentifier).where(
+                    SiteIdentifier.site_id == site.id,
+                )
+            )
+            for ident in clean_idents:
+                session.add(
+                    SiteIdentifier(
+                        company_id=current_user.company_id,
+                        site_id=site.id,
+                        identifier=ident,
+                        active=True,
+                    )
+                )
+
+        try:
+            session.commit()
+            session.refresh(site)
+        except IntegrityError:
+            session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Erro de integridade: já existe uma filial com esses dados cadastrais.",
+            )
 
         # Atualizar contagens
         dev_count = session.scalar(

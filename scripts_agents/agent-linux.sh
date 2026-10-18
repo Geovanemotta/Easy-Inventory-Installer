@@ -494,28 +494,28 @@ adicionar_pacote_existente() {
                 --arg id "$id" \
                 --arg pacote "$pacote" \
                 --arg versao "$versao" \
-                'map(if .id == $id then .pacotes += [{pacote: $pacote, versao: $versao}] else . end)' <<< "$APLICATIVOS")
+                'map(if .id == $id then (if (.pacotes | map(.pacote) | index($pacote)) then . else .pacotes += [{pacote: $pacote, versao: $versao}] end) else . end)' <<< "$APLICATIVOS")
             ;;
         agentes)
             AGENTES=$(jq \
                 --arg id "$id" \
                 --arg pacote "$pacote" \
                 --arg versao "$versao" \
-                'map(if .id == $id then .pacotes += [{pacote: $pacote, versao: $versao}] else . end)' <<< "$AGENTES")
+                'map(if .id == $id then (if (.pacotes | map(.pacote) | index($pacote)) then . else .pacotes += [{pacote: $pacote, versao: $versao}] end) else . end)' <<< "$AGENTES")
             ;;
         runtimes)
             RUNTIMES=$(jq \
                 --arg id "$id" \
                 --arg pacote "$pacote" \
                 --arg versao "$versao" \
-                'map(if .id == $id then .pacotes += [{pacote: $pacote, versao: $versao}] else . end)' <<< "$RUNTIMES")
+                'map(if .id == $id then (if (.pacotes | map(.pacote) | index($pacote)) then . else .pacotes += [{pacote: $pacote, versao: $versao}] end) else . end)' <<< "$RUNTIMES")
             ;;
         ferramentas)
             FERRAMENTAS=$(jq \
                 --arg id "$id" \
                 --arg pacote "$pacote" \
                 --arg versao "$versao" \
-                'map(if .id == $id then .pacotes += [{pacote: $pacote, versao: $versao}] else . end)' <<< "$FERRAMENTAS")
+                'map(if .id == $id then (if (.pacotes | map(.pacote) | index($pacote)) then . else .pacotes += [{pacote: $pacote, versao: $versao}] end) else . end)' <<< "$FERRAMENTAS")
             ;;
     esac
 }
@@ -526,9 +526,11 @@ adicionar_pacote_existente() {
 eh_excluido() {
     local pacote="$1"
     case "$pacote" in
+        libreoffice-help-*|libreoffice-l10n-*|libreoffice-style-*|libreoffice-common|libreoffice-core) return 0 ;;
+        libreoffice*) return 1 ;;
         lib*|fonts-*|language-pack-*|hunspell-*|hyphen-*|mythes-*) return 0 ;;
         wamerican|wbrazilian|wbritish|wportuguese) return 0 ;;
-        libreoffice-help-*|libreoffice-l10n-*|gnome-user-docs-*) return 0 ;;
+        gnome-user-docs-*) return 0 ;;
         zorin-os-*|grub-*|linux-generic*|shim-*) return 0 ;;
         apt-transport-https|brave-keyring|distro-info-data|efibootmgr|mokutil) return 0 ;;
         software-properties-common|poppler-data|python3-typing-extensions|python3-pkg-resources) return 0 ;;
@@ -554,6 +556,16 @@ if command -v apt-mark >/dev/null 2>&1; then
         esac
 
         if eh_excluido "$pacote"; then
+            continue
+        fi
+
+        # Mapeamento consolidado do LibreOffice
+        if [[ "$pacote" =~ ^libreoffice ]]; then
+            if jq -e '.[] | select(.id == "libreoffice")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
+                adicionar_pacote_existente "aplicativos" "libreoffice" "$pacote"
+            else
+                adicionar_pacote "aplicativos" "libreoffice" "LibreOffice" "$pacote" "aplicativo"
+            fi
             continue
         fi
 
@@ -654,6 +666,47 @@ if command -v apt-mark >/dev/null 2>&1; then
 fi
 
 # ----------------------------------------------------------
+# Verificação explícita de pacotes principais (padrão da distro ou showmanual)
+# ----------------------------------------------------------
+PACOTES_ESSENCIAIS=(
+    "libreoffice-writer" "libreoffice-calc" "libreoffice-impress" "libreoffice-base" "libreoffice-draw" "libreoffice-math"
+    "google-chrome-stable" "firefox" "rustdesk" "rustdesk-giassi-cliente-li"
+    "zabbix-agent2" "zabbix-agent" "wazuh-agent"
+)
+for p_ess in "${PACOTES_ESSENCIAIS[@]}"; do
+    STATUS_P=$(dpkg-query -W -f='${Status}' "$p_ess" 2>/dev/null || true)
+    if [[ "$STATUS_P" == "install ok installed" ]]; then
+        if [[ "$p_ess" =~ ^libreoffice ]]; then
+            if jq -e '.[] | select(.id == "libreoffice")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
+                adicionar_pacote_existente "aplicativos" "libreoffice" "$p_ess"
+            else
+                adicionar_pacote "aplicativos" "libreoffice" "LibreOffice" "$p_ess" "aplicativo"
+            fi
+        elif [[ "$p_ess" == "google-chrome-stable" ]]; then
+            if ! jq -e '.[] | select(.id == "google-chrome")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
+                adicionar_pacote "aplicativos" "google-chrome" "Google Chrome" "$p_ess" "aplicativo"
+            fi
+        elif [[ "$p_ess" == "firefox" ]]; then
+            if ! jq -e '.[] | select(.id == "firefox")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
+                adicionar_pacote "aplicativos" "firefox" "Firefox" "$p_ess" "aplicativo"
+            fi
+        elif [[ "$p_ess" == "rustdesk" || "$p_ess" == "rustdesk-giassi-cliente-li" ]]; then
+            if ! jq -e '.[] | select(.id == "rustdesk-giassi" or .id == "rustdesk")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
+                adicionar_pacote "aplicativos" "rustdesk" "RustDesk" "$p_ess" "aplicativo"
+            fi
+        elif [[ "$p_ess" == "zabbix-agent2" || "$p_ess" == "zabbix-agent" ]]; then
+            if ! jq -e '.[] | select(.id == "zabbix-agent2" or .id == "zabbix-agent")' <<< "$AGENTES" >/dev/null 2>&1; then
+                adicionar_pacote "agentes" "$p_ess" "Zabbix Agent" "$p_ess" "agente"
+            fi
+        elif [[ "$p_ess" == "wazuh-agent" ]]; then
+            if ! jq -e '.[] | select(.id == "wazuh-agent")' <<< "$AGENTES" >/dev/null 2>&1; then
+                adicionar_pacote "agentes" "wazuh-agent" "Wazuh Agent" "$p_ess" "agente"
+            fi
+        fi
+    fi
+done
+
+# ----------------------------------------------------------
 # Ordenação de Softwares
 # ----------------------------------------------------------
 APLICATIVOS=$(jq 'sort_by(.nome)' <<< "$APLICATIVOS")
@@ -727,80 +780,104 @@ jq -n \
 }' > "$ARQUIVO_ATUAL"
 
 # ==========================================================
-# ENVIO COM DETECÇÃO DE ALTERAÇÕES
+# ENVIO COM VALIDAÇÃO E ATUALIZAÇÃO DO SERVIDOR (HEARTBEAT)
 # ==========================================================
-DEVE_ENVIAR=true
-
+ALTERACAO_DETECTADA=true
 if [[ "$FORCAR_ENVIO" != true && -f "$ARQUIVO_ULTIMO" ]]; then
-    ATUAL_HASH=$(jq -S 'del(.data_coleta)' "$ARQUIVO_ATUAL" | md5sum | awk '{print $1}')
-    ULTIMO_HASH=$(jq -S 'del(.data_coleta)' "$ARQUIVO_ULTIMO" | md5sum | awk '{print $1}')
+    ATUAL_HASH=$(jq -S 'del(.data_coleta)' "$ARQUIVO_ATUAL" 2>/dev/null | md5sum | awk '{print $1}')
+    ULTIMO_HASH=$(jq -S 'del(.data_coleta)' "$ARQUIVO_ULTIMO" 2>/dev/null | md5sum | awk '{print $1}')
 
-    if [[ "$ATUAL_HASH" == "$ULTIMO_HASH" ]]; then
-        DEVE_ENVIAR=false
+    if [[ -n "$ATUAL_HASH" && "$ATUAL_HASH" == "$ULTIMO_HASH" ]]; then
+        ALTERACAO_DETECTADA=false
     fi
 fi
 
-if [[ "$DEVE_ENVIAR" == true ]]; then
-    enviar_inventario() {
-        local url="$1"
-        curl -sS -k \
-            --connect-timeout 8 \
-            --max-time 30 \
-            -H "Content-Type: application/json; charset=utf-8" \
-            --data @"$ARQUIVO_ATUAL" \
-            "$url" 2>&1 || echo "ERRO_CONEXAO"
-    }
+enviar_inventario() {
+    local url="$1"
+    local temp_resp
+    temp_resp=$(mktemp)
+    local http_code
+    http_code=$(curl -sS -k \
+        --connect-timeout 8 \
+        --max-time 30 \
+        -H "Content-Type: application/json; charset=utf-8" \
+        -H "Accept: application/json" \
+        --data @"$ARQUIVO_ATUAL" \
+        -w "%{http_code}" \
+        -o "$temp_resp" \
+        "$url" 2>/dev/null || echo "000")
+    local body
+    body=$(cat "$temp_resp" 2>/dev/null)
+    rm -f "$temp_resp"
+    echo "${http_code}|${body}"
+}
 
-    echo "[*] Enviando inventário para: $URL_SERVIDOR"
-    RESPOSTA=$(enviar_inventario "$URL_SERVIDOR")
+echo "[*] Enviando inventário para: $URL_SERVIDOR"
+RETORNO=$(enviar_inventario "$URL_SERVIDOR")
+HTTP_STATUS="${RETORNO%%|*}"
+RESPOSTA="${RETORNO#*|}"
 
-    # Se houve falha de conexão na porta configurada, tenta automaticamente portas alternativas
-    if [[ "$RESPOSTA" == *"ERRO_CONEXAO"* || "$RESPOSTA" == *"Failed to connect"* || "$RESPOSTA" == *"Connection refused"* || "$RESPOSTA" == *"Failed connect to"* ]]; then
-        echo "[!] Falha ao conectar em $URL_SERVIDOR. Testando portas alternativas dinamicamente..."
-        
-        URLS_ALT=()
-        if [[ "$URL_SERVIDOR" =~ ^https://([^:/]+)(:443)?(/.*)$ ]]; then
-            H_B="${BASH_REMATCH[1]}"
-            P_B="${BASH_REMATCH[3]}"
-            URLS_ALT+=("https://${H_B}:9292${P_B}" "http://${H_B}:8000${P_B}")
-        elif [[ "$URL_SERVIDOR" =~ ^https://([^:/]+):([0-9]+)(/.*)$ ]]; then
-            H_B="${BASH_REMATCH[1]}"
-            PORTA_A="${BASH_REMATCH[2]}"
-            P_B="${BASH_REMATCH[3]}"
-            if [[ "$PORTA_A" == "9292" ]]; then
-                URLS_ALT+=("https://${H_B}${P_B}" "http://${H_B}:8000${P_B}")
-            else
-                URLS_ALT+=("https://${H_B}:9292${P_B}" "https://${H_B}${P_B}")
-            fi
-        elif [[ "$URL_SERVIDOR" =~ ^http://([^:/]+)(:[0-9]+)?(/.*)$ ]]; then
-            H_B="${BASH_REMATCH[1]}"
-            P_B="${BASH_REMATCH[3]}"
+# Se houve falha de conexão na porta configurada (código 000), tenta automaticamente portas alternativas
+if [[ "$HTTP_STATUS" == "000" ]]; then
+    echo "[!] Falha ao conectar em $URL_SERVIDOR (código 000). Testando portas alternativas dinamicamente..."
+    
+    URLS_ALT=()
+    if [[ "$URL_SERVIDOR" =~ ^https://([^:/]+)(:443)?(/.*)$ ]]; then
+        H_B="${BASH_REMATCH[1]}"
+        P_B="${BASH_REMATCH[3]}"
+        URLS_ALT+=("https://${H_B}:9292${P_B}" "http://${H_B}:8000${P_B}")
+    elif [[ "$URL_SERVIDOR" =~ ^https://([^:/]+):([0-9]+)(/.*)$ ]]; then
+        H_B="${BASH_REMATCH[1]}"
+        PORTA_A="${BASH_REMATCH[2]}"
+        P_B="${BASH_REMATCH[3]}"
+        if [[ "$PORTA_A" == "9292" ]]; then
+            URLS_ALT+=("https://${H_B}${P_B}" "http://${H_B}:8000${P_B}")
+        else
             URLS_ALT+=("https://${H_B}:9292${P_B}" "https://${H_B}${P_B}")
         fi
-
-        for alt in "${URLS_ALT[@]}"; do
-            echo "[*] Tentando porta alternativa: $alt"
-            RESPOSTA_ALT=$(enviar_inventario "$alt")
-            if [[ "$RESPOSTA_ALT" == *"OK"* || "$RESPOSTA_ALT" == *"ok"* || "$RESPOSTA_ALT" == *"device_id"* ]]; then
-                echo "[+] Conexão bem-sucedida através da porta alternativa: $alt"
-                URL_SERVIDOR="$alt"
-                RESPOSTA="$RESPOSTA_ALT"
-                echo "$alt" > "$ARQUIVO_URL" 2>/dev/null || true
-                break
-            fi
-        done
+    elif [[ "$URL_SERVIDOR" =~ ^http://([^:/]+)(:[0-9]+)?(/.*)$ ]]; then
+        H_B="${BASH_REMATCH[1]}"
+        P_B="${BASH_REMATCH[3]}"
+        URLS_ALT+=("https://${H_B}:9292${P_B}" "https://${H_B}${P_B}")
     fi
 
-    # Suporta tanto "OK" textual quanto resposta JSON {"status":"ok"...}
-    if [[ "$RESPOSTA" == *"OK"* || "$RESPOSTA" == *"ok"* || "$RESPOSTA" == *"device_id"* ]]; then
-        cp "$ARQUIVO_ATUAL" "$ARQUIVO_ULTIMO"
-        echo "$URL_SERVIDOR" > "$ARQUIVO_URL" 2>/dev/null || true
-        echo "[+] Inventário enviado e atualizado com sucesso!"
+    for alt in "${URLS_ALT[@]}"; do
+        echo "[*] Tentando porta alternativa: $alt"
+        RETORNO_ALT=$(enviar_inventario "$alt")
+        CODE_ALT="${RETORNO_ALT%%|*}"
+        BODY_ALT="${RETORNO_ALT#*|}"
+        if [[ "$CODE_ALT" == "200" || "$CODE_ALT" == "201" ]]; then
+            echo "[+] Conexão bem-sucedida através da porta alternativa: $alt"
+            URL_SERVIDOR="$alt"
+            HTTP_STATUS="$CODE_ALT"
+            RESPOSTA="$BODY_ALT"
+            echo "$alt" > "$ARQUIVO_URL" 2>/dev/null || true
+            break
+        fi
+    done
+fi
+
+# Validação estrita de código HTTP de sucesso (200 ou 201)
+if [[ "$HTTP_STATUS" == "200" || "$HTTP_STATUS" == "201" ]]; then
+    cp "$ARQUIVO_ATUAL" "$ARQUIVO_ULTIMO"
+    echo "$URL_SERVIDOR" > "$ARQUIVO_URL" 2>/dev/null || true
+    
+    # Extrai confirmação enviada pelo backend
+    DEV_ID=$(echo "$RESPOSTA" | jq -r '.device_id // empty' 2>/dev/null || true)
+    DEV_HOST=$(echo "$RESPOSTA" | jq -r '.hostname // empty' 2>/dev/null || true)
+    DEV_ACT=$(echo "$RESPOSTA" | jq -r '.action // "processado"' 2>/dev/null || true)
+
+    if [[ -n "$DEV_ID" ]]; then
+        echo "[+] Inventário enviado! ID: $DEV_ID | Hostname: ${DEV_HOST:-$HOSTNAME} | Ação: $DEV_ACT"
+    elif [[ "$ALTERACAO_DETECTADA" == true ]]; then
+        echo "[+] Inventário enviado e atualizado com sucesso! (Alteração de hardware/software detectada)"
     else
-        echo "[-] Falha ao enviar inventário."
-        echo "[-] Resposta do servidor: $RESPOSTA"
-        exit 1
+        echo "[+] Inventário enviado e atualizado com sucesso! (Sincronização periódica e heartbeat)"
     fi
 else
-    echo "[i] Nenhuma alteração detectada no hardware ou softwares. Envio ignorado (use --force para forçar)."
+    echo "[-] Falha ao enviar inventário. Código HTTP do servidor: $HTTP_STATUS"
+    echo "[-] Servidor tentado: $URL_SERVIDOR"
+    echo "[-] Resposta do servidor: $RESPOSTA"
+    exit 1
 fi
+

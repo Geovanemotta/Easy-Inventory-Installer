@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.auth import get_current_user
 from app.models.user import User
+from app.schemas.remote_access import RemoteAccessConfigResponse
 
 router = APIRouter(
     prefix="/remote-access",
@@ -32,7 +33,7 @@ def check_remote_access_permission(user: User = Depends(get_current_user)) -> Us
     )
 
 
-@router.get("/config")
+@router.get("/config", response_model=RemoteAccessConfigResponse)
 def get_remote_access_config(
     request: Request,
     current_user: User = Depends(check_remote_access_permission),

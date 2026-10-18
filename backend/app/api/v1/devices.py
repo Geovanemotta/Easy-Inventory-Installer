@@ -1,15 +1,15 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import ipaddress
 import re
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, exists, func, not_, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.dependencies.auth import get_current_user
 from app.database import engine
-from app.models import Device, User
+from app.models import Device, DeviceSoftware, User
 from app.models.device_history import DeviceHistory
 from app.models.network_asset import NetworkAsset
 from app.models.site import Site
@@ -17,14 +17,23 @@ from app.models.site_ip_range import SiteIpRange
 from app.models.user_site_access import user_site_access
 from app.schemas.device import (
     DeviceAprovarCadastroIn,
+    DeviceDetailResponse,
     DeviceFirewallSolicitarIn,
+    DeviceKPIs,
     DevicePatrimonioIn,
     DeviceRejeitarCadastroIn,
     DeviceSolicitarRecadastroIn,
+    SiteVlanIpsResponse,
 )
 from app.services.inventory_service import (
     IGNORED_HISTORY_FIELDS,
     is_subnet_88,
+    simular_identificacao_site,
+)
+from app.services.device_normalizer import (
+    normalizar_device_detail,
+    normalizar_device_list_item,
+    normalizar_so,
 )
 
 
@@ -82,21 +91,25 @@ def is_matriz_operator(user: User) -> bool:
 
 def validar_restricao_bancada_patrimonio(device: Device, novo_patrimonio: str, user: User) -> None:
     """
-    Garante que operadores não possam alterar um patrimônio já atribuído
-    se o dispositivo estiver fora da faixa de preparação/bancada (192.168.88.0/24).
+    Garante que operadores da matriz só possam cadastrar ou alterar patrimônio
+    se a máquina estiver atualmente na faixa de bancada (192.168.88.0/24) e não estiver confirmada no firewall.
+    Fora da bancada .88, qualquer tentativa de cadastro/alteração por operadores é bloqueada com HTTP 403.
     Administradores têm permissão irrestrita.
     """
     if is_admin_user(user):
         return
 
-    dev_is_bench = is_subnet_88(device.ip)
-    dev_has_pat = bool(device.patrimonio and device.patrimonio.strip())
-    if not dev_is_bench and dev_has_pat:
-        if device.patrimonio.strip().lower() != novo_patrimonio.strip().lower():
-            raise HTTPException(
-                status_code=403,
-                detail="O patrimônio deste equipamento não pode ser alterado fora da faixa de preparação (192.168.88.0/24).",
-            )
+    if not is_subnet_88(device.ip):
+        raise HTTPException(
+            status_code=403,
+            detail="Operadores da matriz só possuem permissão para cadastrar ou alterar patrimônio em máquinas na bancada (192.168.88.x). Fora da bancada, o acesso é apenas para consulta.",
+        )
+
+    if device.firewall_status == "confirmado":
+        raise HTTPException(
+            status_code=403,
+            detail="O patrimônio já foi homologado pelo administrador e está bloqueado para alteração.",
+        )
 
 
 def resolver_ativo_por_patrimonio(
@@ -295,6 +308,182 @@ def resolver_ativo_por_patrimonio(
     }
 
 
+def formatar_lista_versoes(vers_raw: list) -> list:
+    """Extrai e padroniza a lista de nomes de sistemas operacionais e versões via normalizar_so."""
+    versoes_set = set()
+    for row in vers_raw:
+        sis = row[0] if len(row) > 0 else ""
+        ver = row[1] if len(row) > 1 else ""
+        win_rel = row[2] if len(row) > 2 else None
+        v_str = (ver or "").strip()
+        s_str = (sis or "").strip()
+        if v_str.lower() == "none":
+            v_str = ""
+        if s_str.lower() == "none":
+            s_str = ""
+        if not v_str and not s_str:
+            continue
+        info = normalizar_so(s_str, v_str, windows_release=win_rel)
+        so_name = info.get("so_formatado")
+        if so_name and so_name.lower() not in ("none", "não informado"):
+            versoes_set.add(so_name)
+    return sorted(list(versoes_set))
+
+
+def calcular_charts_summary(session: Session, base_where: Any, kpis: dict) -> dict:
+    """Calcula os 3 gráficos Donut agregados para a tela de Estações: Plataforma, Status e Versões."""
+    # 1. Plataforma (Windows vs Linux)
+    tot_win = kpis.get("total_windows", 0)
+    tot_lnx = kpis.get("total_linux", 0)
+    tot_plat = tot_win + tot_lnx
+    plat_slices = []
+    if tot_plat > 0:
+        if tot_win > 0:
+            plat_slices.append({
+                "label": "Windows",
+                "count": tot_win,
+                "percent": round((tot_win / tot_plat) * 100, 1),
+                "color": "#0284c7",
+            })
+        if tot_lnx > 0:
+            plat_slices.append({
+                "label": "Linux",
+                "count": tot_lnx,
+                "percent": round((tot_lnx / tot_plat) * 100, 1),
+                "color": "#f97316",
+            })
+
+    plataforma_chart = {
+        "title": "Distribuição por Plataforma",
+        "subtitle": "Divisão do parque por SO macro",
+        "total": tot_plat,
+        "slices": plat_slices,
+    }
+
+    # 2. Status Operacional (Atualizada, Atualização Necessária, Desatualizada)
+    # Considera a regra de conformidade: toda máquina Windows 10 pertence a 'Atualização Necessária'
+    cond_win10_chart = or_(
+        func.coalesce(Device.versao, "").ilike("%windows 10%"),
+        func.coalesce(Device.sistema, "").ilike("%windows 10%"),
+        func.coalesce(Device.versao, "").ilike("10.0.1904%"),
+        func.coalesce(Device.versao, "").ilike("%win10%"),
+    )
+    st_row = session.execute(
+        select(
+            func.count().filter(Device.status == "OK", not_(cond_win10_chart)).label("tot_ok"),
+            func.count().filter(or_(Device.status == "UPGRADE_REQUIRED", cond_win10_chart)).label("tot_upg"),
+            func.count().filter(
+                or_(Device.status.is_(None), not_(Device.status.in_(["OK", "UPGRADE_REQUIRED"]))),
+                not_(cond_win10_chart),
+            ).label("tot_des"),
+        ).where(base_where)
+    ).one()
+    st_counts = {
+        "Atualizada": st_row.tot_ok or 0,
+        "Atualização Necessária": st_row.tot_upg or 0,
+        "Desatualizada": st_row.tot_des or 0,
+    }
+
+    tot_status = sum(st_counts.values())
+    status_slices = []
+    if tot_status > 0:
+        if st_counts["Atualizada"] > 0:
+            status_slices.append({
+                "label": "Atualizada",
+                "count": st_counts["Atualizada"],
+                "percent": round((st_counts["Atualizada"] / tot_status) * 100, 1),
+                "color": "#10b981",
+            })
+        if st_counts["Atualização Necessária"] > 0:
+            status_slices.append({
+                "label": "Atualização Necessária",
+                "count": st_counts["Atualização Necessária"],
+                "percent": round((st_counts["Atualização Necessária"] / tot_status) * 100, 1),
+                "color": "#f59e0b",
+            })
+        if st_counts["Desatualizada"] > 0:
+            status_slices.append({
+                "label": "Desatualizada",
+                "count": st_counts["Desatualizada"],
+                "percent": round((st_counts["Desatualizada"] / tot_status) * 100, 1),
+                "color": "#ef4444",
+            })
+
+    status_chart = {
+        "title": "Status das Máquinas",
+        "subtitle": "Condição de conformidade e versão",
+        "total": tot_status,
+        "slices": status_slices,
+    }
+
+    # 3. Distribuição por Versão de Sistema
+    vers_rows = session.execute(
+        select(Device.sistema, Device.versao, Device.windows_release, func.count())
+        .where(base_where)
+        .group_by(Device.sistema, Device.versao, Device.windows_release)
+    ).all()
+    vers_grouped: dict[str, int] = {}
+    for sis, ver, win_rel, cnt in vers_rows:
+        norm = normalizar_so(sis, ver, windows_release=win_rel)
+        so_name = norm.get("so_formatado") or "Outros"
+        vers_grouped[so_name] = vers_grouped.get(so_name, 0) + cnt
+
+    tot_vers = sum(vers_grouped.values())
+    sorted_vers = sorted(vers_grouped.items(), key=lambda x: x[1], reverse=True)
+    vers_colors = [
+        "#0284c7",  # Sky blue (Windows 11 Pro)
+        "#0d9488",  # Teal (Kubuntu 22.04)
+        "#10b981",  # Emerald (Kubuntu 24.04)
+        "#8b5cf6",  # Purple (Zorin 18)
+        "#f59e0b",  # Amber (Windows 10 Pro)
+        "#06b6d4",  # Cyan (Kubuntu 20.04)
+        "#3b82f6",  # Blue (Windows 11 Pro 25H2)
+        "#14b8a6",  # Mint (Kubuntu 26.04)
+        "#64748b",  # Slate (Windows)
+        "#ec4899",  # Pink
+        "#f97316",  # Orange
+        "#a855f7",  # Violet
+    ]
+
+    vers_slices = []
+    # Mostra todas as categorias reais presentes no parque sem agrupamento artificial prematuro
+    max_slices = 12
+    top_items = sorted_vers[:max_slices] if len(sorted_vers) <= max_slices + 1 else sorted_vers[:max_slices]
+    other_items = [] if len(sorted_vers) <= max_slices + 1 else sorted_vers[max_slices:]
+
+    for idx, (label, count) in enumerate(top_items):
+        if count > 0 and tot_vers > 0:
+            vers_slices.append({
+                "label": label,
+                "count": count,
+                "percent": round((count / tot_vers) * 100, 1),
+                "color": vers_colors[idx % len(vers_colors)],
+            })
+
+    if other_items and tot_vers > 0:
+        other_cnt = sum(c for _, c in other_items)
+        if other_cnt > 0:
+            vers_slices.append({
+                "label": "Outras Versões",
+                "count": other_cnt,
+                "percent": round((other_cnt / tot_vers) * 100, 1),
+                "color": "#94a3b8",
+            })
+
+    versoes_chart = {
+        "title": "Distribuição por Versão",
+        "subtitle": "Versões de SO mais presentes no parque",
+        "total": tot_vers,
+        "slices": vers_slices,
+    }
+
+    return {
+        "plataforma": plataforma_chart,
+        "status": status_chart,
+        "versoes": versoes_chart,
+    }
+
+
 # =====================================================================
 # Rotas da API de Dispositivos
 # =====================================================================
@@ -307,38 +496,35 @@ router = APIRouter(
 
 @router.get("/")
 def list_devices(
-    search: Optional[str] = Query(
-        default=None,
-        description="Busca por hostname, IP, MAC ou RustDesk ID.",
-    ),
-    site_id: Optional[int] = Query(
-        default=None,
-        description="Filtra por site.",
-    ),
-    status: Optional[str] = Query(
-        default=None,
-        description="Filtra pelo status do dispositivo.",
-    ),
-    page: int = Query(
-        default=1,
-        ge=1,
-    ),
-    per_page: int = Query(
-        default=50,
-        ge=1,
-        le=200,
-    ),
+    search: Optional[str] = None,
+    site_id: Optional[int] = None,
+    status: Optional[str] = None,
+    page: int = 1,
+    per_page: int = 50,
     current_user: User = Depends(get_current_user),
     sistema: Optional[str] = None,
     versao: Optional[str] = None,
+    loja: Optional[str] = None,
+    firewall_status: Optional[str] = None,
+    alerta: Optional[bool] = None,
+    inativas: Optional[bool] = None,
+    bancada: Optional[bool] = None,
+    plataforma: Optional[str] = None,
+    disco_critico: Optional[bool] = None,
+    sem_apps: Optional[bool] = None,
+    com_apps: Optional[bool] = None,
+    ordenar_por: Optional[str] = "loja",
+    ordem_dir: Optional[str] = "asc",
 ):
-    """Lista dispositivos paginados com filtros e controle de acesso por filial."""
+    """Lista dispositivos paginados com filtros avançados, KPIs e controle de acesso por filial."""
     with Session(engine) as session:
         query = select(Device).where(
             Device.company_id == current_user.company_id,
+            Device.active.is_(True),
         )
         count_query = select(func.count(Device.id)).where(
             Device.company_id == current_user.company_id,
+            Device.active.is_(True),
         )
 
         # Controle de acesso por site para operadores locais
@@ -351,81 +537,563 @@ def list_devices(
             query = query.where(Device.site_id.in_(allowed_sites))
             count_query = count_query.where(Device.site_id.in_(allowed_sites))
 
-        if site_id is not None:
-            query = query.where(Device.site_id == site_id)
-            count_query = count_query.where(Device.site_id == site_id)
+        # Padrão para operador_matriz: se bancada não foi fornecido (bancada is None), filtra bancada por padrão
+        if is_matriz_operator(current_user) and not is_admin_user(current_user) and bancada is None:
+            bancada = True
 
-        if search:
+        now_minus_48h = datetime.utcnow() - timedelta(hours=48)
+
+        has_apps_subq = exists().where(
+            DeviceSoftware.device_id == Device.id,
+            DeviceSoftware.installed.is_(True),
+        )
+
+        # Cálculo otimizado de KPIs contextuais (respeitando Filial, Busca e Status sem acoplamento aos toggles de KPI)
+        kpi_query = select(
+            func.count().filter(Device.sistema.ilike("%windows%")).label("tot_win"),
+            func.count().filter(not_(Device.sistema.ilike("%windows%"))).label("tot_lnx"),
+            func.count().filter(Device.alerta_hardware.isnot(None)).label("tot_alert"),
+            func.count().filter(or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))).label("tot_inativas"),
+            func.count().filter(Device.firewall_status == "pendente").label("tot_fw"),
+            func.count().filter(Device.ip.like("192.168.88.%")).label("tot_88"),
+            func.count().filter(Device.disco_percentual >= 85).label("tot_crit_disk"),
+            func.count().filter(~has_apps_subq).label("tot_sem_apps"),
+            func.count().filter(has_apps_subq).label("tot_com_apps"),
+        ).where(
+            Device.company_id == current_user.company_id,
+            Device.active.is_(True),
+        )
+        if not is_global_viewer:
+            kpi_query = kpi_query.where(Device.site_id.in_(allowed_sites))
+
+        p_page = page if isinstance(page, int) else 1
+        p_per_page = per_page if isinstance(per_page, int) else 50
+
+        # Filtro de Filial / Loja (Contextual)
+        if site_id is not None and isinstance(site_id, int):
+            if site_id in (-1, 0):
+                query = query.where(Device.site_id.is_(None))
+                count_query = count_query.where(Device.site_id.is_(None))
+                kpi_query = kpi_query.where(Device.site_id.is_(None))
+            else:
+                query = query.where(Device.site_id == site_id)
+                count_query = count_query.where(Device.site_id == site_id)
+                kpi_query = kpi_query.where(Device.site_id == site_id)
+
+        # Filtro de Busca Textual (Contextual)
+        filtro_busca = None
+        if search and isinstance(search, str) and search.strip():
             termo = f"%{search.strip()}%"
             filtro_busca = or_(
                 Device.hostname.ilike(termo),
                 Device.ip.ilike(termo),
                 Device.mac.ilike(termo),
                 Device.rustdesk_id.ilike(termo),
+                Device.patrimonio.ilike(termo),
+                Device.loja.ilike(termo),
+                Device.usuario.ilike(termo),
             )
             query = query.where(filtro_busca)
             count_query = count_query.where(filtro_busca)
+            kpi_query = kpi_query.where(filtro_busca)
 
-        if status:
-            query = query.where(Device.status == status)
-            count_query = count_query.where(Device.status == status)
+        # Filtro de Status Operacional (Contextual)
+        # Sincronizado com a regra: Windows 10 obrigatoriamente classificado em 'Atualização Necessária' (UPGRADE_REQUIRED)
+        if status and isinstance(status, str):
+            cond_win10_filter = or_(
+                func.coalesce(Device.versao, "").ilike("%windows 10%"),
+                func.coalesce(Device.sistema, "").ilike("%windows 10%"),
+                func.coalesce(Device.versao, "").ilike("10.0.1904%"),
+                func.coalesce(Device.versao, "").ilike("%win10%"),
+            )
+            if status == "OUTRO":
+                cond_status = and_(
+                    or_(Device.status.is_(None), not_(Device.status.in_(["OK", "UPGRADE_REQUIRED"]))),
+                    not_(cond_win10_filter),
+                )
+            elif status == "UPGRADE_REQUIRED":
+                cond_status = or_(Device.status == "UPGRADE_REQUIRED", cond_win10_filter)
+            elif status == "OK":
+                cond_status = and_(Device.status == "OK", not_(cond_win10_filter))
+            else:
+                cond_status = Device.status == status
 
-        if sistema:
-            query = query.where(Device.sistema == sistema)
-            count_query = count_query.where(Device.sistema == sistema)
+            query = query.where(cond_status)
+            count_query = count_query.where(cond_status)
+            kpi_query = kpi_query.where(cond_status)
 
-        if versao:
-            query = query.where(Device.versao == versao)
-            count_query = count_query.where(Device.versao == versao)
+        # Filtro de Loja por Nome Textual (Contextual)
+        if loja and isinstance(loja, str):
+            termo_loja = f"%{loja.strip()}%"
+            query = query.where(Device.loja.ilike(termo_loja))
+            count_query = count_query.where(Device.loja.ilike(termo_loja))
+            kpi_query = kpi_query.where(Device.loja.ilike(termo_loja))
+
+        # Execução da agregação dos KPIs contextuais
+        kpis_raw = session.execute(kpi_query).one()
+        kpis = {
+            "total_windows": kpis_raw.tot_win or 0,
+            "total_linux": kpis_raw.tot_lnx or 0,
+            "total_alertas": kpis_raw.tot_alert or 0,
+            "total_inativas": kpis_raw.tot_inativas or 0,
+            "total_firewall_pendente": kpis_raw.tot_fw or 0,
+            "total_bancada_88": kpis_raw.tot_88 or 0,
+            "total_critico_disco": kpis_raw.tot_crit_disk or 0,
+            "total_sem_apps": kpis_raw.tot_sem_apps or 0,
+            "total_com_apps": kpis_raw.tot_com_apps or 0,
+        }
+
+        # Filtros de Refinamento / Toggles da Lista
+
+        if versao and isinstance(versao, str):
+            v_clean = versao.strip()
+            if re.match(r"^k?ubuntu\b", v_clean, re.I):
+                v_num = re.sub(r"^k?ubuntu\s*", "", v_clean, flags=re.I).strip()
+                if v_num:
+                    cond_ver = and_(
+                        Device.sistema.ilike("%ubuntu%"),
+                        or_(
+                            Device.versao.ilike(f"%{v_num}%"),
+                            Device.sistema.ilike(f"%{v_num}%"),
+                        ),
+                    )
+                else:
+                    cond_ver = Device.sistema.ilike("%ubuntu%")
+            elif re.match(r"^zorin\b", v_clean, re.I):
+                v_num = re.sub(r"^zorin(\s*os)?\s*", "", v_clean, flags=re.I).strip()
+                if v_num:
+                    cond_ver = and_(
+                        Device.sistema.ilike("%zorin%"),
+                        or_(Device.versao.ilike(f"%{v_num}%"), Device.sistema.ilike(f"%{v_num}%")),
+                    )
+                else:
+                    cond_ver = Device.sistema.ilike("%zorin%")
+            elif re.match(r"^windows\b", v_clean, re.I):
+                m_rel = re.search(r"\b(2[0-9]H[1-2])\b", v_clean, re.I)
+                rel_target = m_rel.group(1).upper() if m_rel else None
+                base_os = re.sub(r"\b(2[0-9]H[1-2])\b", "", v_clean, flags=re.I).strip()
+                v_num = re.sub(r"^windows\s*", "", base_os, flags=re.I).strip()
+
+                cond_win = or_(Device.sistema.ilike("%windows%"), Device.versao.ilike("%windows%"))
+                conds = [cond_win]
+                if v_num:
+                    conds.append(or_(
+                        Device.versao.ilike(f"%{v_num}%"),
+                        Device.sistema.ilike(f"%{v_num}%"),
+                    ))
+                else:
+                    # 'Windows' genérico (sem número de versão 10, 11, etc.)
+                    conds.append(not_(or_(
+                        func.coalesce(Device.versao, "").ilike("%10%"),
+                        func.coalesce(Device.versao, "").ilike("%11%"),
+                        func.coalesce(Device.sistema, "").ilike("%10%"),
+                        func.coalesce(Device.sistema, "").ilike("%11%"),
+                    )))
+                if rel_target:
+                    conds.append(or_(
+                        Device.windows_release.ilike(f"%{rel_target}%"),
+                        Device.versao.ilike(f"%{rel_target}%"),
+                    ))
+                elif v_num and "11" in v_num:
+                    # Se filtramos 'Windows 11 Pro' sem release 25H2, isola a contagem de máquinas sem 25H2
+                    conds.append(or_(
+                        Device.windows_release.is_(None),
+                        not_(Device.windows_release.ilike("%25H2%")),
+                    ))
+                cond_ver = and_(*conds)
+            elif v_clean.lower() in ("outras versões", "outras versoes", "outros"):
+                cond_ver = not_(or_(
+                    Device.sistema.ilike("%ubuntu%"),
+                    Device.sistema.ilike("%zorin%"),
+                    Device.sistema.ilike("%windows%"),
+                    Device.versao.ilike("%windows%"),
+                ))
+            else:
+                v_termo = re.sub(r"^(Kubuntu|Ubuntu|Zorin|Windows)\s*", "", v_clean, flags=re.I)
+                v_filter = f"%{v_termo}%" if v_termo else f"%{v_clean}%"
+                cond_ver = or_(
+                    Device.versao.ilike(v_filter),
+                    Device.versao.ilike(f"%{v_clean}%"),
+                    Device.sistema.ilike(f"%{v_clean}%"),
+                )
+            query = query.where(cond_ver)
+            count_query = count_query.where(cond_ver)
+
+        if firewall_status:
+            query = query.where(Device.firewall_status == firewall_status)
+            count_query = count_query.where(Device.firewall_status == firewall_status)
+
+        if alerta:
+            query = query.where(Device.alerta_hardware.isnot(None))
+            count_query = count_query.where(Device.alerta_hardware.isnot(None))
+
+        if inativas:
+            cond_inat = or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))
+            query = query.where(cond_inat)
+            count_query = count_query.where(cond_inat)
+
+        if bancada:
+            query = query.where(Device.ip.like("192.168.88.%"))
+            count_query = count_query.where(Device.ip.like("192.168.88.%"))
+
+        if plataforma and isinstance(plataforma, str):
+            if plataforma.lower() == "windows":
+                query = query.where(Device.sistema.ilike("%windows%"))
+                count_query = count_query.where(Device.sistema.ilike("%windows%"))
+            elif plataforma.lower() == "linux":
+                query = query.where(not_(Device.sistema.ilike("%windows%")))
+                count_query = count_query.where(not_(Device.sistema.ilike("%windows%")))
+
+        if disco_critico:
+            query = query.where(Device.disco_percentual >= 85)
+            count_query = count_query.where(Device.disco_percentual >= 85)
+
+        if sem_apps:
+            query = query.where(~has_apps_subq)
+            count_query = count_query.where(~has_apps_subq)
+
+        if com_apps:
+            query = query.where(has_apps_subq)
+            count_query = count_query.where(has_apps_subq)
 
         total = session.scalar(count_query) or 0
         offset = (page - 1) * per_page
 
-        devices = session.scalars(
-            query.order_by(Device.hostname).offset(offset).limit(per_page)
-        ).all()
+        # Outer join com Site para suportar ordenação por filial sem jamais ocultar máquinas com site_id=None
+        query = query.outerjoin(Site, Device.site_id == Site.id)
+
+        # Ordenação dinâmica com suporte aos campos solicitados
+        order_col = Device.hostname
+        if ordenar_por == "ip":
+            order_col = Device.ip
+        elif ordenar_por == "disco":
+            order_col = Device.disco_percentual
+        elif ordenar_por == "patrimonio":
+            order_col = Device.patrimonio
+        elif ordenar_por in ("data_coleta", "coleta"):
+            order_col = Device.data_coleta
+        elif ordenar_por in ("loja", "filial"):
+            order_col = func.coalesce(Site.name, Site.code, Device.loja, "")
+
+        if ordem_dir == "desc":
+            query = query.order_by(order_col.desc().nullslast())
+        else:
+            query = query.order_by(order_col.asc().nullsfirst())
+
+        devices = session.scalars(query.offset(offset).limit(per_page)).all()
+
+        # Sites disponíveis para o escopo do usuário
+        sites_q = select(Site.id, Site.name, Site.code).where(Site.active.is_(True)).order_by(Site.name)
+        if not is_global_viewer:
+            sites_q = sites_q.where(Site.id.in_(allowed_sites))
+        sites_opts = [{"id": s.id, "name": s.name, "code": s.code} for s in session.execute(sites_q).all()]
+
+        # Faceta dinâmica de versões de SO calculada sobre o contexto ativo
+        versoes_query = (
+            select(Device.sistema, Device.versao, Device.windows_release)
+            .where(
+                Device.company_id == current_user.company_id,
+                Device.active.is_(True),
+            )
+            .distinct()
+        )
+        if not is_global_viewer:
+            versoes_query = versoes_query.where(Device.site_id.in_(allowed_sites))
+        if site_id is not None and isinstance(site_id, int):
+            if site_id in (-1, 0):
+                versoes_query = versoes_query.where(Device.site_id.is_(None))
+            else:
+                versoes_query = versoes_query.where(Device.site_id == site_id)
+        if loja and isinstance(loja, str) and loja.strip():
+            versoes_query = versoes_query.where(Device.loja.ilike(f"%{loja.strip()}%"))
+        if search and isinstance(search, str) and search.strip():
+            termo = f"%{search.strip()}%"
+            versoes_query = versoes_query.where(
+                or_(
+                    Device.hostname.ilike(termo),
+                    Device.ip.ilike(termo),
+                    Device.mac.ilike(termo),
+                    Device.rustdesk_id.ilike(termo),
+                    Device.patrimonio.ilike(termo),
+                    Device.loja.ilike(termo),
+                    Device.usuario.ilike(termo),
+                )
+            )
+        if plataforma:
+            if plataforma.lower() == "windows":
+                versoes_query = versoes_query.where(Device.sistema.ilike("%windows%"))
+            elif plataforma.lower() == "linux":
+                versoes_query = versoes_query.where(not_(Device.sistema.ilike("%windows%")))
+
+        vers_raw = session.execute(versoes_query).all()
+        versoes_opts = formatar_lista_versoes(vers_raw)
+
+        filter_options = {
+            "sites": sites_opts,
+            "versoes": versoes_opts,
+            "plataformas": ["Linux", "Windows"],
+        }
+
+        charts_summary = calcular_charts_summary(session, count_query.whereclause, kpis)
 
         return {
-            "items": [
-                {
-                    "id": device.id,
-                    "company_id": device.company_id,
-                    "site_id": device.site_id,
-                    "hostname": device.hostname,
-                    "loja": device.loja,
-                    "ip": device.ip,
-                    "mac": device.mac,
-                    "sistema": device.sistema,
-                    "versao": device.versao,
-                    "status": device.status,
-                    "alerta_hardware": device.alerta_hardware,
-                    "processador": device.processador,
-                    "ram_total": device.ram_total,
-                    "disco_total": device.disco_total,
-                    "disco_usado": device.disco_usado,
-                    "disco_livre": device.disco_livre,
-                    "disco_percentual": device.disco_percentual,
-                    "rustdesk_id": device.rustdesk_id,
-                    "data_coleta": device.data_coleta,
-                    "patrimonio": device.patrimonio,
-                    "firewall_status": device.firewall_status,
-                    "firewall_solicitado_por": device.firewall_solicitado_por,
-                    "firewall_solicitado_em": device.firewall_solicitado_em,
-                    "firewall_confirmado_por": device.firewall_confirmado_por,
-                    "firewall_confirmado_em": device.firewall_confirmado_em,
-                    "active": device.active,
-                    "created_at": device.created_at,
-                    "updated_at": device.updated_at,
-                }
-                for device in devices
-            ],
+            "items": [normalizar_device_list_item(device) for device in devices],
             "pagination": {
                 "page": page,
                 "per_page": per_page,
                 "total": total,
                 "total_pages": ((total + per_page - 1) // per_page) if per_page else 1,
             },
+            "kpis": kpis,
+            "filter_options": filter_options,
+            "charts_summary": charts_summary,
         }
+
+
+@router.get("/options")
+def get_device_filter_options(
+    current_user: User = Depends(get_current_user),
+):
+    """Retorna opções disponíveis para os filtros (sites/filiais e versões de SO)."""
+    with Session(engine) as session:
+        is_global = is_admin_user(current_user) or is_matriz_operator(current_user)
+        sites_q = select(Site.id, Site.name, Site.code).where(Site.active.is_(True)).order_by(Site.name)
+        if not is_global:
+            allowed = select(user_site_access.c.site_id).where(user_site_access.c.user_id == current_user.id)
+            sites_q = sites_q.where(Site.id.in_(allowed))
+        sites = [{"id": s.id, "name": s.name, "code": s.code} for s in session.execute(sites_q).all()]
+
+        vers_raw = session.execute(
+            select(Device.sistema, Device.versao, Device.windows_release)
+            .where(Device.company_id == current_user.company_id, Device.active.is_(True))
+            .distinct()
+        ).all()
+
+        return {
+            "sites": sites,
+            "versoes": formatar_lista_versoes(vers_raw),
+            "plataformas": ["Linux", "Windows"],
+        }
+
+
+def calcular_site_vlan_ips(
+    session: Session,
+    company_id: int,
+    site_id: int,
+    range_id: Optional[int] = None,
+    exclude_device_id: Optional[int] = None,
+) -> list[dict[str, Any]]:
+    """
+    Calcula as faixas de IP/VLAN da loja (SiteIpRange), identificando:
+    - free_ips: Lista ordenada de todos os IPs 100% livres naquela faixa
+      (não utilizados por devices ativos nem por network_assets).
+    - workstation_used_ips: Lista contendo exclusivamente os IPs em uso por
+      Estações de Trabalho ativas (Device) naquela faixa.
+    """
+    stmt = (
+        select(SiteIpRange)
+        .where(
+            SiteIpRange.company_id == company_id,
+            SiteIpRange.site_id == site_id,
+        )
+        .order_by(SiteIpRange.nome.asc())
+    )
+    if range_id:
+        stmt = stmt.where(SiteIpRange.id == range_id)
+
+    ranges = session.scalars(stmt).all()
+    if not ranges:
+        return []
+
+    net_assets = session.scalars(
+        select(NetworkAsset.ip).where(
+            NetworkAsset.company_id == company_id,
+            NetworkAsset.ip.isnot(None),
+        )
+    ).all()
+
+    occupied_ips = set()
+    for ip_val in net_assets:
+        if ip_val and ip_val.strip():
+            occupied_ips.add(ip_val.strip())
+
+    dev_stmt = select(Device).where(
+        Device.company_id == company_id,
+        Device.active.is_(True),
+        Device.ip.isnot(None),
+    )
+    if exclude_device_id:
+        dev_stmt = dev_stmt.where(Device.id != exclude_device_id)
+
+    active_devs = session.scalars(dev_stmt).all()
+
+    devs_by_ip: dict[str, Device] = {}
+    for d in active_devs:
+        clean_ip = (d.ip or "").strip()
+        if clean_ip and not is_subnet_88(clean_ip):
+            occupied_ips.add(clean_ip)
+            if clean_ip not in devs_by_ip:
+                devs_by_ip[clean_ip] = d
+        clean_def = (d.ip_definitivo or "").strip()
+        if clean_def and not is_subnet_88(clean_def):
+            occupied_ips.add(clean_def)
+
+    result_ranges = []
+    for r in ranges:
+        try:
+            s_ip = ipaddress.IPv4Address(r.ip_inicio.strip())
+            e_ip = ipaddress.IPv4Address(r.ip_fim.strip())
+            s_int = int(s_ip)
+            e_int = int(e_ip)
+        except Exception:
+            continue
+
+        if s_int > e_int:
+            continue
+
+        vlan_id = None
+        m = re.search(r"vlan\s*(\d+)", r.nome or "", re.IGNORECASE)
+        if m:
+            try:
+                vlan_id = int(m.group(1))
+            except Exception:
+                vlan_id = None
+
+        gw_int = None
+        if r.gateway and r.gateway.strip():
+            try:
+                gw_int = int(ipaddress.IPv4Address(r.gateway.strip()))
+            except Exception:
+                gw_int = None
+
+        free_ips = []
+        workstation_used_ips = []
+
+        max_span = min(e_int - s_int + 1, 4096)
+        for cur_int in range(s_int, s_int + max_span):
+            cur_ip_str = str(ipaddress.IPv4Address(cur_int))
+            last_octet = cur_int & 0xFF
+
+            if gw_int is not None and cur_int == gw_int:
+                continue
+
+            if cur_ip_str in occupied_ips:
+                continue
+
+            if last_octet == 0 or last_octet == 255:
+                continue
+
+            free_ips.append(cur_ip_str)
+
+        for ip_str, d in devs_by_ip.items():
+            try:
+                ip_int = int(ipaddress.IPv4Address(ip_str))
+                if s_int <= ip_int <= e_int:
+                    workstation_used_ips.append({
+                        "ip": ip_str,
+                        "device_id": d.id,
+                        "hostname": d.hostname or "Sem Hostname",
+                        "patrimonio": d.patrimonio or "",
+                        "sistema": f"{d.sistema or ''} {d.versao or ''}".strip(),
+                    })
+            except Exception:
+                continue
+
+        workstation_used_ips.sort(key=lambda x: int(ipaddress.IPv4Address(x["ip"])))
+
+        result_ranges.append({
+            "id": r.id,
+            "name": r.nome,
+            "vlan_id": vlan_id,
+            "ip_start": r.ip_inicio,
+            "ip_end": r.ip_fim,
+            "gateway": r.gateway or "",
+            "mask": r.mascara or "",
+            "free_count": len(free_ips),
+            "workstations_count": len(workstation_used_ips),
+            "free_ips": free_ips,
+            "workstation_used_ips": workstation_used_ips,
+        })
+
+    return result_ranges
+
+
+@router.get("/site-vlan-ips", response_model=SiteVlanIpsResponse)
+def get_site_vlan_ips(
+    site_id: int,
+    range_id: Optional[int] = None,
+    exclude_device_id: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Retorna as faixas de rede/VLANs cadastradas da filial, com contagens
+    e listas mastigadas de IPs livres (free_ips) e IPs em uso por estações (workstation_used_ips).
+    """
+    with Session(engine) as session:
+        site = session.scalar(
+            select(Site).where(
+                Site.id == site_id,
+                Site.company_id == current_user.company_id,
+                Site.active.is_(True),
+            )
+        )
+        if not site:
+            raise HTTPException(status_code=404, detail="Filial não encontrada ou inativa.")
+
+        ranges = calcular_site_vlan_ips(
+            session=session,
+            company_id=current_user.company_id,
+            site_id=site_id,
+            range_id=range_id,
+            exclude_device_id=exclude_device_id,
+        )
+
+        return {
+            "site_id": site.id,
+            "site_name": site.name,
+            "site_code": site.code or "",
+            "ranges": ranges,
+        }
+
+
+@router.get("/{device_id}", response_model=DeviceDetailResponse)
+def get_device(
+    device_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    """Retorna detalhes completos de hardware, discos, rede e periféricos de um dispositivo."""
+    with Session(engine) as session:
+        device = session.scalar(
+            select(Device).where(
+                Device.id == device_id,
+                Device.company_id == current_user.company_id,
+            )
+        )
+        if not device:
+            raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
+
+        is_global_viewer = is_admin_user(current_user) or is_matriz_operator(current_user)
+        if not is_global_viewer:
+            allowed = session.scalar(
+                select(user_site_access.c.site_id)
+                .where(
+                    user_site_access.c.user_id == current_user.id,
+                    user_site_access.c.site_id == device.site_id,
+                )
+            )
+            if not allowed:
+                raise HTTPException(status_code=403, detail="Acesso não autorizado a este dispositivo.")
+
+        history_count = session.scalar(
+            select(func.count(DeviceHistory.id))
+            .where(
+                DeviceHistory.device_id == device.id,
+                DeviceHistory.campo.notin_(IGNORED_HISTORY_FIELDS),
+            )
+        ) or 0
+
+        is_operator = not is_admin_user(current_user)
+        return normalizar_device_detail(device, history_count=history_count, is_operator=is_operator)
 
 
 @router.get("/patrimonio/lookup")
@@ -659,11 +1327,17 @@ def update_device_patrimonio(
                 detail="Você não tem permissão para editar o patrimônio deste equipamento.",
             )
 
-        if matriz_flag and not admin_flag and device.firewall_status == "confirmado":
-            raise HTTPException(
-                status_code=403,
-                detail="O patrimônio já foi homologado pelo administrador e está bloqueado para alteração.",
-            )
+        if matriz_flag and not admin_flag:
+            if not is_subnet_88(device.ip):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Operadores da matriz só possuem permissão para cadastrar ou alterar patrimônio em máquinas na bancada (192.168.88.x).",
+                )
+            if device.firewall_status == "confirmado":
+                raise HTTPException(
+                    status_code=403,
+                    detail="O patrimônio já foi homologado pelo administrador e está bloqueado para alteração.",
+                )
 
         patrimonio_formatado = formatar_patrimonio(payload.patrimonio)
         if not patrimonio_formatado:
@@ -716,11 +1390,22 @@ def solicitar_firewall(
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
 
-        if not is_admin_user(current_user) and not is_matriz_operator(current_user):
-            raise HTTPException(
-                status_code=403,
-                detail="Apenas administradores e operadores da matriz podem marcar máquinas para cadastro no firewall.",
-            )
+        if not is_admin_user(current_user):
+            if not is_matriz_operator(current_user):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Apenas administradores e operadores da matriz podem marcar máquinas para cadastro no firewall.",
+                )
+            if not is_subnet_88(device.ip):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Operadores da matriz só possuem permissão para solicitar firewall em máquinas na bancada (192.168.88.x).",
+                )
+            if device.firewall_status == "confirmado":
+                raise HTTPException(
+                    status_code=403,
+                    detail="O cadastro no firewall desta máquina já foi confirmado pelo administrador.",
+                )
 
         if payload and payload.patrimonio:
             pat_novo = formatar_patrimonio(payload.patrimonio)
@@ -821,11 +1506,22 @@ def solicitar_recadastro(
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
 
-        if not is_admin_user(current_user) and not is_matriz_operator(current_user):
-            raise HTTPException(
-                status_code=403,
-                detail="Apenas administradores e operadores autorizados podem solicitar recadastro de máquinas.",
-            )
+        if not is_admin_user(current_user):
+            if not is_matriz_operator(current_user):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Apenas administradores e operadores autorizados podem solicitar recadastro de máquinas.",
+                )
+            if not is_subnet_88(device.ip):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Operadores da matriz só possuem permissão para cadastrar ou alterar patrimônio em máquinas na bancada (192.168.88.x).",
+                )
+            if device.firewall_status == "confirmado":
+                raise HTTPException(
+                    status_code=403,
+                    detail="O patrimônio já foi homologado pelo administrador e está bloqueado para alteração.",
+                )
 
         pat_formatado = formatar_patrimonio(payload.patrimonio)
         if not pat_formatado:
@@ -963,7 +1659,6 @@ def get_approval_context(
         divergencias = []
         so_divergente = False
         ip_anterior_sugerido = ""
-        resolved_site_id = device.site_id
 
         if match_info["exists"]:
             existing_dev = match_info["existing_dev"]
@@ -971,9 +1666,6 @@ def get_approval_context(
             ip_val = match_info["old_ip"]
             mac_val = match_info["old_mac"]
             site_id_val = match_info["old_site_id"]
-
-            if not resolved_site_id and site_id_val:
-                resolved_site_id = site_id_val
 
             old_host = host_val or ""
             new_host = device.hostname or ""
@@ -1018,6 +1710,75 @@ def get_approval_context(
             .order_by(Site.code.asc())
         ).all()
         sites_list = [{"id": s.id, "name": s.name, "code": s.code} for s in all_sites]
+
+        # Determinação automática da filial sugerida (suggested_site_id)
+        suggested_site_id = None
+        suggested_site_name = ""
+        suggested_site_code = ""
+        matched_by = None
+
+        # 1. Filial do ativo anterior de mesmo patrimônio
+        if match_info.get("old_site_id"):
+            old_s = session.scalar(
+                select(Site).where(
+                    Site.id == match_info["old_site_id"],
+                    Site.company_id == current_user.company_id,
+                    Site.active.is_(True),
+                )
+            )
+            if old_s:
+                suggested_site_id = old_s.id
+                suggested_site_name = old_s.name
+                suggested_site_code = old_s.code or ""
+                matched_by = "Ativo anterior (mesmo patrimônio)"
+
+        # 2. Regras de identificadores de loja (SiteIdentifier / prefixo do hostname)
+        if not suggested_site_id:
+            sim_res = simular_identificacao_site(
+                hostname=device.hostname,
+                company_id=current_user.company_id,
+                db=session,
+                loja=device.loja,
+            )
+            if sim_res and sim_res.get("matched"):
+                suggested_site_id = sim_res.get("site_id")
+                suggested_site_name = sim_res.get("site_name") or ""
+                suggested_site_code = sim_res.get("site_code") or ""
+                matched_by = sim_res.get("matched_by") or "Prefixo de Hostname"
+
+        # 3. Filial já associada ao dispositivo (se existente e fora de bancada)
+        if not suggested_site_id and device.site_id:
+            cur_s = session.scalar(
+                select(Site).where(
+                    Site.id == device.site_id,
+                    Site.company_id == current_user.company_id,
+                    Site.active.is_(True),
+                )
+            )
+            if cur_s:
+                suggested_site_id = cur_s.id
+                suggested_site_name = cur_s.name
+                suggested_site_code = cur_s.code or ""
+                matched_by = "Dispositivo atual"
+
+        # Fallback se ainda não houver loja
+        if not suggested_site_id and all_sites:
+            suggested_site_id = all_sites[0].id
+            suggested_site_name = all_sites[0].name
+            suggested_site_code = all_sites[0].code or ""
+            matched_by = "Padrão"
+
+        resolved_site_id = suggested_site_id or device.site_id
+
+        # Calcula faixas de VLAN e IPs livres / ocupados mastigados pelo Back-end
+        vlan_ranges = []
+        if resolved_site_id:
+            vlan_ranges = calcular_site_vlan_ips(
+                session=session,
+                company_id=current_user.company_id,
+                site_id=resolved_site_id,
+                exclude_device_id=device.id,
+            )
 
         faixas_list = []
         ips_ocupados = set()
@@ -1090,11 +1851,16 @@ def get_approval_context(
             "so_divergente": so_divergente,
             "network_context": {
                 "resolved_site_id": resolved_site_id,
+                "suggested_site_id": suggested_site_id,
+                "suggested_site_name": suggested_site_name,
+                "suggested_site_code": suggested_site_code,
+                "matched_by": matched_by,
                 "sites": sites_list,
                 "faixas": faixas_list,
                 "ips_ocupados": sorted(list(ips_ocupados)),
                 "ip_anterior_sugerido": ip_anterior_sugerido,
                 "ip_confiavel": bool(ip_anterior_sugerido),
+                "vlan_ranges": vlan_ranges,
             },
         }
 
@@ -1171,6 +1937,23 @@ def aprovar_cadastro(
         admin_nome = current_user.full_name or current_user.username
         ip_antigo = device.ip
         site_antigo = device.loja
+
+        # Se houver outra estação com este IP e o admin confirmou a sobrescrita/reutilização de IP:
+        # Libera o IP da estação anterior para evitar duplicidade de IP ativo no banco
+        if outro_com_ip and payload.confirmar_sobrescrita_ip:
+            if not payload.vincular_ativo_existente_id or payload.vincular_ativo_existente_id != outro_com_ip.id:
+                session.add(
+                    DeviceHistory(
+                        device_id=outro_com_ip.id,
+                        campo="IP_SOBRESCRITO",
+                        valor_anterior=outro_com_ip.ip,
+                        valor_novo="(liberado por reuso)",
+                        alterado_por=admin_nome,
+                        data_alteracao=datetime.utcnow(),
+                    )
+                )
+                outro_com_ip.ip = None
+                outro_com_ip.updated_at = datetime.utcnow()
 
         # Vinculação e aposentadoria de estação de trabalho anterior
         if payload.vincular_ativo_existente_id and payload.vincular_ativo_existente_id != device.id:

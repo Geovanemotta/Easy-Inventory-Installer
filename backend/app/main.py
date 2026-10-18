@@ -1,3 +1,5 @@
+import asyncio
+from contextlib import asynccontextmanager
 import os
 
 from fastapi import FastAPI
@@ -5,12 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 
 from app.api.v1.dashboard import router as dashboard_router
-from app.api.v1.software import router as software_router
+from app.api.v1.software import router as software_router, device_software_router
 from app.api.v1.devices import router as devices_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.sites import router as sites_router
 from app.api.v1.inventory import router as inventory_router
 from app.api.v1.network_assets import router as network_assets_router
+from app.services.network_asset_service import iniciar_background_ping_sweeper
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production").lower()
 ENABLE_SWAGGER_DOCS = os.getenv("ENABLE_SWAGGER_DOCS", "false").lower() in ("true", "1", "yes")
@@ -19,12 +22,27 @@ docs_url = "/docs" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "developmen
 redoc_url = "/redoc" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "development")) else None
 openapi_url = "/openapi.json" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "development")) else None
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    sweeper_task = asyncio.create_task(iniciar_background_ping_sweeper())
+    try:
+        yield
+    finally:
+        sweeper_task.cancel()
+        try:
+            await sweeper_task
+        except asyncio.CancelledError:
+            pass
+
+
 app = FastAPI(
     title="Device Inventory API",
     version="0.1.0",
     docs_url=docs_url,
     redoc_url=redoc_url,
     openapi_url=openapi_url,
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -63,6 +81,11 @@ app.include_router(
 
 app.include_router(
     software_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    device_software_router,
     prefix="/api/v1",
 )
 

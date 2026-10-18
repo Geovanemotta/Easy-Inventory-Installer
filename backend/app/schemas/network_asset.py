@@ -44,12 +44,15 @@ class NetworkAssetOut(NetworkAssetBase):
     company_id: int
     site_nome: Optional[str] = None
     site_codigo: Optional[str] = None
+    filial_codigo: Optional[str] = None
     status_online: Optional[bool] = None
     ultimo_ping: Optional[datetime] = None
     tempo_resposta_ms: Optional[int] = None
     origem: str = "manual"
     device_id: Optional[int] = None
     faixa_nome: Optional[str] = None
+    vlan: Optional[str] = None
+    marca_modelo: Optional[str] = None
     sistema_operacional: Optional[str] = None
     serial_windows: Optional[str] = None
     serial_office: Optional[str] = None
@@ -60,12 +63,30 @@ class NetworkAssetOut(NetworkAssetBase):
         from_attributes = True
 
 
+class NetworkAssetKPIs(BaseModel):
+    total: int = 0
+    online: int = 0
+    offline: int = 0
+    nao_testado: int = 0
+    impressoras: int = 0
+    switches: int = 0
+    aps: int = 0
+    outros: int = 0
+    estacoes: int = 0
+    livres: int = 0
+    ativos: int = 0
+    testados: int = 0
+    ultimo_ping: Optional[str] = None
+
+
 class PingResultOut(BaseModel):
     asset_id: Optional[int] = None
     ip: str
     online: bool
+    status_online: Optional[bool] = None
     tempo_resposta_ms: Optional[int] = None
     timestamp: datetime
+    ultimo_ping: Optional[datetime] = None
 
 
 class ImportResultOut(BaseModel):
@@ -134,3 +155,16 @@ class SiteIpRangeOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class SweeperStatusOut(BaseModel):
+    enabled: bool
+    last_run: Optional[str] = None
+    last_checked_count: int = 0
+    total_monitored: int = 0
+    priority_site_id: Optional[int] = None
+
+
+class SweeperToggleIn(BaseModel):
+    enabled: Optional[bool] = None
+

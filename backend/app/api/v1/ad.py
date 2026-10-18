@@ -25,28 +25,14 @@ router = APIRouter(
 )
 
 
-class ADConfigSchema(BaseModel):
-    enabled: bool = False
-    server_host: str = Field(default="", description="IP ou FQDN do Domain Controller")
-    server_port: int = Field(default=389, description="Porta LDAP (389) ou LDAPS (636)")
-    use_ssl: bool = False
-    use_tls: bool = False
-    domain: str = Field(default="", description="Domínio AD (ex: empresa.com.br ou EMPRESA)")
-    base_dn: str = Field(default="", description="Base DN de pesquisa (ex: DC=empresa,DC=corp)")
-    bind_user: Optional[str] = Field(default=None, description="Usuário de serviço (ex: svc-inventario@empresa.com.br)")
-    bind_password: Optional[str] = Field(default=None, description="Senha da conta de serviço")
-    user_search_filter: str = Field(
-        default="(&(objectClass=user)(sAMAccountName={username}))",
-        description="Filtro de busca de usuário no AD",
-    )
-    superadmin_groups: List[str] = Field(default_factory=list, description="Grupos do AD com acesso de superadmin")
-    group_mappings: Dict[str, Any] = Field(default_factory=dict, description="Mapeamento de grupos para lojas/permissões")
-    auto_sync_on_login: bool = True
-
-
-class TestAuthRequest(BaseModel):
-    username: str
-    password: str
+from app.schemas.ad import (
+    ADConfigResponse,
+    ADConfigSchema,
+    ADGroupsResponse,
+    TestAuthRequest,
+    TestConnectionResponse,
+    TestUserResponse,
+)
 
 
 @router.get("/config")

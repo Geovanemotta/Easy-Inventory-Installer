@@ -26,9 +26,22 @@ from app.services.license_service import (
     obter_estatisticas_licencas,
 )
 
+def check_admin_license_permission(user: User = Depends(get_current_user)) -> User:
+    if user.is_superadmin:
+        return user
+    role_slugs = [r.slug for r in user.roles] if user.roles else []
+    if "admin" in role_slugs:
+        return user
+    raise HTTPException(
+        status_code=403,
+        detail="Acesso não autorizado. Apenas administradores possuem acesso à gestão de licenças.",
+    )
+
+
 router = APIRouter(
     prefix="/licenses",
     tags=["Software Licenses"],
+    dependencies=[Depends(check_admin_license_permission)],
 )
 
 

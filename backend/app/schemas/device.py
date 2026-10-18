@@ -153,13 +153,47 @@ class SiteIpRangeOption(BaseModel):
     mascara: str = ""
 
 
+class WorkstationUsedIp(BaseModel):
+    ip: str
+    device_id: int
+    hostname: str
+    patrimonio: str = ""
+    sistema: str = ""
+
+
+class SiteVlanIpRange(BaseModel):
+    id: int
+    name: str
+    vlan_id: Optional[int] = None
+    ip_start: str
+    ip_end: str
+    gateway: str = ""
+    mask: str = ""
+    free_count: int = 0
+    workstations_count: int = 0
+    free_ips: List[str] = Field(default_factory=list)
+    workstation_used_ips: List[WorkstationUsedIp] = Field(default_factory=list)
+
+
+class SiteVlanIpsResponse(BaseModel):
+    site_id: int
+    site_name: str = ""
+    site_code: str = ""
+    ranges: List[SiteVlanIpRange] = Field(default_factory=list)
+
+
 class DeviceNetworkContext(BaseModel):
     resolved_site_id: Optional[int] = None
+    suggested_site_id: Optional[int] = None
+    suggested_site_name: str = ""
+    suggested_site_code: str = ""
+    matched_by: Optional[str] = None
     sites: List[SiteOption] = []
     faixas: List[SiteIpRangeOption] = []
     ips_ocupados: List[str] = []
     ip_anterior_sugerido: str = ""
     ip_confiavel: bool = False
+    vlan_ranges: List[SiteVlanIpRange] = Field(default_factory=list)
 
 
 class DeviceDetailContext(BaseModel):
@@ -213,19 +247,36 @@ class DeviceListItem(BaseModel):
     hostname: str
     loja: Optional[str] = None
     ip: Optional[str] = None
+    ip_secundario: Optional[str] = None
+    ips_extras: List[str] = Field(default_factory=list)
     mac: Optional[str] = None
     sistema: Optional[str] = None
     versao: Optional[str] = None
+    so_formatado: Optional[str] = None
+    familia_so: Optional[str] = None
     status: Optional[str] = None
+    status_operacional_label: Optional[str] = "Atualizada"
+    status_operacional_nivel: Optional[str] = "ok"
+    status_operacional_codigo: Optional[str] = "OK"
     alerta_hardware: Optional[str] = None
     processador: Optional[str] = None
+    processador_formatado: Optional[str] = None
     ram_total: Optional[str] = None
+    ram_total_formatada: Optional[str] = None
     disco_total: Optional[str] = None
+    disco_total_formatado: Optional[str] = None
     disco_usado: Optional[str] = None
+    disco_usado_formatado: Optional[str] = None
     disco_livre: Optional[str] = None
+    disco_livre_formatado: Optional[str] = None
     disco_percentual: Optional[int] = None
+    disco_nivel: Optional[str] = None
     rustdesk_id: Optional[str] = None
     data_coleta: Optional[datetime] = None
+    data_coleta_formatada: Optional[str] = None
+    tempo_relativo_coleta: Optional[str] = None
+    status_conexao: Optional[str] = None
+    status_conexao_label: Optional[str] = None
     patrimonio: Optional[str] = None
     firewall_status: Optional[str] = None
     firewall_solicitado_por: Optional[str] = None
@@ -237,6 +288,48 @@ class DeviceListItem(BaseModel):
     updated_at: Optional[datetime] = None
 
 
+class DeviceKPIs(BaseModel):
+    total_linux: int = 0
+    total_windows: int = 0
+    total_alertas: int = 0
+    total_inativas: int = 0
+    total_firewall_pendente: int = 0
+    total_bancada_88: int = 0
+    total_critico_disco: int = 0
+    total_sem_apps: int = 0
+    total_com_apps: int = 0
+
+
+class DeviceDetailResponse(DeviceListItem):
+    fabricante: Optional[str] = None
+    fabricante_limpo: Optional[str] = None
+    modelo: Optional[str] = None
+    modelo_limpo: Optional[str] = None
+    modelo_formatado: Optional[str] = None
+    serial: Optional[str] = None
+    serial_limpo: Optional[str] = None
+    dominio: Optional[str] = None
+    usuario: Optional[str] = None
+    build: Optional[str] = None
+    ram_tipo: Optional[str] = None
+    windows_release: Optional[str] = None
+    windows_release_formatado: Optional[str] = None
+    serial_windows: Optional[str] = None
+    serial_office: Optional[str] = None
+    analise_disco: Optional[Any] = None
+    perifericos: Optional[Any] = None
+    perifericos_agrupados: Optional[Dict[str, Any]] = None
+    extra_data: Optional[Any] = None
+    ip_definitivo: Optional[str] = None
+    licenca_windows_solicitada: bool = False
+    motivo_alteracao: Optional[str] = None
+    observacao_admin: Optional[str] = None
+    motivo_upgrade: Optional[str] = None
+    so_anterior: Optional[str] = None
+    is_rede_formatacao: bool = False
+    history_count: int = 0
+
+
 class DevicePagination(BaseModel):
     page: int
     per_page: int
@@ -244,9 +337,44 @@ class DevicePagination(BaseModel):
     total_pages: int
 
 
+class DeviceSiteFilterOption(BaseModel):
+    id: int
+    name: str
+    code: str
+
+
+class DeviceFilterOptions(BaseModel):
+    sites: List[DeviceSiteFilterOption] = []
+    versoes: List[str] = []
+    plataformas: List[str] = ["Linux", "Windows"]
+
+
+class ChartSlice(BaseModel):
+    label: str
+    count: int
+    percent: float
+    color: str
+
+
+class DonutChartData(BaseModel):
+    title: str
+    subtitle: Optional[str] = None
+    total: int
+    slices: List[ChartSlice] = []
+
+
+class DeviceChartsSummary(BaseModel):
+    plataforma: DonutChartData
+    status: DonutChartData
+    versoes: DonutChartData
+
+
 class DeviceListResponse(BaseModel):
     items: List[DeviceListItem]
     pagination: DevicePagination
+    kpis: Optional[DeviceKPIs] = None
+    filter_options: Optional[DeviceFilterOptions] = None
+    charts_summary: Optional[DeviceChartsSummary] = None
 
 
 class DeviceActionResponse(BaseModel):

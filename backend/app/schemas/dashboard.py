@@ -50,3 +50,58 @@ class DashboardSummaryResponse(BaseModel):
     devices_by_site: List[DashboardDevicesBySite]
     devices_by_version: List[DashboardDevicesByVersion]
     devices_by_status: List[DashboardDevicesByStatus]
+
+
+# =====================================================================
+# Response Schemas para Relatórios Analíticos (/dashboard/reports)
+# =====================================================================
+
+class ReportGroupItem(BaseModel):
+    chave: str
+    total: int
+    percentual: float
+
+
+class ReportMachineItem(BaseModel):
+    id: int
+    hostname: str
+    ip: Optional[str] = None
+    so: str
+    versao_so: Optional[str] = None
+    site_id: Optional[int] = None
+    filial: str
+    valor_campo: str
+    rustdesk_id: Optional[str] = None
+    status: Optional[str] = None
+    data_coleta: Optional[str] = None
+
+
+class ReportSummaryResponse(BaseModel):
+    campo: str
+    nome_campo: str
+    total_maquinas: int
+    total_grupos: int
+    grupos: List[ReportGroupItem]
+    maquinas: List[ReportMachineItem]
+
+
+# =====================================================================
+# Response Schemas para Gráficos de Distribuição (/dashboard/charts)
+# =====================================================================
+
+class ChartSliceItem(BaseModel):
+    label: str
+    total: int
+    percentual: float
+    color: str
+
+
+class DashboardChartsResponse(BaseModel):
+    total_maquinas: int
+    sistema_operacional: List[ChartSliceItem]
+    memoria_ram: List[ChartSliceItem]
+    tipo_ram: List[ChartSliceItem]
+    tipo_disco: List[ChartSliceItem]
+    status_coleta: List[ChartSliceItem]
+    filiais: List[ChartSliceItem]
+

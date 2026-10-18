@@ -2,17 +2,20 @@ import asyncio
 import csv
 import io
 import ipaddress
+import math
 import platform
 import re
 import time
 import unicodedata
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import HTTPException
 from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session
 
+from app.database import engine
 from app.models.device import Device
 from app.models.device_history import DeviceHistory
 from app.models.network_asset import NetworkAsset
@@ -22,9 +25,11 @@ from app.models.software_license import SoftwareLicense
 from app.models.user import User
 from app.models.user_site_access import user_site_access
 from app.services.license_service import calcular_mapa_uso_chaves, normalizar_chave
+from app.services.device_normalizer import mascarar_chave_serial, normalizar_so
 from app.schemas.network_asset import (
     ImportResultOut,
     NetworkAssetCreate,
+    NetworkAssetKPIs,
     NetworkAssetOut,
     NetworkAssetUpdate,
     PingResultOut,
@@ -45,39 +50,19 @@ def normalizar_mac(m: Optional[str]) -> Optional[str]:
 
 
 def formatar_so_estacao(sistema: Optional[str], versao: Optional[str]) -> Optional[str]:
-    combined = f"{sistema or ''} {versao or ''}".strip()
-    if not combined:
+    """Padroniza o SO da estação utilizando as regras canônicas de normalizar_so."""
+    if not sistema and not versao:
         return None
-    c_lower = combined.lower()
-    if "windows 11" in c_lower or "win 11" in c_lower:
-        return "Windows 11"
-    if "windows 10" in c_lower or "win 10" in c_lower:
-        return "Windows 10"
-    if "windows 7" in c_lower or "win 7" in c_lower:
-        return "Windows 7"
-    if "windows server" in c_lower:
-        return "Windows Server"
-    if "windows" in c_lower:
-        return "Windows"
-    if "zorin" in c_lower:
-        return "Linux Zorin"
-    if "kubuntu" in c_lower:
-        return "Linux Kubuntu"
-    if "ubuntu" in c_lower:
-        return "Linux Ubuntu"
-    if "mint" in c_lower:
-        return "Linux Mint"
-    if "debian" in c_lower:
-        return "Linux Debian"
-    if "fedora" in c_lower:
-        return "Linux Fedora"
-    if "centos" in c_lower:
-        return "Linux CentOS"
-    if "red hat" in c_lower or "rhel" in c_lower:
-        return "Linux Red Hat"
-    if "linux" in c_lower:
-        return "Linux"
-    return combined[:30]
+    info = normalizar_so(sistema, versao)
+    return info.get("so_formatado")
+
+
+def is_operator_user(user: Optional[User]) -> bool:
+    """Verifica se o usuário não é administrador (deve ter chaves de SO e Office mascaradas)."""
+    if not user or getattr(user, "is_superadmin", False):
+        return False
+    role_slugs = [r.slug for r in getattr(user, "roles", [])] if getattr(user, "roles", None) else []
+    return "admin" not in role_slugs
 
 
 def obter_sites_permitidos(db: Session, current_user: User) -> Optional[List[int]]:
@@ -96,15 +81,63 @@ def obter_sites_permitidos(db: Session, current_user: User) -> Optional[List[int
     return list(site_ids)
 
 
-def formatar_asset_out(asset: NetworkAsset) -> NetworkAssetOut:
+def formatar_codigo_filial(site_nome: Optional[str], site_codigo: Optional[str]) -> str:
+    """Retorna código de filial normalizado no mesmo padrão do inventário (ex: 'LOJA-01', 'MATRIZ')."""
+    n = str(site_nome or "").strip().upper()
+    c = str(site_codigo or "").strip().upper()
+
+    if not n and not c:
+        return "Sem Filial"
+
+    # Matriz e Administrativo Central
+    if "MATRIZ" in n or "MATRIZ" in c or n == "AC" or c == "AC" or c in ("LOG", "TI", "FLV", "CP02"):
+        return "MATRIZ"
+
+    # Outros / Sem filial
+    if n == "OUTROS" or c == "OUTROS":
+        return "Sem Filial"
+
+    # Combos (ex: Combo 01, C01, CB01)
+    if "COMBO" in n or "COMBO" in c or c.startswith("CB") or (c.startswith("C") and re.match(r"^C\d+$", c)):
+        m = re.search(r"\d+", c) or re.search(r"\d+", n)
+        return f"COMBO-{m.group(0).zfill(2)}" if m else "COMBO"
+
+    # Lojas (ex: Giassi Loja 04, LOJA 04, LJ04, L04, ou código puramente numérico '04')
+    if "LOJA" in n or "LOJA" in c or c.startswith("LJ") or c.startswith("L") or n.startswith("LJ") or n.startswith("L") or re.match(r"^\d+$", c):
+        m = re.search(r"\d+", c) or re.search(r"\d+", n)
+        if m:
+            return f"LOJA-{m.group(0).zfill(2)}"
+
+    return c or n or "Sem Filial"
+
+
+def formatar_marca_modelo(fabricante: Optional[str], modelo: Optional[str]) -> Optional[str]:
+    """Retorna marca e modelo limpos sem placeholders OEM."""
+    fab = str(fabricante or "").strip()
+    mod = str(modelo or "").strip()
+    if fab.lower() in ("to be filled by o.e.m.", "system manufacturer", "none", "null", "undefined"):
+        fab = ""
+    if mod.lower() in ("to be filled by o.e.m.", "system product name", "none", "null", "undefined"):
+        mod = ""
+    if fab and mod:
+        if mod.lower().startswith(fab.lower()):
+            return mod
+        return f"{fab} {mod}"
+    return fab or mod or None
+
+
+def formatar_asset_out(asset: NetworkAsset, is_operator: bool = False) -> NetworkAssetOut:
     site_nome = asset.site.name if asset.site else None
     site_codigo = asset.site.code if asset.site else None
+    filial_cod = formatar_codigo_filial(site_nome, site_codigo)
+    marca_mod = formatar_marca_modelo(asset.fabricante, asset.modelo)
     return NetworkAssetOut(
         id=asset.id,
         company_id=asset.company_id,
         site_id=asset.site_id,
         site_nome=site_nome,
         site_codigo=site_codigo,
+        filial_codigo=filial_cod,
         nome=asset.nome,
         tipo=asset.tipo,
         ip=asset.ip,
@@ -112,6 +145,7 @@ def formatar_asset_out(asset: NetworkAsset) -> NetworkAssetOut:
         patrimonio=asset.patrimonio,
         fabricante=asset.fabricante,
         modelo=asset.modelo,
+        marca_modelo=marca_mod,
         numero_serie=asset.numero_serie,
         localizacao=asset.localizacao,
         status_online=asset.status_online,
@@ -119,8 +153,8 @@ def formatar_asset_out(asset: NetworkAsset) -> NetworkAssetOut:
         tempo_resposta_ms=asset.tempo_resposta_ms,
         observacoes=asset.observacoes,
         origem=asset.origem,
-        serial_windows=asset.serial_windows,
-        serial_office=asset.serial_office,
+        serial_windows=mascarar_chave_serial(asset.serial_windows) if is_operator else asset.serial_windows,
+        serial_office=mascarar_chave_serial(asset.serial_office) if is_operator else asset.serial_office,
         created_at=asset.created_at,
         updated_at=asset.updated_at,
     )
@@ -162,17 +196,20 @@ def listar_network_assets(
         except Exception:
             continue
 
-    def get_faixa_nome(ip_str: Optional[str]) -> Optional[str]:
+    def get_faixa_info(ip_str: Optional[str]) -> tuple[Optional[str], Optional[str]]:
         if not ip_str:
-            return None
+            return None, None
         try:
             val = int(ipaddress.IPv4Address(ip_str.strip()))
             for r_obj, s_int, e_int in parsed_ranges:
                 if s_int <= val <= e_int:
-                    return r_obj.nome
+                    nome_f = r_obj.nome.strip()
+                    m_vlan = re.search(r"\b(vlan\s*\d+)\b", nome_f, re.I)
+                    vlan_str = m_vlan.group(1).upper() if m_vlan else nome_f
+                    return nome_f, vlan_str
         except Exception:
             pass
-        return None
+        return None, None
 
     all_items: List[NetworkAssetOut] = []
     occupied_ips = set()
@@ -184,10 +221,14 @@ def listar_network_assets(
     if site_id is not None:
         stmt_assets = stmt_assets.where(NetworkAsset.site_id == site_id)
 
+    is_operator = is_operator_user(current_user)
+
     assets_db = db.scalars(stmt_assets).all()
     for a in assets_db:
-        item = formatar_asset_out(a)
-        item.faixa_nome = get_faixa_nome(a.ip)
+        item = formatar_asset_out(a, is_operator=is_operator)
+        f_nome, f_vlan = get_faixa_info(a.ip)
+        item.faixa_nome = f_nome
+        item.vlan = f_vlan
         all_items.append(item)
         if a.ip and a.ip.strip():
             occupied_ips.add(a.ip.strip())
@@ -226,11 +267,17 @@ def listar_network_assets(
     devices_db = [d for d in all_devs if dev_visivel_na_loja(d)]
     for d in devices_db:
         clean_ip = d.ip.strip() if d.ip else None
-        site_nome = d.site.name if d.site else None
+        site_nome = d.site.name if d.site else (d.loja or None)
         site_codigo = d.site.code if d.site else None
+        filial_cod = formatar_codigo_filial(site_nome, site_codigo)
+        so_lower = (d.sistema or "").lower()
+        familia_so = "Linux" if any(k in so_lower for k in ("lin", "kubuntu", "ubuntu", "zorin", "debian")) else "Windows"
         so_formatado = formatar_so_estacao(d.sistema, d.versao)
         serial_win = getattr(d, "serial_windows", None) or (d.extra_data.get("serial_windows") if isinstance(d.extra_data, dict) else None)
         serial_off = getattr(d, "serial_office", None) or (d.extra_data.get("serial_office") if isinstance(d.extra_data, dict) else None)
+        if is_operator:
+            serial_win = mascarar_chave_serial(serial_win)
+            serial_off = mascarar_chave_serial(serial_off)
         lat_estacao = d.extra_data.get("tempo_resposta_ms") if isinstance(d.extra_data, dict) else None
         st_online_estacao = d.extra_data.get("status_online") if isinstance(d.extra_data, dict) else None
         ping_raw = d.extra_data.get("ultimo_ping") if isinstance(d.extra_data, dict) else None
@@ -240,19 +287,22 @@ def listar_network_assets(
                 dt_ping = datetime.fromisoformat(ping_raw)
             except Exception:
                 dt_ping = None
+        f_nome, f_vlan = get_faixa_info(clean_ip)
         dev_item = NetworkAssetOut(
-            id=None,
+            id=-d.id,
             company_id=d.company_id,
             site_id=d.site_id,
             site_nome=site_nome,
             site_codigo=site_codigo,
+            filial_codigo=filial_cod,
             nome=d.hostname,
             tipo="Estação de Trabalho",
             ip=clean_ip,
             mac=d.mac,
             patrimonio=d.patrimonio,
-            fabricante=None,  # Evita poluir com fabricante da placa-mãe
-            modelo=None,      # Evita poluir com modelo da placa-mãe
+            fabricante=d.fabricante,
+            modelo=d.modelo,
+            marca_modelo=familia_so,
             numero_serie=None,
             localizacao=site_nome or d.loja or "Estação",
             status_online=st_online_estacao,
@@ -261,7 +311,8 @@ def listar_network_assets(
             observacoes=None,  # Sem observações duplicadas
             origem="estacao",
             device_id=d.id,
-            faixa_nome=get_faixa_nome(clean_ip),
+            faixa_nome=f_nome,
+            vlan=f_vlan,
             sistema_operacional=so_formatado,
             serial_windows=serial_win,
             serial_office=serial_off,
@@ -281,12 +332,19 @@ def listar_network_assets(
             for ip_val in range(s_int, s_int + limite):
                 ip_str = str(ipaddress.IPv4Address(ip_val))
                 if ip_str not in occupied_ips:
+                    site_nome = r_obj.site.name if r_obj.site else None
+                    site_codigo = r_obj.site.code if r_obj.site else None
+                    filial_cod = formatar_codigo_filial(site_nome, site_codigo)
+                    nome_f = r_obj.nome.strip()
+                    m_vlan = re.search(r"\b(vlan\s*\d+)\b", nome_f, re.I)
+                    vlan_str = m_vlan.group(1).upper() if m_vlan else nome_f
                     free_item = NetworkAssetOut(
                         id=None,
                         company_id=r_obj.company_id,
                         site_id=r_obj.site_id,
-                        site_nome=r_obj.site.name if r_obj.site else None,
-                        site_codigo=r_obj.site.code if r_obj.site else None,
+                        site_nome=site_nome,
+                        site_codigo=site_codigo,
+                        filial_codigo=filial_cod,
                         nome="—",
                         tipo="—",
                         ip=ip_str,
@@ -294,6 +352,7 @@ def listar_network_assets(
                         patrimonio=None,
                         fabricante=None,
                         modelo=None,
+                        marca_modelo=None,
                         numero_serie=None,
                         localizacao=r_obj.nome,
                         status_online=None,
@@ -303,6 +362,7 @@ def listar_network_assets(
                         origem="livre",
                         device_id=None,
                         faixa_nome=r_obj.nome,
+                        vlan=vlan_str,
                         created_at=r_obj.created_at,
                         updated_at=r_obj.updated_at,
                     )
@@ -523,33 +583,135 @@ async def ping_ip(ip: str, timeout_sec: float = 1.2) -> Tuple[bool, Optional[int
     return False, None
 
 
+_ping_history: Dict[Tuple[int, str], List[float]] = {}
+
+
+def verificar_rate_limit_ping(user_id: int, target_ip: str) -> None:
+    """
+    Trava de segurança contra flood: Limita a no máximo 3 tentativas consecutivas
+    para a mesma máquina/IP dentro da janela de 1 minuto (por usuário).
+    Na 4ª tentativa seguida, bloqueia com HTTP 429 informando os segundos restantes.
+    """
+    if not target_ip:
+        return
+    ip_key = target_ip.strip().lower()
+    key = (user_id, ip_key)
+    now = time.time()
+
+    # Filtra histórico mantendo apenas tentativas dentro dos últimos 60 segundos
+    history = [t for t in _ping_history.get(key, []) if (now - t) < 60.0]
+
+    if len(history) >= 3:
+        oldest = history[0]
+        segundos_restantes = max(1, int(math.ceil((oldest + 60.0) - now)))
+        raise HTTPException(
+            status_code=429,
+            detail=f"Limite de 3 tentativas consecutivas atingido para este equipamento. Aguarde {segundos_restantes} segundos para testar novamente.",
+        )
+
+    history.append(now)
+    _ping_history[key] = history
+
+
 async def ping_asset_by_id(
     db: Session,
     current_user: User,
     asset_id: int,
+    ip: Optional[str] = None,
+    device_id: Optional[int] = None,
 ) -> Optional[PingResultOut]:
-    asset = db.scalar(
-        select(NetworkAsset).where(
-            NetworkAsset.id == asset_id,
-            NetworkAsset.company_id == current_user.company_id,
+    target_ip = ip.strip() if ip else None
+    target_asset: Optional[NetworkAsset] = None
+    target_dev: Optional[Device] = None
+
+    # 1. Se device_id foi informado ou asset_id é virtual negativo (< 0), busca prioritariamente em Device
+    effective_dev_id = device_id or (abs(asset_id) if asset_id < 0 else None)
+    if effective_dev_id:
+        target_dev = db.scalar(
+            select(Device).where(
+                Device.id == effective_dev_id,
+                Device.company_id == current_user.company_id,
+            )
         )
-    )
-    if not asset or not asset.ip:
+        if target_dev and target_dev.ip:
+            target_ip = target_dev.ip.strip()
+
+    # 2. Se asset_id > 0 e não achou target_dev, busca em NetworkAsset
+    if not target_dev and asset_id > 0:
+        target_asset = db.scalar(
+            select(NetworkAsset).where(
+                NetworkAsset.id == asset_id,
+                NetworkAsset.company_id == current_user.company_id,
+            )
+        )
+        if target_asset and target_asset.ip:
+            target_ip = target_asset.ip.strip()
+
+    # 3. Fallback: se não encontrou em NetworkAsset com asset_id > 0, tenta achar Device com esse mesmo ID
+    if not target_asset and not target_dev and asset_id > 0:
+        target_dev = db.scalar(
+            select(Device).where(
+                Device.id == asset_id,
+                Device.company_id == current_user.company_id,
+            )
+        )
+        if target_dev and target_dev.ip:
+            target_ip = target_dev.ip.strip()
+
+    # 4. Fallback por IP se fornecido
+    if not target_ip and ip:
+        target_ip = ip.strip()
+
+    if not target_ip:
         return None
 
-    online, latency = await ping_ip(asset.ip)
+    # Trava de Rate Limit / Cooldown (máx 3 tentativas consecutivas dentro de 1 minuto)
+    verificar_rate_limit_ping(current_user.id if current_user else 0, target_ip)
+
+    # Executa o teste de conectividade ICMP real
+    online, latency = await ping_ip(target_ip)
     now = datetime.utcnow()
-    asset.status_online = online
-    asset.ultimo_ping = now
-    asset.tempo_resposta_ms = latency
+
+    # Persiste em NetworkAsset se existir
+    if not target_asset:
+        target_asset = db.scalar(
+            select(NetworkAsset).where(
+                NetworkAsset.company_id == current_user.company_id,
+                NetworkAsset.ip == target_ip,
+            )
+        )
+    if target_asset:
+        target_asset.status_online = online
+        target_asset.ultimo_ping = now
+        target_asset.tempo_resposta_ms = latency
+
+    # Persiste em Device se existir
+    if not target_dev:
+        target_dev = db.scalar(
+            select(Device).where(
+                Device.company_id == current_user.company_id,
+                Device.ip == target_ip,
+                Device.active == True,
+            )
+        )
+    if target_dev:
+        extra = dict(target_dev.extra_data or {})
+        extra["status_online"] = online
+        extra["ultimo_ping"] = now.isoformat()
+        if latency is not None:
+            extra["tempo_resposta_ms"] = latency
+        target_dev.extra_data = extra
+
     db.commit()
 
     return PingResultOut(
-        asset_id=asset.id,
-        ip=asset.ip,
+        asset_id=asset_id,
+        ip=target_ip,
         online=online,
+        status_online=online,
         tempo_resposta_ms=latency,
         timestamp=now,
+        ultimo_ping=now,
     )
 
 
@@ -558,7 +720,10 @@ async def ping_direct(
     db: Optional[Session] = None,
     current_user: Optional[User] = None,
 ) -> PingResultOut:
-    online, latency = await ping_ip(ip)
+    clean_ip = ip.strip() if ip else ""
+    verificar_rate_limit_ping(current_user.id if current_user else 0, clean_ip)
+
+    online, latency = await ping_ip(clean_ip)
     now = datetime.utcnow()
     asset_id = None
 
@@ -600,8 +765,10 @@ async def ping_direct(
         asset_id=asset_id,
         ip=ip,
         online=online,
+        status_online=online,
         tempo_resposta_ms=latency,
         timestamp=now,
+        ultimo_ping=now,
     )
 
 
@@ -714,6 +881,227 @@ async def scan_assets_batch(
             )
         )
     return output
+
+
+# ==============================================================================
+# MOTOR DE PING AUTOMÁTICO ESCALONADO EM BACKGROUND (SWEEPER)
+# ==============================================================================
+
+logger = logging.getLogger("background_ping_sweeper")
+logger.setLevel(logging.INFO)
+
+_sweeper_enabled: bool = True
+_sweeper_last_run: Optional[datetime] = None
+_sweeper_last_checked_count: int = 0
+_sweeper_total_monitored: int = 0
+_priority_site_id: Optional[int] = None
+_priority_site_timestamp: float = 0.0
+
+
+def registrar_priority_site(site_id: Optional[int]) -> None:
+    """Registra uma filial prioritária para os próximos ciclos de ping em background."""
+    global _priority_site_id, _priority_site_timestamp
+    if site_id and site_id > 0:
+        _priority_site_id = site_id
+        _priority_site_timestamp = time.time()
+    else:
+        _priority_site_id = None
+        _priority_site_timestamp = 0.0
+
+
+def get_sweeper_status() -> Dict[str, Any]:
+    """Retorna métricas em tempo real do motor de ping em background."""
+    global _priority_site_id, _priority_site_timestamp
+    active_priority = _priority_site_id if (time.time() - _priority_site_timestamp) < 90.0 else None
+    return {
+        "enabled": _sweeper_enabled,
+        "last_run": _sweeper_last_run.isoformat() if _sweeper_last_run else None,
+        "last_checked_count": _sweeper_last_checked_count,
+        "total_monitored": _sweeper_total_monitored,
+        "priority_site_id": active_priority,
+    }
+
+
+def toggle_sweeper(enabled: Optional[bool] = None) -> Dict[str, Any]:
+    """Permite ao administrador pausar ou retomar o motor de ping automático."""
+    global _sweeper_enabled
+    if enabled is not None:
+        _sweeper_enabled = enabled
+    else:
+        _sweeper_enabled = not _sweeper_enabled
+    return get_sweeper_status()
+
+
+async def executar_ciclo_sweeper() -> int:
+    """
+    Executa 1 ciclo suave do motor de ping em background:
+    - Seleciona micro-lote de até 25 IPs entre NetworkAsset e Device (ativos)
+    - Prioriza nunca verificados (ultimo_ping nulo) e depois os mais antigos (LRC)
+    - Prioriza a filial aberta na interface (_priority_site_id) se houver
+    - Dispara pings com concorrência máxima de 8 simultâneos e timeout curto de 1s
+    - Grava o resultado em lote único (1 commit único)
+    """
+    global _sweeper_last_run, _sweeper_last_checked_count, _sweeper_total_monitored
+    global _priority_site_id, _priority_site_timestamp
+
+    if not _sweeper_enabled:
+        return 0
+
+    active_priority_site = _priority_site_id if (time.time() - _priority_site_timestamp) < 90.0 else None
+
+    with Session(engine) as session:
+        # 1. Carrega candidatos de NetworkAsset
+        assets_q = select(
+            NetworkAsset.id,
+            NetworkAsset.ip,
+            NetworkAsset.ultimo_ping,
+            NetworkAsset.site_id,
+        ).where(
+            NetworkAsset.ip.isnot(None),
+            NetworkAsset.ip != "",
+        )
+        assets_rows = session.execute(assets_q).all()
+
+        # 2. Carrega candidatos de Device (estações de trabalho ativas com IP)
+        devs_q = select(
+            Device.id,
+            Device.ip,
+            Device.extra_data,
+            Device.site_id,
+        ).where(
+            Device.active.is_(True),
+            Device.ip.isnot(None),
+            Device.ip != "",
+        )
+        devs_rows = session.execute(devs_q).all()
+
+        targets_by_ip: Dict[str, Tuple[Optional[datetime], Optional[int]]] = {}
+
+        for a_id, a_ip, a_ultimo, a_site in assets_rows:
+            clean = (a_ip or "").strip()
+            if not clean:
+                continue
+            dt = a_ultimo.replace(tzinfo=None) if a_ultimo else None
+            targets_by_ip[clean] = (dt, a_site)
+
+        for d_id, d_ip, d_extra, d_site in devs_rows:
+            clean = (d_ip or "").strip()
+            if not clean:
+                continue
+            dt = None
+            if isinstance(d_extra, dict) and d_extra.get("ultimo_ping"):
+                try:
+                    dt = datetime.fromisoformat(d_extra["ultimo_ping"]).replace(tzinfo=None)
+                except Exception:
+                    dt = None
+            if clean not in targets_by_ip or (dt is None and targets_by_ip[clean][0] is not None):
+                targets_by_ip[clean] = (dt, d_site)
+
+        _sweeper_total_monitored = len(targets_by_ip)
+        if not targets_by_ip:
+            return 0
+
+        epoch = datetime(1970, 1, 1)
+
+        def sort_key(item: Tuple[str, Tuple[Optional[datetime], Optional[int]]]):
+            dt, _ = item[1]
+            return (0 if dt is None else 1, dt or epoch)
+
+        batch_ips: List[str] = []
+
+        # Se houver loja prioritária, seleciona primeiro os alvos dessa filial
+        if active_priority_site:
+            site_candidates = [
+                (ip, meta) for ip, meta in targets_by_ip.items()
+                if meta[1] == active_priority_site
+            ]
+            site_candidates.sort(key=sort_key)
+            for ip, _ in site_candidates[:25]:
+                batch_ips.append(ip)
+
+        # Completa o restante até 25 com os alvos mais desatualizados de outras filiais
+        if len(batch_ips) < 25:
+            remaining_needed = 25 - len(batch_ips)
+            already_selected = set(batch_ips)
+            general_candidates = [
+                (ip, meta) for ip, meta in targets_by_ip.items()
+                if ip not in already_selected
+            ]
+            general_candidates.sort(key=sort_key)
+            for ip, _ in general_candidates[:remaining_needed]:
+                batch_ips.append(ip)
+
+        if not batch_ips:
+            return 0
+
+        # Dispara os pings concorrentes limitados a 8 simultâneos
+        sem = asyncio.Semaphore(8)
+
+        async def check_ip(ip_addr: str):
+            async with sem:
+                online, latency = await ping_ip(ip_addr, timeout_sec=1.0)
+                return ip_addr, online, latency
+
+        results = await asyncio.gather(*(check_ip(ip) for ip in batch_ips))
+        now = datetime.utcnow()
+        res_map = {ip: (on, lat) for ip, on, lat in results}
+
+        # Atualiza NetworkAssets no banco
+        db_assets = session.scalars(
+            select(NetworkAsset).where(NetworkAsset.ip.in_(batch_ips))
+        ).all()
+        for a in db_assets:
+            if a.ip and a.ip in res_map:
+                on, lat = res_map[a.ip]
+                a.status_online = on
+                a.ultimo_ping = now
+                a.tempo_resposta_ms = lat
+
+        # Atualiza Devices no banco
+        db_devs = session.scalars(
+            select(Device).where(Device.ip.in_(batch_ips), Device.active.is_(True))
+        ).all()
+        for d in db_devs:
+            if d.ip and d.ip in res_map:
+                on, lat = res_map[d.ip]
+                extra = dict(d.extra_data or {})
+                extra["status_online"] = on
+                extra["ultimo_ping"] = now.isoformat()
+                if lat is not None:
+                    extra["tempo_resposta_ms"] = lat
+                d.extra_data = extra
+
+        session.commit()
+
+        _sweeper_last_run = now
+        _sweeper_last_checked_count = len(batch_ips)
+        return len(batch_ips)
+
+
+async def iniciar_background_ping_sweeper():
+    """Worker assíncrono em background que roda ciclos leves de ping a cada 20 segundos."""
+    await asyncio.sleep(3)
+    print("[Sweeper] Motor de ping automático escalonado (sweeper) iniciado.", flush=True)
+    logger.info("Motor de ping automático escalonado (sweeper) iniciado.")
+    while True:
+        try:
+            if _sweeper_enabled:
+                count = await executar_ciclo_sweeper()
+                if count > 0:
+                    print(f"[Sweeper] Ciclo concluído: {count} IPs verificados em background.", flush=True)
+                    logger.info(f"[Sweeper] Ciclo concluído: {count} IPs verificados em background.")
+        except asyncio.CancelledError:
+            print("[Sweeper] Motor de ping automático (sweeper) finalizado.", flush=True)
+            logger.info("Motor de ping automático (sweeper) finalizado.")
+            break
+        except Exception as e:
+            print(f"[Sweeper] Erro durante ciclo de ping: {e}", flush=True)
+            logger.error(f"[Sweeper] Erro durante ciclo de ping: {e}")
+
+        try:
+            await asyncio.sleep(20)
+        except asyncio.CancelledError:
+            break
 
 
 # ==============================================================================
@@ -1332,3 +1720,93 @@ def gerar_csv_modelo() -> str:
     for ex in exemplos:
         writer.writerow(list(ex))
     return output.getvalue()
+
+
+def calcular_kpis_network_assets(
+    db: Session,
+    current_user: User,
+    site_id: Optional[int] = None,
+    faixa_id: Optional[int] = None,
+    tipo: Optional[str] = None,
+    search: Optional[str] = None,
+    filtro_ocupacao: Optional[str] = None,
+) -> NetworkAssetKPIs:
+    sites_permitidos = obter_sites_permitidos(db, current_user)
+    if sites_permitidos is not None and site_id is not None and site_id not in sites_permitidos:
+        return NetworkAssetKPIs()
+
+    # Utiliza exatamente a mesma lógica/universo unificado da listagem
+    assets = listar_network_assets(
+        db=db,
+        current_user=current_user,
+        site_id=site_id,
+        tipo=tipo,
+        search=search,
+        filtro_ocupacao=filtro_ocupacao,
+        faixa_id=faixa_id,
+    )
+
+    total = len(assets)
+    online = 0
+    offline = 0
+    nao_testado = 0
+    impressoras = 0
+    switches = 0
+    aps = 0
+    outros = 0
+    estacoes = 0
+    livres = 0
+    ativos = 0
+    max_ping_ts = 0.0
+    ultimo_ping_dt: Optional[datetime] = None
+
+    for a in assets:
+        if a.status_online is True:
+            online += 1
+        elif a.status_online is False:
+            offline += 1
+        else:
+            nao_testado += 1
+
+        if a.origem == "estacao":
+            estacoes += 1
+        elif a.origem == "livre":
+            livres += 1
+        elif a.origem in ("manual", "planilha"):
+            ativos += 1
+
+        t = (a.tipo or "").upper()
+        if "IMPRESSORA" in t:
+            impressoras += 1
+        elif "SWITCH" in t or "ROTEADOR" in t or "FIREWALL" in t:
+            switches += 1
+        elif "POINT" in t or "WIFI" in t or re.search(r"\bAP\b", t):
+            aps += 1
+        else:
+            outros += 1
+
+        if a.ultimo_ping:
+            try:
+                ts = a.ultimo_ping.timestamp() if a.ultimo_ping.tzinfo else a.ultimo_ping.replace(tzinfo=timezone.utc).timestamp()
+                if ts > max_ping_ts:
+                    max_ping_ts = ts
+                    ultimo_ping_dt = a.ultimo_ping
+            except Exception:
+                pass
+
+    return NetworkAssetKPIs(
+        total=total,
+        online=online,
+        offline=offline,
+        nao_testado=nao_testado,
+        impressoras=impressoras,
+        switches=switches,
+        aps=aps,
+        outros=outros,
+        estacoes=estacoes,
+        livres=livres,
+        ativos=ativos,
+        testados=online + offline,
+        ultimo_ping=ultimo_ping_dt.isoformat() if ultimo_ping_dt else None,
+    )
+

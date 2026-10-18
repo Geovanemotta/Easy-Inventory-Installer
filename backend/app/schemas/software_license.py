@@ -79,6 +79,7 @@ class LicenseStatsOut(BaseModel):
     total_em_uso: int
     total_disponiveis: int
     total_esgotadas: int
+    solicitacoes_pendentes: int = 0
     por_categoria: Dict[str, Dict[str, int]]
     por_filial: List[Dict[str, Any]]
 

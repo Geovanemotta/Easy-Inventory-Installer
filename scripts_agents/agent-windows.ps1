@@ -1,7 +1,18 @@
-# ==========================================================
-# AGENTE DE INVENTÁRIO GIASSI - WINDOWS (v2.0)
-# Compatível com Windows 10, 11 e Windows Server (PowerShell 5.1+)
-# ==========================================================
+<#
+==========================================================
+AGENTE DE INVENTÁRIO GIASSI - WINDOWS (v2.0)
+Compatível com Windows 10, 11 e Windows Server (PowerShell 5.1+)
+==========================================================
+#>
+
+[CmdletBinding()]
+param(
+    [Parameter(Position = 0)]
+    [string]$ServerURL = "",
+    
+    [Parameter()]
+    [switch]$Force
+)
 
 # ----------------------------------------------------------
 # CONFIGURAÇÕES E DIRETÓRIOS
@@ -23,14 +34,13 @@ if (Test-Path $SavedUrlFile) {
     } catch { }
 }
 
-[CmdletBinding()]
-param(
-    [Parameter(Position = 0)]
-    [string]$ServerURL = $(if ($env:GIASSI_SERVER_URL) { $env:GIASSI_SERVER_URL } else { $DefaultURL }),
-    
-    [Parameter()]
-    [switch]$Force
-)
+if (-not $ServerURL) {
+    if ($env:GIASSI_SERVER_URL) {
+        $ServerURL = $env:GIASSI_SERVER_URL
+    } else {
+        $ServerURL = $DefaultURL
+    }
+}
 
 # Garante que a URL sempre termine com o endpoint correto da API
 if ($ServerURL -notmatch "/api/v1/inventory/receive") {
@@ -567,7 +577,7 @@ $Json = $Inventory | ConvertTo-Json -Depth 6
 # ----------------------------------------------------------
 # DETECÇÃO DE MUDANÇAS (HASH COMPARISON)
 # ----------------------------------------------------------
-$Enviar = $true
+$AlteracaoDetectada = $true
 
 if (-not $Force -and (Test-Path $LastInventoryFile)) {
     try {
@@ -581,86 +591,92 @@ if (-not $Force -and (Test-Path $LastInventoryFile)) {
         $AnteriorComparacao = $Anterior | ConvertTo-Json -Depth 6
 
         if ($AtualComparacao -eq $AnteriorComparacao) {
-            $Enviar = $false
+            $AlteracaoDetectada = $false
         }
     }
     catch {
-        $Enviar = $true
+        $AlteracaoDetectada = $true
     }
 }
 
 # ----------------------------------------------------------
-# ENVIO HTTP
+# ENVIO HTTP (Sempre executado para sincronizar heartbeat e timestamp)
 # ----------------------------------------------------------
-if ($Enviar) {
-    try {
-        function Enviar-Payload([string]$TargetUrl) {
-            Write-Host "[*] Enviando dados para: $TargetUrl" -ForegroundColor Yellow
-            return Invoke-RestMethod `
-                -Uri $TargetUrl `
-                -Method Post `
-                -ContentType "application/json; charset=utf-8" `
-                -Headers @{ "Accept" = "application/json, text/plain" } `
-                -Body ([System.Text.Encoding]::UTF8.GetBytes($Json)) `
-                -TimeoutSec 15
-        }
+try {
+    function Enviar-Payload([string]$TargetUrl) {
+        Write-Host "[*] Enviando dados para: $TargetUrl" -ForegroundColor Yellow
+        return Invoke-RestMethod `
+            -Uri $TargetUrl `
+            -Method Post `
+            -ContentType "application/json; charset=utf-8" `
+            -Headers @{ "Accept" = "application/json, text/plain" } `
+            -Body ([System.Text.Encoding]::UTF8.GetBytes($Json)) `
+            -TimeoutSec 15
+    }
 
-        $Response = $null
-        try {
-            $Response = Enviar-Payload -TargetUrl $ServerURL
+    $Response = $null
+    try {
+        $Response = Enviar-Payload -TargetUrl $ServerURL
+    }
+    catch {
+        Write-Host "[!] Falha ao conectar em $ServerURL. Testando portas alternativas dinamicamente..." -ForegroundColor Yellow
+        
+        $AltUrls = @()
+        if ($ServerURL -match "^https://([^:/]+)(:443)?(/.*)$") {
+            $h = $Matches[1]; $p = $Matches[3]
+            $AltUrls += "https://${h}:9292$p", "http://${h}:8000$p"
         }
-        catch {
-            Write-Host "[!] Falha ao conectar em $ServerURL. Testando portas alternativas dinamicamente..." -ForegroundColor Yellow
-            
-            $AltUrls = @()
-            if ($ServerURL -match "^https://([^:/]+)(:443)?(/.*)$") {
-                $h = $Matches[1]; $p = $Matches[3]
-                $AltUrls += "https://${h}:9292$p", "http://${h}:8000$p"
-            }
-            elseif ($ServerURL -match "^https://([^:/]+):([0-9]+)(/.*)$") {
-                $h = $Matches[1]; $porta = $Matches[2]; $p = $Matches[3]
-                if ($porta -eq "9292") {
-                    $AltUrls += "https://${h}$p", "http://${h}:8000$p"
-                } else {
-                    $AltUrls += "https://${h}:9292$p", "https://${h}$p"
-                }
-            }
-            elseif ($ServerURL -match "^http://([^:/]+)(:[0-9]+)?(/.*)$") {
-                $h = $Matches[1]; $p = $Matches[3]
+        elseif ($ServerURL -match "^https://([^:/]+):([0-9]+)(/.*)$") {
+            $h = $Matches[1]; $porta = $Matches[2]; $p = $Matches[3]
+            if ($porta -eq "9292") {
+                $AltUrls += "https://${h}$p", "http://${h}:8000$p"
+            } else {
                 $AltUrls += "https://${h}:9292$p", "https://${h}$p"
             }
-
-            foreach ($alt in $AltUrls) {
-                try {
-                    Write-Host "[*] Tentando porta alternativa: $alt" -ForegroundColor Cyan
-                    $Response = Enviar-Payload -TargetUrl $alt
-                    if ($Response) {
-                        $ServerURL = $alt
-                        Write-Host "[+] Conexão bem-sucedida via porta alternativa: $alt" -ForegroundColor Green
-                        break
-                    }
-                } catch { }
-            }
+        }
+        elseif ($ServerURL -match "^http://([^:/]+)(:[0-9]+)?(/.*)$") {
+            $h = $Matches[1]; $p = $Matches[3]
+            $AltUrls += "https://${h}:9292$p", "https://${h}$p"
         }
 
-        $RespStr = ($Response | Out-String).Trim()
-
-        if ($RespStr -match "OK" -or $RespStr -match "ok" -or $Response.status -eq "ok" -or $Response.device_id) {
-            Copy-Item -Path $InventoryFile -Destination $LastInventoryFile -Force
-            try { [System.IO.File]::WriteAllText($SavedUrlFile, $ServerURL, [System.Text.Encoding]::UTF8) } catch { }
-            Write-Host "[+] Inventário enviado com sucesso!" -ForegroundColor Green
-        }
-        else {
-            Write-Host "[-] Servidor respondeu: $RespStr" -ForegroundColor Yellow
+        foreach ($alt in $AltUrls) {
+            try {
+                Write-Host "[*] Tentando porta alternativa: $alt" -ForegroundColor Cyan
+                $Response = Enviar-Payload -TargetUrl $alt
+                if ($Response) {
+                    $ServerURL = $alt
+                    Write-Host "[+] Conexão bem-sucedida via porta alternativa: $alt" -ForegroundColor Green
+                    break
+                }
+            } catch { }
         }
     }
-    catch {
-        Write-Host "[-] Erro ao enviar inventário:" -ForegroundColor Red
-        Write-Host $_.Exception.Message -ForegroundColor Red
+
+    $RespStr = ($Response | Out-String).Trim()
+
+    if ($RespStr -match "OK" -or $RespStr -match "ok" -or $Response.status -eq "ok" -or $Response.device_id) {
+        Copy-Item -Path $InventoryFile -Destination $LastInventoryFile -Force
+        try { [System.IO.File]::WriteAllText($SavedUrlFile, $ServerURL, [System.Text.Encoding]::UTF8) } catch { }
+        
+        $devId = if ($Response.device_id) { $Response.device_id } else { "" }
+        $devHost = if ($Response.hostname) { $Response.hostname } else { $Hostname }
+        $devAct = if ($Response.action) { $Response.action } else { "processado" }
+
+        if ($devId) {
+            Write-Host "[+] Inventário enviado! ID: $devId | Hostname: $devHost | Ação: $devAct" -ForegroundColor Green
+        } elseif ($AlteracaoDetectada) {
+            Write-Host "[+] Inventário enviado com sucesso! (Alteração de hardware detectada)" -ForegroundColor Green
+        } else {
+            Write-Host "[+] Inventário enviado com sucesso! (Heartbeat e coleta periódica)" -ForegroundColor Green
+        }
+    }
+    else {
+        Write-Host "[-] Servidor respondeu: $RespStr" -ForegroundColor Yellow
     }
 }
-else {
-    Write-Host "[i] Nenhuma alteração no inventário. Envio ignorado (use -Force para forçar)." -ForegroundColor Cyan
+catch {
+    Write-Host "[-] Erro ao enviar inventário:" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
 }
 
 Write-Host ""

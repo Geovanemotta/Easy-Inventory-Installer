@@ -10,6 +10,7 @@ from app.schemas.network_asset import (
     BulkDeleteIn,
     ImportResultOut,
     NetworkAssetCreate,
+    NetworkAssetKPIs,
     NetworkAssetOut,
     NetworkAssetUpdate,
     PingResultOut,
@@ -17,22 +18,28 @@ from app.schemas.network_asset import (
     SiteIpRangeCreate,
     SiteIpRangeOut,
     SiteIpRangeUpdate,
+    SweeperStatusOut,
+    SweeperToggleIn,
 )
 from app.services.network_asset_service import (
     atualizar_ip_range,
     atualizar_network_asset,
+    calcular_kpis_network_assets,
     criar_ip_range,
     criar_network_asset,
     excluir_ip_range,
     excluir_network_asset,
     excluir_network_assets_lote,
     gerar_csv_modelo,
+    get_sweeper_status,
     listar_ip_ranges,
     listar_network_assets,
     ping_asset_by_id,
     ping_direct,
     processar_csv_importacao,
+    registrar_priority_site,
     scan_assets_batch,
+    toggle_sweeper,
 )
 
 router = APIRouter(
@@ -64,6 +71,8 @@ def get_assets(
     faixa_id: Optional[int] = Query(default=None, description="Filtra por ID de faixa de IP específica"),
     current_user: User = Depends(get_current_user),
 ):
+    if site_id:
+        registrar_priority_site(site_id)
     with Session(engine) as session:
         return listar_network_assets(
             db=session,
@@ -74,6 +83,29 @@ def get_assets(
             search=search,
             filtro_ocupacao=filtro_ocupacao,
             faixa_id=faixa_id,
+        )
+
+
+@router.get("/kpis", response_model=NetworkAssetKPIs)
+def get_assets_kpis(
+    site_id: Optional[int] = Query(default=None, description="Filtra KPIs por loja/filial"),
+    faixa_id: Optional[int] = Query(default=None, description="Filtra KPIs por faixa de IP específica"),
+    tipo: Optional[str] = Query(default=None, description="Filtra KPIs por tipo"),
+    search: Optional[str] = Query(default=None, description="Filtra KPIs por busca"),
+    filtro_ocupacao: Optional[str] = Query(default=None, description="Filtra KPIs por ocupação"),
+    current_user: User = Depends(get_current_user),
+):
+    if site_id:
+        registrar_priority_site(site_id)
+    with Session(engine) as session:
+        return calcular_kpis_network_assets(
+            db=session,
+            current_user=current_user,
+            site_id=site_id,
+            faixa_id=faixa_id,
+            tipo=tipo,
+            search=search,
+            filtro_ocupacao=filtro_ocupacao,
         )
 
 
@@ -229,6 +261,26 @@ def download_template():
 
 
 # ==============================================================================
+# BACKGROUND PING SWEEPER STATUS & CONTROLE
+# ==============================================================================
+
+@router.get("/sweeper-status", response_model=SweeperStatusOut)
+def get_sweeper_status_endpoint(
+    current_user: User = Depends(get_current_user),
+):
+    return get_sweeper_status()
+
+
+@router.post("/sweeper-toggle", response_model=SweeperStatusOut)
+def toggle_sweeper_endpoint(
+    payload: SweeperToggleIn,
+    current_user: User = Depends(get_current_user),
+):
+    check_admin_write_permission(current_user)
+    return toggle_sweeper(payload.enabled)
+
+
+# ==============================================================================
 # CRUD ATIVOS DE REDE INDIVIDUAIS
 # ==============================================================================
 
@@ -283,9 +335,24 @@ def delete_asset(
         return {"success": True, "message": "Ativo excluído com sucesso"}
 
 
+@router.post("/ping-ip", response_model=PingResultOut)
+async def ping_direct_ip_endpoint(
+    ip: str = Query(..., description="Endereço IP para teste de ping direto"),
+    current_user: User = Depends(get_current_user),
+):
+    with Session(engine) as session:
+        return await ping_direct(
+            ip=ip,
+            db=session,
+            current_user=current_user,
+        )
+
+
 @router.post("/{asset_id}/ping", response_model=PingResultOut)
 async def ping_asset(
     asset_id: int,
+    ip: Optional[str] = Query(default=None, description="IP opcional para teste de ping"),
+    device_id: Optional[int] = Query(default=None, description="ID opcional de Device"),
     current_user: User = Depends(get_current_user),
 ):
     with Session(engine) as session:
@@ -293,11 +360,13 @@ async def ping_asset(
             db=session,
             current_user=current_user,
             asset_id=asset_id,
+            ip=ip,
+            device_id=device_id,
         )
         if not res:
             raise HTTPException(
                 status_code=404,
-                detail="Ativo de rede não encontrado ou sem endereço IP cadastrado",
+                detail="Ativo de rede ou estação não encontrado ou sem endereço IP cadastrado",
             )
         return res
 
