@@ -23,24 +23,36 @@ if (Test-Path ".git") {
     Write-Host "[1/5] Diretório não é um clone git. Pulando 'git pull'." -ForegroundColor Yellow
 }
 
-# 2. Recompilar o Frontend
-Write-Host "[2/5] Compilando painel frontend..." -ForegroundColor Yellow
-$npmCmd = Get-Command "npm.cmd" -ErrorAction SilentlyContinue
-if ($npmCmd) {
-    Write-Host " [*] Usando Node.js local..."
-    Push-Location "frontend"
-    cmd.exe /c "npm install"
-    cmd.exe /c "npm run build"
-    Pop-Location
+# 2. Frontend
+Write-Host "[2/5] Verificando painel frontend..." -ForegroundColor Yellow
+if (Test-Path "frontend/dist/index.html") {
+    Write-Host "[✓] Painel frontend pré-compilado (frontend/dist) detectado via Git. Pulando compilação NPM..." -ForegroundColor Green
 } else {
-    Write-Host " [*] Compilando via container Node.js (node:20-bookworm-slim)..."
-    docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-bookworm-slim sh -c "npm install; npm run build"
+    $npmCmd = Get-Command "npm.cmd" -ErrorAction SilentlyContinue
+    if ($npmCmd) {
+        Write-Host " [*] Usando Node.js local..."
+        Push-Location "frontend"
+        cmd.exe /c "npm install"
+        cmd.exe /c "npm run build"
+        Pop-Location
+    } else {
+        Write-Host " [*] Compilando via container Node.js (node:20-bookworm-slim)..."
+        docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-bookworm-slim sh -c "npm install; npm run build"
+    }
+    Write-Host "[✓] Frontend compilado com sucesso." -ForegroundColor Green
 }
-Write-Host "[✓] Frontend compilado com sucesso." -ForegroundColor Green
 
-# 3. Reconstrução e reinicialização dos containers (sem tocar em volumes)
-Write-Host "[3/5] Reconstruindo imagens Docker e aplicando alterações..." -ForegroundColor Yellow
-docker compose up -d --build
+# 3. Atualização dos containers (sem tocar em volumes)
+Write-Host "[3/5] Atualizando containers Docker e aplicando alterações..." -ForegroundColor Yellow
+$backendRunning = docker inspect giassi-backend 2>$null
+if ($backendRunning) {
+    Write-Host " [*] Imagens Docker locais detectadas. Aplicando alterações diretamente via volumes..."
+    docker compose up -d
+    docker compose restart backend nginx 2>$null
+} else {
+    Write-Host " [*] Executando build inicial dos containers..."
+    docker compose up -d --build
+}
 
 # 4. Aguardar PostgreSQL estar pronto antes de rodar migrações
 Write-Host "[4/5] Aguardando o banco de dados PostgreSQL estar operacional..." -ForegroundColor Yellow

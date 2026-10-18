@@ -15,6 +15,31 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m' # Sem Cor
 
+FORCE_BUILD=false
+FORCE_DOCKER_BUILD=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --force-build)
+            FORCE_BUILD=true
+            FORCE_DOCKER_BUILD=true
+            ;;
+        --build)
+            FORCE_DOCKER_BUILD=true
+            ;;
+        --help|-h)
+            echo ""
+            echo -e "${BOLD}Uso:${NC} $0 [opções]"
+            echo ""
+            echo -e "  ${CYAN}--force-build${NC}           Força a compilação do frontend via NPM e rebuild das imagens Docker"
+            echo -e "  ${CYAN}--build${NC}                 Força o rebuild das imagens Docker via 'docker compose up -d --build'"
+            echo -e "  ${CYAN}--help, -h${NC}              Exibe esta ajuda"
+            echo ""
+            exit 0
+            ;;
+    esac
+done
+
 echo ""
 echo -e "${CYAN}==================================================================${NC}"
 echo -e "${BOLD}${CYAN}   SISTEMA DE INVENTÁRIO CORPORATIVO - INSTALADOR / ATUALIZADOR${NC}"
@@ -139,6 +164,11 @@ get_panel_url() {
 
 # Função reutilizável para compilação garantida do frontend (Node 20+ local ou container)
 compile_frontend() {
+    if [ -f "frontend/dist/index.html" ] && [ "$FORCE_BUILD" != "true" ]; then
+        echo -e "${GREEN}[✓] Painel frontend pré-compilado (frontend/dist) detectado via Git. Pulando compilação NPM...${NC}"
+        return 0
+    fi
+
     echo -e "${YELLOW}[*] Compilando painel frontend...${NC}"
 
     local CA_VOLUME=""
@@ -276,6 +306,66 @@ sync_meshcentral_host() {
     fi
 }
 
+# Inicializa ou atualiza containers Docker aproveitando imagens locais se disponíveis
+start_or_update_containers() {
+    local NEED_BUILD=false
+    local IMAGES_EXIST=false
+
+    if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null; then
+        IMAGES_EXIST=true
+    fi
+
+    if [ "$FORCE_DOCKER_BUILD" = true ]; then
+        NEED_BUILD=true
+        echo " [*] Flag de rebuild detectada (--build ou --force-build)."
+    elif [ "$IMAGES_EXIST" = false ]; then
+        NEED_BUILD=true
+        echo " [*] Imagens ou containers Docker ainda não inicializados neste host. Executando build inicial..."
+    fi
+
+    if [ "$NEED_BUILD" = false ]; then
+        echo " [*] Imagens Docker locais detectadas. Aplicando código e configurações diretamente via volumes (sem downloads externos)..."
+        if ! $DOCKER_COMPOSE up -d; then
+            echo -e "${YELLOW} [!] 'docker compose up -d' falhou. Tentando com --build...${NC}"
+            NEED_BUILD=true
+        else
+            echo " [*] Reiniciando serviços backend e nginx para carregar o novo código..."
+            $DOCKER_COMPOSE restart backend nginx 2>/dev/null || true
+        fi
+    fi
+
+    if [ "$NEED_BUILD" = true ]; then
+        echo " [*] Executando '$DOCKER_COMPOSE up -d --build'..."
+        if ! $DOCKER_COMPOSE up -d --build; then
+            echo ""
+            echo -e "${RED}==================================================================${NC}"
+            echo -e "${BOLD}${RED}[X] FALHA NA RECONSTRUÇÃO DOS CONTAINERS DOCKER${NC}"
+            echo -e "${RED}==================================================================${NC}"
+            echo " Diagnóstico do erro:"
+            echo ""
+            echo -e " 1) ${BOLD}Erro de Certificado SSL / Firewall DPI (x509: certificate signed by unknown authority):${NC}"
+            echo "    O Docker não conseguiu validar o certificado SSL ao consultar o Docker Hub."
+            echo "    Causa: O firewall corporativo (DPI / Inspeção SSL) está interceptando HTTPS."
+            echo ""
+            echo -e "    ${BOLD}Como resolver:${NC}"
+            echo "    - Certifique-se de que a CA do firewall está em: /usr/local/share/ca-certificates/<nome>.crt"
+            echo "    - Execute:"
+            echo "      sudo ./check-firewall.sh --fix-ca"
+            echo "    - Em seguida, execute o ./setup.sh novamente."
+            echo ""
+            echo -e " 2) ${BOLD}Bloqueio de Firewall nos Registros do Docker Hub:${NC}"
+            echo "    Solicite à equipe de segurança a liberação das seguintes portas/domínios:"
+            echo "    - registry-1.docker.io (porta 443 TCP)"
+            echo "    - auth.docker.io (porta 443 TCP)"
+            echo "    - production.cloudflare.docker.com (porta 443 TCP)"
+            echo ""
+            echo -e " Dica: Execute ${CYAN}./check-firewall.sh${NC} para auditar o status das regras e certificados."
+            echo -e "${RED}==================================================================${NC}"
+            exit 1
+        fi
+    fi
+}
+
 # Aguarda PostgreSQL estar saudável para conexões
 wait_for_postgres() {
     echo " [*] Aguardando o banco de dados PostgreSQL estar operacional..."
@@ -392,33 +482,7 @@ if [ -f ".env" ]; then
         compile_frontend
 
         echo -e "${YELLOW}[*] Atualizando e iniciando containers Docker...${NC}"
-        if ! $DOCKER_COMPOSE up -d --build; then
-            echo ""
-            echo -e "${RED}==================================================================${NC}"
-            echo -e "${BOLD}${RED}[X] FALHA NA RECONSTRUÇÃO DOS CONTAINERS DOCKER${NC}"
-            echo -e "${RED}==================================================================${NC}"
-            echo " Diagnóstico do erro:"
-            echo ""
-            echo -e " 1) ${BOLD}Erro de Certificado SSL / Firewall DPI (x509: certificate signed by unknown authority):${NC}"
-            echo "    O Docker não conseguiu validar o certificado SSL ao consultar o Docker Hub."
-            echo "    Causa: O firewall corporativo (DPI / Inspeção SSL) está interceptando HTTPS."
-            echo ""
-            echo -e "    ${BOLD}Como resolver:${NC}"
-            echo "    - Certifique-se de que a CA do firewall está em: /usr/local/share/ca-certificates/<nome>.crt"
-            echo "    - Execute:"
-            echo "      sudo ./check-firewall.sh --fix-ca"
-            echo "    - Em seguida, execute o ./setup.sh novamente."
-            echo ""
-            echo -e " 2) ${BOLD}Bloqueio de Firewall nos Registros do Docker Hub:${NC}"
-            echo "    Solicite à equipe de segurança a liberação das seguintes portas/domínios:"
-            echo "    - registry-1.docker.io (porta 443 TCP)"
-            echo "    - auth.docker.io (porta 443 TCP)"
-            echo "    - production.cloudflare.docker.com (porta 443 TCP)"
-            echo ""
-            echo -e " Dica: Execute ${CYAN}./check-firewall.sh${NC} para auditar o status das regras e certificados."
-            echo -e "${RED}==================================================================${NC}"
-            exit 1
-        fi
+        start_or_update_containers
 
         wait_for_postgres
         apply_database_migrations_and_roles
@@ -582,33 +646,7 @@ else
     $DOCKER_COMPOSE down --remove-orphans 2>/dev/null || true
 fi
 
-if ! $DOCKER_COMPOSE up -d --build; then
-    echo ""
-    echo -e "${RED}==================================================================${NC}"
-    echo -e "${BOLD}${RED}[X] FALHA NA CONSTRUÇÃO DOS CONTAINERS DOCKER${NC}"
-    echo -e "${RED}==================================================================${NC}"
-    echo " Diagnóstico do erro:"
-    echo ""
-    echo -e " 1) ${BOLD}Erro de Certificado SSL / Firewall DPI (x509: certificate signed by unknown authority):${NC}"
-    echo "    O Docker não conseguiu validar o certificado SSL ao consultar o Docker Hub."
-    echo "    Causa: O firewall corporativo (DPI / Inspeção SSL) está interceptando HTTPS."
-    echo ""
-    echo -e "    ${BOLD}Como resolver:${NC}"
-    echo "    - Certifique-se de que a CA do firewall está em: /usr/local/share/ca-certificates/<nome>.crt"
-    echo "    - Execute:"
-    echo "      sudo ./check-firewall.sh --fix-ca"
-    echo "    - Em seguida, execute o ./setup.sh novamente."
-    echo ""
-    echo -e " 2) ${BOLD}Bloqueio de Firewall nos Registros do Docker Hub:${NC}"
-    echo "    Solicite à equipe de segurança a liberação das seguintes portas/domínios:"
-    echo "    - registry-1.docker.io (porta 443 TCP)"
-    echo "    - auth.docker.io (porta 443 TCP)"
-    echo "    - production.cloudflare.docker.com (porta 443 TCP)"
-    echo ""
-    echo -e " Dica: Execute ${CYAN}./check-firewall.sh${NC} para auditar o status das regras e certificados."
-    echo -e "${RED}==================================================================${NC}"
-    exit 1
-fi
+start_or_update_containers
 
 wait_for_postgres
 

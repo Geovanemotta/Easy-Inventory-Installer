@@ -15,9 +15,18 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 SKIP_GIT_PULL=false
+FORCE_BUILD=false
+FORCE_DOCKER_BUILD=false
 
 for arg in "$@"; do
     case "$arg" in
+        --force-build)
+            FORCE_BUILD=true
+            FORCE_DOCKER_BUILD=true
+            ;;
+        --build)
+            FORCE_DOCKER_BUILD=true
+            ;;
         --no-pull|--skip-pull)
             SKIP_GIT_PULL=true
             ;;
@@ -25,7 +34,9 @@ for arg in "$@"; do
             echo ""
             echo -e "${BOLD}Uso:${NC} $0 [opções]"
             echo ""
-            echo -e "  ${CYAN}--no-pull, --skip-pull${NC}  Recompila frontend, aplica migrações e atualiza containers sem executar 'git pull'"
+            echo -e "  ${CYAN}--no-pull, --skip-pull${NC}  Aplica migrações e atualiza containers sem executar 'git pull'"
+            echo -e "  ${CYAN}--force-build${NC}           Força a compilação do frontend via NPM e rebuild das imagens Docker"
+            echo -e "  ${CYAN}--build${NC}                 Força o rebuild das imagens Docker via 'docker compose up -d --build'"
             echo -e "  ${CYAN}--help, -h${NC}              Exibe esta ajuda"
             echo ""
             exit 0
@@ -110,6 +121,7 @@ if [ "$SKIP_GIT_PULL" = true ]; then
 elif [ -d ".git" ]; then
     echo -e "${YELLOW}[1/5] Baixando novidades do repositório Git...${NC}"
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+    PREV_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
     echo " [*] Branch atual: $CURRENT_BRANCH"
 
     if ! git fetch origin "$CURRENT_BRANCH" || ! git pull origin "$CURRENT_BRANCH"; then
@@ -124,6 +136,10 @@ elif [ -d ".git" ]; then
         echo "    Para rodar a atualização sem git pull, use: ./update.sh --no-pull"
         echo -e "${RED}==================================================================${NC}"
         exit 1
+    fi
+    NEW_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
+    if [ -n "$PREV_COMMIT" ] && [ "$PREV_COMMIT" != "$NEW_COMMIT" ]; then
+        CHANGED_DEPS=$(git diff --name-only "$PREV_COMMIT" "$NEW_COMMIT" -- backend/requirements.txt backend/Dockerfile nginx/Dockerfile meshcentral/Dockerfile 2>/dev/null || echo "")
     fi
     echo -e "${GREEN}[✓] Código-fonte atualizado para a versão mais recente.${NC}"
 else
@@ -182,155 +198,193 @@ fi
 # --------------------------------------------------------------
 # 4. Recompilar o Frontend (React / Vite)
 # --------------------------------------------------------------
-echo -e "${YELLOW}[2/5] Compilando painel frontend...${NC}"
+echo -e "${YELLOW}[2/5] Verificando painel frontend...${NC}"
 
-CA_VOLUME=""
-if [ -f "/etc/ssl/certs/ca-certificates.crt" ]; then
-    CA_VOLUME="-v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro -e NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt"
-fi
-
-NODE_BIN=""
-NPM_BIN=""
-
-# 1. Checa se o comando node padrão é >= 20
-if command -v node &> /dev/null; then
-    VER=$(node -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
-    if [ "$VER" -ge 20 ] 2>/dev/null; then
-        NODE_BIN=$(command -v node)
-        NPM_BIN=$(command -v npm 2>/dev/null || echo "npm")
+if [ -f "frontend/dist/index.html" ] && [ "$FORCE_BUILD" != "true" ]; then
+    echo -e "${GREEN}[✓] Painel frontend pré-compilado (frontend/dist) detectado via Git. Pulando compilação NPM...${NC}"
+else
+    CA_VOLUME=""
+    if [ -f "/etc/ssl/certs/ca-certificates.crt" ]; then
+        CA_VOLUME="-v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro -e NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt"
     fi
-fi
 
-# 2. Se executando com sudo e o node do root for < 20, verifica se o usuário chamador possui Node 20+ (ex: via NVM)
-if [ -z "$NODE_BIN" ] && [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
-    USER_HOME=$(getent passwd "$SUDO_USER" 2>/dev/null | cut -d: -f6)
-    if [ -d "$USER_HOME/.nvm/versions/node" ]; then
-        CANDIDATE=$(find "$USER_HOME/.nvm/versions/node" -maxdepth 2 -name "node" 2>/dev/null | sort -V | tail -n 1)
-        if [ -n "$CANDIDATE" ] && [ -x "$CANDIDATE" ]; then
-            C_VER=$("$CANDIDATE" -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
-            if [ "$C_VER" -ge 20 ] 2>/dev/null; then
-                NODE_BIN="$CANDIDATE"
-                NPM_BIN="$(dirname "$CANDIDATE")/npm"
-                echo " [*] Detectado Node.js local v$("$NODE_BIN" -v) no perfil do usuário $SUDO_USER."
+    NODE_BIN=""
+    NPM_BIN=""
+
+    # 1. Checa se o comando node padrão é >= 20
+    if command -v node &> /dev/null; then
+        VER=$(node -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+        if [ "$VER" -ge 20 ] 2>/dev/null; then
+            NODE_BIN=$(command -v node)
+            NPM_BIN=$(command -v npm 2>/dev/null || echo "npm")
+        fi
+    fi
+
+    # 2. Se executando com sudo e o node do root for < 20, verifica se o usuário chamador possui Node 20+ (ex: via NVM)
+    if [ -z "$NODE_BIN" ] && [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+        USER_HOME=$(getent passwd "$SUDO_USER" 2>/dev/null | cut -d: -f6)
+        if [ -d "$USER_HOME/.nvm/versions/node" ]; then
+            CANDIDATE=$(find "$USER_HOME/.nvm/versions/node" -maxdepth 2 -name "node" 2>/dev/null | sort -V | tail -n 1)
+            if [ -n "$CANDIDATE" ] && [ -x "$CANDIDATE" ]; then
+                C_VER=$("$CANDIDATE" -v 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo "0")
+                if [ "$C_VER" -ge 20 ] 2>/dev/null; then
+                    NODE_BIN="$CANDIDATE"
+                    NPM_BIN="$(dirname "$CANDIDATE")/npm"
+                    echo " [*] Detectado Node.js local v$("$NODE_BIN" -v) no perfil do usuário $SUDO_USER."
+                fi
             fi
         fi
     fi
-fi
 
-COMPILED=false
+    COMPILED=false
 
-# O Vite exige Node.js 20+.
-if [ -n "$NODE_BIN" ] && [ -x "$NODE_BIN" ] && [ -f "frontend/package.json" ]; then
-    echo " [*] Usando Node.js local do servidor (v$("$NODE_BIN" -v))..."
-    ORIG_PATH="$PATH"
-    export PATH="$(dirname "$NODE_BIN"):$PATH"
-    echo " -> [1/2] Instalando dependências NPM (pode levar ~1 min na 1ª vez)..."
-    rm -rf frontend/node_modules/.*-* 2>/dev/null || true
-    if ! (cd frontend && "$NPM_BIN" install --no-audit --no-fund); then
-        echo -e "${YELLOW} [!] Falha no npm install local. Limpando node_modules e tentando novamente...${NC}"
-        rm -rf frontend/node_modules
-        (cd frontend && "$NPM_BIN" install --no-audit --no-fund) || true
-    fi
-    echo " -> [2/2] Gerando build de produção (tsc & vite build)..."
-    if (cd frontend && "$NPM_BIN" run build); then
-        COMPILED=true
-    else
-        echo -e "${YELLOW} [!] Compilação local falhou. Tentando via container Node.js 20...${NC}"
-    fi
-    export PATH="$ORIG_PATH"
-elif command -v node &> /dev/null; then
-    echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é anterior ao v20 (Vite requer Node 20+)."
-    echo "     Usando container isolado 'node:20-bookworm-slim' (Debian/glibc) para compilação garantida..."
-fi
-
-# Se não compilou localmente, compila via container node:20-bookworm-slim com a CA do firewall montada
-if [ "$COMPILED" = false ]; then
-    echo " [*] Compilando via container Node.js 20 (node:20-bookworm-slim)..."
-    rm -rf frontend/node_modules/.*-* 2>/dev/null || true
-
-    BUILD_SCRIPT='
-        set -e
+    # O Vite exige Node.js 20+.
+    if [ -n "$NODE_BIN" ] && [ -x "$NODE_BIN" ] && [ -f "frontend/package.json" ]; then
+        echo " [*] Usando Node.js local do servidor (v$("$NODE_BIN" -v))..."
+        ORIG_PATH="$PATH"
+        export PATH="$(dirname "$NODE_BIN"):$PATH"
         echo " -> [1/2] Instalando dependências NPM (pode levar ~1 min na 1ª vez)..."
-        rm -rf /app/node_modules/.*-* 2>/dev/null || true
-        if ! npm install --no-audit --no-fund; then
-            echo " [!] Conflito ou resíduo em node_modules detectado. Limpando diretório e reinstalando do zero..."
-            rm -rf /app/node_modules
-            npm install --no-audit --no-fund
+        rm -rf frontend/node_modules/.*-* 2>/dev/null || true
+        if ! (cd frontend && "$NPM_BIN" install --no-audit --no-fund); then
+            echo -e "${YELLOW} [!] Falha no npm install local. Limpando node_modules e tentando novamente...${NC}"
+            rm -rf frontend/node_modules
+            (cd frontend && "$NPM_BIN" install --no-audit --no-fund) || true
         fi
         echo " -> [2/2] Gerando build de produção (tsc & vite build)..."
-        if ! npm run build; then
-            echo " [!] Falha no build inicial. Tentando compilar após reset limpo de node_modules..."
-            rm -rf /app/node_modules /app/dist
-            npm install --no-audit --no-fund
-            npm run build
+        if (cd frontend && "$NPM_BIN" run build); then
+            COMPILED=true
+        else
+            echo -e "${YELLOW} [!] Compilação local falhou. Tentando via container Node.js 20...${NC}"
         fi
-    '
-
-    if docker run --rm -v "$(pwd)/frontend:/app" $CA_VOLUME -w /app node:20-bookworm-slim sh -c "$BUILD_SCRIPT"; then
-        COMPILED=true
+        export PATH="$ORIG_PATH"
+    elif command -v node &> /dev/null; then
+        echo " [i] Node.js local do sistema (v$(node -v 2>/dev/null)) é anterior ao v20 (Vite requer Node 20+)."
+        echo "     Usando container isolado 'node:20-bookworm-slim' (Debian/glibc) para compilação garantida..."
     fi
-fi
 
-# Ajusta permissões dos arquivos gerados caso tenha rodado via sudo ou container root
-if [ -n "$SUDO_USER" ]; then
-    chown -R "$SUDO_USER":"$SUDO_USER" frontend/dist frontend/node_modules 2>/dev/null || true
-fi
+    # Se não compilou localmente, compila via container node:20-bookworm-slim com a CA do firewall montada
+    if [ "$COMPILED" = false ]; then
+        echo " [*] Compilando via container Node.js 20 (node:20-bookworm-slim)..."
+        rm -rf frontend/node_modules/.*-* 2>/dev/null || true
 
-if [ "$COMPILED" = false ]; then
-    echo ""
-    echo -e "${RED}==================================================================${NC}"
-    echo -e "${BOLD}${RED}[X] FALHA NA COMPILAÇÃO DO FRONTEND${NC}"
-    echo -e "${RED}==================================================================${NC}"
-    echo " Possíveis causas e como resolver:"
-    echo ""
-    echo -e " 1) ${BOLD}Erro de Certificado SSL (SELF_SIGNED_CERT_IN_CHAIN):${NC}"
-    echo "    O firewall está interceptando o download de pacotes NPM (registry.npmjs.org)."
-    echo "    Execute: sudo ./check-firewall.sh --fix-ca para habilitar a CA corporativa."
-    echo ""
-    echo -e " 2) ${BOLD}Bloqueio de Firewall no repositório NPM:${NC}"
-    echo "    Certifique-se de que 'registry.npmjs.org' (porta 443 TCP) está liberado."
-    echo ""
-    echo -e " 3) ${BOLD}Versão do Node.js:${NC}"
-    echo "    O Vite exige Node.js 20+. O instalador tentou usar o container 'node:20-bookworm-slim'."
-    echo "    Verifique se o Docker consegue baixar imagens do Docker Hub."
-    echo -e "${RED}==================================================================${NC}"
-    exit 1
-fi
+        BUILD_SCRIPT='
+            set -e
+            echo " -> [1/2] Instalando dependências NPM (pode levar ~1 min na 1ª vez)..."
+            rm -rf /app/node_modules/.*-* 2>/dev/null || true
+            if ! npm install --no-audit --no-fund; then
+                echo " [!] Conflito ou resíduo em node_modules detectado. Limpando diretório e reinstalando do zero..."
+                rm -rf /app/node_modules
+                npm install --no-audit --no-fund
+            fi
+            echo " -> [2/2] Gerando build de produção (tsc & vite build)..."
+            if ! npm run build; then
+                echo " [!] Falha no build inicial. Tentando compilar após reset limpo de node_modules..."
+                rm -rf /app/node_modules /app/dist
+                npm install --no-audit --no-fund
+                npm run build
+            fi
+        '
 
-echo -e "${GREEN}[✓] Frontend compilado com sucesso em ./frontend/dist!${NC}"
+        if docker run --rm -v "$(pwd)/frontend:/app" $CA_VOLUME -w /app node:20-bookworm-slim sh -c "$BUILD_SCRIPT"; then
+            COMPILED=true
+        fi
+    fi
+
+    # Ajusta permissões dos arquivos gerados caso tenha rodado via sudo ou container root
+    if [ -n "$SUDO_USER" ]; then
+        chown -R "$SUDO_USER":"$SUDO_USER" frontend/dist frontend/node_modules 2>/dev/null || true
+    fi
+
+    if [ "$COMPILED" = false ]; then
+        echo ""
+        echo -e "${RED}==================================================================${NC}"
+        echo -e "${BOLD}${RED}[X] FALHA NA COMPILAÇÃO DO FRONTEND${NC}"
+        echo -e "${RED}==================================================================${NC}"
+        echo " Possíveis causas e como resolver:"
+        echo ""
+        echo -e " 1) ${BOLD}Erro de Certificado SSL (SELF_SIGNED_CERT_IN_CHAIN):${NC}"
+        echo "    O firewall está interceptando o download de pacotes NPM (registry.npmjs.org)."
+        echo "    Execute: sudo ./check-firewall.sh --fix-ca para habilitar a CA corporativa."
+        echo ""
+        echo -e " 2) ${BOLD}Bloqueio de Firewall no repositório NPM:${NC}"
+        echo "    Certifique-se de que 'registry.npmjs.org' (porta 443 TCP) está liberado."
+        echo ""
+        echo -e " 3) ${BOLD}Versão do Node.js:${NC}"
+        echo "    O Vite exige Node.js 20+. O instalador tentou usar o container 'node:20-bookworm-slim'."
+        echo "    Verifique se o Docker consegue baixar imagens do Docker Hub."
+        echo -e "${RED}==================================================================${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}[✓] Frontend compilado com sucesso em ./frontend/dist!${NC}"
+fi
 
 # ------------------------------------------------------------------------------
 # 5. Reconstrução e reinicialização dos containers (sem tocar em volumes)
 # ------------------------------------------------------------------------------
-echo -e "${YELLOW}[3/5] Reconstruindo imagens Docker e aplicando alterações...${NC}"
+echo -e "${YELLOW}[3/5] Atualizando containers Docker e aplicando alterações...${NC}"
 
-if ! $DOCKER_COMPOSE up -d --build; then
-    echo ""
-    echo -e "${RED}==================================================================${NC}"
-    echo -e "${BOLD}${RED}[X] FALHA NA RECONSTRUÇÃO DOS CONTAINERS DOCKER${NC}"
-    echo -e "${RED}==================================================================${NC}"
-    echo " Diagnóstico do erro:"
-    echo ""
-    echo -e " 1) ${BOLD}Erro de Certificado SSL (x509: certificate signed by unknown authority):${NC}"
-    echo "    O Docker não conseguiu validar o certificado SSL ao consultar o Docker Hub."
-    echo "    Causa: O firewall corporativo (DPI / Inspeção SSL) está interceptando HTTPS."
-    echo ""
-    echo -e "    ${BOLD}Como resolver:${NC}"
-    echo "    - Certifique-se de que a CA do firewall está em: /usr/local/share/ca-certificates/<nome>.crt"
-    echo "    - Execute:"
-    echo "      sudo ./check-firewall.sh --fix-ca"
-    echo "    - Em seguida, execute o ./update.sh novamente."
-    echo ""
-    echo -e " 2) ${BOLD}Bloqueio de Firewall nos Registros do Docker Hub:${NC}"
-    echo "    Solicite à equipe de segurança a liberação das seguintes portas/domínios:"
-    echo "    - registry-1.docker.io (porta 443 TCP)"
-    echo "    - auth.docker.io (porta 443 TCP)"
-    echo "    - production.cloudflare.docker.com (porta 443 TCP)"
-    echo ""
-    echo -e " Dica: Execute ${CYAN}./check-firewall.sh${NC} para auditar o status das regras e certificados."
-    echo -e "${RED}==================================================================${NC}"
-    exit 1
+IMAGES_EXIST=false
+if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null; then
+    IMAGES_EXIST=true
 fi
+
+NEED_BUILD=false
+if [ "$FORCE_DOCKER_BUILD" = true ]; then
+    NEED_BUILD=true
+    echo " [*] Flag de rebuild detectada (--build ou --force-build)."
+elif [ "$IMAGES_EXIST" = false ]; then
+    NEED_BUILD=true
+    echo " [*] Imagens ou containers Docker ainda não inicializados neste host. Executando build inicial..."
+elif [ -n "$CHANGED_DEPS" ]; then
+    NEED_BUILD=true
+    echo " [*] Alteração detectada em dependências ou Dockerfile ($CHANGED_DEPS). Reconstruindo imagens..."
+fi
+
+if [ "$NEED_BUILD" = false ]; then
+    echo " [*] Imagens Docker locais detectadas e dependências inalteradas."
+    echo " [*] Aplicando código e configurações diretamente via volumes (sem downloads externos)..."
+    if ! $DOCKER_COMPOSE up -d; then
+        echo -e "${YELLOW} [!] 'docker compose up -d' falhou. Tentando com --build...${NC}"
+        NEED_BUILD=true
+    else
+        echo " [*] Reiniciando serviços backend e nginx para carregar o novo código..."
+        $DOCKER_COMPOSE restart backend nginx 2>/dev/null || true
+    fi
+fi
+
+if [ "$NEED_BUILD" = true ]; then
+    echo " [*] Executando '$DOCKER_COMPOSE up -d --build'..."
+    if ! $DOCKER_COMPOSE up -d --build; then
+        echo ""
+        echo -e "${RED}==================================================================${NC}"
+        echo -e "${BOLD}${RED}[X] FALHA NA RECONSTRUÇÃO DOS CONTAINERS DOCKER${NC}"
+        echo -e "${RED}==================================================================${NC}"
+        echo " Diagnóstico do erro:"
+        echo ""
+        echo -e " 1) ${BOLD}Erro de Certificado SSL (x509: certificate signed by unknown authority):${NC}"
+        echo "    O Docker não conseguiu validar o certificado SSL ao consultar o Docker Hub."
+        echo "    Causa: O firewall corporativo (DPI / Inspeção SSL) está interceptando HTTPS."
+        echo ""
+        echo -e "    ${BOLD}Como resolver:${NC}"
+        echo "    - Certifique-se de que a CA do firewall está em: /usr/local/share/ca-certificates/<nome>.crt"
+        echo "    - Execute:"
+        echo "      sudo ./check-firewall.sh --fix-ca"
+        echo "    - Em seguida, execute o ./update.sh novamente."
+        echo ""
+        echo -e " 2) ${BOLD}Bloqueio de Firewall nos Registros do Docker Hub:${NC}"
+        echo "    Solicite à equipe de segurança a liberação das seguintes portas/domínios:"
+        echo "    - registry-1.docker.io (porta 443 TCP)"
+        echo "    - auth.docker.io (porta 443 TCP)"
+        echo "    - production.cloudflare.docker.com (porta 443 TCP)"
+        echo ""
+        echo -e " Dica: Execute ${CYAN}./check-firewall.sh${NC} para auditar o status das regras e certificados."
+        echo -e "${RED}==================================================================${NC}"
+        exit 1
+    fi
+fi
+
+echo -e "${GREEN}[✓] Containers Docker atualizados e em execução.${NC}"
 
 # ------------------------------------------------------------------------------
 # 6. Aguardar PostgreSQL estar pronto antes de rodar migrações

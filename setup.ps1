@@ -193,18 +193,22 @@ PORT_HTTPS=$portHttps
 Set-Content -Path ".env" -Value $envContent -Encoding utf8
 Write-Host "[✓] Arquivo .env gerado com sucesso." -ForegroundColor Green
 
-# 5. Frontend Build
-Write-Host "[4/6] Compilando painel frontend..." -ForegroundColor Yellow
-$npmCmd = Get-Command "npm.cmd" -ErrorAction SilentlyContinue
-if ($npmCmd) {
-    Push-Location "frontend"
-    cmd.exe /c "npm install"
-    cmd.exe /c "npm run build"
-    Pop-Location
+# 5. Frontend
+Write-Host "[4/6] Verificando painel frontend..." -ForegroundColor Yellow
+if (Test-Path "frontend/dist/index.html") {
+    Write-Host "[✓] Painel frontend pré-compilado (frontend/dist) detectado via Git. Pulando compilação NPM..." -ForegroundColor Green
 } else {
-    docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-bookworm-slim sh -c "npm install; npm run build"
+    $npmCmd = Get-Command "npm.cmd" -ErrorAction SilentlyContinue
+    if ($npmCmd) {
+        Push-Location "frontend"
+        cmd.exe /c "npm install"
+        cmd.exe /c "npm run build"
+        Pop-Location
+    } else {
+        docker run --rm -v "${PWD}/frontend:/app" -w /app node:20-bookworm-slim sh -c "npm install; npm run build"
+    }
+    Write-Host "[✓] Frontend compilado com sucesso em ./frontend/dist!" -ForegroundColor Green
 }
-Write-Host "[✓] Frontend compilado com sucesso em ./frontend/dist!" -ForegroundColor Green
 
 # 6. Inicialização dos Containers
 Write-Host "[5/6] Construindo e iniciando containers Docker..." -ForegroundColor Yellow
