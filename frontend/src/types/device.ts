@@ -51,6 +51,7 @@ export interface DeviceQueryParams {
   sem_apps?: boolean;
   com_apps?: boolean;
   status_conexao?: string;
+  disco_tipo?: string;
   ordenar_por?: string;
   ordem_dir?: 'asc' | 'desc';
   page?: number;
@@ -254,6 +255,7 @@ export interface DeviceListItem {
   disco_livre_formatado?: string | null;
   disco_percentual?: number | null;
   disco_nivel?: 'ok' | 'warn' | 'bad' | string | null;
+  disco_tipo?: string | null;
   rustdesk_id?: string | null;
   data_coleta?: string | null;
   data_coleta_formatada?: string | null;

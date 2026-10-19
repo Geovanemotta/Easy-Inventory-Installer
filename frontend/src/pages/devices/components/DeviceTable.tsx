@@ -270,15 +270,56 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
     const usado = device.disco_usado_formatado || device.disco_usado || '---';
     const total = device.disco_total_formatado || device.disco_total || '---';
     const livre = device.disco_livre_formatado || device.disco_livre || '---';
-    const tooltipText = `Usado: ${usado} / Total: ${total} (Livre: ${livre})`;
 
-    if (pct > 0) {
+    const tipoStorage = device.disco_tipo || 'Não Identificado';
+    const tooltipText = `Tipo: ${tipoStorage} — Usado: ${usado} / Total: ${total}${livre !== '---' ? ` (Livre: ${livre})` : ''}`;
+
+    let tagClass = 'bg-slate-50 text-slate-500 border-slate-200';
+    let tagLabel = 'N/I';
+
+    const tLower = (device.disco_tipo || '').trim().toLowerCase();
+    if (tLower === 'nvme') {
+      tagClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      tagLabel = 'NVMe';
+    } else if (tLower === 'ssd') {
+      tagClass = 'bg-sky-50 text-sky-700 border-sky-200';
+      tagLabel = 'SSD';
+    } else if (tLower === 'hdd') {
+      tagClass = 'bg-amber-50 text-amber-700 border-amber-200';
+      tagLabel = 'HDD';
+    } else if (tLower === 'virtual') {
+      tagClass = 'bg-purple-50 text-purple-700 border-purple-200';
+      tagLabel = 'Virtual';
+    }
+
+    if (pct > 0 || device.disco_usado || device.disco_total) {
       return (
         <div
-          className="inline-flex items-center gap-2 cursor-help"
+          className="flex flex-col gap-1 items-start w-28 cursor-help"
           title={tooltipText}
         >
-          <div className="w-16 h-1.5 rounded-full bg-slate-200 overflow-hidden shrink-0">
+          {/* Linha superior: Micro-tag de Tipo + Porcentagem */}
+          <div className="flex items-center justify-between w-full">
+            <span
+              className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold border ${tagClass}`}
+            >
+              {tagLabel}
+            </span>
+            <span
+              className={`font-semibold shrink-0 text-[11px] leading-none font-mono ${
+                isCritico
+                  ? 'text-rose-600 font-bold'
+                  : isAlerta
+                  ? 'text-amber-600'
+                  : 'text-slate-700'
+              }`}
+            >
+              {pct > 0 ? `${Math.round(pct)}%` : (device.disco_percentual != null ? `${device.disco_percentual}%` : '---')}
+            </span>
+          </div>
+
+          {/* Linha inferior: Barrinha de percentual do disco */}
+          <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden shrink-0">
             <div
               className={`h-full rounded-full ${
                 isCritico ? 'bg-rose-500' : isAlerta ? 'bg-amber-500' : 'bg-emerald-500'
@@ -286,24 +327,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
               style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
             />
           </div>
-          <span
-            className={`font-semibold shrink-0 text-xs w-9 text-right font-mono ${
-              isCritico ? 'text-rose-600 font-bold' : isAlerta ? 'text-amber-600' : 'text-slate-700'
-            }`}
-          >
-            {Math.round(pct)}%
-          </span>
         </div>
-      );
-    }
-    if (device.disco_usado || device.disco_total) {
-      return (
-        <span
-          className="text-xs text-slate-500 font-mono cursor-help"
-          title={tooltipText}
-        >
-          {device.disco_percentual != null ? `${device.disco_percentual}%` : '---'}
-        </span>
       );
     }
     return <span className="text-slate-300 text-xs">---</span>;

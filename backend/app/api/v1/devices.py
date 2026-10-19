@@ -35,6 +35,7 @@ from app.services.device_normalizer import (
     normalizar_device_detail,
     normalizar_device_list_item,
     normalizar_so,
+    normalizar_tipo_armazenamento,
 )
 
 
@@ -515,6 +516,7 @@ def list_devices(
     sem_apps: Optional[bool] = None,
     com_apps: Optional[bool] = None,
     status_conexao: Optional[str] = None,
+    disco_tipo: Optional[str] = None,
     ordenar_por: Optional[str] = "loja",
     ordem_dir: Optional[str] = "asc",
 ):
@@ -778,7 +780,6 @@ def list_devices(
                 count_query = count_query.where(cond_alerta)
                 kpi_query = kpi_query.where(cond_alerta)
 
-        total = session.scalar(count_query) or 0
         offset = (page - 1) * per_page
 
         # Outer join com Site para suportar ordenação por filial sem jamais ocultar máquinas com site_id=None
@@ -802,7 +803,17 @@ def list_devices(
         else:
             query = query.order_by(order_col.asc().nullsfirst())
 
-        devices = session.scalars(query.offset(offset).limit(per_page)).all()
+        if disco_tipo and isinstance(disco_tipo, str) and disco_tipo.strip():
+            d_alvo = disco_tipo.strip().lower()
+            all_matching = [
+                d for d in session.scalars(query).all()
+                if normalizar_tipo_armazenamento(d).strip().lower() == d_alvo
+            ]
+            total = len(all_matching)
+            devices = all_matching[offset : offset + per_page]
+        else:
+            total = session.scalar(count_query) or 0
+            devices = session.scalars(query.offset(offset).limit(per_page)).all()
 
         # Sites disponíveis para o escopo do usuário
         sites_q = select(Site.id, Site.name, Site.code).where(Site.active.is_(True)).order_by(Site.name)

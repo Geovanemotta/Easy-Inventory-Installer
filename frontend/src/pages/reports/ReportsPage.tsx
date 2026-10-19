@@ -224,6 +224,7 @@ export default function ReportsPage() {
               <option value="ram">Memória RAM</option>
               <option value="ram_tipo">Tipo de RAM (DDR3, DDR4, DDR5...)</option>
               <option value="disco">Tamanho do Disco</option>
+              <option value="disco_tipo">Tipo de Armazenamento (SSD / NVMe / HDD)</option>
               <option value="sistema">Sistema Operacional</option>
               <option value="windows_release">Versão Release Windows</option>
               <option value="fabricante">Fabricante</option>

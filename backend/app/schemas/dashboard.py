@@ -106,6 +106,8 @@ class DashboardChartsResponse(BaseModel):
     memoria_ram: List[ChartSliceItem]
     tipo_ram: List[ChartSliceItem]
     tipo_disco: List[ChartSliceItem]
+    tipo_armazenamento: Optional[List[ChartSliceItem]] = None
     status_coleta: List[ChartSliceItem]
     filiais: List[ChartSliceItem]
+
 

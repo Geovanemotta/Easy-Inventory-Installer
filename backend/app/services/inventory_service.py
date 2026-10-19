@@ -625,6 +625,8 @@ def upsert_device_from_payload(
     for cat in ("aplicativos", "agentes", "runtimes", "ferramentas"):
         if isinstance(dados.get(cat), list):
             software_payload[cat] = dados[cat]
+    if dados.get("discos") or dados.get("storage"):
+        software_payload["storage"] = dados.get("discos") or dados.get("storage")
 
     action = "updated" if device else "created"
     if device:

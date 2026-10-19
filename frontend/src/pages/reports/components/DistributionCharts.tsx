@@ -15,7 +15,7 @@ export default function DistributionCharts({
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 7 }).map((_, i) => (
           <div
             key={i}
             className="flex h-64 animate-pulse flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
@@ -70,6 +70,14 @@ export default function DistributionCharts({
         items={data.tipo_disco}
         total={data.total_maquinas}
         onItemClick={(lbl) => onFilterByLabel && onFilterByLabel('disco', lbl)}
+      />
+
+      <DonutChart
+        title="Tipo de Armazenamento"
+        subtitle="NVMe, SSD, HDD e Virtual"
+        items={data.tipo_armazenamento || []}
+        total={data.total_maquinas}
+        onItemClick={(lbl) => onFilterByLabel && onFilterByLabel('disco_tipo', lbl)}
       />
 
       <DonutChart

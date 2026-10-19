@@ -36,6 +36,7 @@ from app.services.device_normalizer import (
     normalizar_status_operacional,
     normalizar_ram,
     normalizar_so,
+    normalizar_tipo_armazenamento,
     tamanho_para_mb,
 )
 
@@ -213,6 +214,7 @@ CAMPOS_NOME: Dict[str, str] = {
     "modelo": "Placa-mãe / modelo",
     "ram": "Memória RAM",
     "ram_tipo": "Tipo de memória RAM",
+    "disco_tipo": "Tipo de Armazenamento — NVMe / SSD / HDD",
     "disco": "Tamanho do disco",
     "sistema": "Sistema operacional",
     "windows_release": "Versão Release Windows",
@@ -235,6 +237,8 @@ def _extrair_valor_campo(d: Device, campo: str) -> str:
         return info_ram.get("ram_total_formatada") or "Não informado"
     elif campo == "ram_tipo":
         return d.ram_tipo or "Não informado"
+    elif campo == "disco_tipo":
+        return normalizar_tipo_armazenamento(d)
     elif campo == "disco":
         if d.disco_total:
             mb = tamanho_para_mb(d.disco_total)
@@ -499,6 +503,7 @@ def get_dashboard_charts(
         cnt_ram: Dict[str, int] = {}
         cnt_tipo_ram: Dict[str, int] = {}
         cnt_disco: Dict[str, int] = {}
+        cnt_tipo_armazenamento: Dict[str, int] = {}
         cnt_status: Dict[str, int] = {}
         cnt_site: Dict[str, int] = {}
 
@@ -566,11 +571,23 @@ def get_dashboard_charts(
             st_name = d.site.name if d.site else "Não atribuída"
             cnt_site[st_name] = cnt_site.get(st_name, 0) + 1
 
+            # 7. Tipo de Armazenamento (NVMe / SSD / HDD / Virtual / Não Identificado)
+            tipo_arm = normalizar_tipo_armazenamento(d)
+            cnt_tipo_armazenamento[tipo_arm] = cnt_tipo_armazenamento.get(tipo_arm, 0) + 1
+
         status_colors = {
             "Atualizada": "#10b981",
             "Atualização Necessária": "#f59e0b",
             "Desatualizada": "#ef4444",
             "Não Identificada": "#94a3b8",
+        }
+
+        storage_colors = {
+            "NVMe": "#6366f1",
+            "SSD": "#0ea5e9",
+            "HDD": "#f59e0b",
+            "Virtual": "#a855f7",
+            "Não Identificado": "#94a3b8",
         }
 
         return DashboardChartsResponse(
@@ -579,6 +596,7 @@ def get_dashboard_charts(
             memoria_ram=_montar_fatias(cnt_ram, total),
             tipo_ram=_montar_fatias(cnt_tipo_ram, total),
             tipo_disco=_montar_fatias(cnt_disco, total),
+            tipo_armazenamento=_montar_fatias(cnt_tipo_armazenamento, total, storage_colors),
             status_coleta=_montar_fatias(cnt_status, total, status_colors),
             filiais=_montar_fatias(cnt_site, total),
         )

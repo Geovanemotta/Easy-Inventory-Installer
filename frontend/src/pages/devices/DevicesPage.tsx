@@ -100,6 +100,7 @@ export const DevicesPage: React.FC = () => {
     const qSemApps = searchParams.get('sem_apps');
     const qComApps = searchParams.get('com_apps');
     const qSiteId = searchParams.get('site_id');
+    const qDiscoTipo = searchParams.get('disco_tipo');
 
     setFilters((prev) => {
       let changed = false;
@@ -109,6 +110,14 @@ export const DevicesPage: React.FC = () => {
         const val = qSearch.trim() || undefined;
         if (next.search !== val) {
           next.search = val;
+          changed = true;
+        }
+      }
+
+      if (qDiscoTipo !== null && qDiscoTipo !== undefined) {
+        const val = qDiscoTipo.trim() || undefined;
+        if (next.disco_tipo !== val) {
+          next.disco_tipo = val;
           changed = true;
         }
       }

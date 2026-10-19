@@ -203,6 +203,54 @@ $DiscoUsado = "$DiscoUsadoGB GB"
 $DiscoLivre = "$DiscoLivreGB GB"
 $DiscoPercentualStr = "$DiscoPercentual%"
 
+# Detecção de discos físicos e barramento (NVMe / SSD / HDD)
+$DiscosFisicos = @()
+$DriveToDiskMap = @{}
+
+try {
+    $PhysDisks = Get-PhysicalDisk -ErrorAction SilentlyContinue
+    if ($PhysDisks) {
+        foreach ($pd in $PhysDisks) {
+            $DiscosFisicos += [ordered]@{
+                device_id  = [string]$pd.DeviceId
+                modelo     = [string]$pd.FriendlyName
+                media_type = [string]$pd.MediaType
+                bus_type   = [string]$pd.BusType
+                tamanho    = [string]$pd.Size
+            }
+        }
+    }
+} catch {}
+
+if (-not $DiscosFisicos) {
+    try {
+        $Drives = Get-CimInstance Win32_DiskDrive -ErrorAction SilentlyContinue
+        foreach ($dd in $Drives) {
+            $DiscosFisicos += [ordered]@{
+                device_id  = [string]$dd.DeviceID
+                modelo     = [string]$dd.Model
+                media_type = [string]$dd.MediaType
+                bus_type   = [string]$dd.InterfaceType
+                tamanho    = [string]$dd.Size
+            }
+        }
+    } catch {}
+}
+
+try {
+    $Partitions = Get-Partition -ErrorAction SilentlyContinue
+    foreach ($p in $Partitions) {
+        if ($p.DriveLetter) {
+            $letra = "$($p.DriveLetter):"
+            $diskNum = [string]$p.DiskNumber
+            $matchDisk = $DiscosFisicos | Where-Object { $_.device_id -eq $diskNum -or $_.device_id -match "PHYSICALDRIVE$diskNum" } | Select-Object -First 1
+            if ($matchDisk) {
+                $DriveToDiskMap[$letra] = $matchDisk
+            }
+        }
+    }
+} catch {}
+
 # Análise de múltiplos discos fixos (DriveType=3)
 $AnaliseDisco = @()
 $AllDrives = Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3"
@@ -212,13 +260,20 @@ foreach ($d in $AllDrives) {
         $dFree = [math]::Round($d.FreeSpace / 1GB, 1)
         $dUsed = [math]::Round(($d.Size - $d.FreeSpace) / 1GB, 1)
         $dPct = [math]::Round((($d.Size - $d.FreeSpace) / $d.Size) * 100, 0)
-        $AnaliseDisco += [ordered]@{
+        $entry = [ordered]@{
             ponto_montagem = $d.DeviceID
             total          = "$dTot GB"
             usado          = "$dUsed GB"
             livre          = "$dFree GB"
             percentual     = "$dPct%"
         }
+        $matched = $DriveToDiskMap[$d.DeviceID]
+        if ($matched) {
+            $entry["modelo"] = $matched.modelo
+            $entry["media_type"] = $matched.media_type
+            $entry["bus_type"] = $matched.bus_type
+        }
+        $AnaliseDisco += $entry
     }
 }
 
@@ -555,6 +610,7 @@ $Inventory = [ordered]@{
     disco_livre      = $DiscoLivre
     disco_percentual = $DiscoPercentualStr
     analise_disco    = $AnaliseDisco
+    discos           = $DiscosFisicos
     perifericos      = $Perifericos
     rustdesk_id      = $RustDeskID
     fabricante       = $Fabricante

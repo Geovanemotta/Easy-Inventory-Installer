@@ -271,6 +271,15 @@ if command -v df >/dev/null 2>&1; then
     fi
 fi
 
+# Discos físicos e barramento via lsblk
+DISCOS_JSON='[]'
+if command -v lsblk >/dev/null 2>&1; then
+    DISCOS_RAW=$(lsblk -d -J -o NAME,MODEL,ROTA,TRAN,SIZE,TYPE 2>/dev/null || true)
+    if [[ -n "$DISCOS_RAW" ]] && jq -e . <<< "$DISCOS_RAW" >/dev/null 2>&1; then
+        DISCOS_JSON=$(jq -c '[.blockdevices[]? | select(.type=="disk") | {device: ("/dev/" + .name), modelo: (.model // ""), rotational: (.rota == "1" or .rota == 1), bus_type: (.tran // ""), tamanho: (.size // "")}]' <<< "$DISCOS_RAW" 2>/dev/null || echo '[]')
+    fi
+fi
+
 # ----------------------------------------------------------
 # Domínio e Usuário
 # ----------------------------------------------------------
@@ -742,6 +751,7 @@ jq -n \
     --arg usuario "$USUARIO" \
     --arg data_coleta "$DATA_COLETA" \
     --argjson analise_disco "$ANALISE_DISCO" \
+    --argjson discos "$DISCOS_JSON" \
     --argjson perifericos "$PERIFERICOS" \
     --argjson aplicativos "$APLICATIVOS" \
     --argjson agentes "$AGENTES" \
@@ -765,6 +775,7 @@ jq -n \
     disco_livre: $disco_livre,
     disco_percentual: $disco_percentual,
     analise_disco: $analise_disco,
+    discos: $discos,
     perifericos: $perifericos,
     rustdesk_id: $rustdesk_id,
     fabricante: $fabricante,

@@ -271,6 +271,7 @@ class DeviceListItem(BaseModel):
     disco_livre_formatado: Optional[str] = None
     disco_percentual: Optional[int] = None
     disco_nivel: Optional[str] = None
+    disco_tipo: Optional[str] = None
     rustdesk_id: Optional[str] = None
     data_coleta: Optional[datetime] = None
     data_coleta_formatada: Optional[str] = None

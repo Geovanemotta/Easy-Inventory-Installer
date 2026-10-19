@@ -102,6 +102,8 @@ export interface DashboardChartsResponse {
   memoria_ram: ChartSliceItem[]
   tipo_ram: ChartSliceItem[]
   tipo_disco: ChartSliceItem[]
+  tipo_armazenamento?: ChartSliceItem[]
   status_coleta: ChartSliceItem[]
   filiais: ChartSliceItem[]
 }
+

@@ -498,6 +498,221 @@ def normalizar_status_operacional(
 # 6. Normalização Estruturada de Discos e Análise de Disco
 # =====================================================================
 
+REGEX_NVME = re.compile(
+    r"\b(nvme|nvm_express)\b|pcie.*ssd|\b(snvs|snv3|snv2|sfyrs)\b|"
+    r"samsung.*(970|980|990|pm981|pm991|pm9a1)|wd.*(sn[3-8]\d\d|black\s+sn)|"
+    r"crucial.*(p[1-5]|t[5-7]\d\d)|kingston.*(nv1|nv2|nv3|renegade|kc[23]000)",
+    re.I,
+)
+
+REGEX_VIRTUAL = re.compile(
+    r"\b(vmware|qemu|vbox|virtualbox|virtual\s*disk|vhd|vd[a-z]|virtio)\b",
+    re.I,
+)
+
+REGEX_SSD = re.compile(
+    r"\b(ssd|solid\s*state)\b|"
+    r"\b(sa400|suv400|bx500|mx500|adata\s*su|sandisk\s*ssd|kingston\s*ssd|crucial\s*ssd|"
+    r"lexar\s*ssd|patriot\s*ssd|netac\s*ssd|kingspec|xraydisk|goldenfire|biostar\s*ssd)\b|"
+    r"\bwds\d+[a-z0-9]*\b|samsung.*(850|860|870)\s*(evo|qvo|pro)",
+    re.I,
+)
+
+REGEX_HDD = re.compile(
+    r"\b(hdd|mechanical|hard\s*disk|hard\s*drive)\b|"
+    r"\b(st\d{3,4}[a-z0-9]*|wd\d{4}[a-z0-9]*|wd\d{2}ez[a-z0-9]*|toshiba\s*dt|hgst|hitachi|"
+    r"barracuda|caviar\s*blue|caviar\s*black|5400\s*rpm|7200\s*rpm)\b",
+    re.I,
+)
+
+
+def normalizar_tipo_armazenamento(device: Any) -> str:
+    """
+    Classifica de forma inteligente o tipo de armazenamento principal do dispositivo:
+    'NVMe', 'SSD', 'HDD', 'Virtual' ou 'Não Identificado'.
+
+    Inspeciona em ordem de prioridade:
+    1. Discos reportados pelo agente (analise_disco / extra_data / storage / discos).
+    2. Atributos explícitos (type, media_type, bus_type, interface, rotational).
+    3. Modelos e device paths conhecidos (nvme, SA400, SUV400, ST500, WD10EZ, etc.).
+    4. Modelo da máquina / placa-mãe para detecção de máquinas virtuais (VMware, QEMU, VBOX).
+    5. Fallback para 'Não Identificado' se ausente no import legado.
+    """
+    if device is None:
+        return "Não Identificado"
+
+    def _get(attr: str, default=None):
+        if isinstance(device, dict):
+            return device.get(attr, default)
+        return getattr(device, attr, default)
+
+    # 1. Atributo direto pré-classificado se já existir e for válido
+    tipo_direto = _get("disco_tipo")
+    if tipo_direto and isinstance(tipo_direto, str):
+        td_clean = tipo_direto.strip()
+        if td_clean in ("NVMe", "SSD", "HDD", "Virtual"):
+            return td_clean
+        td_l = td_clean.lower()
+        if "nvme" in td_l:
+            return "NVMe"
+        if "ssd" in td_l or "solid" in td_l:
+            return "SSD"
+        if "hdd" in td_l or "hard" in td_l or "mec" in td_l:
+            return "HDD"
+        if any(v in td_l for v in ("virtual", "vmware", "qemu", "vbox")):
+            return "Virtual"
+
+    # Coleta de todos os itens de disco candidatos
+    candidatos_discos: List[Dict[str, Any]] = []
+
+    # A) analise_disco
+    raw_analise = _get("analise_disco")
+    if isinstance(raw_analise, str):
+        try:
+            raw_analise = json.loads(raw_analise)
+        except Exception:
+            raw_analise = None
+
+    if isinstance(raw_analise, list):
+        for item in raw_analise:
+            if isinstance(item, dict):
+                candidatos_discos.append(item)
+    elif isinstance(raw_analise, dict):
+        for key in ("unidades", "discos", "disks", "drives", "storage", "particoes"):
+            sub = raw_analise.get(key)
+            if isinstance(sub, list):
+                for item in sub:
+                    if isinstance(item, dict):
+                        candidatos_discos.append(item)
+
+    # B) extra_data
+    raw_extra = _get("extra_data")
+    if isinstance(raw_extra, str):
+        try:
+            raw_extra = json.loads(raw_extra)
+        except Exception:
+            raw_extra = None
+
+    if isinstance(raw_extra, dict):
+        for key in ("storage", "discos", "disks", "disk_info", "armazenamento"):
+            sub = raw_extra.get(key)
+            if isinstance(sub, list):
+                for item in sub:
+                    if isinstance(item, dict):
+                        candidatos_discos.append(item)
+            elif isinstance(sub, dict):
+                candidatos_discos.append(sub)
+
+    # C) perifericos
+    raw_perif = _get("perifericos")
+    if isinstance(raw_perif, list):
+        for p in raw_perif:
+            if isinstance(p, dict):
+                p_tipo = str(p.get("tipo") or "").lower()
+                if p_tipo in ("armazenamento", "disco", "disk", "storage", "drive"):
+                    candidatos_discos.append(p)
+
+    def _classificar_item(item: Dict[str, Any]) -> Optional[str]:
+        """Avalia atributos e strings de um único item de disco."""
+        # 1. Checagem de tipo explícito reportado pelo agente
+        media_type = str(item.get("media_type") or item.get("mediaType") or "").strip()
+        bus_type = str(item.get("bus_type") or item.get("busType") or item.get("interface") or item.get("tipo") or item.get("type") or "").strip()
+        rota_val = item.get("rotational") if "rotational" in item else item.get("rota")
+
+        # Prioridade NVMe por bus ou media
+        if re.search(r"\bnvme\b", f"{bus_type} {media_type}", re.I):
+            return "NVMe"
+        if re.search(r"\b(vmware|qemu|vbox|virtual)\b", f"{bus_type} {media_type}", re.I):
+            return "Virtual"
+        if re.search(r"\b(ssd|solid\s*state)\b", media_type, re.I):
+            return "SSD"
+        if re.search(r"\b(hdd|mechanical|hard\s*disk)\b", media_type, re.I):
+            return "HDD"
+
+        # rotational: se False / 0 -> SSD; se True / 1 -> HDD
+        if rota_val is not None:
+            if rota_val is False or rota_val == 0 or str(rota_val).strip().lower() in ("0", "false"):
+                return "SSD"
+            if rota_val is True or rota_val == 1 or str(rota_val).strip().lower() in ("1", "true"):
+                return "HDD"
+
+        # 2. Checagem por modelo, nome e caminho do dispositivo
+        model_str = str(
+            item.get("modelo")
+            or item.get("model")
+            or item.get("nome")
+            or item.get("name")
+            or item.get("friendly_name")
+            or item.get("caption")
+            or item.get("ponto_montagem")
+            or item.get("device")
+            or ""
+        ).strip()
+
+        if model_str:
+            if REGEX_NVME.search(model_str) or re.search(r"/dev/nvme", model_str, re.I):
+                return "NVMe"
+            if REGEX_VIRTUAL.search(model_str):
+                return "Virtual"
+            if REGEX_SSD.search(model_str):
+                return "SSD"
+            if REGEX_HDD.search(model_str):
+                return "HDD"
+
+        return None
+
+    # Primeiro: Avalia se existe unidade de sistema identificada (C: ou /)
+    tipos_detectados: List[str] = []
+    for d_item in candidatos_discos:
+        t_res = _classificar_item(d_item)
+        if not t_res:
+            continue
+
+        pm = str(d_item.get("ponto_montagem") or d_item.get("device") or "").strip().upper()
+        # Se for a partição do sistema operacional, assume prioridade absoluta
+        if pm in ("C:", "/", "/ROOT"):
+            return t_res
+
+        tipos_detectados.append(t_res)
+
+    # Hierarquia padrão para múltiplos discos sem partição de SO explícita:
+    # NVMe > SSD > Virtual > HDD
+    if "NVMe" in tipos_detectados:
+        return "NVMe"
+    if "SSD" in tipos_detectados:
+        return "SSD"
+    if "Virtual" in tipos_detectados:
+        return "Virtual"
+    if "HDD" in tipos_detectados:
+        return "HDD"
+
+    # 3. Fallback: Checa metadados globais da máquina (modelo, fabricante, alerta_hardware)
+    fab_str = str(_get("fabricante") or "").strip()
+    mod_str = str(_get("modelo") or "").strip()
+    full_hw = f"{fab_str} {mod_str}".strip()
+
+    if REGEX_VIRTUAL.search(full_hw):
+        return "Virtual"
+    if REGEX_NVME.search(mod_str):
+        return "NVMe"
+    if REGEX_SSD.search(mod_str):
+        return "SSD"
+    if REGEX_HDD.search(mod_str):
+        return "HDD"
+
+    alerta_hw = str(_get("alerta_hardware") or "").strip()
+    if alerta_hw:
+        # Se tiver menção específica não dúbia
+        if re.search(r"\b(nvme)\b", alerta_hw, re.I):
+            return "NVMe"
+        if re.search(r"troca\s+de\s+ssd\b", alerta_hw, re.I) and not re.search(r"troca\s+de\s+ssd/hd", alerta_hw, re.I):
+            return "SSD"
+        if re.search(r"troca\s+de\s+hd\b", alerta_hw, re.I) and not re.search(r"troca\s+de\s+ssd/hd", alerta_hw, re.I):
+            return "HDD"
+
+    return "Não Identificado"
+
+
 def normalizar_analise_disco(
     analise_raw: Any,
     disco_total: Optional[str] = None,
@@ -861,6 +1076,7 @@ def normalizar_device_list_item(device: Any) -> Dict[str, Any]:
         "disco_livre_formatado": d_livre_fmt,
         "disco_percentual": pct_disco,
         "disco_nivel": disco_nivel,
+        "disco_tipo": normalizar_tipo_armazenamento(device),
         "rustdesk_id": device.rustdesk_id,
         "data_coleta": device.data_coleta,
         "data_coleta_formatada": status_info["data_coleta_formatada"],

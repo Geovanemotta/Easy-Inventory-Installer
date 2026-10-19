@@ -186,6 +186,27 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
           </select>
         </div>
 
+        {/* 6. Filtro de Tipo de Armazenamento */}
+        <div className="w-32">
+          <select
+            value={filters.disco_tipo || ''}
+            onChange={(e) =>
+              onFilterChange({
+                ...filters,
+                disco_tipo: e.target.value || undefined,
+                page: 1,
+              })
+            }
+            className="w-full rounded-lg border border-slate-300 py-2 px-2 text-xs focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">Armazenamento</option>
+            <option value="NVMe">NVMe</option>
+            <option value="SSD">SSD</option>
+            <option value="HDD">HDD</option>
+            <option value="Virtual">Virtual</option>
+          </select>
+        </div>
+
         {/* Botão de Limpar Filtros */}
         <button
           type="button"
