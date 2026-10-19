@@ -73,6 +73,9 @@ def get_software_catalog(
     plataforma: Optional[str] = Query(default=None, description="Filtra por plataforma (linux | windows)"),
     categoria: Optional[str] = Query(default=None, description="Filtra por categoria (aplicativo, agente, runtime, ferramenta)"),
     search: Optional[str] = Query(default=None, description="Busca por nome ou identificador do software"),
+    page: int = Query(default=1, ge=1, description="Número da página"),
+    per_page: int = Query(default=25, ge=1, le=5000, description="Softwares por página"),
+    export_all: bool = Query(default=False, description="Retorna catálogo completo para exportação"),
     current_user: User = Depends(get_current_user),
 ):
     with Session(engine) as session:
@@ -83,6 +86,9 @@ def get_software_catalog(
             plataforma=plataforma,
             categoria=categoria,
             search=search,
+            page=page,
+            per_page=per_page,
+            export_all=export_all,
         )
 
 

@@ -21,13 +21,14 @@ export default function DonutChart({
   const [hoveredLabel, setHoveredLabel] = useState<string | null>(null)
   const [mode, setMode] = useState<'pct' | 'qtd'>('pct')
 
+  const hoveredSlice = hoveredLabel ? items.find((s) => s.label === hoveredLabel) : null
   const R = 50
   const C = 2 * Math.PI * R
   let currentOffset = 0
 
   return (
-    <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="flex flex-col justify-between h-full rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+      <div className="mb-4 flex items-center justify-between shrink-0">
         <div>
           <h3 className="text-sm font-bold text-slate-800">{title}</h3>
           {subtitle && (
@@ -37,16 +38,16 @@ export default function DonutChart({
         <button
           type="button"
           onClick={() => setMode((m) => (m === 'pct' ? 'qtd' : 'pct'))}
-          className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600 transition-colors hover:bg-slate-100"
+          className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600 transition-colors hover:bg-slate-100 cursor-pointer"
           title="Alternar entre percentual e quantidade"
         >
           {mode === 'pct' ? '%' : 'Qtd'}
         </button>
       </div>
 
-      <div className="flex flex-col items-center gap-6 sm:flex-row">
-        {/* SVG Donut */}
-        <div className="relative shrink-0">
+      <div className="flex flex-col items-center justify-center gap-6 sm:flex-row flex-1">
+        {/* SVG Donut Centralizado */}
+        <div className="relative shrink-0 flex items-center justify-center mx-auto sm:mx-0">
           <svg
             viewBox="0 0 140 140"
             className="h-32 w-32 transform drop-shadow-sm transition-transform duration-300 hover:scale-105"
@@ -96,22 +97,24 @@ export default function DonutChart({
               })
             )}
 
-            {/* Texto central */}
+            {/* Texto central dinâmico com Total ou Fatia em Hover */}
             <text
               x="70"
-              y="68"
+              y="66"
               textAnchor="middle"
-              className="fill-slate-900 text-xl font-bold"
+              dominantBaseline="middle"
+              className="fill-slate-900 text-xl font-extrabold font-mono pointer-events-none select-none transition-all"
             >
-              {total}
+              {hoveredSlice ? hoveredSlice.total : total}
             </text>
             <text
               x="70"
               y="84"
               textAnchor="middle"
-              className="fill-slate-500 text-[10px] uppercase tracking-wider"
+              dominantBaseline="middle"
+              className="fill-slate-500 text-[10px] font-bold uppercase tracking-wider pointer-events-none select-none transition-all"
             >
-              máquinas
+              {hoveredSlice ? `${hoveredSlice.percentual}%` : 'máquinas'}
             </text>
           </svg>
         </div>

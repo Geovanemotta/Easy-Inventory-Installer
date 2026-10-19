@@ -110,6 +110,21 @@ export interface NetworkAssetFilterParams {
   search?: string | null;
   filtro_ocupacao?: 'todos' | 'ocupados' | 'livres' | 'estacoes' | 'ativos' | string | null;
   faixa_id?: number | null;
+  grupo?: string | null;
+  page?: number;
+  per_page?: number;
+  sort_by?: string;
+  sort_dir?: 'asc' | 'desc';
+  export_all?: boolean;
+}
+
+export interface NetworkAssetListResponse {
+  items: NetworkAsset[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+  kpis: NetworkAssetKPIs;
 }
 
 export const TIPOS_PREDEFINIDOS = [

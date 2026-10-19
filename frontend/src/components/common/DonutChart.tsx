@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DonutChartData } from '@/types/device';
 
 interface DonutChartProps {
@@ -15,27 +15,30 @@ export const DonutChart: React.FC<DonutChartProps> = ({
   className = '',
 }) => {
   const { title, subtitle, total, slices } = data;
+  const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
   const R = 46;
   const C = 2 * Math.PI * R;
   let offset = 0;
 
+  const hoveredSlice = hoveredLabel ? slices.find((s) => s.label === hoveredLabel) : null;
+
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col justify-between ${className}`}>
+    <div className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-sm ${className}`}>
       {/* Cabeçalho do Card de Gráfico */}
-      <div className="mb-3">
+      <div className="mb-3 shrink-0">
         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">{title}</h4>
         {subtitle && <p className="text-[11px] text-slate-400 mt-0.5">{subtitle}</p>}
       </div>
 
       {total === 0 || slices.length === 0 ? (
-        <div className="py-10 text-center text-xs text-slate-400 italic">
+        <div className="py-10 text-center text-xs text-slate-400 italic flex-1 flex items-center justify-center">
           Sem dados disponíveis para os filtros ativos.
         </div>
       ) : (
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          {/* SVG Donut */}
-          <div className="relative shrink-0 flex items-center justify-center">
-            <svg viewBox="0 0 130 130" width="120" height="120" className="transform -rotate-90">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 flex-1">
+          {/* SVG Donut Centralizado */}
+          <div className="relative shrink-0 flex items-center justify-center mx-auto sm:mx-0">
+            <svg viewBox="0 0 130 130" width="124" height="124" className="transform -rotate-90">
               {/* Círculo de fundo cinza */}
               <circle
                 cx="65"
@@ -50,6 +53,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               {slices.map((slice, idx) => {
                 const sliceLength = total > 0 ? (slice.count / total) * C : 0;
                 const isSelected = activeItem === slice.label;
+                const isHovered = hoveredLabel === slice.label;
                 const strokeDashoffset = -offset;
                 offset += sliceLength;
 
@@ -61,14 +65,24 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     r={R}
                     fill="none"
                     stroke={slice.color}
-                    strokeWidth={isSelected ? 20 : 16}
+                    strokeWidth={isSelected || isHovered ? 20 : 16}
                     strokeDasharray={`${sliceLength} ${C - sliceLength}`}
                     strokeDashoffset={strokeDashoffset}
-                    className="transition-all duration-300"
+                    className="transition-all duration-200"
                     style={{
                       cursor: onItemClick ? 'pointer' : 'default',
-                      opacity: activeItem ? (isSelected ? 1 : 0.4) : 1,
+                      opacity: hoveredLabel
+                        ? isHovered
+                          ? 1
+                          : 0.35
+                        : activeItem
+                        ? isSelected
+                          ? 1
+                          : 0.4
+                        : 1,
                     }}
+                    onMouseEnter={() => setHoveredLabel(slice.label)}
+                    onMouseLeave={() => setHoveredLabel(null)}
                     onClick={() => onItemClick && onItemClick(slice.label)}
                   >
                     <title>{`${slice.label}: ${slice.count} (${slice.percent}%)`}</title>
@@ -77,13 +91,13 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               })}
             </svg>
 
-            {/* Texto central com Total */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-              <span className="text-lg font-extrabold text-slate-800 font-mono leading-none">
-                {total}
+            {/* Texto central dinâmico com Total ou Fatia em Hover */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center">
+              <span className="text-xl font-extrabold text-slate-800 font-mono leading-none transition-all">
+                {hoveredSlice ? hoveredSlice.count : total}
               </span>
-              <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
-                máquinas
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1 transition-all">
+                {hoveredSlice ? `${hoveredSlice.percent}%` : 'máquinas'}
               </span>
             </div>
           </div>
@@ -92,15 +106,20 @@ export const DonutChart: React.FC<DonutChartProps> = ({
           <div className="flex-1 w-full space-y-1.5 min-w-0">
             {slices.map((slice, idx) => {
               const isSelected = activeItem === slice.label;
+              const isHovered = hoveredLabel === slice.label;
               return (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => onItemClick && onItemClick(slice.label)}
+                  onMouseEnter={() => setHoveredLabel(slice.label)}
+                  onMouseLeave={() => setHoveredLabel(null)}
                   title={`Filtrar por ${slice.label}`}
-                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg text-xs transition-colors ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer ${
                     isSelected
                       ? 'bg-blue-50 text-blue-900 font-bold ring-1 ring-blue-300'
+                      : isHovered
+                      ? 'bg-slate-100 text-slate-900'
                       : 'hover:bg-slate-50 text-slate-700'
                   }`}
                 >

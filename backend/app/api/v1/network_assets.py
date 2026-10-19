@@ -11,6 +11,7 @@ from app.schemas.network_asset import (
     ImportResultOut,
     NetworkAssetCreate,
     NetworkAssetKPIs,
+    NetworkAssetListResponse,
     NetworkAssetOut,
     NetworkAssetUpdate,
     PingResultOut,
@@ -60,8 +61,8 @@ def check_admin_write_permission(user: User):
     )
 
 
-@router.get("", response_model=List[NetworkAssetOut])
-@router.get("/", response_model=List[NetworkAssetOut])
+@router.get("", response_model=NetworkAssetListResponse)
+@router.get("/", response_model=NetworkAssetListResponse)
 def get_assets(
     site_id: Optional[int] = Query(default=None, description="Filtra por loja/filial"),
     tipo: Optional[str] = Query(default=None, description="Filtra por tipo (Impressora, Switch, Estação, etc.)"),
@@ -69,6 +70,12 @@ def get_assets(
     search: Optional[str] = Query(default=None, description="Busca por nome, IP, MAC, patrimônio, modelo"),
     filtro_ocupacao: Optional[str] = Query(default=None, description="Filtra por ocupação (todos, ocupados, livres, estacoes, ativos)"),
     faixa_id: Optional[int] = Query(default=None, description="Filtra por ID de faixa de IP específica"),
+    grupo: Optional[str] = Query(default=None, description="Filtra por grupo (impressora, rede, wifi)"),
+    page: int = Query(default=1, ge=1, description="Número da página"),
+    per_page: int = Query(default=50, ge=1, le=5000, description="Itens por página"),
+    sort_by: Optional[str] = Query(default="ip", description="Campo de ordenação (ip, filial, nome, tipo, patrimonio, mac, vlan, status)"),
+    sort_dir: Optional[str] = Query(default="asc", description="Direção da ordenação (asc/desc)"),
+    export_all: bool = Query(default=False, description="Retorna todos os itens para exportação"),
     current_user: User = Depends(get_current_user),
 ):
     if site_id:
@@ -83,6 +90,12 @@ def get_assets(
             search=search,
             filtro_ocupacao=filtro_ocupacao,
             faixa_id=faixa_id,
+            grupo=grupo,
+            page=page,
+            per_page=per_page,
+            sort_by=sort_by,
+            sort_dir=sort_dir,
+            export_all=export_all,
         )
 
 
@@ -93,6 +106,7 @@ def get_assets_kpis(
     tipo: Optional[str] = Query(default=None, description="Filtra KPIs por tipo"),
     search: Optional[str] = Query(default=None, description="Filtra KPIs por busca"),
     filtro_ocupacao: Optional[str] = Query(default=None, description="Filtra KPIs por ocupação"),
+    grupo: Optional[str] = Query(default=None, description="Filtra KPIs por grupo"),
     current_user: User = Depends(get_current_user),
 ):
     if site_id:
@@ -106,6 +120,7 @@ def get_assets_kpis(
             tipo=tipo,
             search=search,
             filtro_ocupacao=filtro_ocupacao,
+            grupo=grupo,
         )
 
 

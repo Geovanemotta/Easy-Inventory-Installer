@@ -19,6 +19,10 @@ export default function ReportsPage() {
   const [search, setSearch] = useState<string>('')
   const [grupoSelecionado, setGrupoSelecionado] = useState<string | null>(null)
 
+  // Paginação Server-Side da Tabela de Máquinas
+  const [page, setPage] = useState<number>(1)
+  const [perPage, setPerPage] = useState<number>(50)
+
   // Dados
   const [sites, setSites] = useState<Site[]>([])
   const [reportData, setReportData] = useState<ReportSummaryResponse | null>(null)
@@ -35,7 +39,7 @@ export default function ReportsPage() {
       .catch((err: unknown) => console.error('Erro ao carregar filiais:', err))
   }, [])
 
-  // Carrega dados de relatórios quando os filtros mudam
+  // Carrega dados de relatórios quando os filtros ou página mudam
   useEffect(() => {
     setLoadingReports(true)
     const numSiteId = siteId ? Number(siteId) : undefined
@@ -46,6 +50,8 @@ export default function ReportsPage() {
       site_id: numSiteId,
       search: search || undefined,
       grupo_selecionado: grupoSelecionado || undefined,
+      page,
+      per_page: perPage,
     })
       .then((data) => {
         setReportData(data)
@@ -56,7 +62,7 @@ export default function ReportsPage() {
       .finally(() => {
         setLoadingReports(false)
       })
-  }, [campo, plataforma, siteId, search, grupoSelecionado])
+  }, [campo, plataforma, siteId, search, grupoSelecionado, page, perPage])
 
   // Carrega dados dos gráficos de distribuição
   useEffect(() => {
@@ -76,40 +82,77 @@ export default function ReportsPage() {
     }
   }, [activeTab, siteId])
 
-  // Exportação CSV do relatório filtrado
-  const handleExportCsv = () => {
-    if (!reportData || reportData.maquinas.length === 0) return
+  // Exportação CSV do relatório filtrado completo via export_all: true
+  const handleExportCsv = async () => {
+    try {
+      const numSiteId = siteId ? Number(siteId) : undefined
+      const fullData = await getDashboardReports({
+        campo,
+        plataforma: plataforma || undefined,
+        site_id: numSiteId,
+        search: search || undefined,
+        grupo_selecionado: grupoSelecionado || undefined,
+        export_all: true,
+      })
 
-    const escapeCsv = (val: any) => `"${String(val ?? '').replace(/"/g, '""')}"`
-    const headers = ['Filial', 'Hostname', 'IP', 'Plataforma', 'Sistema Operacional', reportData.nome_campo]
+      if (!fullData || fullData.maquinas.length === 0) return
 
-    const rows = reportData.maquinas.map((m) =>
-      [
-        m.filial,
-        m.hostname,
-        m.ip || '',
-        m.so,
-        m.versao_so || m.so,
-        m.valor_campo,
-      ]
-        .map(escapeCsv)
-        .join(';')
-    )
+      const escapeCsv = (val: any) => `"${String(val ?? '').replace(/"/g, '""')}"`
+      const headers = ['Filial', 'Hostname', 'IP', 'Plataforma', 'Sistema Operacional', fullData.nome_campo]
 
-    const csvContent = '\ufeff' + [headers.map(escapeCsv).join(';'), ...rows].join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `relatorio-${campo}-${new Date().toISOString().slice(0, 10)}.csv`
-    link.click()
-    URL.revokeObjectURL(link.href)
+      const rows = fullData.maquinas.map((m) =>
+        [
+          m.filial,
+          m.hostname,
+          m.ip || '',
+          m.so,
+          m.versao_so || m.so,
+          m.valor_campo,
+        ]
+          .map(escapeCsv)
+          .join(';')
+      )
+
+      const csvContent = '\ufeff' + [headers.map(escapeCsv).join(';'), ...rows].join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `relatorio-${campo}-${new Date().toISOString().slice(0, 10)}.csv`
+      link.click()
+      URL.revokeObjectURL(link.href)
+    } catch (err) {
+      console.error('Erro ao exportar relatório:', err)
+    }
   }
 
   // Filtragem rápida acionada por clique nos gráficos de distribuição
   const handleFilterByChart = (cat: string, label: string) => {
     setCampo(cat)
     setGrupoSelecionado(label)
+    setPage(1)
     setActiveTab('analytics')
+
+    // Executa imediatamente a consulta analítica para a dimensão e fatia clicada
+    setLoadingReports(true)
+    const numSiteId = siteId ? Number(siteId) : undefined
+    getDashboardReports({
+      campo: cat,
+      plataforma: plataforma || undefined,
+      site_id: numSiteId,
+      search: search || undefined,
+      grupo_selecionado: label,
+      page: 1,
+      per_page: perPage,
+    })
+      .then((data) => {
+        setReportData(data)
+      })
+      .catch((err) => {
+        console.error('Erro ao filtrar relatório analítico a partir do gráfico:', err)
+      })
+      .finally(() => {
+        setLoadingReports(false)
+      })
   }
 
   return (
@@ -172,6 +215,7 @@ export default function ReportsPage() {
               onChange={(e) => {
                 setCampo(e.target.value)
                 setGrupoSelecionado(null)
+                setPage(1)
               }}
               className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             >
@@ -201,6 +245,7 @@ export default function ReportsPage() {
               onChange={(e) => {
                 setPlataforma(e.target.value)
                 setGrupoSelecionado(null)
+                setPage(1)
               }}
               className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             >
@@ -221,6 +266,7 @@ export default function ReportsPage() {
             onChange={(e) => {
               setSiteId(e.target.value)
               setGrupoSelecionado(null)
+              setPage(1)
             }}
             className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           >
@@ -247,6 +293,7 @@ export default function ReportsPage() {
                 onChange={(e) => {
                   setSearch(e.target.value)
                   setGrupoSelecionado(null)
+                  setPage(1)
                 }}
                 className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               />
@@ -273,7 +320,10 @@ export default function ReportsPage() {
               grupos={reportData?.grupos || []}
               totalMaquinas={reportData?.total_maquinas || 0}
               selectedKey={grupoSelecionado}
-              onSelectKey={(key) => setGrupoSelecionado(key)}
+              onSelectKey={(key) => {
+                setGrupoSelecionado(key)
+                setPage(1)
+              }}
               loading={loadingReports}
             />
           </div>
@@ -285,6 +335,15 @@ export default function ReportsPage() {
               selectedKey={grupoSelecionado}
               maquinas={reportData?.maquinas || []}
               loading={loadingReports}
+              page={page}
+              perPage={perPage}
+              totalItems={reportData?.maquinas_total ?? reportData?.total_maquinas ?? 0}
+              totalPages={reportData?.total_pages ?? 1}
+              onPageChange={setPage}
+              onPerPageChange={(newPerPage) => {
+                setPerPage(newPerPage)
+                setPage(1)
+              }}
               onExportCsv={handleExportCsv}
             />
           </div>

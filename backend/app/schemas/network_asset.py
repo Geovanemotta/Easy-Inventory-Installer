@@ -79,6 +79,15 @@ class NetworkAssetKPIs(BaseModel):
     ultimo_ping: Optional[str] = None
 
 
+class NetworkAssetListResponse(BaseModel):
+    items: List[NetworkAssetOut]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+    kpis: NetworkAssetKPIs
+
+
 class PingResultOut(BaseModel):
     asset_id: Optional[int] = None
     ip: str
@@ -127,6 +136,7 @@ class SiteIpRangeCreate(SiteIpRangeBase):
 
 
 class SiteIpRangeUpdate(BaseModel):
+    site_id: Optional[int] = None
     nome: Optional[str] = None
     ip_inicio: Optional[str] = None
     ip_fim: Optional[str] = None

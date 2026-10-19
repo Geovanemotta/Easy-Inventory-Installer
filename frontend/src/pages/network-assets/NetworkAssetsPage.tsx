@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Layers,
   Trash2,
-  AlertTriangle,
   CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -23,6 +22,7 @@ import { NetworkAssetFormModal } from './components/NetworkAssetFormModal';
 import { NetworkAssetDetailsDrawer } from './components/NetworkAssetDetailsDrawer';
 import { NetworkAssetScanModal } from './components/NetworkAssetScanModal';
 import { NetworkAssetImportModal } from './components/NetworkAssetImportModal';
+import { NetworkAssetDeleteModals } from './components/NetworkAssetDeleteModals';
 
 export const NetworkAssetsPage: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -48,6 +48,7 @@ export const NetworkAssetsPage: React.FC = () => {
   const [sortAsc, setSortAsc] = useState(true);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Seleção múltipla
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -102,12 +103,16 @@ export const NetworkAssetsPage: React.FC = () => {
       const kpisData = await networkAssetService.getKPIs({
         site_id: siteIdParam,
         faixa_id: faixaIdParam,
+        tipo: tipo !== 'todos' ? tipo : undefined,
+        search: search.trim() || undefined,
+        filtro_ocupacao: filtroOcupacao,
+        grupo: filtroGrupo || undefined,
       });
       setKpis(kpisData);
     } catch (err) {
       console.warn('Erro ao carregar KPIs de ativos:', err);
     }
-  }, [siteId, faixaId]);
+  }, [siteId, faixaId, tipo, search, filtroOcupacao, filtroGrupo]);
 
   const loadAssets = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -118,9 +123,22 @@ export const NetworkAssetsPage: React.FC = () => {
       const data = await networkAssetService.listAssets({
         site_id: siteIdParam,
         faixa_id: faixaIdParam,
+        tipo: tipo !== 'todos' ? tipo : undefined,
+        status_online: statusOnline === 'online' ? true : statusOnline === 'offline' ? false : undefined,
+        search: search.trim() || undefined,
+        filtro_ocupacao: filtroOcupacao,
+        grupo: filtroGrupo || undefined,
+        page,
+        per_page: pageSize,
+        sort_by: sortField,
+        sort_dir: sortAsc ? 'asc' : 'desc',
       });
 
-      setAssets(data || []);
+      setAssets(data.items || []);
+      setTotalItems(data.total || 0);
+      if (data.kpis) {
+        setKpis(data.kpis);
+      }
     } catch (err: unknown) {
       if (!silent) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -129,7 +147,7 @@ export const NetworkAssetsPage: React.FC = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [siteId, faixaId]);
+  }, [siteId, faixaId, tipo, statusOnline, search, filtroOcupacao, filtroGrupo, page, pageSize, sortField, sortAsc]);
 
   const [showKpis, setShowKpis] = useState(false);
 
@@ -139,32 +157,29 @@ export const NetworkAssetsPage: React.FC = () => {
 
   useEffect(() => {
     loadAssets();
-    loadKpis();
-  }, [loadAssets, loadKpis]);
+  }, [loadAssets]);
 
   // Escuta evento global de refresh disparado pelo Header
   useEffect(() => {
     const handleGlobalRefresh = (e: Event) => {
       const customEvent = e as CustomEvent<{ silent?: boolean }>;
       loadAssets(customEvent.detail?.silent ?? false);
-      loadKpis();
     };
 
     window.addEventListener('app:refresh-data', handleGlobalRefresh);
     return () => {
       window.removeEventListener('app:refresh-data', handleGlobalRefresh);
     };
-  }, [loadAssets, loadKpis]);
+  }, [loadAssets]);
 
-  // Auto-refresh silencioso a cada 20 segundos em background (sem loading que pisque a tabela)
+  // Auto-refresh silencioso a cada 20 segundos em background (trafega apenas ~25 KB)
   useEffect(() => {
     const interval = setInterval(() => {
       loadAssets(true);
-      loadKpis();
     }, 20000);
 
     return () => clearInterval(interval);
-  }, [loadAssets, loadKpis]);
+  }, [loadAssets]);
 
   // Reseta seleção de faixa caso não pertença à loja selecionada
   useEffect(() => {
@@ -178,185 +193,10 @@ export const NetworkAssetsPage: React.FC = () => {
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
-  }, [search, siteId, tipo, statusOnline, filtroGrupo, filtroOcupacao, faixaId, sortField, sortAsc, pageSize]);
-
-  // Cálculo dinâmico e em tempo real dos KPIs baseado no conjunto unificado de assets carregados
-  const computedKpis = useMemo<NetworkAssetKPIs>(() => {
-    let online = 0;
-    let offline = 0;
-    let naoTestado = 0;
-    let impressoras = 0;
-    let switches = 0;
-    let aps = 0;
-    let outros = 0;
-    let estacoes = 0;
-    let livres = 0;
-    let ativos = 0;
-
-    for (const a of assets) {
-      if (a.status_online === true) {
-        online++;
-      } else if (a.status_online === false) {
-        offline++;
-      } else {
-        naoTestado++;
-      }
-
-      if (a.origem === 'estacao') {
-        estacoes++;
-      } else if (a.origem === 'livre') {
-        livres++;
-      } else if (a.origem === 'manual' || a.origem === 'planilha') {
-        ativos++;
-      }
-
-      const t = (a.tipo || '').toUpperCase();
-      if (t.includes('IMPRESSORA')) {
-        impressoras++;
-      } else if (t.includes('SWITCH') || t.includes('ROTEADOR') || t.includes('FIREWALL')) {
-        switches++;
-      } else if (t.includes('POINT') || t.includes('WIFI') || /\bAP\b/.test(t)) {
-        aps++;
-      } else {
-        outros++;
-      }
-    }
-
-    return {
-      total: assets.length,
-      online,
-      offline,
-      nao_testado: naoTestado,
-      impressoras,
-      switches,
-      aps,
-      outros,
-      estacoes,
-      livres,
-      ativos,
-      testados: online + offline,
-      ultimo_ping: kpis?.ultimo_ping || null,
-    };
-  }, [assets, kpis?.ultimo_ping]);
-
-  // Filtro unificado de busca, tipo, status, grupo e ocupação no front-end
-  const filteredAssets = useMemo(() => {
-    return assets.filter((asset) => {
-      // 1. Filial sem vínculo
-      if (siteId === 'sem' && asset.site_id) return false;
-
-      // 2. Grupo de KPI (Impressora, Rede, WiFi)
-      if (filtroGrupo === 'impressora') {
-        const t = (asset.tipo || '').toUpperCase();
-        if (!t.includes('IMPRESSORA')) return false;
-      } else if (filtroGrupo === 'rede') {
-        const t = (asset.tipo || '').toUpperCase();
-        if (!t.includes('SWITCH') && !t.includes('ROTEADOR') && !t.includes('FIREWALL')) return false;
-      } else if (filtroGrupo === 'wifi') {
-        const t = (asset.tipo || '').toUpperCase();
-        if (!t.includes('POINT') && !t.includes('WIFI') && !/\bAP\b/.test(t)) return false;
-      }
-
-      // 3. Tipo específico do dropdown
-      if (tipo !== 'todos') {
-        if ((asset.tipo || '').toUpperCase().trim() !== tipo.toUpperCase().trim()) return false;
-      }
-
-      // 4. Status de conexão
-      if (statusOnline === 'online' && asset.status_online !== true) return false;
-      if (statusOnline === 'offline' && asset.status_online !== false) return false;
-      if (statusOnline === 'nao_testado' && asset.status_online !== null && asset.status_online !== undefined) return false;
-
-      // 5. Ocupação
-      if (filtroOcupacao === 'ocupados' && asset.origem === 'livre') return false;
-      if (filtroOcupacao === 'livres' && asset.origem !== 'livre') return false;
-      if (filtroOcupacao === 'estacoes' && asset.origem !== 'estacao') return false;
-      if (filtroOcupacao === 'ativos' && asset.origem !== 'manual' && asset.origem !== 'planilha') return false;
-
-      // 6. Busca textual unificada
-      if (search.trim()) {
-        const q = search.toLowerCase().trim();
-        const campos = [
-          asset.nome,
-          asset.ip,
-          asset.mac,
-          asset.patrimonio,
-          asset.fabricante,
-          asset.modelo,
-          asset.localizacao,
-          asset.tipo,
-          asset.site_nome,
-          asset.site_codigo,
-          asset.observacoes,
-          asset.faixa_nome,
-        ];
-        if (!campos.some((c) => (c || '').toLowerCase().includes(q))) return false;
-      }
-
-      return true;
-    });
-  }, [assets, siteId, filtroGrupo, tipo, statusOnline, filtroOcupacao, search]);
-
-  // Ordenação dos ativos
-  const sortedAssets = useMemo(() => {
-    const list = [...filteredAssets];
-
-    const ipToNum = (ip?: string | null) => {
-      if (!ip) return Infinity;
-      const parts = ip.trim().split('.');
-      if (parts.length !== 4) return Infinity;
-      let num = 0;
-      for (const p of parts) {
-        const v = parseInt(p, 10);
-        if (isNaN(v) || v < 0 || v > 255) return Infinity;
-        num = num * 256 + v;
-      }
-      return num;
-    };
-
-    list.sort((a, b) => {
-      let cmp = 0;
-      switch (sortField) {
-        case 'ip':
-          cmp = ipToNum(a.ip) - ipToNum(b.ip);
-          break;
-        case 'nome':
-          cmp = (a.nome || '').localeCompare(b.nome || '');
-          break;
-        case 'tipo':
-          cmp = (a.tipo || '').localeCompare(b.tipo || '');
-          break;
-        case 'filial':
-          cmp = (a.site_nome || a.site_codigo || '').localeCompare(b.site_nome || b.site_codigo || '');
-          break;
-        case 'status': {
-          const valA = a.status_online === true ? 2 : a.status_online === false ? 1 : 0;
-          const valB = b.status_online === true ? 2 : b.status_online === false ? 1 : 0;
-          cmp = valA - valB;
-          break;
-        }
-        case 'patrimonio':
-          cmp = (a.patrimonio || '').localeCompare(b.patrimonio || '');
-          break;
-        default:
-          cmp = 0;
-      }
-      return sortAsc ? cmp : -cmp;
-    });
-
-    return list;
-  }, [filteredAssets, sortField, sortAsc]);
-
-  // Itens paginados
-  const paginatedAssets = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return sortedAssets.slice(start, start + pageSize);
-  }, [sortedAssets, page, pageSize]);
+  }, [search, siteId, tipo, statusOnline, filtroGrupo, filtroOcupacao, faixaId]);
 
   // Contagem para varredura em lote
-  const assetsWithIpCount = useMemo(() => {
-    return filteredAssets.filter((a) => a.ip && a.ip.trim()).length;
-  }, [filteredAssets]);
+  const assetsWithIpCount = (kpis?.total || 0) - (kpis?.livres || 0);
 
   // Handlers de Ações
   const handleSort = (field: AssetSortField) => {
@@ -366,6 +206,7 @@ export const NetworkAssetsPage: React.FC = () => {
       setSortField(field);
       setSortAsc(true);
     }
+    setPage(1);
   };
 
   const handleToggleSelect = (id: number) => {
@@ -381,7 +222,7 @@ export const NetworkAssetsPage: React.FC = () => {
   };
 
   const handleToggleSelectAll = () => {
-    const selectable = paginatedAssets.filter((a) => a.id && a.origem !== 'livre' && a.origem !== 'estacao');
+    const selectable = assets.filter((a) => a.id && a.origem !== 'livre' && a.origem !== 'estacao');
     if (selectedIds.size === selectable.length && selectable.length > 0) {
       setSelectedIds(new Set());
     } else {
@@ -471,7 +312,7 @@ export const NetworkAssetsPage: React.FC = () => {
   const handleExecuteScanBatch = async () => {
     setScanning(true);
     try {
-      const ips = filteredAssets.map((a) => a.ip).filter((ip): ip is string => Boolean(ip && ip.trim()));
+      const ips = assets.map((a: NetworkAsset) => a.ip).filter((ip): ip is string => Boolean(ip && ip.trim()));
       const siteIdParam = siteId !== 'todos' && siteId !== 'sem' ? Number(siteId) : undefined;
 
       const res = await networkAssetService.scanBatch({
@@ -575,9 +416,23 @@ export const NetworkAssetsPage: React.FC = () => {
   };
 
   // Exportar CSV
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     try {
-      networkAssetService.exportCSV(filteredAssets);
+      const siteIdParam = siteId !== 'todos' && siteId !== 'sem' ? Number(siteId) : undefined;
+      const faixaIdParam = faixaId !== 'todas' ? Number(faixaId) : undefined;
+      const res = await networkAssetService.listAssets({
+        site_id: siteIdParam,
+        faixa_id: faixaIdParam,
+        tipo: tipo !== 'todos' ? tipo : undefined,
+        status_online: statusOnline === 'online' ? true : statusOnline === 'offline' ? false : undefined,
+        search: search.trim() || undefined,
+        filtro_ocupacao: filtroOcupacao,
+        grupo: filtroGrupo || undefined,
+        sort_by: sortField,
+        sort_dir: sortAsc ? 'asc' : 'desc',
+        export_all: true,
+      });
+      networkAssetService.exportCSV(res.items);
       showToast('Exportação CSV gerada com sucesso!');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -633,7 +488,7 @@ export const NetworkAssetsPage: React.FC = () => {
       {showKpis && (
         <div className="animate-in fade-in-50 duration-200">
           <NetworkAssetKpiStrip
-            kpis={computedKpis}
+            kpis={kpis || { total: 0, online: 0, offline: 0, nao_testado: 0, impressoras: 0, switches: 0, aps: 0, outros: 0, estacoes: 0, livres: 0, ativos: 0, testados: 0 }}
             filtroStatus={statusOnline}
             filtroGrupo={filtroGrupo}
             onSelectStatus={(st) => {
@@ -712,7 +567,7 @@ export const NetworkAssetsPage: React.FC = () => {
 
       {/* Assets Table */}
       <NetworkAssetsTable
-        assets={paginatedAssets}
+        assets={assets}
         loading={loading}
         selectedIds={selectedIds}
         onToggleSelect={handleToggleSelect}
@@ -722,7 +577,7 @@ export const NetworkAssetsPage: React.FC = () => {
         onSort={handleSort}
         page={page}
         pageSize={pageSize}
-        totalItems={sortedAssets.length}
+        totalItems={totalItems}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
         onPing={handlePing}
@@ -814,103 +669,17 @@ export const NetworkAssetsPage: React.FC = () => {
         }}
       />
 
-      {/* 5. Single Delete Confirmation */}
-      {assetToDelete && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <div
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-              onClick={() => !deleting && setAssetToDelete(null)}
-            />
-            <div className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-200 p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600">
-                  <Trash2 className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Excluir Ativo de Rede?</h3>
-                  <p className="text-xs text-slate-500">Esta ação não poderá ser desfeita.</p>
-                </div>
-              </div>
-
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Tem certeza que deseja remover o equipamento{' '}
-                <strong className="text-slate-900 font-bold">{assetToDelete.nome}</strong>{' '}
-                {assetToDelete.ip ? `(${assetToDelete.ip})` : ''} do inventário permanente?
-              </p>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAssetToDelete(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmSingleDelete}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-xs disabled:opacity-50"
-                >
-                  {deleting ? 'Excluindo...' : 'Confirmar Exclusão'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Bulk Delete Confirmation */}
-      {confirmBulkDeleteOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <div
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-              onClick={() => !deleting && setConfirmBulkDeleteOpen(false)}
-            />
-            <div className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-200 p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600">
-                  <AlertTriangle className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">
-                    Excluir {selectedIds.size} Ativos Selecionados?
-                  </h3>
-                  <p className="text-xs text-slate-500">Exclusão permanente em lote</p>
-                </div>
-              </div>
-
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Você está prestes a remover permanentemente{' '}
-                <strong className="text-slate-900 font-bold">{selectedIds.size} equipamentos</strong>{' '}
-                do inventário de ativos. Esta ação não poderá ser desfeita.
-              </p>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmBulkDeleteOpen(false)}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmBulkDelete}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-xs disabled:opacity-50"
-                >
-                  {deleting ? 'Excluindo...' : `Excluir ${selectedIds.size} Ativos`}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 5. Delete Confirmation Modals (Single & Bulk) */}
+      <NetworkAssetDeleteModals
+        assetToDelete={assetToDelete}
+        onCancelSingleDelete={() => setAssetToDelete(null)}
+        onConfirmSingleDelete={handleConfirmSingleDelete}
+        confirmBulkDeleteOpen={confirmBulkDeleteOpen}
+        selectedCount={selectedIds.size}
+        onCancelBulkDelete={() => setConfirmBulkDeleteOpen(false)}
+        onConfirmBulkDelete={handleConfirmBulkDelete}
+        deleting={deleting}
+      />
     </div>
   );
 };

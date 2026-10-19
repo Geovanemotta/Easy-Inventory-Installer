@@ -21,6 +21,15 @@ export const softwareService = {
     if (params?.search) {
       query.set('search', params.search);
     }
+    if (params?.page) {
+      query.set('page', String(params.page));
+    }
+    if (params?.per_page) {
+      query.set('per_page', String(params.per_page));
+    }
+    if (params?.export_all) {
+      query.set('export_all', 'true');
+    }
 
     const qs = query.toString() ? `?${query.toString()}` : '';
     return apiRequest<SoftwareCatalogResponse>(`/software${qs}`);

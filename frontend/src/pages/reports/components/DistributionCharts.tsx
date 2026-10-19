@@ -39,7 +39,7 @@ export default function DistributionCharts({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch">
       <DonutChart
         title="Sistemas Operacionais"
         subtitle="Distribuição por plataforma e distribuição"
@@ -73,8 +73,8 @@ export default function DistributionCharts({
       />
 
       <DonutChart
-        title="Status de Conexão e Coleta"
-        subtitle="Online nas últimas 2h ou ausentes"
+        title="Status Operacional"
+        subtitle="Atualizada, Atualização Necessária ou Desatualizada"
         items={data.status_coleta}
         total={data.total_maquinas}
         onItemClick={(lbl) => onFilterByLabel && onFilterByLabel('status', lbl)}

@@ -68,6 +68,10 @@ export interface ReportSummaryResponse {
   total_grupos: number
   grupos: ReportGroupItem[]
   maquinas: ReportMachineItem[]
+  page?: number
+  per_page?: number
+  total_pages?: number
+  maquinas_total?: number
 }
 
 export interface ReportFilterParams {
@@ -76,6 +80,9 @@ export interface ReportFilterParams {
   site_id?: number
   search?: string
   grupo_selecionado?: string
+  page?: number
+  per_page?: number
+  export_all?: boolean
 }
 
 // =====================================================================

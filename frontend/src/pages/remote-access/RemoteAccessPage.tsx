@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { deviceService } from '../../services/deviceService'
 import { siteService } from '../../services/siteService'
@@ -26,9 +26,11 @@ export default function RemoteAccessPage() {
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'online' | 'offline'>('todos')
   const [filtroFilial, setFiltroFilial] = useState<string>('todos')
 
-  // Paginação
+  // Paginação Server-Side
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(12)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
   // Modais de Sessão e Agente
   const [activeSession, setActiveSession] = useState<ActiveRemoteSession | null>(null)
@@ -42,31 +44,58 @@ export default function RemoteAccessPage() {
     !isOperadorMatriz &&
     Boolean(user?.is_superadmin || user?.roles?.includes('admin'))
 
-  // Carrega configuração do MeshCentral, lista de dispositivos e filiais
+  // Carrega configuração do MeshCentral e filiais na montagem
   useEffect(() => {
     Promise.all([
       getRemoteAccessConfig().catch((err: unknown) => {
         console.warn('Falha ao obter configuração do MeshCentral:', err)
         return null
       }),
-      deviceService.listDevices({ per_page: 1500, inativas: false }).catch((err: unknown) => {
-        console.error('Falha ao obter lista de estações:', err)
-        return { items: [], pagination: { total: 0, page: 1, per_page: 1500, pages: 1 } }
-      }),
       siteService.listSites().catch((err: unknown) => {
         console.error('Falha ao obter lista de filiais:', err)
         return []
       }),
-    ])
-      .then(([cfgRes, devRes, sitesRes]) => {
-        if (cfgRes) setConfig(cfgRes)
-        if (devRes && 'items' in devRes) setDevices(devRes.items)
-        if (sitesRes) setSites(sitesRes)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+    ]).then(([cfgRes, sitesRes]) => {
+      if (cfgRes) setConfig(cfgRes)
+      if (sitesRes) setSites(sitesRes)
+    })
   }, [])
+
+  // Carrega dispositivos paginados diretamente do servidor (fim do per_page: 1500)
+  const loadDevices = useCallback(async () => {
+    setLoading(true)
+    try {
+      const siteIdParam = filtroFilial !== 'todos' && !isNaN(Number(filtroFilial)) ? Number(filtroFilial) : undefined
+      const lojaParam = filtroFilial !== 'todos' && isNaN(Number(filtroFilial)) ? filtroFilial : undefined
+      const platParam = filtroOs !== 'todos' ? filtroOs : undefined
+      const statusParam = filtroStatus !== 'todos' ? filtroStatus : undefined
+
+      const devRes = await deviceService.listDevices({
+        page: currentPage,
+        per_page: pageSize,
+        search: search.trim() || undefined,
+        site_id: siteIdParam,
+        loja: lojaParam,
+        plataforma: platParam,
+        status_conexao: statusParam,
+        inativas: false,
+      })
+
+      if (devRes && 'items' in devRes) {
+        setDevices(devRes.items)
+        setTotalItems(devRes.pagination.total)
+        setTotalPages(devRes.pagination.total_pages)
+      }
+    } catch (err: unknown) {
+      console.error('Falha ao obter lista de estações:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPage, pageSize, search, filtroOs, filtroStatus, filtroFilial])
+
+  useEffect(() => {
+    loadDevices()
+  }, [loadDevices])
 
   // Resolve a URL base do MeshCentral com base no host atual de acesso
   const meshUrlBase = useMemo(() => {
@@ -90,59 +119,13 @@ export default function RemoteAccessPage() {
     return `${meshUrlBase}/?viewmode=${vm}&gotodevicename=${encodeURIComponent(hostname)}&${hideParam}`
   }
 
-  // Filtragem
-  const filteredDevices = useMemo(() => {
-    const q = search.trim().toLowerCase()
-
-    return devices.filter((d) => {
-      // 1. Busca textual
-      const matchSearch =
-        !q ||
-        d.hostname?.toLowerCase().includes(q) ||
-        d.ip?.toLowerCase().includes(q) ||
-        d.patrimonio?.toLowerCase().includes(q) ||
-        d.loja?.toLowerCase().includes(q)
-
-      // 2. SO
-      const isWin =
-        d.familia_so === 'Windows' ||
-        Boolean(d.so_formatado && d.so_formatado.toLowerCase().includes('windows')) ||
-        Boolean(d.sistema && d.sistema.toLowerCase().includes('windows'))
-      const matchOs =
-        filtroOs === 'todos' ||
-        (filtroOs === 'windows' && isWin) ||
-        (filtroOs === 'linux' && !isWin)
-
-      // 3. Status Online / Offline
-      const isOnline = d.status_conexao === 'online' || d.status === 'OK'
-      const matchStatus =
-        filtroStatus === 'todos' ||
-        (filtroStatus === 'online' && isOnline) ||
-        (filtroStatus === 'offline' && !isOnline)
-
-      // 4. Filial
-      const matchFilial =
-        filtroFilial === 'todos' ||
-        d.loja === filtroFilial ||
-        String(d.site_id) === filtroFilial
-
-      return matchSearch && matchOs && matchStatus && matchFilial
-    })
-  }, [devices, search, filtroOs, filtroStatus, filtroFilial])
-
   // Reset de página ao alterar filtros
   useEffect(() => {
     setCurrentPage(1)
   }, [search, filtroOs, filtroStatus, filtroFilial, pageSize])
 
-  // Paginação
-  const totalItems = filteredDevices.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
   const startIndex = (currentPage - 1) * pageSize
-  const endIndex = Math.min(startIndex + pageSize, totalItems)
-  const paginatedDevices = useMemo(() => {
-    return filteredDevices.slice(startIndex, endIndex)
-  }, [filteredDevices, startIndex, endIndex])
+  const endIndex = Math.min(startIndex + devices.length, totalItems)
 
   // Ações de Conexão
   const handleConnectNewTab = (device: DeviceListItem) => {
@@ -318,7 +301,7 @@ export default function RemoteAccessPage() {
             />
           ))}
         </div>
-      ) : paginatedDevices.length === 0 ? (
+      ) : devices.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center">
           <svg className="mb-3 h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -332,7 +315,7 @@ export default function RemoteAccessPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {paginatedDevices.map((d) => {
+          {devices.map((d) => {
             const isOnline = d.status_conexao === 'online' || d.status === 'OK'
             return (
               <RemoteDeviceCard

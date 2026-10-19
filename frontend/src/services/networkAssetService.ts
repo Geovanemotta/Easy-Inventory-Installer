@@ -3,6 +3,7 @@ import {
   NetworkAsset,
   NetworkAssetInput,
   NetworkAssetKPIs,
+  NetworkAssetListResponse,
   PingResult,
   ImportResult,
   ScanBatchInput,
@@ -14,7 +15,7 @@ import { licenseService } from '@/services/licenseService';
 import type { LicenseAssignInput } from '@/types/license';
 
 export const networkAssetService = {
-  async listAssets(params: NetworkAssetFilterParams = {}): Promise<NetworkAsset[]> {
+  async listAssets(params: NetworkAssetFilterParams = {}): Promise<NetworkAssetListResponse> {
     const query = new URLSearchParams();
     if (params.site_id !== undefined && params.site_id !== null) {
       query.set('site_id', String(params.site_id));
@@ -28,9 +29,15 @@ export const networkAssetService = {
       query.set('filtro_ocupacao', params.filtro_ocupacao);
     }
     if (params.faixa_id) query.set('faixa_id', String(params.faixa_id));
+    if (params.grupo) query.set('grupo', params.grupo);
+    if (params.page) query.set('page', String(params.page));
+    if (params.per_page) query.set('per_page', String(params.per_page));
+    if (params.sort_by) query.set('sort_by', params.sort_by);
+    if (params.sort_dir) query.set('sort_dir', params.sort_dir);
+    if (params.export_all) query.set('export_all', 'true');
 
     const qs = query.toString() ? `?${query.toString()}` : '';
-    return apiRequest<NetworkAsset[]>(`/network-assets${qs}`);
+    return apiRequest<NetworkAssetListResponse>(`/network-assets${qs}`);
   },
 
   async getKPIs(params: NetworkAssetFilterParams = {}): Promise<NetworkAssetKPIs> {

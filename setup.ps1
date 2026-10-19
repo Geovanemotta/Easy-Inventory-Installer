@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 #  SISTEMA DE INVENTÁRIO - INSTALADOR TURNKEY (WINDOWS / POWERSHELL)
 #  Prepara e inicializa todo o ecossistema Docker do zero ou atualiza
 #  servidores já em execução mantendo 100% dos dados intactos.

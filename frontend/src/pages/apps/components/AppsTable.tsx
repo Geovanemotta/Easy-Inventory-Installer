@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Monitor,
   ChevronRight,
@@ -19,6 +19,12 @@ interface AppsTableProps {
   onSelectSoftware: (software: SoftwareCatalogItem) => void;
   selectedSoftwareId?: number | null;
   loading?: boolean;
+  page: number;
+  perPage: number;
+  totalItems: number;
+  totalPages: number;
+  onPageChange: (newPage: number) => void;
+  onPerPageChange: (newPerPage: number) => void;
 }
 
 const TIPO_STYLES: Record<
@@ -61,10 +67,13 @@ export const AppsTable: React.FC<AppsTableProps> = ({
   onSelectSoftware,
   selectedSoftwareId,
   loading = false,
+  page,
+  perPage,
+  totalItems,
+  totalPages,
+  onPageChange,
+  onPerPageChange,
 }) => {
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(25);
-
   if (loading) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-8 text-center shadow-xs">
@@ -88,12 +97,9 @@ export const AppsTable: React.FC<AppsTableProps> = ({
     );
   }
 
-  // Paginação no cliente
-  const totalItems = items.length;
-  const totalPages = Math.ceil(totalItems / perPage);
   const safePage = Math.min(Math.max(1, page), totalPages || 1);
   const startIndex = (safePage - 1) * perPage;
-  const paginatedItems = items.slice(startIndex, startIndex + perPage);
+  const endIndex = Math.min(startIndex + items.length, totalItems);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
@@ -109,7 +115,7 @@ export const AppsTable: React.FC<AppsTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
-            {paginatedItems.map((item) => {
+            {items.map((item) => {
               const tipoInfo = TIPO_STYLES[item.tipo] || {
                 label: item.tipo,
                 bg: 'bg-slate-100',
@@ -264,7 +270,7 @@ export const AppsTable: React.FC<AppsTableProps> = ({
             </span>{' '}
             a{' '}
             <span className="font-semibold text-slate-800">
-              {Math.min(startIndex + perPage, totalItems)}
+              {endIndex}
             </span>{' '}
             de <span className="font-semibold text-slate-800">{totalItems}</span> softwares
           </div>
@@ -273,10 +279,7 @@ export const AppsTable: React.FC<AppsTableProps> = ({
             <span className="text-slate-400">Por página:</span>
             <select
               value={perPage}
-              onChange={(e) => {
-                setPerPage(Number(e.target.value));
-                setPage(1);
-              }}
+              onChange={(e) => onPerPageChange(Number(e.target.value))}
               className="py-1 px-2 rounded border border-slate-200 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value={25}>25</option>
@@ -289,7 +292,7 @@ export const AppsTable: React.FC<AppsTableProps> = ({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => onPageChange(Math.max(1, safePage - 1))}
             disabled={safePage <= 1}
             className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-default"
           >
@@ -301,7 +304,7 @@ export const AppsTable: React.FC<AppsTableProps> = ({
           </span>
           <button
             type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => onPageChange(Math.min(totalPages, safePage + 1))}
             disabled={safePage >= totalPages}
             className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-default"
           >

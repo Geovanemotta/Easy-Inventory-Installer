@@ -104,6 +104,9 @@ class SoftwareCatalogResponse(BaseModel):
     kpis: SoftwareCatalogKPIs
     navegadores_conformidade: List[BrowserComplianceSummary] = []
     total: int
+    page: int = 1
+    per_page: int = 25
+    total_pages: int = 1
 
 
 class SoftwareDeviceDetail(BaseModel):

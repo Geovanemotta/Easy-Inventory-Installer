@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 #  SISTEMA DE INVENTÁRIO - SCRIPT DE ATUALIZAÇÃO CONTÍNUA (WINDOWS / POWERSHELL)
 #  Puxa as novidades do Git, recompila o frontend, aplica migrações e
 #  reinicia os containers com downtime mínimo (sem perder nenhum dado).

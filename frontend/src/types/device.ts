@@ -50,6 +50,7 @@ export interface DeviceQueryParams {
   disco_critico?: boolean;
   sem_apps?: boolean;
   com_apps?: boolean;
+  status_conexao?: string;
   ordenar_por?: string;
   ordem_dir?: 'asc' | 'desc';
   page?: number;

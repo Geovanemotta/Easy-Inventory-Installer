@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  Calendar,
 } from 'lucide-react';
 import { DeviceListItem, DevicePagination } from '@/types/device';
 import { deviceService } from '@/services/deviceService';
@@ -154,8 +153,14 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
 
   return (
     <>
-      <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-xs flex justify-end transition-opacity">
-        <div className="w-full max-w-3xl bg-white h-full shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
+      <div
+        className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-xs flex justify-end transition-opacity cursor-pointer"
+        onClick={onClose}
+      >
+        <div
+          className="w-full max-w-3xl bg-white h-full shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200 cursor-default"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Cabeçalho do Drawer */}
           <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
@@ -275,105 +280,91 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
               devices.map((dev) => {
                 const isLinux = (dev.familia_so || dev.sistema || '').toLowerCase().includes('linux');
                 const canSsh = isLinux && Boolean(dev.ip);
+                const filialBadge = dev.loja
+                  ? dev.loja.replace(/^\[([^\]]+)\]\s*\1$/i, '$1').replace(/^\[([^\]]+)\]\s*/, '').trim().toUpperCase()
+                  : null;
+                const soName = dev.so_formatado || dev.sistema || dev.familia_so || (isLinux ? 'Linux' : 'Windows');
 
                 return (
                   <div
                     key={dev.id}
-                    className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-blue-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="px-3.5 py-2.5 bg-white rounded-lg border border-slate-200 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all flex items-center justify-between gap-3 text-xs"
                   >
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {/* Hostname com link direto para /devices?search= */}
-                        <button
-                          type="button"
-                          onClick={() => handleGoToDevice(dev.hostname)}
-                          title="Clique para abrir e filtrar esta máquina na tela de Estações"
-                          className="font-bold text-slate-800 text-xs hover:text-blue-600 hover:underline cursor-pointer text-left"
-                        >
-                          {dev.hostname}
-                        </button>
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
+                      {/* Hostname com link direto */}
+                      <button
+                        type="button"
+                        onClick={() => handleGoToDevice(dev.hostname)}
+                        title="Clique para abrir e filtrar esta máquina na tela de Estações"
+                        className="font-bold text-slate-800 hover:text-blue-600 hover:underline cursor-pointer truncate max-w-[140px] shrink-0 text-left"
+                      >
+                        {dev.hostname}
+                      </button>
 
+                      {/* Filial Badge Curto */}
+                      {filialBadge && (
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
-                            isLinux
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-sky-50 text-sky-800 border-sky-200'
-                          }`}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 shrink-0"
+                          title={dev.loja || filialBadge}
                         >
-                          {dev.familia_so || (isLinux ? 'Linux' : 'Windows')}
+                          <Building2 className="h-2.5 w-2.5 text-slate-400" />
+                          {filialBadge}
                         </span>
+                      )}
 
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
-                            dev.status === 'OK'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'bg-slate-100 text-slate-600 border-slate-200'
-                          }`}
-                        >
+                      {/* IP em destaque claro com botão copiar */}
+                      {dev.ip ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200 shrink-0">
+                          <span>{dev.ip}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopy(dev.ip!, 'IP', e)}
+                            title="Copiar IP"
+                            className="text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
+                          >
+                            {copiedIp === dev.ip ? (
+                              <Check className="h-3 w-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </button>
+                        </span>
+                      ) : (
+                        <span className="text-slate-300 font-mono text-[11px] shrink-0">Sem IP</span>
+                      )}
+
+                      {/* SO Normalizado */}
+                      <span
+                        className="text-slate-600 text-[11px] truncate max-w-[160px] shrink-0 font-medium"
+                        title={soName}
+                      >
+                        {soName}
+                      </span>
+
+                      {/* Status / Alerta de Sem Aplicativos */}
+                      {isSemApps ? (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                          <AlertTriangle className="h-3 w-3" />
+                          0 softwares
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                          <CheckCircle2 className="h-3 w-3" />
                           {dev.status || 'Ativa'}
                         </span>
-
-                        {isSemApps && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            <AlertTriangle className="h-3 w-3" />
-                            0 softwares reportados
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                        {dev.ip && (
-                          <span className="flex items-center gap-1 font-mono">
-                            <span>IP: {dev.ip}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopy(dev.ip!)}
-                              title="Copiar IP"
-                              className="text-slate-400 hover:text-slate-700 cursor-pointer"
-                            >
-                              {copiedIp === dev.ip ? (
-                                <Check className="h-3 w-3 text-emerald-600" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                            </button>
-                          </span>
-                        )}
-
-                        {dev.loja && (
-                          <span className="flex items-center gap-1 text-slate-600">
-                            <Building2 className="h-3 w-3 text-slate-400" />
-                            <span>{dev.loja}</span>
-                          </span>
-                        )}
-
-                        {dev.so_formatado && (
-                          <span className="truncate max-w-[180px] text-slate-400" title={dev.so_formatado}>
-                            {dev.so_formatado}
-                          </span>
-                        )}
-
-                        <span className="flex items-center gap-1 text-slate-400">
-                          <Calendar className="h-3 w-3" />
-                          <span>
-                            {dev.data_coleta
-                              ? `Coleta: ${new Date(dev.data_coleta).toLocaleString('pt-BR')}`
-                              : 'Sem data de coleta'}
-                          </span>
-                        </span>
-                      </div>
+                      )}
                     </div>
 
-                    {/* Ações Rápidas */}
-                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    {/* Ações */}
+                    <div className="flex items-center gap-1.5 shrink-0">
                       {canSsh && (
                         <button
                           type="button"
                           onClick={() => setSshTarget(dev)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
-                          title={`Acesso Rápido via Terminal SSH em ${dev.hostname} para rodar o agente`}
+                          className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2 py-1 text-[11px] font-semibold text-white hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
+                          title={`Acesso Rápido via Terminal SSH em ${dev.hostname}`}
                         >
-                          <Terminal className="h-3.5 w-3.5 text-emerald-400" />
+                          <Terminal className="h-3 w-3 text-emerald-400" />
                           <span>&gt;_ SSH</span>
                         </button>
                       )}
@@ -382,12 +373,16 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
                         <button
                           type="button"
                           onClick={() => setIsInstallModalOpen(true)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-2 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
                           title="Instalar agente nesta máquina"
                         >
-                          <Zap className="h-3.5 w-3.5 text-amber-600" />
+                          <Zap className="h-3 w-3 text-amber-600" />
                           <span>Instalar</span>
                         </button>
+                      )}
+
+                      {!canSsh && !(isSemApps && isAdmin) && (
+                        <span className="w-14 text-center text-slate-300 text-xs select-none">&mdash;</span>
                       )}
                     </div>
                   </div>

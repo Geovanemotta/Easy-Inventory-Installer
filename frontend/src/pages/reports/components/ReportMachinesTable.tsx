@@ -6,6 +6,12 @@ interface ReportMachinesTableProps {
   selectedKey: string | null
   maquinas: ReportMachineItem[]
   loading?: boolean
+  page: number
+  perPage: number
+  totalItems: number
+  totalPages: number
+  onPageChange: (newPage: number) => void
+  onPerPageChange: (newPerPage: number) => void
   onExportCsv: () => void
 }
 
@@ -14,8 +20,18 @@ export default function ReportMachinesTable({
   selectedKey,
   maquinas,
   loading,
+  page,
+  perPage,
+  totalItems,
+  totalPages,
+  onPageChange,
+  onPerPageChange,
   onExportCsv,
 }: ReportMachinesTableProps) {
+  const safePage = Math.min(Math.max(1, page), totalPages || 1)
+  const startIndex = (safePage - 1) * perPage
+  const endIndex = Math.min(startIndex + maquinas.length, totalItems)
+
   return (
     <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -30,15 +46,14 @@ export default function ReportMachinesTable({
             )}
           </h2>
           <p className="text-xs text-slate-500">
-            {maquinas.length} máquinas encontradas
-            {maquinas.length > 300 && ' (mostrando as primeiras 300)'}
+            {totalItems} máquinas encontradas
           </p>
         </div>
 
         <button
           type="button"
           onClick={onExportCsv}
-          disabled={maquinas.length === 0}
+          disabled={totalItems === 0}
           className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
           title="Exportar dados filtrados para planilha CSV"
         >
@@ -72,7 +87,7 @@ export default function ReportMachinesTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {maquinas.slice(0, 300).map((m) => {
+              {maquinas.map((m) => {
                 const isWin = m.so === 'Windows'
                 return (
                   <tr
@@ -116,6 +131,47 @@ export default function ReportMachinesTable({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Rodapé de Paginação Server-Side */}
+      {totalItems > 0 && (
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span>Linhas por página:</span>
+            <select
+              value={perPage}
+              onChange={(e) => onPerPageChange(Number(e.target.value))}
+              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 focus:border-blue-500 focus:outline-none"
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span>
+              Mostrando {startIndex + 1}–{endIndex} de {totalItems}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onPageChange(page - 1)}
+              disabled={page <= 1}
+              className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium"
+            >
+              Anterior
+            </button>
+            <span className="px-2 font-medium text-slate-700">
+              {page} de {totalPages}
+            </span>
+            <button
+              onClick={() => onPageChange(page + 1)}
+              disabled={page >= totalPages}
+              className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium"
+            >
+              Próxima
+            </button>
+          </div>
         </div>
       )}
     </div>

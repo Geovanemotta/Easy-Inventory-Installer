@@ -71,3 +71,12 @@ class SiteReclassifyResponse(BaseModel):
     total_scanned: int
     total_reclassified: int
     changes: List[ReclassifiedDeviceItem]
+
+
+# Re-export schemas de faixa de IP / VLAN para uso cruzado
+from app.schemas.network_asset import (
+    SiteIpRangeCreate,
+    SiteIpRangeUpdate,
+    SiteIpRangeOut,
+)
+

@@ -1,3 +1,4 @@
+import math
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -32,6 +33,7 @@ from app.schemas.dashboard import (
 from app.services.device_normalizer import (
     normalizar_fabricante_modelo,
     normalizar_processador,
+    normalizar_status_operacional,
     normalizar_ram,
     normalizar_so,
     tamanho_para_mb,
@@ -255,11 +257,14 @@ def _extrair_valor_campo(d: Device, campo: str) -> str:
     elif campo == "filial":
         return d.site.name if d.site else "Não atribuída"
     elif campo == "status":
-        if d.status == "OK":
-            return "Atualizada"
-        elif d.status == "UPGRADE_REQUIRED":
-            return "Atualização Necessária"
-        return "Não Identificada"
+        info_so = normalizar_so(d.sistema, d.versao, d.build, d.windows_release)
+        lbl, _, _ = normalizar_status_operacional(
+            status=d.status,
+            sistema=d.sistema,
+            versao=d.versao,
+            so_formatado=info_so.get("so_formatado"),
+        )
+        return lbl
     return "Não informado"
 
 
@@ -270,11 +275,14 @@ def get_dashboard_reports(
     site_id: Optional[int] = Query(None, description="Filtrar por ID de filial"),
     search: Optional[str] = Query(None, description="Busca textual livre"),
     grupo_selecionado: Optional[str] = Query(None, description="Filtrar máquinas por grupo específico"),
+    page: int = Query(1, ge=1, description="Número da página para listagem de máquinas"),
+    per_page: int = Query(50, ge=1, le=500, description="Itens por página"),
+    export_all: bool = Query(False, description="Se True, retorna todas as máquinas sem paginação"),
     current_user: User = Depends(get_current_user),
 ):
     """
     Retorna a consolidação analítica e distribuição de estações por atributo de hardware ou software.
-    Transfere todo o cálculo pesado do front-end para o back-end com normalização de strings.
+    Transfere todo o cálculo pesado do front-end para o back-end com normalização de strings e paginação server-side.
     """
     with Session(engine) as session:
         is_global = _is_global_user(current_user)
@@ -291,7 +299,7 @@ def get_dashboard_reports(
             )
             device_filters.append(Device.site_id.in_(allowed_sites))
 
-        if site_id is not None:
+        if isinstance(site_id, int):
             device_filters.append(Device.site_id == site_id)
 
         # Carrega dispositivos com filial associada
@@ -303,7 +311,8 @@ def get_dashboard_reports(
         ).all()
 
         nome_campo = CAMPOS_NOME.get(campo, campo.capitalize())
-        search_lower = search.strip().lower() if search and search.strip() else None
+        search_lower = search.strip().lower() if isinstance(search, str) and search.strip() else None
+        plat_req = plataforma.strip().lower() if isinstance(plataforma, str) and plataforma.strip() else None
 
         # Processamento e normalização em memória otimizada
         items_processados = []
@@ -312,8 +321,7 @@ def get_dashboard_reports(
         for d in devices:
             # 1. Filtro de plataforma (Windows vs Linux)
             is_win = bool(d.sistema and "windows" in d.sistema.lower()) or bool(d.versao and "windows" in d.versao.lower())
-            if plataforma:
-                plat_req = plataforma.strip().lower()
+            if plat_req:
                 if plat_req == "windows" and not is_win:
                     continue
                 if plat_req == "linux" and is_win:
@@ -364,14 +372,28 @@ def get_dashboard_reports(
             ))
 
         # Filtra máquinas se houver grupo selecionado
-        if grupo_selecionado:
+        if isinstance(grupo_selecionado, str) and grupo_selecionado.strip():
+            g_sel = grupo_selecionado.strip().lower()
             maquinas_finais = [
                 ReportMachineItem(**item)
                 for item in items_processados
-                if item["valor_campo"] == grupo_selecionado
+                if item["valor_campo"].strip().lower() == g_sel
+                or (campo == "sistema" and (g_sel in item["valor_campo"].strip().lower() or item["valor_campo"].strip().lower() in g_sel))
             ]
         else:
             maquinas_finais = [ReportMachineItem(**item) for item in items_processados]
+
+        maquinas_total = len(maquinas_finais)
+        p_page = page if isinstance(page, int) and page >= 1 else 1
+        p_per_page = per_page if isinstance(per_page, int) and per_page >= 1 else 50
+        total_pages = max(1, math.ceil(maquinas_total / p_per_page))
+
+        if not export_all:
+            start_idx = (p_page - 1) * p_per_page
+            end_idx = start_idx + p_per_page
+            maquinas_paginadas = maquinas_finais[start_idx:end_idx]
+        else:
+            maquinas_paginadas = maquinas_finais
 
         return ReportSummaryResponse(
             campo=campo,
@@ -379,7 +401,11 @@ def get_dashboard_reports(
             total_maquinas=total_maquinas,
             total_grupos=len(grupos_ordenados),
             grupos=grupos_ordenados,
-            maquinas=maquinas_finais,
+            maquinas=maquinas_paginadas,
+            page=p_page,
+            per_page=p_per_page,
+            total_pages=total_pages,
+            maquinas_total=maquinas_total,
         )
 
 
@@ -458,7 +484,7 @@ def get_dashboard_charts(
             )
             device_filters.append(Device.site_id.in_(allowed_sites))
 
-        if site_id is not None:
+        if isinstance(site_id, int):
             device_filters.append(Device.site_id == site_id)
 
         devices = session.scalars(
@@ -527,21 +553,13 @@ def get_dashboard_charts(
                 dlbl = "Não informado"
             cnt_disco[dlbl] = cnt_disco.get(dlbl, 0) + 1
 
-            # 5. Status / Coleta
-            if d.data_coleta:
-                # Trata timezone se necessário
-                dt = d.data_coleta
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                diff = agora - dt
-                if diff <= timedelta(hours=2):
-                    st_lbl = "Online (≤ 2h)"
-                elif diff <= timedelta(days=7):
-                    st_lbl = "Recente (≤ 7d)"
-                else:
-                    st_lbl = "Ausente (> 7d)"
-            else:
-                st_lbl = "Sem Coleta"
+            # 5. Status Operacional (alinhado 100% com o Explorador Analítico campo=status)
+            st_lbl, _, _ = normalizar_status_operacional(
+                status=d.status,
+                sistema=d.sistema,
+                versao=d.versao,
+                so_formatado=so_name,
+            )
             cnt_status[st_lbl] = cnt_status.get(st_lbl, 0) + 1
 
             # 6. Filial
@@ -549,10 +567,10 @@ def get_dashboard_charts(
             cnt_site[st_name] = cnt_site.get(st_name, 0) + 1
 
         status_colors = {
-            "Online (≤ 2h)": "#10b981",
-            "Recente (≤ 7d)": "#3b82f6",
-            "Ausente (> 7d)": "#ef4444",
-            "Sem Coleta": "#94a3b8",
+            "Atualizada": "#10b981",
+            "Atualização Necessária": "#f59e0b",
+            "Desatualizada": "#ef4444",
+            "Não Identificada": "#94a3b8",
         }
 
         return DashboardChartsResponse(

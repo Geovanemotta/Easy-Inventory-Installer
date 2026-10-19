@@ -30,6 +30,7 @@ from app.schemas.network_asset import (
     ImportResultOut,
     NetworkAssetCreate,
     NetworkAssetKPIs,
+    NetworkAssetListResponse,
     NetworkAssetOut,
     NetworkAssetUpdate,
     PingResultOut,
@@ -160,6 +161,72 @@ def formatar_asset_out(asset: NetworkAsset, is_operator: bool = False) -> Networ
     )
 
 
+def calcular_kpis_de_lista(assets: List[NetworkAssetOut]) -> NetworkAssetKPIs:
+    total = len(assets)
+    online = 0
+    offline = 0
+    nao_testado = 0
+    impressoras = 0
+    switches = 0
+    aps = 0
+    outros = 0
+    estacoes = 0
+    livres = 0
+    ativos = 0
+    max_ping_ts = 0.0
+    ultimo_ping_dt: Optional[datetime] = None
+
+    for a in assets:
+        if a.status_online is True:
+            online += 1
+        elif a.status_online is False:
+            offline += 1
+        else:
+            nao_testado += 1
+
+        if a.origem == "estacao":
+            estacoes += 1
+        elif a.origem == "livre":
+            livres += 1
+        elif a.origem in ("manual", "planilha"):
+            ativos += 1
+
+        t = (a.tipo or "").upper()
+        if "IMPRESSORA" in t:
+            impressoras += 1
+        elif "SWITCH" in t or "ROTEADOR" in t or "FIREWALL" in t:
+            switches += 1
+        elif any(k in t for k in ("POINT", "WIFI", "ANTENA", "UNIFI", "ACCESS POINT")) or re.search(r"\bAP\b", t):
+            aps += 1
+        else:
+            outros += 1
+
+        if a.ultimo_ping:
+            try:
+                ts = a.ultimo_ping.timestamp() if a.ultimo_ping.tzinfo else a.ultimo_ping.replace(tzinfo=timezone.utc).timestamp()
+                if ts > max_ping_ts:
+                    max_ping_ts = ts
+                    ultimo_ping_dt = a.ultimo_ping
+            except Exception:
+                pass
+
+    return NetworkAssetKPIs(
+        total=total,
+        online=online,
+        offline=offline,
+        nao_testado=nao_testado,
+        impressoras=impressoras,
+        switches=switches,
+        aps=aps,
+        outros=outros,
+        estacoes=estacoes,
+        livres=livres,
+        ativos=ativos,
+        testados=online + offline,
+        ultimo_ping=ultimo_ping_dt.isoformat() if ultimo_ping_dt else None,
+    )
+
+
 def listar_network_assets(
     db: Session,
     current_user: User,
@@ -169,10 +236,23 @@ def listar_network_assets(
     search: Optional[str] = None,
     filtro_ocupacao: Optional[str] = None,
     faixa_id: Optional[int] = None,
-) -> List[NetworkAssetOut]:
+    grupo: Optional[str] = None,
+    page: int = 1,
+    per_page: int = 50,
+    sort_by: Optional[str] = "ip",
+    sort_dir: Optional[str] = "asc",
+    export_all: bool = False,
+) -> NetworkAssetListResponse:
     sites_permitidos = obter_sites_permitidos(db, current_user)
     if sites_permitidos is not None and site_id is not None and site_id not in sites_permitidos:
-        return []
+        return NetworkAssetListResponse(
+            items=[],
+            total=0,
+            page=page,
+            per_page=per_page,
+            total_pages=1,
+            kpis=NetworkAssetKPIs(),
+        )
 
     # 1. Carrega Faixas de IPs configuradas
     stmt_ranges = select(SiteIpRange).where(SiteIpRange.company_id == current_user.company_id)
@@ -402,6 +482,22 @@ def listar_network_assets(
         tipo_up = tipo.upper().strip()
         all_items = [it for it in all_items if (it.tipo or "").upper().strip() == tipo_up]
 
+    # 7.1 Aplica filtro de grupo (impressora, rede, wifi)
+    if grupo and grupo.strip():
+        g = grupo.lower().strip()
+        if g == "impressora":
+            all_items = [it for it in all_items if "IMPRESSORA" in (it.tipo or "").upper()]
+        elif g == "rede":
+            all_items = [
+                it for it in all_items
+                if any(k in (it.tipo or "").upper() for k in ("SWITCH", "ROTEADOR", "FIREWALL"))
+            ]
+        elif g == "wifi":
+            all_items = [
+                it for it in all_items
+                if any(k in (it.tipo or "").upper() for k in ("POINT", "WIFI", "ANTENA", "UNIFI", "ACCESS POINT")) or re.search(r"\bAP\b", (it.tipo or "").upper())
+            ]
+
     # 8. Aplica status_online
     if status_online is not None:
         all_items = [it for it in all_items if it.status_online == status_online]
@@ -417,26 +513,73 @@ def listar_network_assets(
             it.fabricante,
             it.modelo,
             it.localizacao,
+            it.tipo,
             it.faixa_nome,
             it.site_nome,
             it.site_codigo,
+            it.observacoes,
         ]
         all_items = [
             it for it in all_items
             if any(s in (c or "").lower() for c in campos(it))
         ]
 
-    # 10. Ordenação numérica por IP IPv4
-    def sort_key(it: NetworkAssetOut):
-        if not it.ip:
-            return (1, 0xFFFFFFFF, it.nome or "")
-        try:
-            return (0, int(ipaddress.IPv4Address(it.ip.strip())), it.nome or "")
-        except Exception:
-            return (1, 0xFFFFFFFF, it.nome or "")
+    # 10. Calcula KPIs consolidados sobre todo o universo filtrado
+    kpis = calcular_kpis_de_lista(all_items)
 
-    all_items.sort(key=sort_key)
-    return all_items
+    # 11. Ordenação Server-Side (com suporte a ordenação numérica por octeto de IPv4)
+    def parse_ip_key(ip_str: Optional[str]) -> Tuple[int, int, str]:
+        if not ip_str:
+            return (1, 0xFFFFFFFF, "")
+        try:
+            return (0, int(ipaddress.IPv4Address(ip_str.strip())), "")
+        except Exception:
+            return (1, 0xFFFFFFFF, "")
+
+    def get_sort_key(it: NetworkAssetOut, field: str):
+        f = (field or "ip").lower().strip()
+        if f == "ip":
+            return parse_ip_key(it.ip)
+        elif f == "filial":
+            return (it.filial_codigo or it.site_nome or "").lower()
+        elif f == "nome":
+            return (it.nome or "").lower()
+        elif f == "tipo":
+            return (it.tipo or "").lower()
+        elif f == "patrimonio":
+            return (it.patrimonio or "").lower()
+        elif f == "mac":
+            return (it.mac or "").lower()
+        elif f == "vlan":
+            return (it.vlan or it.faixa_nome or "").lower()
+        elif f == "status":
+            return 2 if it.status_online is True else 1 if it.status_online is False else 0
+        return parse_ip_key(it.ip)
+
+    reverse_sort = (sort_dir or "asc").lower() == "desc"
+    all_items.sort(key=lambda it: get_sort_key(it, sort_by or "ip"), reverse=reverse_sort)
+
+    # 12. Paginação Server-Side
+    total = len(all_items)
+    page_num = max(1, page)
+    per_page_num = max(1, min(per_page, 5000))
+    total_pages = max(1, math.ceil(total / per_page_num))
+
+    if export_all:
+        page_items = all_items
+    else:
+        start_idx = (page_num - 1) * per_page_num
+        end_idx = start_idx + per_page_num
+        page_items = all_items[start_idx:end_idx]
+
+    return NetworkAssetListResponse(
+        items=page_items,
+        total=total,
+        page=page_num,
+        per_page=per_page_num,
+        total_pages=total_pages,
+        kpis=kpis,
+    )
 
 
 def criar_network_asset(
@@ -1633,6 +1776,17 @@ def atualizar_ip_range(
         return None
 
     update_dict = data.model_dump(exclude_unset=True)
+    if "site_id" in update_dict and update_dict["site_id"] is not None:
+        novo_site_id = update_dict["site_id"]
+        site_obj = db.scalar(
+            select(Site).where(
+                Site.id == novo_site_id,
+                Site.company_id == current_user.company_id,
+            )
+        )
+        if not site_obj:
+            raise HTTPException(status_code=400, detail="Filial destino não encontrada ou inválida.")
+        range_obj.site_id = novo_site_id
     if "ip_inicio" in update_dict or "ip_fim" in update_dict:
         novo_inicio = update_dict.get("ip_inicio", range_obj.ip_inicio)
         novo_fim = update_dict.get("ip_fim", range_obj.ip_fim)
@@ -1730,83 +1884,18 @@ def calcular_kpis_network_assets(
     tipo: Optional[str] = None,
     search: Optional[str] = None,
     filtro_ocupacao: Optional[str] = None,
+    grupo: Optional[str] = None,
 ) -> NetworkAssetKPIs:
-    sites_permitidos = obter_sites_permitidos(db, current_user)
-    if sites_permitidos is not None and site_id is not None and site_id not in sites_permitidos:
-        return NetworkAssetKPIs()
-
-    # Utiliza exatamente a mesma lógica/universo unificado da listagem
-    assets = listar_network_assets(
+    res = listar_network_assets(
         db=db,
         current_user=current_user,
         site_id=site_id,
+        faixa_id=faixa_id,
         tipo=tipo,
         search=search,
         filtro_ocupacao=filtro_ocupacao,
-        faixa_id=faixa_id,
+        grupo=grupo,
+        export_all=True,
     )
-
-    total = len(assets)
-    online = 0
-    offline = 0
-    nao_testado = 0
-    impressoras = 0
-    switches = 0
-    aps = 0
-    outros = 0
-    estacoes = 0
-    livres = 0
-    ativos = 0
-    max_ping_ts = 0.0
-    ultimo_ping_dt: Optional[datetime] = None
-
-    for a in assets:
-        if a.status_online is True:
-            online += 1
-        elif a.status_online is False:
-            offline += 1
-        else:
-            nao_testado += 1
-
-        if a.origem == "estacao":
-            estacoes += 1
-        elif a.origem == "livre":
-            livres += 1
-        elif a.origem in ("manual", "planilha"):
-            ativos += 1
-
-        t = (a.tipo or "").upper()
-        if "IMPRESSORA" in t:
-            impressoras += 1
-        elif "SWITCH" in t or "ROTEADOR" in t or "FIREWALL" in t:
-            switches += 1
-        elif "POINT" in t or "WIFI" in t or re.search(r"\bAP\b", t):
-            aps += 1
-        else:
-            outros += 1
-
-        if a.ultimo_ping:
-            try:
-                ts = a.ultimo_ping.timestamp() if a.ultimo_ping.tzinfo else a.ultimo_ping.replace(tzinfo=timezone.utc).timestamp()
-                if ts > max_ping_ts:
-                    max_ping_ts = ts
-                    ultimo_ping_dt = a.ultimo_ping
-            except Exception:
-                pass
-
-    return NetworkAssetKPIs(
-        total=total,
-        online=online,
-        offline=offline,
-        nao_testado=nao_testado,
-        impressoras=impressoras,
-        switches=switches,
-        aps=aps,
-        outros=outros,
-        estacoes=estacoes,
-        livres=livres,
-        ativos=ativos,
-        testados=online + offline,
-        ultimo_ping=ultimo_ping_dt.isoformat() if ultimo_ping_dt else None,
-    )
+    return res.kpis
 

@@ -22,11 +22,11 @@ export default function EmbeddedSessionModal({
         className={`flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl transition-all ${
           isFullscreen
             ? 'fixed inset-0 h-full w-full rounded-none border-0'
-            : 'h-[92vh] w-[95vw] max-w-7xl'
+            : 'h-[calc(100vh-2rem)] max-h-[92vh] w-[95vw] max-w-7xl overflow-hidden'
         }`}
       >
         {/* Cabeçalho da Janela de Sessão */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2.5 shrink-0">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-800 ring-1 ring-blue-200">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -133,7 +133,7 @@ export default function EmbeddedSessionModal({
         </div>
 
         {/* Corpo do Modal com Iframe (Área de tela do computador remoto mantida em preto para legibilidade) */}
-        <div className="relative flex-1 bg-black">
+        <div className="relative flex-1 min-h-0 bg-black overflow-hidden">
           <iframe
             src={session.url}
             title={`Sessão Remota (${session.tab}) - ${session.hostname}`}
@@ -143,7 +143,7 @@ export default function EmbeddedSessionModal({
         </div>
 
         {/* Rodapé com Dica de SSL Autoassinado */}
-        <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-2 text-[11px] text-slate-600">
+        <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-2 text-[11px] text-slate-600 shrink-0">
           <div className="flex items-center gap-1.5 truncate">
             <span>💡 Bloqueio de conexão interna?</span>
             <a

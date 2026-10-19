@@ -43,6 +43,7 @@ export const deviceService = {
     if (params.disco_critico !== undefined) searchParams.set('disco_critico', String(params.disco_critico));
     if (params.sem_apps !== undefined) searchParams.set('sem_apps', String(params.sem_apps));
     if (params.com_apps !== undefined) searchParams.set('com_apps', String(params.com_apps));
+    if (params.status_conexao) searchParams.set('status_conexao', params.status_conexao);
     if (params.ordenar_por) searchParams.set('ordenar_por', params.ordenar_por);
     if (params.ordem_dir) searchParams.set('ordem_dir', params.ordem_dir);
     if (params.page) searchParams.set('page', String(params.page));

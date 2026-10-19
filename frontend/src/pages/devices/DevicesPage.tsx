@@ -375,7 +375,7 @@ export const DevicesPage: React.FC = () => {
 
       {/* Seção Recolhível dos 3 Gráficos Donut alimentados pelo Back-end */}
       {showCharts && chartsSummary && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in-50 duration-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch animate-in fade-in-50 duration-200">
           <DonutChart
             data={chartsSummary.plataforma}
             activeItem={filters.plataforma}

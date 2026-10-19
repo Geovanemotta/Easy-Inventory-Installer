@@ -25,7 +25,10 @@ from app.schemas.site import (
     SiteSimulationRequest,
     SiteSimulationResponse,
     SiteUpdate,
+    SiteIpRangeUpdate,
+    SiteIpRangeOut,
 )
+from app.services.network_asset_service import atualizar_ip_range
 from app.services.inventory_service import (
     identificar_site,
     simular_identificacao_site,
@@ -627,3 +630,24 @@ def reclassify_sites(
             total_reclassified=len(changes),
             changes=changes,
         )
+
+
+@router.put("/ranges/{range_id}", response_model=SiteIpRangeOut)
+def update_site_ip_range_route(
+    range_id: int,
+    data: SiteIpRangeUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    """Atualiza dados cadastrais ou filial vinculada de uma VLAN / Faixa de IP."""
+    _check_admin(current_user)
+    with Session(engine) as session:
+        res = atualizar_ip_range(
+            db=session,
+            current_user=current_user,
+            range_id=range_id,
+            data=data,
+        )
+        if not res:
+            raise HTTPException(status_code=404, detail="Faixa de IP não encontrada.")
+        return res
+

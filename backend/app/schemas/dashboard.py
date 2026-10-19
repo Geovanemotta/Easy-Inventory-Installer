@@ -83,6 +83,10 @@ class ReportSummaryResponse(BaseModel):
     total_grupos: int
     grupos: List[ReportGroupItem]
     maquinas: List[ReportMachineItem]
+    page: int = 1
+    per_page: int = 50
+    total_pages: int = 1
+    maquinas_total: int = 0
 
 
 # =====================================================================

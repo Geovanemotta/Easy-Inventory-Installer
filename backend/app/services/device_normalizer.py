@@ -1,7 +1,7 @@
 import ipaddress
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -376,6 +376,19 @@ def normalizar_fabricante_modelo(
 # 5. Normalização de Datas e Status de Comunicação
 # =====================================================================
 
+def formatar_data_brasilia(dt: Optional[datetime], incluir_segundos: bool = True) -> str:
+    """Converte e formata datetime UTC no fuso horário oficial de Brasília (America/Sao_Paulo, UTC-3)."""
+    if not dt:
+        return ""
+    if dt.tzinfo is not None:
+        dt_bsb = dt.astimezone(timezone(timedelta(hours=-3)))
+    else:
+        dt_utc = dt.replace(tzinfo=timezone.utc)
+        dt_bsb = dt_utc.astimezone(timezone(timedelta(hours=-3)))
+    fmt = "%d/%m/%Y %H:%M:%S" if incluir_segundos else "%d/%m/%Y %H:%M"
+    return dt_bsb.strftime(fmt)
+
+
 def normalizar_datas_e_status(
     data_coleta: Optional[datetime],
     now: Optional[datetime] = None,
@@ -406,8 +419,8 @@ def normalizar_datas_e_status(
     diff = max(timedelta(seconds=0), agora - d_coleta)
     diff_horas = diff.total_seconds() / 3600.0
 
-    # Formatação pt-BR da data
-    data_formatada = d_coleta.strftime("%d/%m/%Y %H:%M")
+    # Formatação pt-BR da data no fuso de Brasília (UTC-3)
+    data_formatada = formatar_data_brasilia(data_coleta, incluir_segundos=False)
 
     if diff_horas < 1.0:
         minutos = max(1, int(diff.total_seconds() / 60.0))
@@ -810,18 +823,25 @@ def normalizar_device_list_item(device: Any) -> Dict[str, Any]:
         so_formatado=so_info["so_formatado"],
     )
 
+    # Normalização de Loja / Filial sem duplicações do tipo [MATRIZ] MATRIZ
+    loja_val = device.loja
+    if not loja_val and getattr(device, "site", None):
+        loja_val = device.site.name
+    if loja_val:
+        loja_val = re.sub(r"^\[([^\]]+)\]\s*\1$", r"\1", str(loja_val).strip(), flags=re.I)
+
     return {
         "id": device.id,
         "company_id": device.company_id,
         "site_id": device.site_id,
         "hostname": device.hostname,
-        "loja": device.loja,
+        "loja": loja_val,
         "ip": ip_princ,
         "ip_secundario": ip_sec_str,
         "ips_extras": ips_extras,
         "mac": normalizar_mac(device.mac),
-        "sistema": device.sistema,
-        "versao": device.versao,
+        "sistema": so_info["so_formatado"] or device.sistema,
+        "versao": so_info["windows_release_formatado"] or device.versao,
         "so_formatado": so_info["so_formatado"],
         "familia_so": so_info["familia_so"],
         "status": st_op_cod,

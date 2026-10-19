@@ -1,3 +1,4 @@
+import math
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set
@@ -22,6 +23,7 @@ from app.schemas.software import (
     SoftwarePackageItem,
     SoftwareVersionCount,
 )
+from app.services.device_normalizer import normalizar_so
 
 # Filtro de pacotes de ruído (traduções, idiomas, documentações)
 NOISE_SOFTWARE_REGEX = re.compile(
@@ -92,7 +94,7 @@ def _obter_sites_permitidos(db: Session, user: User) -> Optional[List[int]]:
 
 def _determinar_plataforma(sistema: Optional[str]) -> str:
     s = (sistema or "").lower()
-    if any(k in s for k in ("linux", "ubuntu", "debian", "fedora", "centos", "redhat", "suse", "mint", "arch")):
+    if any(k in s for k in ("linux", "ubuntu", "kubuntu", "zorin", "debian", "fedora", "centos", "redhat", "suse", "mint", "arch")):
         return "Linux"
     return "Windows"
 
@@ -153,6 +155,9 @@ def obter_catalogo_softwares(
     plataforma: Optional[str] = None,
     categoria: Optional[str] = None,
     search: Optional[str] = None,
+    page: int = 1,
+    per_page: int = 25,
+    export_all: bool = False,
 ) -> SoftwareCatalogResponse:
     sites_permitidos = _obter_sites_permitidos(db, current_user)
     if sites_permitidos is not None and site_id is not None and site_id not in sites_permitidos:
@@ -161,6 +166,9 @@ def obter_catalogo_softwares(
             kpis=SoftwareCatalogKPIs(),
             navegadores_conformidade=[],
             total=0,
+            page=page,
+            per_page=per_page,
+            total_pages=1,
         )
 
     # 1. Total de máquinas inventariadas no recorte
@@ -304,6 +312,9 @@ def obter_catalogo_softwares(
             ),
             navegadores_conformidade=[],
             total=0,
+            page=page,
+            per_page=per_page,
+            total_pages=1,
         )
 
     software_ids = [r.id for r in soft_rows]
@@ -583,11 +594,26 @@ def obter_catalogo_softwares(
         outros=cat_counts["outro"],
     )
 
+    total = len(items)
+    page_num = max(1, page)
+    per_page_num = max(1, min(per_page, 5000))
+    total_pages = max(1, math.ceil(total / per_page_num))
+
+    if export_all:
+        page_items = items
+    else:
+        start_idx = (page_num - 1) * per_page_num
+        end_idx = start_idx + per_page_num
+        page_items = items[start_idx:end_idx]
+
     return SoftwareCatalogResponse(
-        items=items,
+        items=page_items,
         kpis=kpis,
         navegadores_conformidade=browser_compliance_list,
-        total=len(items),
+        total=total,
+        page=page_num,
+        per_page=per_page_num,
+        total_pages=total_pages,
     )
 
 
@@ -741,9 +767,24 @@ def obter_dispositivos_software(
             if primary_ver.lower() != v_filter and not any(p.versao and p.versao.lower() == v_filter for p in pkgs):
                 continue
 
-        plat = _determinar_plataforma(dev.sistema)
-        site_nome = dev.site.name if dev.site else None
-        site_codigo = dev.site.code if dev.site else None
+        # Normalização de SO e Plataforma
+        win_rel = getattr(dev, "windows_release", None)
+        if not win_rel and isinstance(getattr(dev, "extra_data", None), dict):
+            win_rel = dev.extra_data.get("windows_release") or dev.extra_data.get("release")
+        so_info = normalizar_so(dev.sistema, dev.versao, getattr(dev, "build", None), win_rel)
+        so_formatado = so_info.get("so_formatado") or dev.sistema
+        plat = so_info.get("familia_so") or _determinar_plataforma(so_formatado)
+
+        # Limpeza de loja / site para não duplicar [MATRIZ] MATRIZ
+        raw_site_nome = dev.site.name if dev.site else (dev.loja or None)
+        raw_site_codigo = dev.site.code if dev.site else None
+        clean_site_nome = raw_site_nome
+        clean_site_codigo = raw_site_codigo
+        if clean_site_nome and clean_site_codigo:
+            if clean_site_nome.strip().upper() == clean_site_codigo.strip().upper():
+                clean_site_codigo = None
+            else:
+                clean_site_nome = re.sub(r"^\[" + re.escape(clean_site_codigo) + r"\]\s*", "", clean_site_nome, flags=re.I).strip()
 
         # Alerta de desatualização apenas para aplicativo e agente
         if is_app_or_agent:
@@ -766,12 +807,12 @@ def obter_dispositivos_software(
                 hostname=dev.hostname,
                 ip=dev.ip,
                 mac=dev.mac,
-                sistema=dev.sistema,
-                versao_so=dev.versao,
+                sistema=so_formatado,
+                versao_so=so_info.get("windows_release_formatado") or dev.versao,
                 plataforma=plat,
                 site_id=dev.site_id,
-                site_nome=site_nome,
-                site_codigo=site_codigo,
+                site_nome=clean_site_nome,
+                site_codigo=clean_site_codigo,
                 versao_software=primary_ver,
                 is_latest=eh_recente,
                 status_conformidade=status_conf,

@@ -4,13 +4,6 @@ import {
   Zap,
   Edit2,
   Trash2,
-  Copy,
-  Check,
-  Cpu,
-  Radio,
-  Key,
-  FileText,
-  Clock,
   CheckCircle2,
   XCircle,
   HelpCircle,
@@ -18,10 +11,13 @@ import {
 } from 'lucide-react';
 import { NetworkAsset } from '@/types/networkAsset';
 import { Site } from '@/types/site';
-import { formatarMac, getTipoIcon } from './NetworkAssetsTable';
+import { getTipoIcon } from './NetworkAssetsTable';
 import { AssignLicenseModal } from './AssignLicenseModal';
 import { licenseService } from '@/services/licenseService';
 import { copyToClipboard as robustCopy } from '@/utils/clipboard';
+
+import { NetworkAssetTelemetrySection } from './NetworkAssetTelemetrySection';
+import { NetworkAssetFormSection } from './NetworkAssetFormSection';
 
 interface NetworkAssetDetailsDrawerProps {
   isOpen: boolean;
@@ -115,12 +111,11 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
         ...asset,
         ...(slot === 'windows' ? { serial_windows: null } : { serial_office: null }),
       };
-
       if (onUpdateAsset) onUpdateAsset(updated);
-      showToast(`Licença de ${slotLabel} desvinculada com sucesso.`);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      showToast(`Erro ao desvincular chave: ${msg}`);
+      showToast(`Chave de ${slotLabel} removida com sucesso.`);
+    } catch (err: any) {
+      console.error(`Erro ao desvincular serial ${slot}:`, err);
+      showToast(err?.message || `Não foi possível remover a chave de ${slotLabel}.`);
     } finally {
       setUnbindingSlot(null);
     }
@@ -266,503 +261,26 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
 
           {/* Drawer Body */}
           <div className="flex-1 overflow-y-auto p-6 space-y-5">
-            {/* Se for ESTAÇÃO DE TRABALHO: Visualização Enxuta e Focada */}
-            {isEstacao ? (
-              <>
-                {/* 1. Sistema Operacional & Rede */}
-                <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-4 shadow-2xs space-y-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-blue-800 flex items-center gap-2">
-                    <Monitor className="h-4 w-4 text-blue-600" />
-                    Sistema Operacional &amp; Conectividade
-                  </h3>
+            <NetworkAssetTelemetrySection
+              asset={asset}
+              site={site}
+              isEstacao={isEstacao}
+              copiedKey={copiedKey}
+              copyToClipboard={copyToClipboard}
+              formatRelativeTime={formatRelativeTime}
+            />
 
-                  {/* SO Badge */}
-                  <div className="p-3 rounded-lg bg-white border border-blue-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Sistema Operacional
-                      </span>
-                      <span className="text-sm font-bold text-slate-800">
-                        {asset.sistema_operacional || 'Sistema Integrado (Agente de Inventário)'}
-                      </span>
-                    </div>
-                    {asset.patrimonio && (
-                      <div className="text-right">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Patrimônio
-                        </span>
-                        <span className="font-mono text-xs font-bold text-slate-700">
-                          {asset.patrimonio}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">
-                        Endereço IPv4
-                      </span>
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-sm font-bold text-slate-800">
-                          {asset.ip || '—'}
-                        </span>
-                        {asset.ip && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(asset.ip!, 'ip')}
-                            className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                            title="Copiar IP"
-                          >
-                            {copiedKey === 'ip' ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">
-                        Endereço MAC
-                      </span>
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-sm font-semibold text-slate-800">
-                          {formatarMac(asset.mac)}
-                        </span>
-                        {asset.mac && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(formatarMac(asset.mac), 'mac')}
-                            className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                            title="Copiar MAC"
-                          >
-                            {copiedKey === 'mac' ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-slate-200 text-xs">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      Último Ping:
-                    </span>
-                    <span className="font-semibold text-slate-700">
-                      {formatRelativeTime(asset.ultimo_ping)}
-                    </span>
-                  </div>
-
-                  {asset.faixa_nome && (
-                    <div className="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
-                      <span className="text-slate-400">VLAN / Sub-rede:</span>
-                      <span className="font-semibold text-slate-800">{asset.faixa_nome}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. Licenças & Seriais (Windows / Office) com Ações do Admin */}
-                <div className="rounded-xl border border-amber-200 bg-amber-50/30 p-4 shadow-2xs space-y-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
-                    <Key className="h-4 w-4 text-amber-600" />
-                    Chaves &amp; Licenciamento (Windows / Office)
-                  </h3>
-
-                  <div className="space-y-2.5">
-                    {/* Slot Windows */}
-                    <div className="p-3 rounded-xl bg-white border border-amber-200/80 shadow-2xs space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-700">Serial Windows</span>
-                        {isAdmin && (
-                          <div className="flex items-center gap-1.5">
-                            {asset.serial_windows && (
-                              <button
-                                type="button"
-                                onClick={() => handleUnbindSerial('windows')}
-                                disabled={unbindingSlot === 'windows'}
-                                className="px-2 py-0.5 rounded text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors disabled:opacity-50"
-                                title="Desvincular chave"
-                              >
-                                {unbindingSlot === 'windows' ? 'Removendo...' : '✕ Remover'}
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleOpenLicenseModal('windows')}
-                              className="px-2 py-0.5 rounded text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
-                            >
-                              {asset.serial_windows ? 'Alterar' : '+ Atribuir'}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
-                        {isAdmin ? (
-                          asset.serial_windows ? (
-                            <span className="font-mono text-xs font-bold text-slate-800 tracking-wide select-all">
-                              {asset.serial_windows}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-400 italic">
-                              — Nenhum serial de Windows vinculado —
-                            </span>
-                          )
-                        ) : (
-                          asset.serial_windows ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                              Licenciado / Possui chave
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                              Sem chave
-                            </span>
-                          )
-                        )}
-
-                        {asset.serial_windows && isAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(asset.serial_windows!, 'win')}
-                            className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                            title="Copiar serial"
-                          >
-                            {copiedKey === 'win' ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Slot Office */}
-                    <div className="p-3 rounded-xl bg-white border border-amber-200/80 shadow-2xs space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-700">Serial Office</span>
-                        {isAdmin && (
-                          <div className="flex items-center gap-1.5">
-                            {asset.serial_office && (
-                              <button
-                                type="button"
-                                onClick={() => handleUnbindSerial('office')}
-                                disabled={unbindingSlot === 'office'}
-                                className="px-2 py-0.5 rounded text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors disabled:opacity-50"
-                                title="Desvincular chave"
-                              >
-                                {unbindingSlot === 'office' ? 'Removendo...' : '✕ Remover'}
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleOpenLicenseModal('office')}
-                              className="px-2 py-0.5 rounded text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
-                            >
-                              {asset.serial_office ? 'Alterar' : '+ Atribuir'}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
-                        {isAdmin ? (
-                          asset.serial_office ? (
-                            <span className="font-mono text-xs font-bold text-slate-800 tracking-wide select-all">
-                              {asset.serial_office}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-400 italic">
-                              — Nenhum serial de Office vinculado —
-                            </span>
-                          )
-                        ) : (
-                          asset.serial_office ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                              Licenciado / Possui chave
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                              Sem chave
-                            </span>
-                          )
-                        )}
-
-                        {asset.serial_office && isAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(asset.serial_office!, 'off')}
-                            className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                            title="Copiar serial"
-                          >
-                            {copiedKey === 'off' ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              /* Visualização Padrão para Ativos de Rede Gerais (Impressoras, Switches, APs, etc.) */
-              <>
-                {/* 1. Conectividade & Rede */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                    <Radio className="h-4 w-4 text-blue-600" />
-                    Conectividade &amp; Rede
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">
-                        Endereço IPv4
-                      </span>
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-sm font-bold text-slate-800">
-                          {asset.ip || '—'}
-                        </span>
-                        {asset.ip && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(asset.ip!, 'ip')}
-                            className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                            title="Copiar IP"
-                          >
-                            {copiedKey === 'ip' ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">
-                        Endereço MAC
-                      </span>
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-sm font-semibold text-slate-800">
-                          {formatarMac(asset.mac)}
-                        </span>
-                        {asset.mac && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(formatarMac(asset.mac), 'mac')}
-                            className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                            title="Copiar MAC"
-                          >
-                            {copiedKey === 'mac' ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-xs">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      Último Teste de Ping:
-                    </span>
-                    <span className="font-medium text-slate-700">
-                      {formatRelativeTime(asset.ultimo_ping)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2. Identificação do Equipamento */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                    <Cpu className="h-4 w-4 text-indigo-600" />
-                    Especificações do Equipamento
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">Filial</span>
-                      <span className="font-semibold text-slate-800">
-                        {site
-                          ? `${site.code} - ${site.name}`
-                          : asset.site_id
-                          ? `Filial #${asset.site_id}`
-                          : 'Sem filial vinculada'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">Localização / Setor</span>
-                      <span className="font-semibold text-slate-800">
-                        {asset.localizacao || '—'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">Patrimônio / Tombamento</span>
-                      <span className="font-semibold font-mono text-slate-800">
-                        {asset.patrimonio || '—'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">Nº de Série</span>
-                      <span className="font-semibold font-mono text-slate-800">
-                        {asset.numero_serie || '—'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">Fabricante</span>
-                      <span className="font-semibold text-slate-800">
-                        {asset.fabricante || '—'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">Modelo</span>
-                      <span className="font-semibold text-slate-800">
-                        {asset.modelo || '—'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Licenciamento de Software */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                      <Key className="h-4 w-4 text-amber-500" />
-                      Licenças &amp; Ativações
-                    </h3>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                      <div>
-                        <span className="text-[11px] font-medium text-slate-400 block">
-                          Serial Windows
-                        </span>
-                        {isAdmin ? (
-                          <span className="font-mono text-xs font-semibold text-slate-800">
-                            {asset.serial_windows || 'Nenhuma licença vinculada'}
-                          </span>
-                        ) : asset.serial_windows ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5">
-                            <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Licenciado / Possui chave
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200 mt-0.5">
-                            Sem chave
-                          </span>
-                        )}
-                      </div>
-                      {isAdmin && (
-                        <div className="flex items-center gap-1">
-                          {asset.serial_windows && (
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(asset.serial_windows!, 'win')}
-                              className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                              title="Copiar serial"
-                            >
-                              {copiedKey === 'win' ? (
-                                <Check className="h-3.5 w-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="h-3.5 w-3.5" />
-                              )}
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenLicenseModal('windows')}
-                            className="text-blue-600 hover:text-blue-800 text-[11px] font-semibold px-2 py-0.5 bg-white border border-slate-200 rounded"
-                          >
-                            {asset.serial_windows ? 'Alterar' : '+ Atribuir'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                      <div>
-                        <span className="text-[11px] font-medium text-slate-400 block">
-                          Serial Office
-                        </span>
-                        {isAdmin ? (
-                          <span className="font-mono text-xs font-semibold text-slate-800">
-                            {asset.serial_office || 'Nenhuma licença vinculada'}
-                          </span>
-                        ) : asset.serial_office ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5">
-                            <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Licenciado / Possui chave
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200 mt-0.5">
-                            Sem chave
-                          </span>
-                        )}
-                      </div>
-                      {isAdmin && (
-                        <div className="flex items-center gap-1">
-                          {asset.serial_office && (
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(asset.serial_office!, 'office')}
-                              className="text-slate-400 hover:text-slate-600 p-1 rounded"
-                              title="Copiar serial"
-                            >
-                              {copiedKey === 'office' ? (
-                                <Check className="h-3.5 w-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="h-3.5 w-3.5" />
-                              )}
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenLicenseModal('office')}
-                            className="text-blue-600 hover:text-blue-800 text-[11px] font-semibold px-2 py-0.5 bg-white border border-slate-200 rounded"
-                          >
-                            {asset.serial_office ? 'Alterar' : '+ Atribuir'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. Observações */}
-                {asset.observacoes && (
-                  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-slate-500" />
-                      Observações e Anotações
-                    </h3>
-                    <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed whitespace-pre-line">
-                      {asset.observacoes}
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
+            <NetworkAssetFormSection
+              asset={asset}
+              site={site}
+              isEstacao={isEstacao}
+              isAdmin={isAdmin}
+              copiedKey={copiedKey}
+              copyToClipboard={copyToClipboard}
+              handleUnbindSerial={handleUnbindSerial}
+              handleOpenLicenseModal={handleOpenLicenseModal}
+              unbindingSlot={unbindingSlot}
+            />
           </div>
 
           {/* Footer */}
@@ -790,3 +308,4 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
     </div>
   );
 };
+export default NetworkAssetDetailsDrawer;

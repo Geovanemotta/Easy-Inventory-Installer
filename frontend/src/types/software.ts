@@ -59,6 +59,9 @@ export interface SoftwareCatalogResponse {
   kpis: SoftwareCatalogKPIs;
   navegadores_conformidade?: BrowserComplianceSummary[];
   total: number;
+  page?: number;
+  per_page?: number;
+  total_pages?: number;
 }
 
 export interface SoftwareDeviceDetail {
@@ -95,4 +98,7 @@ export interface SoftwareFilterParams {
   plataforma?: 'linux' | 'windows' | string;
   categoria?: 'aplicativo' | 'agente' | 'runtime' | 'ferramenta' | string;
   search?: string;
+  page?: number;
+  per_page?: number;
+  export_all?: boolean;
 }

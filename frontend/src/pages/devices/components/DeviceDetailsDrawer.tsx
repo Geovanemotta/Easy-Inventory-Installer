@@ -12,37 +12,19 @@ import {
 import { deviceService } from '@/services/deviceService';
 import {
   X,
-  Cpu,
-  HardDrive,
   Monitor,
-  Network,
-  Clock,
   AlertTriangle,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Copy,
-  Check,
   Terminal,
-  Shield,
-  Tag,
   Trash2,
-  Package,
-  Folder,
-  Usb,
-  Smartphone,
-  Printer,
-  Keyboard,
-  Mouse,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  Database,
   History,
-  ArrowRight,
-  Loader2,
 } from 'lucide-react';
 import { copyToClipboard as robustCopy } from '@/utils/clipboard';
+
+import { DeviceOverviewTab } from './drawer-tabs/DeviceOverviewTab';
+import { DeviceDisksTab } from './drawer-tabs/DeviceDisksTab';
+import { DevicePeripheralsTab } from './drawer-tabs/DevicePeripheralsTab';
+import { DeviceSoftwareTab } from './drawer-tabs/DeviceSoftwareTab';
+import { DeviceHistoryTab } from './drawer-tabs/DeviceHistoryTab';
 
 interface DeviceDetailsDrawerProps {
   deviceId: number | null;
@@ -108,7 +90,6 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
   };
 
   useEffect(() => {
-    // Limpa estado da máquina anterior imediatamente
     setDevice(null);
     setError(null);
     setSoftwares([]);
@@ -145,7 +126,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
         }
       });
 
-    // Carrega histórico imediatamente para exibir o contador na aba
+    // Carrega histórico para exibir o contador na aba
     setLoadingHistory(true);
     setHistoryError(null);
     deviceService
@@ -192,44 +173,40 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
     setTimeout(() => setCopiedKey(null), 1500);
   };
 
-  const isLinux =
-    Boolean(device?.sistema && !device.sistema.toLowerCase().includes('windows'));
+  const isLinux = Boolean(device?.sistema && !device.sistema.toLowerCase().includes('windows'));
 
   // Parse de unidades de disco (normalizadas pelo back-end)
-  const unidadesDisco: UnidadeDisco[] = (() => {
+  const unidadesDisco: UnidadeDisco[] = useMemo(() => {
     if (!device?.analise_disco) return [];
     if (Array.isArray(device.analise_disco)) return device.analise_disco as UnidadeDisco[];
     if (Array.isArray(device.analise_disco.unidades)) return device.analise_disco.unidades;
     if (Array.isArray(device.analise_disco.particoes)) return device.analise_disco.particoes;
     if (Array.isArray(device.analise_disco.drives)) return device.analise_disco.drives;
     return [];
-  })();
+  }, [device?.analise_disco]);
 
   // Parse de análise de usuários
-  const usuariosPastas: AnaliseUsuario[] = (() => {
+  const usuariosPastas: AnaliseUsuario[] = useMemo(() => {
     if (!device?.analise_disco || Array.isArray(device.analise_disco)) return [];
     if (Array.isArray(device.analise_disco.usuarios)) return device.analise_disco.usuarios;
     if (Array.isArray(device.analise_disco.top_usuarios)) return device.analise_disco.top_usuarios;
     return [];
-  })();
+  }, [device?.analise_disco]);
 
   // Parse de /var/log
-  const varLogItens: ItemVarLog[] = (() => {
+  const varLogItens: ItemVarLog[] = useMemo(() => {
     if (!device?.analise_disco || Array.isArray(device.analise_disco)) return [];
     const an = device.analise_disco;
     if (Array.isArray(an.var_log)) return an.var_log;
     if (an.var_log && Array.isArray(an.var_log.top_itens)) return an.var_log.top_itens;
     return [];
-  })();
+  }, [device?.analise_disco]);
 
   const resumoUsuarios = device?.analise_disco?.resumo_usuarios;
   const resumoVarLog = device?.analise_disco?.var_log;
 
   // Periféricos normalizados e agrupados
-  const perifericos: PerifericoItem[] = Array.isArray(device?.perifericos)
-    ? device.perifericos
-    : [];
-
+  const perifericos: PerifericoItem[] = Array.isArray(device?.perifericos) ? device.perifericos : [];
   const perifericosAgrupados = device?.perifericos_agrupados;
 
   const softwareCounts = useMemo(() => {
@@ -452,7 +429,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
                       setLoading(false);
                     });
                 }}
-                className="mt-4 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="mt-4 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 Tentar novamente
               </button>
@@ -495,1013 +472,64 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
 
               {/* ABA 1: VISÃO GERAL & SPECS */}
               {activeTab === 'geral' && (
-                <div className="space-y-4">
-                  {/* Bloco 1: Rede & Conectividade (Acordeão) */}
-                  <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection('rede')}
-                      className="w-full flex items-center justify-between p-4 bg-slate-50/70 hover:bg-slate-100/60 transition-colors text-left"
-                    >
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                        <Network className="h-4 w-4 text-emerald-600" />
-                        Rede &amp; Acesso Remoto
-                      </span>
-                      {openSections.rede ? (
-                        <ChevronUp className="h-4 w-4 text-slate-400" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-slate-400" />
-                      )}
-                    </button>
-                    {openSections.rede && (
-                      <div className="p-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <span className="text-slate-400">IP Principal:</span>
-                          <div className="font-mono font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                            <span className={device.is_rede_formatacao ? 'text-orange-700 font-bold' : ''}>
-                              {device.ip || '---'}
-                            </span>
-                            {device.ip && (
-                              <button
-                                onClick={() => copyToClipboard(device.ip!, 'ip')}
-                                className="text-slate-400 hover:text-slate-700"
-                                title="Copiar IP Principal"
-                              >
-                                {copiedKey === 'ip' ? (
-                                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                ) : (
-                                  <Copy className="h-3.5 w-3.5" />
-                                )}
-                              </button>
-                            )}
-                            {device.is_rede_formatacao && (
-                              <span className="rounded bg-orange-100 px-1 py-0.2 text-[10px] font-bold text-orange-800">
-                                .88
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Endereço MAC:</span>
-                          <div className="font-mono font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                            <span>{device.mac || '---'}</span>
-                            {device.mac && (
-                              <button
-                                onClick={() => copyToClipboard(device.mac!, 'mac')}
-                                className="text-slate-400 hover:text-slate-700"
-                                title="Copiar MAC"
-                              >
-                                {copiedKey === 'mac' ? (
-                                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                ) : (
-                                  <Copy className="h-3.5 w-3.5" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* IPs Extras / Secundários Tratados */}
-                        {device.ips_extras && device.ips_extras.length > 0 && (
-                          <div className="sm:col-span-2 rounded-lg bg-blue-50/70 border border-blue-200 p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1.5">
-                                <Network className="h-3.5 w-3.5 text-blue-600" />
-                                IPs Secundários / Adicionais ({device.ips_extras.length})
-                              </span>
-                              <span className="text-[10px] text-blue-600 font-medium">Interfaces adicionais válidas</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {device.ips_extras.map((extraIp, idx) => (
-                                <div
-                                  key={idx}
-                                  className="inline-flex items-center gap-1.5 rounded-md bg-white px-2.5 py-1 text-xs font-mono font-semibold text-slate-800 border border-blue-200 shadow-2xs"
-                                >
-                                  <span>{extraIp}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => copyToClipboard(extraIp, `extra_ip_${idx}`)}
-                                    className="text-slate-400 hover:text-slate-700"
-                                    title="Copiar IP adicional"
-                                  >
-                                    {copiedKey === `extra_ip_${idx}` ? (
-                                      <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                    ) : (
-                                      <Copy className="h-3.5 w-3.5" />
-                                    )}
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <div>
-                          <span className="text-slate-400">RustDesk ID:</span>
-                          <div className="font-mono font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                            <span>{device.rustdesk_id || 'Não informado'}</span>
-                            {device.rustdesk_id && (
-                              <button
-                                onClick={() => copyToClipboard(device.rustdesk_id!, 'rustdesk')}
-                                className="text-slate-400 hover:text-slate-700"
-                                title="Copiar RustDesk ID"
-                              >
-                                {copiedKey === 'rustdesk' ? (
-                                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                ) : (
-                                  <Copy className="h-3.5 w-3.5" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Domínio / Usuário:</span>
-                          <div className="font-semibold text-slate-800 mt-0.5">
-                            {[device.dominio, device.usuario].filter(Boolean).join(' \\ ') || '---'}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Bloco 2: Hardware & Arquitetura (Acordeão) */}
-                  <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection('hardware')}
-                      className="w-full flex items-center justify-between p-4 bg-slate-50/70 hover:bg-slate-100/60 transition-colors text-left"
-                    >
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                        <Cpu className="h-4 w-4 text-blue-600" />
-                        Hardware &amp; Arquitetura
-                      </span>
-                      {openSections.hardware ? (
-                        <ChevronUp className="h-4 w-4 text-slate-400" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-slate-400" />
-                      )}
-                    </button>
-                    {openSections.hardware && (
-                      <div className="p-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <span className="text-slate-400">Processador:</span>
-                          <div className="font-semibold text-slate-800 mt-0.5">
-                            {device.processador_formatado || device.processador || 'Não informado'}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Memória RAM:</span>
-                          <div className="font-semibold text-slate-800 mt-0.5 flex items-center gap-2">
-                            <span>{device.ram_total_formatada || device.ram_total || 'Não informado'}</span>
-                            {device.ram_tipo && (
-                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200">
-                                {device.ram_tipo}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Placa-Mãe / Modelo:</span>
-                          <div className="font-semibold text-slate-800 mt-0.5">
-                            {device.modelo_formatado || [device.fabricante_limpo, device.modelo_limpo].filter(Boolean).join(' ') || 'Não informado'}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Número de Série (Chassi):</span>
-                          <div className="font-mono font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                            <span>{device.serial_limpo || device.serial || '---'}</span>
-                            {(device.serial_limpo || device.serial) && (
-                              <button
-                                onClick={() => copyToClipboard(device.serial_limpo || device.serial!, 'serial')}
-                                className="text-slate-400 hover:text-slate-700"
-                                title="Copiar Serial"
-                              >
-                                {copiedKey === 'serial' ? (
-                                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                ) : (
-                                  <Copy className="h-3.5 w-3.5" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {device.fabricante_limpo && (
-                          <div>
-                            <span className="text-slate-400">Fabricante:</span>
-                            <div className="font-semibold text-slate-800 mt-0.5">
-                              {device.fabricante_limpo}
-                            </div>
-                          </div>
-                        )}
-
-                        {device.modelo_limpo && (
-                          <div>
-                            <span className="text-slate-400">Modelo Específico:</span>
-                            <div className="font-semibold text-slate-800 mt-0.5">
-                              {device.modelo_limpo}
-                            </div>
-                          </div>
-                        )}
-
-                        {isAdmin ? (
-                          device.serial_windows && (
-                            <div className="sm:col-span-2 rounded-lg bg-slate-50 border border-slate-200 p-2.5 flex items-center justify-between font-mono text-xs">
-                              <span className="text-slate-500 font-sans">Chave Windows (OEM/BIOS):</span>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-slate-800">{device.serial_windows}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(device.serial_windows!, 'win_key')}
-                                  className="text-slate-400 hover:text-slate-700 p-1 rounded"
-                                  title="Copiar Chave Windows"
-                                >
-                                  {copiedKey === 'win_key' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        ) : (
-                          <div className="sm:col-span-2 rounded-lg bg-slate-50 border border-slate-200 p-2.5 flex items-center justify-between text-xs">
-                            <span className="text-slate-600 font-medium">Chave Windows:</span>
-                            {device.serial_windows ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                                Licenciado / Possui chave
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                                Sem chave
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {isAdmin ? (
-                          device.serial_office && (
-                            <div className="sm:col-span-2 rounded-lg bg-slate-50 border border-slate-200 p-2.5 flex items-center justify-between font-mono text-xs">
-                              <span className="text-slate-500 font-sans">Chave Office:</span>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-slate-800">{device.serial_office}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(device.serial_office!, 'off_key')}
-                                  className="text-slate-400 hover:text-slate-700 p-1 rounded"
-                                  title="Copiar Chave Office"
-                                >
-                                  {copiedKey === 'off_key' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        ) : (
-                          <div className="sm:col-span-2 rounded-lg bg-slate-50 border border-slate-200 p-2.5 flex items-center justify-between text-xs">
-                            <span className="text-slate-600 font-medium">Chave Office:</span>
-                            {device.serial_office ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                                Licenciado / Possui chave
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                                Sem chave
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Bloco 3: Sistema Operacional (Acordeão) */}
-                  <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection('sistema')}
-                      className="w-full flex items-center justify-between p-4 bg-slate-50/70 hover:bg-slate-100/60 transition-colors text-left"
-                    >
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                        <Monitor className="h-4 w-4 text-purple-600" />
-                        Sistema Operacional &amp; Sincronização
-                      </span>
-                      {openSections.sistema ? (
-                        <ChevronUp className="h-4 w-4 text-slate-400" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-slate-400" />
-                      )}
-                    </button>
-                    {openSections.sistema && (
-                      <div className="p-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <span className="text-slate-400">Sistema:</span>
-                          <div className="font-semibold text-slate-800 mt-0.5">
-                            {device.so_formatado || device.sistema || 'Não informado'}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Versão / Release / Build:</span>
-                          <div className="font-semibold text-slate-800 mt-0.5 flex items-center gap-2">
-                            <span>{device.versao || device.build || 'Não informado'}</span>
-                            {(device.windows_release_formatado || device.windows_release) && (
-                              <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200">
-                                Windows {device.windows_release_formatado || device.windows_release}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Status Operacional:</span>
-                          <div className="mt-0.5">
-                            <span
-                              className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                                device.status === 'OK'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : device.status === 'UPGRADE_REQUIRED'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-slate-100 text-slate-700'
-                              }`}
-                            >
-                              {device.status === 'OK'
-                                ? 'Atualizada'
-                                : device.status === 'UPGRADE_REQUIRED'
-                                ? 'Atualização Necessária'
-                                : 'Não Identificada'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-slate-400">Última Sincronização:</span>
-                          <div className="font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-slate-400" />
-                            <span>{device.data_coleta_formatada || (device.data_coleta ? String(device.data_coleta) : 'Sem data')}</span>
-                            {device.tempo_relativo_coleta && (
-                              <span className="text-[11px] text-slate-500 font-normal">
-                                ({device.tempo_relativo_coleta})
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Bloco 4: Patrimônio & Homologação Firewall (Acordeão) */}
-                  <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                    <div className="flex items-center justify-between p-4 bg-slate-50/70 hover:bg-slate-100/60 transition-colors">
-                      <button
-                        type="button"
-                        onClick={() => toggleSection('patrimonio')}
-                        className="flex-1 flex items-center justify-between text-left"
-                      >
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-amber-600" />
-                          Patrimônio &amp; Homologação de Firewall
-                        </span>
-                        {openSections.patrimonio ? (
-                          <ChevronUp className="h-4 w-4 text-slate-400 mr-2" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4 text-slate-400 mr-2" />
-                        )}
-                      </button>
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => onOpenPatrimonio(device)}
-                          className="flex items-center gap-1 rounded bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
-                        >
-                          <Tag className="h-3 w-3" /> Ajustar
-                        </button>
-                      )}
-                    </div>
-                    {openSections.patrimonio && (
-                      <div className="p-4 border-t border-slate-100 text-xs space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <span className="text-slate-400">Número de Patrimônio:</span>
-                            <div className="font-mono font-bold text-blue-700 text-sm mt-0.5 flex items-center gap-1.5">
-                              <span>{device.patrimonio || 'Não patrimoniado'}</span>
-                              {device.patrimonio && (
-                                <button
-                                  onClick={() => copyToClipboard(device.patrimonio!, 'pat')}
-                                  className="text-slate-400 hover:text-slate-700"
-                                  title="Copiar Patrimônio"
-                                >
-                                  {copiedKey === 'pat' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div>
-                            <span className="text-slate-400">Status Firewall:</span>
-                            <div className="mt-0.5">
-                              {device.firewall_status === 'confirmado' ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 font-semibold text-emerald-800">
-                                  <CheckCircle2 className="h-3.5 w-3.5" /> Liberado no Firewall
-                                </span>
-                              ) : device.firewall_status === 'pendente' ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 font-semibold text-amber-800">
-                                  <Clock className="h-3.5 w-3.5" /> Pendente de Homologação
-                                </span>
-                              ) : device.firewall_status === 'rejeitado' ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 font-semibold text-rose-800">
-                                  <XCircle className="h-3.5 w-3.5" /> Rejeitado
-                                </span>
-                              ) : (
-                                <span className="text-slate-400 italic">Não solicitado</span>
-                              )}
-                            </div>
-                          </div>
-
-                          {device.firewall_solicitado_por && (
-                            <div>
-                              <span className="text-slate-400">Solicitado por:</span>
-                              <div className="font-semibold text-slate-800 mt-0.5">
-                                {device.firewall_solicitado_por}
-                              </div>
-                            </div>
-                          )}
-
-                          {device.firewall_confirmado_por && (
-                            <div>
-                              <span className="text-slate-400">Confirmado por:</span>
-                              <div className="font-semibold text-slate-800 mt-0.5">
-                                {device.firewall_confirmado_por}
-                              </div>
-                            </div>
-                          )}
-
-                          {device.licenca_windows_solicitada && (
-                            <div className="sm:col-span-2 rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-amber-800 font-semibold">
-                              ⭐ Nova licença Windows solicitada pelo operador
-                            </div>
-                          )}
-                        </div>
-
-                        {isAdmin && (
-                          <div className="pt-3 border-t border-slate-100 flex justify-end">
-                            <button
-                              onClick={() => onOpenApproval(device)}
-                              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors shadow-xs"
-                            >
-                              <Shield className="h-3.5 w-3.5" />
-                              <span>Homologação e Ajuste Cadastral</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <DeviceOverviewTab
+                  device={device}
+                  isAdmin={isAdmin}
+                  onOpenPatrimonio={onOpenPatrimonio}
+                  onOpenApproval={onOpenApproval}
+                  openSections={openSections}
+                  toggleSection={toggleSection}
+                  copyToClipboard={copyToClipboard}
+                  copiedKey={copiedKey}
+                />
               )}
 
               {/* ABA 2: DISCOS & PASTAS */}
               {activeTab === 'discos' && (
-                <div className="space-y-4">
-                  {/* Resumo Geral de Capacidade */}
-                  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                        <HardDrive className="h-4 w-4 text-blue-600" />
-                        Capacidade Geral do Disco
-                      </h4>
-                      <span
-                        className={`text-sm font-bold ${
-                          (device.disco_percentual || 0) >= 85
-                            ? 'text-rose-600'
-                            : (device.disco_percentual || 0) >= 70
-                            ? 'text-amber-600'
-                            : 'text-slate-700'
-                        }`}
-                      >
-                        {device.disco_percentual || 0}% Usado
-                      </span>
-                    </div>
-
-                    <div className="h-2.5 w-full rounded-full bg-slate-200 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          (device.disco_percentual || 0) >= 85
-                            ? 'bg-rose-500'
-                            : (device.disco_percentual || 0) >= 70
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500'
-                        }`}
-                        style={{ width: `${Math.min(100, Math.max(0, device.disco_percentual || 0))}%` }}
-                      />
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
-                        <span className="text-slate-400 block text-[10px] uppercase">Usado</span>
-                        <strong className="text-slate-800 font-mono">
-                          {device.disco_usado_formatado || device.disco_usado || '---'}
-                        </strong>
-                      </div>
-                      <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
-                        <span className="text-slate-400 block text-[10px] uppercase">Livre</span>
-                        <strong className="text-slate-800 font-mono">
-                          {device.disco_livre_formatado || device.disco_livre || '---'}
-                        </strong>
-                      </div>
-                      <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
-                        <span className="text-slate-400 block text-[10px] uppercase">Total</span>
-                        <strong className="text-slate-800 font-mono">
-                          {device.disco_total_formatado || device.disco_total || '---'}
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Partições e Unidades de Disco (Acordeão) */}
-                  <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection('unidades')}
-                      className="w-full flex items-center justify-between p-4 bg-slate-50/70 hover:bg-slate-100/60 transition-colors text-left"
-                    >
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                        <Database className="h-4 w-4 text-blue-600" />
-                        Unidades &amp; Partições ({unidadesDisco.length})
-                      </span>
-                      {openSections.unidades ? (
-                        <ChevronUp className="h-4 w-4 text-slate-400" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-slate-400" />
-                      )}
-                    </button>
-                    {openSections.unidades && (
-                      <div className="p-4 border-t border-slate-100 space-y-3">
-                        {unidadesDisco.length === 0 ? (
-                          <div className="text-center py-6 text-xs text-slate-400">
-                            Nenhuma informação detalhada de unidades disponível.
-                          </div>
-                        ) : (
-                          unidadesDisco.map((u, idx) => {
-                            const pct =
-                              typeof u.percentual === 'number'
-                                ? u.percentual
-                                : parseFloat(String(u.percentual || u.percentual_usado || '0'));
-                            const isHigh = pct >= 85;
-                            const isMed = pct >= 70;
-
-                            return (
-                              <div key={idx} className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 text-xs">
-                                <div className="flex items-center justify-between font-semibold text-slate-800">
-                                  <span>
-                                    {u.ponto_montagem || u.montagem || u.letra || u.device || 'Unidade'}{' '}
-                                    {u.tipo_fs && <span className="text-slate-500 font-normal">({u.tipo_fs})</span>}
-                                    {u.rotulo && <span className="text-slate-400 font-normal"> [{u.rotulo}]</span>}
-                                  </span>
-                                  <span className={isHigh ? 'text-rose-600 font-bold' : isMed ? 'text-amber-600' : 'text-slate-700'}>
-                                    {Math.round(pct)}%
-                                  </span>
-                                </div>
-                                <div className="mt-1.5 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${
-                                      isHigh ? 'bg-rose-500' : isMed ? 'bg-amber-500' : 'bg-emerald-500'
-                                    }`}
-                                    style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
-                                  />
-                                </div>
-                                <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
-                                  <span>Usado: <strong>{u.usado || '---'}</strong></span>
-                                  <span>Livre: <strong>{u.livre || '---'}</strong></span>
-                                  <span>Total: <strong>{u.total || '---'}</strong></span>
-                                </div>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Perfis de Usuários e Pastas (Acordeão Expansível) */}
-                  {usuariosPastas.length > 0 && (
-                    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                      <button
-                        type="button"
-                        onClick={() => toggleSection('usuarios')}
-                        className="w-full flex items-center justify-between p-4 bg-slate-50/70 hover:bg-slate-100/60 transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Folder className="h-4 w-4 text-amber-600" />
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                            Perfis de Usuários ({usuariosPastas.length})
-                          </span>
-                          {resumoUsuarios?.soma_tamanho_formatada && (
-                            <span className="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200">
-                              Total: {resumoUsuarios.soma_tamanho_formatada}
-                            </span>
-                          )}
-                        </div>
-                        {openSections.usuarios ? (
-                          <ChevronUp className="h-4 w-4 text-slate-400" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4 text-slate-400" />
-                        )}
-                      </button>
-                      {openSections.usuarios && (
-                        <div className="p-4 border-t border-slate-100 space-y-2.5">
-                          {usuariosPastas.map((usr, uIdx) => {
-                            const sub = usr.pastas || usr.subpastas || [];
-                            const isExpanded = Boolean(expandedUsers[`usr_${uIdx}`]);
-                            return (
-                              <div
-                                key={uIdx}
-                                className="rounded-lg border border-slate-200 bg-slate-50/70 overflow-hidden text-xs"
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => toggleUser(`usr_${uIdx}`)}
-                                  className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-100/80 transition-colors text-left"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-slate-800">{usr.usuario}</span>
-                                    {sub.length > 0 && (
-                                      <span className="text-[10px] text-slate-400">
-                                        ({sub.length} pasta{sub.length > 1 ? 's' : ''})
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-mono font-bold text-slate-700">{usr.tamanho}</span>
-                                    {sub.length > 0 && (
-                                      isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-slate-400" /> : <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-                                    )}
-                                  </div>
-                                </button>
-
-                                {isExpanded && sub.length > 0 && (
-                                  <div className="px-3 pb-3 pt-1 border-t border-slate-200/60 bg-white space-y-1.5">
-                                    {sub.map((p, pIdx) => (
-                                      <div
-                                        key={pIdx}
-                                        className="flex items-center justify-between text-[11px] text-slate-600 py-0.5 border-b border-slate-100 last:border-none"
-                                        title={p.caminho || ''}
-                                      >
-                                        <span className="truncate max-w-xs">{p.pasta || p.nome}</span>
-                                        <span className="font-mono font-medium text-slate-800">{p.tamanho}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Logs do Sistema (/var/log no Linux) */}
-                  {varLogItens.length > 0 && (
-                    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                      <button
-                        type="button"
-                        onClick={() => toggleSection('logs')}
-                        className="w-full flex items-center justify-between p-4 bg-slate-50/70 hover:bg-slate-100/60 transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Folder className="h-4 w-4 text-indigo-600" />
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                            Logs do Sistema (/var/log)
-                          </span>
-                          {resumoVarLog?.tamanho_total && (
-                            <span className="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-800 border border-indigo-200">
-                              Total: {resumoVarLog.tamanho_total}
-                            </span>
-                          )}
-                        </div>
-                        {openSections.logs ? (
-                          <ChevronUp className="h-4 w-4 text-slate-400" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4 text-slate-400" />
-                        )}
-                      </button>
-                      {openSections.logs && (
-                        <div className="p-4 border-t border-slate-100 space-y-1.5">
-                          {varLogItens.map((log, lIdx) => (
-                            <div
-                              key={lIdx}
-                              className="flex items-center justify-between text-xs text-slate-600 py-1.5 border-b border-slate-100 last:border-none"
-                              title={log.caminho || ''}
-                            >
-                              <span className="font-mono truncate max-w-md">{log.nome || log.pasta}</span>
-                              <span className="font-mono font-medium text-slate-800">{log.tamanho}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <DeviceDisksTab
+                  device={device}
+                  unidadesDisco={unidadesDisco}
+                  usuariosPastas={usuariosPastas}
+                  varLogItens={varLogItens}
+                  resumoUsuarios={resumoUsuarios}
+                  resumoVarLog={resumoVarLog}
+                  openSections={openSections}
+                  toggleSection={toggleSection}
+                  expandedUsers={expandedUsers}
+                  toggleUser={toggleUser}
+                />
               )}
 
               {/* ABA 3: PERIFÉRICOS CONECTADOS */}
               {activeTab === 'perifericos' && (
-                <div className="space-y-4">
-                  {perifericos.length === 0 ? (
-                    <div className="text-center py-20 text-slate-400 text-xs">
-                      Nenhum periférico ou monitor registrado para este dispositivo.
-                    </div>
-                  ) : (
-                    <>
-                      {perifericosAgrupados && (
-                        <div className="flex flex-wrap gap-2 text-[11px]">
-                          {perifericosAgrupados.monitores?.length > 0 && (
-                            <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-blue-700 font-semibold border border-blue-200">
-                              Monitores: {perifericosAgrupados.monitores.length}
-                            </span>
-                          )}
-                          {perifericosAgrupados.armazenamento_usb?.length > 0 && (
-                            <span className="rounded-lg bg-cyan-50 px-2.5 py-1 text-cyan-700 font-semibold border border-cyan-200">
-                              USB Storage: {perifericosAgrupados.armazenamento_usb.length}
-                            </span>
-                          )}
-                          {perifericosAgrupados.smartphones?.length > 0 && (
-                            <span className="rounded-lg bg-purple-50 px-2.5 py-1 text-purple-700 font-semibold border border-purple-200">
-                              Celulares: {perifericosAgrupados.smartphones.length}
-                            </span>
-                          )}
-                          {perifericosAgrupados.impressoras?.length > 0 && (
-                            <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-emerald-700 font-semibold border border-emerald-200">
-                              Impressoras: {perifericosAgrupados.impressoras.length}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {perifericos.map((p, pIdx) => {
-                        const tipo = (p.tipo || 'outro').toLowerCase();
-                        let IconComp = Usb;
-                        let badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
-
-                        if (tipo === 'monitor') {
-                          IconComp = Monitor;
-                          badgeColor = 'bg-blue-100 text-blue-700 border-blue-200';
-                        } else if (tipo === 'smartphone') {
-                          IconComp = Smartphone;
-                          badgeColor = 'bg-purple-100 text-purple-700 border-purple-200';
-                        } else if (tipo === 'impressora') {
-                          IconComp = Printer;
-                          badgeColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-                        } else if (tipo === 'teclado') {
-                          IconComp = Keyboard;
-                          badgeColor = 'bg-amber-100 text-amber-700 border-amber-200';
-                        } else if (tipo === 'mouse') {
-                          IconComp = Mouse;
-                          badgeColor = 'bg-amber-100 text-amber-700 border-amber-200';
-                        } else if (tipo === 'armazenamento_usb') {
-                          IconComp = Usb;
-                          badgeColor = 'bg-cyan-100 text-cyan-700 border-cyan-200';
-                        }
-
-                        return (
-                          <div
-                            key={pIdx}
-                            className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs flex items-start gap-3 hover:border-slate-300 transition-colors"
-                          >
-                            <div className="rounded-lg bg-slate-100 p-2 text-slate-600 shrink-0">
-                              <IconComp className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1 min-w-0 text-xs">
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="font-semibold text-slate-800 truncate" title={p.nome}>
-                                  {p.nome}
-                                </span>
-                                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold border ${badgeColor}`}>
-                                  {p.tipo}
-                                </span>
-                              </div>
-                              <div className="text-slate-500 mt-1 space-y-0.5 text-[11px]">
-                                {p.fabricante && <div>Fabricante: {p.fabricante}</div>}
-                                {p.conexao && <div>Conexão: {p.conexao}</div>}
-                                {p.capacidade && <div>Capacidade: {p.capacidade}</div>}
-                                {p.serial && (
-                                  <div className="font-mono text-slate-700 flex items-center gap-1">
-                                    <span>S/N: {p.serial}</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => copyToClipboard(p.serial!, `perif_${pIdx}`)}
-                                      className="text-slate-400 hover:text-slate-600"
-                                      title="Copiar Serial"
-                                    >
-                                      {copiedKey === `perif_${pIdx}` ? (
-                                        <Check className="h-3 w-3 text-emerald-600" />
-                                      ) : (
-                                        <Copy className="h-3 w-3" />
-                                      )}
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-                </div>
+                <DevicePeripheralsTab
+                  perifericos={perifericos}
+                  perifericosAgrupados={perifericosAgrupados}
+                  copyToClipboard={copyToClipboard}
+                  copiedKey={copiedKey}
+                />
               )}
 
               {/* ABA 4: SOFTWARES INSTALADOS */}
               {activeTab === 'softwares' && (
-                <div className="space-y-4">
-                  {/* Barra de Pesquisa e Filtro de Categoria */}
-                  <div className="space-y-2.5">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <input
-                        type="text"
-                        value={softwareSearch}
-                        onChange={(e) => setSoftwareSearch(e.target.value)}
-                        placeholder="Buscar por nome do aplicativo, agente ou pacote..."
-                        className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-xs focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5 text-[11px]">
-                      {[
-                        { key: 'todos', label: 'Todos', count: softwareCounts.todos, color: 'text-slate-700' },
-                        { key: 'aplicativo', label: 'Aplicativos', count: softwareCounts.aplicativo, color: 'text-blue-700' },
-                        { key: 'agente', label: 'Agentes', count: softwareCounts.agente, color: 'text-purple-700' },
-                        { key: 'runtime', label: 'Runtimes', count: softwareCounts.runtime, color: 'text-emerald-700' },
-                        { key: 'ferramenta', label: 'Ferramentas', count: softwareCounts.ferramenta, color: 'text-amber-700' },
-                      ].map((cat) => {
-                        const active = softwareCategoryFilter === cat.key;
-                        return (
-                          <button
-                            key={cat.key}
-                            type="button"
-                            onClick={() => setSoftwareCategoryFilter(cat.key)}
-                            className={`rounded-lg px-2.5 py-1 font-medium transition-colors border flex items-center gap-1.5 ${
-                              active
-                                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                            }`}
-                          >
-                            <span>{cat.label}</span>
-                            <span
-                              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                active ? 'bg-slate-700 text-slate-100' : 'bg-slate-200 text-slate-700'
-                              }`}
-                            >
-                              {cat.count}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {loadingSoftware ? (
-                    <div className="text-center py-16 text-xs text-slate-400">
-                      Carregando inventário de softwares da máquina...
-                    </div>
-                  ) : filteredSoftwares.length === 0 ? (
-                    <div className="text-center py-16 text-xs text-slate-400">
-                      Nenhum software encontrado.
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                      {filteredSoftwares.map((sw: DeviceSoftwareItem, idx: number) => {
-                        const catLower = (sw.tipo || '').toLowerCase();
-                        let badgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
-                        if (catLower === 'aplicativo' || catLower === 'aplicativos') {
-                          badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
-                        } else if (catLower === 'agente' || catLower === 'agentes') {
-                          badgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
-                        } else if (catLower === 'runtime' || catLower === 'runtimes') {
-                          badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                        } else if (catLower === 'ferramenta' || catLower === 'ferramentas') {
-                          badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
-                        }
-
-                        const pkgs = sw.pacotes || (sw as any).packages || [];
-
-                        return (
-                          <div key={idx} className="p-3 text-xs hover:bg-slate-50/70 transition-colors">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-semibold text-slate-800 flex items-center gap-1.5 truncate" title={sw.nome}>
-                                <Package className="h-3.5 w-3.5 text-blue-600 shrink-0" />
-                                <span className="truncate">{sw.nome}</span>
-                              </span>
-                              <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold shrink-0 uppercase tracking-wide ${badgeClass}`}>
-                                {sw.tipo || 'aplicativo'}
-                              </span>
-                            </div>
-                            {pkgs && pkgs.length > 0 && (
-                              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                {pkgs.map((p: any, pIdx: number) => (
-                                  <span
-                                    key={pIdx}
-                                    className="rounded bg-slate-50 px-1.5 py-0.5 text-[10px] font-mono text-slate-600 border border-slate-200"
-                                  >
-                                    {p.pacote} {p.versao && <span className="text-slate-400">@ {p.versao}</span>}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <DeviceSoftwareTab
+                  loadingSoftware={loadingSoftware}
+                  filteredSoftwares={filteredSoftwares}
+                  softwareSearch={softwareSearch}
+                  setSoftwareSearch={setSoftwareSearch}
+                  softwareCategoryFilter={softwareCategoryFilter}
+                  setSoftwareCategoryFilter={setSoftwareCategoryFilter}
+                  softwareCounts={softwareCounts}
+                />
               )}
 
               {/* ABA 5: HISTÓRICO DE ALTERAÇÕES / HARDWARE DRIFT */}
               {activeTab === 'historico' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <History className="h-4 w-4 text-blue-600" />
-                        Linha do Tempo de Alterações
-                      </h4>
-                      <p className="text-xs text-slate-500">
-                        Histórico de mudanças em hardware, rede, sistema operacional e patrimônio (hardware drift).
-                      </p>
-                    </div>
-                    {history.length > 0 && (
-                      <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">
-                        {history.length} evento{history.length > 1 ? 's' : ''}
-                      </span>
-                    )}
-                  </div>
-
-                  {historyError && (
-                    <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span>{historyError}</span>
-                    </div>
-                  )}
-
-                  {loadingHistory ? (
-                    <div className="py-16 flex flex-col items-center justify-center gap-2 text-slate-400">
-                      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                      <span className="text-xs font-medium">Carregando linha do tempo...</span>
-                    </div>
-                  ) : history.length === 0 ? (
-                    <div className="py-16 text-center text-xs text-slate-400 italic">
-                      Nenhuma alteração registrada para este equipamento até o momento.
-                    </div>
-                  ) : (
-                    <div className="relative border-l-2 border-slate-200 ml-3 space-y-4 py-2">
-                      {history.map((item) => (
-                        <div key={item.id} className="relative pl-6">
-                          {/* Ponto indicador */}
-                          <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full border-2 border-white bg-blue-600" />
-
-                          <div className="rounded-xl border border-slate-200 bg-white p-3.5 text-xs shadow-2xs space-y-2">
-                            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                              <span className="font-bold uppercase tracking-wider text-blue-700 text-[11px]">
-                                {item.campo}
-                              </span>
-                              <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                                <Clock className="h-3 w-3" />
-                                {item.data_alteracao}
-                              </span>
-                            </div>
-
-                            <div className="space-y-1.5 pt-0.5">
-                              {item.valor_anterior && (
-                                <div className="text-slate-500 flex items-start gap-1.5">
-                                  <span className="font-semibold text-slate-400 shrink-0">De:</span>
-                                  <span className="line-through bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded font-mono text-[11px]">
-                                    {item.valor_anterior}
-                                  </span>
-                                </div>
-                              )}
-
-                              <div className="text-slate-800 font-medium flex items-start gap-1.5">
-                                <span className="font-semibold text-emerald-600 shrink-0 flex items-center">
-                                  <ArrowRight className="h-3 w-3 inline mr-0.5" /> Para:
-                                </span>
-                                <span className="bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded font-mono text-[11px] font-semibold">
-                                  {item.valor_novo || '(vazio)'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <DeviceHistoryTab
+                  history={history}
+                  loadingHistory={loadingHistory}
+                  historyError={historyError}
+                />
               )}
             </>
           )}
@@ -1536,3 +564,4 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
     </div>
   );
 };
+export default DeviceDetailsDrawer;

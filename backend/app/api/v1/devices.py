@@ -31,6 +31,7 @@ from app.services.inventory_service import (
     simular_identificacao_site,
 )
 from app.services.device_normalizer import (
+    formatar_data_brasilia,
     normalizar_device_detail,
     normalizar_device_list_item,
     normalizar_so,
@@ -513,6 +514,7 @@ def list_devices(
     disco_critico: Optional[bool] = None,
     sem_apps: Optional[bool] = None,
     com_apps: Optional[bool] = None,
+    status_conexao: Optional[str] = None,
     ordenar_por: Optional[str] = "loja",
     ordem_dir: Optional[str] = "asc",
 ):
@@ -755,6 +757,26 @@ def list_devices(
         if com_apps:
             query = query.where(has_apps_subq)
             count_query = count_query.where(has_apps_subq)
+
+        if status_conexao and isinstance(status_conexao, str):
+            sc = status_conexao.lower().strip()
+            if sc == "online":
+                now_minus_24h = datetime.utcnow() - timedelta(hours=24)
+                cond_online = Device.data_coleta >= now_minus_24h
+                query = query.where(cond_online)
+                count_query = count_query.where(cond_online)
+                kpi_query = kpi_query.where(cond_online)
+            elif sc == "offline":
+                cond_offline = or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))
+                query = query.where(cond_offline)
+                count_query = count_query.where(cond_offline)
+                kpi_query = kpi_query.where(cond_offline)
+            elif sc == "alerta":
+                now_minus_24h = datetime.utcnow() - timedelta(hours=24)
+                cond_alerta = and_(Device.data_coleta >= now_minus_48h, Device.data_coleta < now_minus_24h)
+                query = query.where(cond_alerta)
+                count_query = count_query.where(cond_alerta)
+                kpi_query = kpi_query.where(cond_alerta)
 
         total = session.scalar(count_query) or 0
         offset = (page - 1) * per_page
@@ -1204,6 +1226,7 @@ def get_device_history(
         if not device:
             raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
 
+        p_limit = limit if isinstance(limit, int) and limit > 0 else 100
         histories = session.scalars(
             select(DeviceHistory)
             .where(
@@ -1211,7 +1234,7 @@ def get_device_history(
                 DeviceHistory.campo.notin_(IGNORED_HISTORY_FIELDS),
             )
             .order_by(DeviceHistory.data_alteracao.desc())
-            .limit(limit)
+            .limit(p_limit)
         ).all()
 
         return [
@@ -1220,7 +1243,7 @@ def get_device_history(
                 "campo": h.campo,
                 "valor_anterior": h.valor_anterior,
                 "valor_novo": h.valor_novo,
-                "data_alteracao": h.data_alteracao.strftime("%d/%m/%Y %H:%M:%S") if h.data_alteracao else "",
+                "data_alteracao": formatar_data_brasilia(h.data_alteracao, incluir_segundos=True),
             }
             for h in histories
         ]

@@ -31,6 +31,12 @@ export const AppsPage: React.FC = () => {
   const [plataforma, setPlataforma] = useState<string>('todas');
   const [categoria, setCategoria] = useState<string>('todas');
 
+  // Paginação Server-Side
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(25);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   // Drawer de máquinas de software específico
   const [selectedSoftware, setSelectedSoftware] = useState<SoftwareCatalogItem | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -54,6 +60,8 @@ export const AppsPage: React.FC = () => {
 
     softwareService
       .getCatalog({
+        page,
+        per_page: perPage,
         site_id: siteIdNum,
         plataforma,
         categoria,
@@ -61,6 +69,8 @@ export const AppsPage: React.FC = () => {
       })
       .then((res: SoftwareCatalogResponse) => {
         setItems(res.items || []);
+        setTotalItems(res.total || 0);
+        setTotalPages(res.total_pages || 1);
         setKpis(res.kpis);
         if (res.navegadores_conformidade) {
           setNavegadores(res.navegadores_conformidade);
@@ -72,11 +82,31 @@ export const AppsPage: React.FC = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [siteId, plataforma, categoria, search]);
+  }, [page, perPage, siteId, plataforma, categoria, search]);
 
   useEffect(() => {
     loadCatalog();
   }, [loadCatalog]);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+  };
+
+  const handleSiteChange = (val: string) => {
+    setSiteId(val);
+    setPage(1);
+  };
+
+  const handlePlataformaChange = (val: string) => {
+    setPlataforma(val);
+    setPage(1);
+  };
+
+  const handleCategoriaChange = (val: string) => {
+    setCategoria(val);
+    setPage(1);
+  };
 
   const handleSelectSoftware = (software: SoftwareCatalogItem) => {
     setSelectedSoftware(software);
@@ -121,6 +151,7 @@ export const AppsPage: React.FC = () => {
     setSiteId('todos');
     setPlataforma('todas');
     setCategoria('todas');
+    setPage(1);
   };
 
   const handleOpenSemApps = () => {
@@ -146,46 +177,61 @@ export const AppsPage: React.FC = () => {
     navigate(`/devices?${params.toString()}`);
   };
 
-  const handleExportCatalogCsv = () => {
-    if (items.length === 0) return;
-    const headers = [
-      'Nome do Software',
-      'Identificador',
-      'Categoria',
-      'Versão Mais Recente (Parque)',
-      'Total de Versões Distintas',
-      'Total de Instalações',
-      'Percentual da Frota (%)',
-      'Atualizadas',
-      'Desatualizadas',
-      'Taxa de Conformidade (%)',
-    ];
-    const rows = items.map((item) => [
-      item.nome,
-      item.identifier,
-      item.tipo,
-      item.versao_mais_recente || item.ultima_versao || 'N/D',
-      item.total_versoes,
-      item.total_instalacoes,
-      `${item.percentual_parque}%`,
-      item.total_atualizadas ?? 0,
-      item.total_desatualizadas ?? 0,
-      `${item.taxa_conformidade ?? 100}%`,
-    ]);
+  const handleExportCatalogCsv = async () => {
+    try {
+      const siteIdNum = siteId !== 'todos' ? Number(siteId) : undefined;
+      const res = await softwareService.getCatalog({
+        site_id: siteIdNum,
+        plataforma,
+        categoria,
+        search,
+        export_all: true,
+      });
 
-    const csvContent = [
-      headers.join(';'),
-      ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')),
-    ].join('\r\n');
+      const exportItems = res.items || [];
+      if (exportItems.length === 0) return;
 
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `catalogo_softwares_giassi.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const headers = [
+        'Nome do Software',
+        'Identificador',
+        'Categoria',
+        'Versão Mais Recente (Parque)',
+        'Total de Versões Distintas',
+        'Total de Instalações',
+        'Percentual da Frota (%)',
+        'Atualizadas',
+        'Desatualizadas',
+        'Taxa de Conformidade (%)',
+      ];
+      const rows = exportItems.map((item) => [
+        item.nome,
+        item.identifier,
+        item.tipo,
+        item.versao_mais_recente || item.ultima_versao || 'N/D',
+        item.total_versoes,
+        item.total_instalacoes,
+        `${item.percentual_parque}%`,
+        item.total_atualizadas ?? 0,
+        item.total_desatualizadas ?? 0,
+        `${item.taxa_conformidade ?? 100}%`,
+      ]);
+
+      const csvContent = [
+        headers.join(';'),
+        ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')),
+      ].join('\r\n');
+
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `catalogo_softwares_giassi.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Erro ao exportar catálogo para CSV:', err);
+    }
   };
 
   return (
@@ -211,7 +257,7 @@ export const AppsPage: React.FC = () => {
       <AppsKpiStrip
         kpis={kpis}
         categoriaAtiva={categoria}
-        onSelectCategoria={(cat) => setCategoria(cat)}
+        onSelectCategoria={handleCategoriaChange}
         onOpenSemApps={handleOpenSemApps}
         onOpenComApps={handleOpenComApps}
         onNavigateSemApps={handleNavigateSemApps}
@@ -228,28 +274,37 @@ export const AppsPage: React.FC = () => {
       {/* Filtros de Busca, Filial e Plataforma com Botão de Limpar */}
       <AppsFilters
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         siteId={siteId}
-        onSiteChange={setSiteId}
+        onSiteChange={handleSiteChange}
         sites={sites}
         plataforma={plataforma}
-        onPlataformaChange={setPlataforma}
+        onPlataformaChange={handlePlataformaChange}
         categoria={categoria}
-        onCategoriaChange={setCategoria}
+        onCategoriaChange={handleCategoriaChange}
         onRefresh={loadCatalog}
         onResetFilters={handleResetFilters}
         onExportCsv={handleExportCatalogCsv}
         loading={loading}
-        totalFiltered={items.length}
+        totalFiltered={totalItems}
       />
 
-      {/* Tabela do Catálogo Paginada */}
+      {/* Tabela do Catálogo Paginada no Servidor */}
       <AppsTable
         items={items}
         totalFleet={kpis?.total_maquinas_inventariadas ?? 0}
         onSelectSoftware={handleSelectSoftware}
         selectedSoftwareId={selectedSoftware?.id}
         loading={loading}
+        page={page}
+        perPage={perPage}
+        totalItems={totalItems}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        onPerPageChange={(newPerPage) => {
+          setPerPage(newPerPage);
+          setPage(1);
+        }}
       />
 
       {/* Drawer de Máquinas do Software Paginado e com SSH */}
