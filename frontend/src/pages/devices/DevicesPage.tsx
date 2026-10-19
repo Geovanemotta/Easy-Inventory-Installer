@@ -18,7 +18,6 @@ import { DeviceApprovalModal } from './components/DeviceApprovalModal';
 import { DeviceHistoryDrawer } from './components/DeviceHistoryDrawer';
 import { DeviceDetailsDrawer } from './components/DeviceDetailsDrawer';
 import { DeleteDeviceModal } from './components/DeleteDeviceModal';
-import { AgentInstallModal } from './components/AgentInstallModal';
 import { SshTerminalModal } from './components/SshTerminalModal';
 import { DonutChart } from '@/components/common/DonutChart';
 import {
@@ -67,7 +66,6 @@ export const DevicesPage: React.FC = () => {
   const [approvalDevice, setApprovalDevice] = useState<DeviceListItem | null>(null);
   const [deviceToDelete, setDeviceToDelete] = useState<DeviceListItem | null>(null);
   const [sshTargetDevice, setSshTargetDevice] = useState<DeviceListItem | null>(null);
-  const [isAgentInstallOpen, setIsAgentInstallOpen] = useState<boolean>(false);
 
   // Evita qualquer requisição à API antes de sabermos os papéis do usuário (authLoading)
   // e de aplicar o filtro inicial obrigatório de bancada (.88) para operador_matriz.
@@ -192,16 +190,10 @@ export const DevicesPage: React.FC = () => {
       loadDevices(filtersRef.current, customEvent.detail?.silent ?? false);
     };
 
-    const handleInstallAgentEvent = () => {
-      setIsAgentInstallOpen(true);
-    };
-
     window.addEventListener('app:refresh-data', handleRefreshEvent);
-    window.addEventListener('app:open-install-agent', handleInstallAgentEvent);
 
     return () => {
       window.removeEventListener('app:refresh-data', handleRefreshEvent);
-      window.removeEventListener('app:open-install-agent', handleInstallAgentEvent);
     };
   }, [loadDevices]);
 
@@ -458,7 +450,7 @@ export const DevicesPage: React.FC = () => {
             {isAdmin && (
               <button
                 type="button"
-                onClick={() => setIsAgentInstallOpen(true)}
+                onClick={() => window.dispatchEvent(new CustomEvent('app:open-install-agent'))}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors cursor-pointer"
               >
                 <Zap className="h-3.5 w-3.5" />
@@ -644,12 +636,6 @@ export const DevicesPage: React.FC = () => {
           onClose={() => setSshTargetDevice(null)}
         />
       )}
-
-      {/* Modal de Instalação de Agente */}
-      <AgentInstallModal
-        isOpen={isAgentInstallOpen}
-        onClose={() => setIsAgentInstallOpen(false)}
-      />
     </div>
   );
 };

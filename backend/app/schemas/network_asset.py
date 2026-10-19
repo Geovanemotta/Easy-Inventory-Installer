@@ -124,10 +124,10 @@ class ScanBatchIn(BaseModel):
 class SiteIpRangeBase(BaseModel):
     site_id: int = Field(..., description="ID da filial/loja")
     nome: str = Field(..., min_length=2, max_length=100, description="Nome da faixa (ex: VLAN 10 - PDVs)")
-    ip_inicio: str = Field(..., min_length=7, max_length=45, description="IP Inicial da faixa (ex: 192.168.4.1)")
-    ip_fim: str = Field(..., min_length=7, max_length=45, description="IP Final da faixa (ex: 192.168.4.254)")
+    ip_inicio: str = Field(..., min_length=7, max_length=45, description="IP Inicial da faixa ou CIDR (ex: 192.168.4.1 ou 10.1.0.0/20)")
+    ip_fim: Optional[str] = Field(default=None, max_length=45, description="IP Final da faixa (opcional se informada máscara/CIDR)")
     gateway: Optional[str] = Field(default=None, max_length=45, description="Gateway da sub-rede")
-    mascara: Optional[str] = Field(default=None, max_length=45, description="Máscara de sub-rede (ex: 255.255.255.0 ou /24)")
+    mascara: Optional[str] = Field(default=None, max_length=45, description="Máscara de sub-rede (ex: 255.255.240.0 ou /20)")
     observacoes: Optional[str] = Field(default=None, max_length=255, description="Observações adicionais")
 
 

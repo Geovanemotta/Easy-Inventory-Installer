@@ -407,8 +407,14 @@ def listar_network_assets(
     deve_gerar_livres = (site_id is not None) or (faixa_id is not None) or (filtro_ocupacao == "livres")
     if deve_gerar_livres:
         for r_obj, s_int, e_int in parsed_ranges:
+            # Em redes WIFI ou DHCP sem reserva estática, não geramos milhares de linhas avulsas "livres"
+            # a não ser que o usuário filtre explicitamente por aquela faixa.
+            is_wifi_dhcp = ("WIFI" in (r_obj.nome or "").upper()) or ("DHCP" in (r_obj.nome or "").upper())
+            if is_wifi_dhcp and faixa_id != r_obj.id:
+                continue
+
             total_range = e_int - s_int + 1
-            limite = min(total_range, 2048)
+            limite = min(total_range, 4096)
             for ip_val in range(s_int, s_int + limite):
                 ip_str = str(ipaddress.IPv4Address(ip_val))
                 if ip_str not in occupied_ips:
@@ -1713,6 +1719,125 @@ def listar_ip_ranges(
     return out
 
 
+def processar_mascara_e_intervalo_ip(
+    ip_inicio_raw: str,
+    ip_fim_raw: Optional[str] = None,
+    mascara_raw: Optional[str] = None,
+) -> Tuple[str, str, Optional[str], int, int, int]:
+    """
+    Processa, normaliza e valida o intervalo de IP e a máscara de rede da sub-rede / VLAN.
+
+    Funcionalidades:
+    1. Suporte a CIDR diretamente no IP inicial (ex: '10.1.0.0/20').
+    2. Suporte a máscaras em formato decimal ('255.255.240.0') ou prefixo CIDR ('/20' ou '20').
+    3. Auto-preenchimento do IP final quando omitido ou igual ao inicial, calculando o broadcast (-1) da sub-rede.
+    4. Auto-dedução inteligente da máscara quando o intervalo de IPs cadastrado ultrapassa /24.
+    5. Suporte a sub-redes corporativas de grande escala (como VLAN WIFI /20 de 4096 hosts até /16 de 65.536 hosts).
+
+    Retorna: (clean_inicio, clean_fim, norm_mask, s_int, e_int, total)
+    """
+    inicio_str = (ip_inicio_raw or "").strip()
+    fim_str = (ip_fim_raw or "").strip() if ip_fim_raw else ""
+    mask_str = (mascara_raw or "").strip() if mascara_raw else ""
+
+    if not inicio_str:
+        raise HTTPException(status_code=400, detail="Endereço IP inicial é obrigatório.")
+
+    # 1. Suporte a CIDR em ip_inicio (ex: 10.1.0.0/20)
+    if "/" in inicio_str:
+        try:
+            net = ipaddress.IPv4Network(inicio_str, strict=False)
+            if net.num_addresses > 2:
+                s_int = int(net.network_address) + 1
+                e_int = int(net.broadcast_address) - 1
+            else:
+                s_int = int(net.network_address)
+                e_int = int(net.broadcast_address)
+            return (
+                str(ipaddress.IPv4Address(s_int)),
+                str(ipaddress.IPv4Address(e_int)),
+                str(net.netmask),
+                s_int,
+                e_int,
+                max(e_int - s_int + 1, 1),
+            )
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Bloco CIDR '{inicio_str}' inválido.")
+
+    # 2. Valida IP inicial
+    try:
+        s_ip = ipaddress.IPv4Address(inicio_str)
+        s_int = int(s_ip)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Endereço IP inicial '{inicio_str}' inválido.")
+
+    # 3. Processa e normaliza máscara se fornecida
+    norm_mask = None
+    mask_hosts = None
+    if mask_str:
+        clean_m = mask_str.lstrip("/")
+        try:
+            if clean_m.isdigit():
+                prefix = int(clean_m)
+                if not (1 <= prefix <= 32):
+                    raise ValueError()
+                net_dummy = ipaddress.IPv4Network(f"0.0.0.0/{prefix}", strict=False)
+            else:
+                net_dummy = ipaddress.IPv4Network(f"0.0.0.0/{clean_m}", strict=False)
+            norm_mask = str(net_dummy.netmask)
+            mask_hosts = net_dummy.num_addresses
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Máscara de sub-rede '{mask_str}' inválida. Use formato decimal (ex: 255.255.240.0) ou CIDR (ex: /20).",
+            )
+
+    # 4. Calcula IP final se omitido ou igual ao inicial quando máscara é informada
+    if (not fim_str or fim_str == inicio_str) and norm_mask:
+        try:
+            net = ipaddress.IPv4Network(f"{inicio_str}/{norm_mask}", strict=False)
+            if net.num_addresses > 2:
+                e_int = int(net.broadcast_address) - 1
+            else:
+                e_int = int(net.broadcast_address)
+            fim_str = str(ipaddress.IPv4Address(e_int))
+        except Exception:
+            raise HTTPException(status_code=400, detail="Não foi possível calcular o IP final com base na máscara informada.")
+    elif fim_str:
+        try:
+            e_ip = ipaddress.IPv4Address(fim_str)
+            e_int = int(e_ip)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Endereço IP final '{fim_str}' inválido.")
+    else:
+        raise HTTPException(status_code=400, detail="Informe o IP final da faixa ou forneça uma máscara de rede válida.")
+
+    if e_int < s_int:
+        raise HTTPException(status_code=400, detail="O IP final deve ser maior ou igual ao IP inicial.")
+
+    total = e_int - s_int + 1
+
+    # 5. Validação de limite máximo de capacidade (permite até /16 = 65.536 endereços)
+    if total > 65536:
+        raise HTTPException(
+            status_code=400,
+            detail=f"O intervalo de IPs ({total} endereços) excede o limite máximo permitido de 65.536 hosts (sub-rede /16).",
+        )
+
+    # 6. Auto-dedução inteligente da máscara quando o intervalo excede a máscara informada
+    if not norm_mask or (mask_hosts and total > mask_hosts):
+        bits = max(32 - math.ceil(math.log2(max(total, 2))), 16)
+        infer_net = ipaddress.IPv4Network(f"0.0.0.0/{bits}", strict=False)
+        norm_mask = str(infer_net.netmask)
+    elif norm_mask and mask_hosts and total > mask_hosts:
+        raise HTTPException(
+            status_code=400,
+            detail=f"O intervalo de {total} IPs excede a capacidade da máscara {norm_mask} (máximo {mask_hosts} endereços).",
+        )
+
+    return (inicio_str, fim_str, norm_mask, s_int, e_int, total)
+
+
 def criar_ip_range(
     db: Session,
     current_user: User,
@@ -1727,27 +1852,20 @@ def criar_ip_range(
     if not site:
         raise HTTPException(status_code=404, detail="Filial/Loja não encontrada.")
 
-    try:
-        s_int = int(ipaddress.IPv4Address(data.ip_inicio.strip()))
-        e_int = int(ipaddress.IPv4Address(data.ip_fim.strip()))
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Endereço IP inicial ou final inválido.")
-
-    if e_int < s_int:
-        raise HTTPException(status_code=400, detail="O IP final deve ser maior ou igual ao IP inicial.")
-
-    total = e_int - s_int + 1
-    if total > 2048:
-        raise HTTPException(status_code=400, detail="O intervalo de IPs não pode conter mais de 2048 endereços.")
+    clean_inicio, clean_fim, norm_mask, s_int, e_int, total = processar_mascara_e_intervalo_ip(
+        ip_inicio_raw=data.ip_inicio,
+        ip_fim_raw=data.ip_fim,
+        mascara_raw=data.mascara,
+    )
 
     range_obj = SiteIpRange(
         company_id=current_user.company_id,
         site_id=data.site_id,
         nome=data.nome.strip(),
-        ip_inicio=data.ip_inicio.strip(),
-        ip_fim=data.ip_fim.strip(),
+        ip_inicio=clean_inicio,
+        ip_fim=clean_fim,
         gateway=data.gateway.strip() if data.gateway else None,
-        mascara=data.mascara.strip() if data.mascara else None,
+        mascara=norm_mask,
         observacoes=data.observacoes.strip() if data.observacoes else None,
     )
     db.add(range_obj)
@@ -1787,18 +1905,19 @@ def atualizar_ip_range(
         if not site_obj:
             raise HTTPException(status_code=400, detail="Filial destino não encontrada ou inválida.")
         range_obj.site_id = novo_site_id
-    if "ip_inicio" in update_dict or "ip_fim" in update_dict:
+
+    if "ip_inicio" in update_dict or "ip_fim" in update_dict or "mascara" in update_dict:
         novo_inicio = update_dict.get("ip_inicio", range_obj.ip_inicio)
         novo_fim = update_dict.get("ip_fim", range_obj.ip_fim)
-        try:
-            s_int = int(ipaddress.IPv4Address(novo_inicio.strip()))
-            e_int = int(ipaddress.IPv4Address(novo_fim.strip()))
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Endereço IP inicial ou final inválido.")
-        if e_int < s_int:
-            raise HTTPException(status_code=400, detail="O IP final deve ser maior ou igual ao IP inicial.")
-        if (e_int - s_int + 1) > 2048:
-            raise HTTPException(status_code=400, detail="O intervalo de IPs não pode conter mais de 2048 endereços.")
+        nova_mask = update_dict.get("mascara", range_obj.mascara)
+        clean_inicio, clean_fim, norm_mask, s_int, e_int, total = processar_mascara_e_intervalo_ip(
+            ip_inicio_raw=novo_inicio,
+            ip_fim_raw=novo_fim,
+            mascara_raw=nova_mask,
+        )
+        update_dict["ip_inicio"] = clean_inicio
+        update_dict["ip_fim"] = clean_fim
+        update_dict["mascara"] = norm_mask
 
     for k, v in update_dict.items():
         if isinstance(v, str):

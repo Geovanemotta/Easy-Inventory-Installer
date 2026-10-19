@@ -88,7 +88,7 @@ export interface SiteIpRangeInput {
   site_id: number;
   nome: string;
   ip_inicio: string;
-  ip_fim: string;
+  ip_fim?: string | null;
   gateway?: string | null;
   mascara?: string | null;
   observacoes?: string | null;

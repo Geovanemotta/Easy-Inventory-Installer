@@ -71,8 +71,8 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
       setError('Selecione uma filial para a faixa de IP.');
       return;
     }
-    if (!nome.trim() || !ipInicio.trim() || !ipFim.trim()) {
-      setError('Preencha os campos obrigatórios (Nome, IP Inicial e IP Final).');
+    if (!nome.trim() || !ipInicio.trim() || (!ipFim.trim() && !ipInicio.includes('/') && !mascara.trim())) {
+      setError('Preencha os campos obrigatórios (Nome, IP Inicial e IP Final ou Máscara/CIDR).');
       return;
     }
 
@@ -83,7 +83,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
         site_id: Number(formSiteId),
         nome: nome.trim(),
         ip_inicio: ipInicio.trim(),
-        ip_fim: ipFim.trim(),
+        ip_fim: ipFim.trim() || null,
         gateway: gateway.trim() || null,
         mascara: mascara.trim() || null,
         observacoes: observacoes.trim() || null,
@@ -347,7 +347,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      placeholder="Ex: 192.168.4.1"
+                      placeholder="Ex: 192.168.4.1 ou 10.1.0.0/20"
                       value={ipInicio}
                       onChange={(e) => setIpInicio(e.target.value)}
                       className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -357,15 +357,14 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
 
                   <div>
                     <label className="block font-semibold text-slate-700 mb-1">
-                      IP Final <span className="text-rose-500">*</span>
+                      IP Final <span className="text-slate-400 font-normal text-[10px]">(ou auto via máscara)</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="Ex: 192.168.4.254"
+                      placeholder="Ex: 192.168.4.254 ou 10.1.15.254"
                       value={ipFim}
                       onChange={(e) => setIpFim(e.target.value)}
                       className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      required
                     />
                   </div>
 
@@ -384,7 +383,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                     <label className="block font-semibold text-slate-700 mb-1">Máscara Sub-rede</label>
                     <input
                       type="text"
-                      placeholder="255.255.255.0"
+                      placeholder="Ex: 255.255.240.0 ou /20"
                       value={mascara}
                       onChange={(e) => setMascara(e.target.value)}
                       className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"

@@ -988,10 +988,25 @@ def calcular_site_vlan_ips(
             except Exception:
                 gw_int = None
 
+        net_obj = None
+        if r.mascara and r.mascara.strip():
+            try:
+                m_str = r.mascara.strip().lstrip('/')
+                if m_str.isdigit():
+                    net_obj = ipaddress.IPv4Network(f"{r.ip_inicio.strip()}/{int(m_str)}", strict=False)
+                else:
+                    net_obj = ipaddress.IPv4Network(f"{r.ip_inicio.strip()}/{m_str}", strict=False)
+            except Exception:
+                net_obj = None
+
+        net_start_int = int(net_obj.network_address) if net_obj else None
+        net_end_int = int(net_obj.broadcast_address) if net_obj else None
+        is_class_c_or_smaller = (net_obj.prefixlen >= 24) if net_obj else ((e_int - s_int + 1) <= 256)
+
         free_ips = []
         workstation_used_ips = []
 
-        max_span = min(e_int - s_int + 1, 4096)
+        max_span = min(e_int - s_int + 1, 8192)
         for cur_int in range(s_int, s_int + max_span):
             cur_ip_str = str(ipaddress.IPv4Address(cur_int))
             last_octet = cur_int & 0xFF
@@ -1002,8 +1017,14 @@ def calcular_site_vlan_ips(
             if cur_ip_str in occupied_ips:
                 continue
 
-            if last_octet == 0 or last_octet == 255:
-                continue
+            # Se for /24 ou menor, descarta .0 e .255 tradicionais
+            # Se for sub-rede maior (ex: /20), descarta apenas o IP de rede e broadcast da sub-rede
+            if is_class_c_or_smaller:
+                if last_octet == 0 or last_octet == 255:
+                    continue
+            else:
+                if (net_start_int is not None and cur_int == net_start_int) or (net_end_int is not None and cur_int == net_end_int):
+                    continue
 
             free_ips.append(cur_ip_str)
 
@@ -1762,6 +1783,7 @@ def get_approval_context(
                 company_id=current_user.company_id,
                 db=session,
                 loja=device.loja,
+                ip=device.ip,
             )
             if sim_res and sim_res.get("matched"):
                 suggested_site_id = sim_res.get("site_id")

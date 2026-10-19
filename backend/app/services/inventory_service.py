@@ -9,8 +9,10 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.device import Device
 from app.models.device_history import DeviceHistory
 from app.models.device_software import DeviceSoftware
+from app.models.network_asset import NetworkAsset
 from app.models.site import Site
 from app.models.site_identifier import SiteIdentifier
+from app.models.site_ip_range import SiteIpRange
 from app.models.software import Software
 from app.models.software_package import SoftwarePackage
 from app.models.user import User
@@ -55,6 +57,7 @@ def simular_identificacao_site(
     company_id: int,
     db: Session,
     loja: Optional[str] = None,
+    ip: Optional[str] = None,
 ) -> Dict[str, Any]:
     h = (hostname or "").upper().strip()
     l_str = str(loja or "").upper().strip() if loja else ""
@@ -208,7 +211,39 @@ def simular_identificacao_site(
                         "details": f"Reconhecido pelo padrão estrutural de filial ({prefixo}) como '{site_regex.name}'.",
                     }
 
-    # 4. Fallback final para 'OUTROS'
+    # 4. Correspondência pela Faixa de IP / Sub-rede (SiteIpRange) configurada na filial (ex: VLAN WIFI ou faixas de loja)
+    if ip and not is_subnet_88(ip):
+        try:
+            ip_obj = ipaddress.IPv4Address(ip.strip())
+            if not (ip_obj.is_loopback or ip_obj.is_unspecified or ip_obj.is_link_local):
+                ip_int = int(ip_obj)
+                ranges = db.scalars(
+                    select(SiteIpRange)
+                    .join(Site, Site.id == SiteIpRange.site_id)
+                    .where(
+                        SiteIpRange.company_id == company_id,
+                        Site.active.is_(True),
+                    )
+                ).all()
+                for r in ranges:
+                    try:
+                        r_s_int = int(ipaddress.IPv4Address(r.ip_inicio.strip()))
+                        r_e_int = int(ipaddress.IPv4Address(r.ip_fim.strip()))
+                        if r_s_int <= ip_int <= r_e_int:
+                            return {
+                                "matched": True,
+                                "site_id": r.site.id,
+                                "site_name": r.site.name,
+                                "site_code": r.site.code,
+                                "matched_by": f"Faixa de IP ('{r.nome}')",
+                                "details": f"O IP '{ip}' pertence à sub-rede cadastrada '{r.nome}' ({r.ip_inicio} a {r.ip_fim}) de '{r.site.name}'.",
+                            }
+                    except Exception:
+                        continue
+        except Exception:
+            pass
+
+    # 5. Fallback final para 'OUTROS'
     site_outros = db.scalar(
         select(Site).where(
             Site.company_id == company_id,
@@ -241,8 +276,9 @@ def identificar_site(
     company_id: int,
     db: Session,
     loja: Optional[str] = None,
+    ip: Optional[str] = None,
 ) -> Optional[Site]:
-    res = simular_identificacao_site(hostname, company_id, db, loja)
+    res = simular_identificacao_site(hostname, company_id, db, loja, ip)
     if res.get("site_id"):
         return db.get(Site, res["site_id"])
     return None
@@ -304,6 +340,7 @@ def registrar_drift(
 
 
 DUMMY_MACS = {"02:00:4c:4f:4f:50", "00:00:00:00:00:00", ""}
+DUMMY_IPS = {"127.0.0.1", "0.0.0.0", "localhost", ""}
 
 DUMMY_SERIALS = {
     "to be filled by o.e.m.",
@@ -558,7 +595,28 @@ def upsert_device_from_payload(
         )
         conflito_mac_outro = db.scalar(query_conflito)
 
-    site = identificar_site(hostname, company_id, db, loja=dados.get("loja"))
+    # Checagem de Conflito de IP (Anti-duplicação de IP em estações ou ativos de rede)
+    conflito_ip_outro = None
+    conflito_ip_net = None
+    if ip and ip.strip().lower() not in DUMMY_IPS:
+        query_conflito_ip = select(Device).where(
+            Device.company_id == company_id,
+            Device.ip == ip.strip(),
+            Device.hostname.notilike(hostname),
+            Device.active.is_(True),
+        )
+        if device:
+            query_conflito_ip = query_conflito_ip.where(Device.id != device.id)
+        conflito_ip_outro = db.scalar(query_conflito_ip)
+
+        if not conflito_ip_outro:
+            query_conflito_net = select(NetworkAsset).where(
+                NetworkAsset.company_id == company_id,
+                NetworkAsset.ip == ip.strip(),
+            )
+            conflito_ip_net = db.scalar(query_conflito_net)
+
+    site = identificar_site(hostname, company_id, db, loja=dados.get("loja"), ip=ip)
     pct = converter_percentual(dados.get("disco_percentual") or dados.get("porcentagem_disco"))
     data_col = converter_data_coleta(dados.get("data_coleta")) or datetime.utcnow()
 
@@ -607,7 +665,63 @@ def upsert_device_from_payload(
             device.alerta_hardware = alerta_troca
             registrar_drift(db, device.id, "TROCA_MAC", device.mac, mac)
 
-        # 3. Registro de Hardware Drift e Mudanças Críticas (CPU, RAM, Disco, Placa-Mãe, SO, IP e Hostname)
+        # 3. Alerta de Conflito de IP com outro equipamento (estação ou ativo de rede)
+        if conflito_ip_outro:
+            alerta_ip_msg = (
+                f"Conflito de IP: Endereço {ip} já atribuído à estação "
+                f"'{conflito_ip_outro.hostname}' (IP duplicado na rede)"
+            )
+            if not device.alerta_hardware or "Conflito de IP" not in device.alerta_hardware:
+                registrar_drift(
+                    db,
+                    device.id,
+                    "ALERTA_CONFLITO_IP",
+                    f"IP em {conflito_ip_outro.hostname}",
+                    f"Detectado em {hostname} ({ip})",
+                )
+
+            if device.alerta_hardware and "Conflito de MAC" in device.alerta_hardware:
+                device.alerta_hardware = f"{device.alerta_hardware[:120]} | {alerta_ip_msg}"[:255]
+            else:
+                device.alerta_hardware = alerta_ip_msg[:255]
+
+            alerta_ip_outro_msg = (
+                f"Conflito de IP: Endereço {ip} foi reportado pela estação "
+                f"'{hostname}' (IP duplicado na rede)"
+            )
+            if not conflito_ip_outro.alerta_hardware or "Conflito de IP" not in conflito_ip_outro.alerta_hardware:
+                registrar_drift(
+                    db,
+                    conflito_ip_outro.id,
+                    "ALERTA_CONFLITO_IP",
+                    f"IP em {conflito_ip_outro.hostname}",
+                    f"Detectado em {hostname} ({ip})",
+                )
+
+            if conflito_ip_outro.alerta_hardware and "Conflito de MAC" in conflito_ip_outro.alerta_hardware:
+                conflito_ip_outro.alerta_hardware = f"{conflito_ip_outro.alerta_hardware[:120]} | {alerta_ip_outro_msg}"[:255]
+            else:
+                conflito_ip_outro.alerta_hardware = alerta_ip_outro_msg[:255]
+        elif conflito_ip_net:
+            alerta_net_msg = (
+                f"Conflito de IP: Endereço {ip} já cadastrado no ativo de rede "
+                f"'{conflito_ip_net.nome}' ({conflito_ip_net.tipo})"
+            )
+            if not device.alerta_hardware or "Conflito de IP" not in device.alerta_hardware:
+                registrar_drift(
+                    db,
+                    device.id,
+                    "ALERTA_CONFLITO_IP",
+                    f"Ativo de rede {conflito_ip_net.nome}",
+                    f"Detectado em {hostname} ({ip})",
+                )
+
+            if device.alerta_hardware and "Conflito de MAC" in device.alerta_hardware:
+                device.alerta_hardware = f"{device.alerta_hardware[:120]} | {alerta_net_msg}"[:255]
+            else:
+                device.alerta_hardware = alerta_net_msg[:255]
+
+        # 4. Registro de Hardware Drift e Mudanças Críticas (CPU, RAM, Disco, Placa-Mãe, SO, IP e Hostname)
         if device.hostname and hostname and device.hostname.lower() != hostname.lower():
             registrar_drift(db, device.id, "HOSTNAME", device.hostname, hostname)
 
@@ -626,7 +740,7 @@ def upsert_device_from_payload(
         if old_os and new_os and old_os.lower() != new_os.lower():
             registrar_drift(db, device.id, "SISTEMA_OPERACIONAL", old_os, new_os)
 
-        registrar_drift(db, device.id, "ENDERECO_IP", device.ip, ip)
+        registrar_drift(db, device.id, "ENDERECO_IP", device.ip or "(vazio)", ip)
 
         # Atualiza dispositivo existente
         if site:
@@ -689,6 +803,37 @@ def upsert_device_from_payload(
                 f"Detectado em nova máquina {hostname} ({mac})",
             )
 
+        if conflito_ip_outro:
+            alerta_ip_inicial = (
+                f"Conflito de IP: Endereço {ip} já atribuído à estação "
+                f"'{conflito_ip_outro.hostname}' (IP duplicado na rede)"
+            )
+            if alerta_inicial:
+                alerta_inicial = f"{alerta_inicial[:120]} | {alerta_ip_inicial}"[:255]
+            else:
+                alerta_inicial = alerta_ip_inicial[:255]
+
+            conflito_ip_outro.alerta_hardware = (
+                f"Conflito de IP: Endereço {ip} foi detectado na nova máquina "
+                f"'{hostname}' (IP duplicado na rede)"
+            )[:255]
+            registrar_drift(
+                db,
+                conflito_ip_outro.id,
+                "ALERTA_CONFLITO_IP",
+                f"IP em {conflito_ip_outro.hostname}",
+                f"Detectado em nova máquina {hostname} ({ip})",
+            )
+        elif conflito_ip_net:
+            alerta_net_inicial = (
+                f"Conflito de IP: Endereço {ip} já cadastrado no ativo de rede "
+                f"'{conflito_ip_net.nome}' ({conflito_ip_net.tipo})"
+            )
+            if alerta_inicial:
+                alerta_inicial = f"{alerta_inicial[:120]} | {alerta_net_inicial}"[:255]
+            else:
+                alerta_inicial = alerta_net_inicial[:255]
+
         device = Device(
             company_id=company_id,
             site_id=site.id if site else None,
@@ -739,13 +884,29 @@ def upsert_device_from_payload(
                 data_alteracao=datetime.utcnow(),
             )
         )
-        if alerta_inicial:
+        if conflito_mac_outro:
             registrar_drift(
                 db,
                 device.id,
                 "ALERTA_CONFLITO_MAC",
                 f"MAC em {conflito_mac_outro.hostname}",
                 f"Detectado com hostname {hostname} ({mac})",
+            )
+        if conflito_ip_outro:
+            registrar_drift(
+                db,
+                device.id,
+                "ALERTA_CONFLITO_IP",
+                f"IP em {conflito_ip_outro.hostname}",
+                f"Detectado com hostname {hostname} ({ip})",
+            )
+        elif conflito_ip_net:
+            registrar_drift(
+                db,
+                device.id,
+                "ALERTA_CONFLITO_IP",
+                f"Ativo de rede {conflito_ip_net.nome}",
+                f"Detectado com hostname {hostname} ({ip})",
             )
 
     db.commit()

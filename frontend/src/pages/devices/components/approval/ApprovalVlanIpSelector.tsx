@@ -107,7 +107,12 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
               </span>
             )}
           </label>
-          {vlanRanges.length > 0 ? (
+          {loadingVlans ? (
+            <div className="w-full rounded-lg border border-purple-200 bg-purple-50/50 py-2 px-3 text-xs text-purple-700 flex items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-purple-600 shrink-0" />
+              <span>Buscando VLANs da filial...</span>
+            </div>
+          ) : vlanRanges.length > 0 ? (
             <select
               value={selectedRangeId}
               onChange={(e) => handleRangeChange(e.target.value ? Number(e.target.value) : '')}
@@ -132,7 +137,13 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
       </div>
 
       {/* Se há faixas cadastradas na filial */}
-      {currentRange ? (
+      {loadingVlans ? (
+        <div className="rounded-xl border border-purple-200 bg-purple-50/30 p-6 flex flex-col items-center justify-center gap-2 text-xs text-purple-700 animate-pulse">
+          <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
+          <span className="font-semibold text-slate-700">Atualizando faixas de rede e endereços IP...</span>
+          <span className="text-[11px] text-slate-400">Consultando faixas VLAN e disponibilidade de IPs da filial selecionada</span>
+        </div>
+      ) : currentRange ? (
         <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
           {/* Linha de Status da Faixa & Modo de Escolha */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80">
@@ -227,6 +238,11 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
                   className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs font-mono focus:border-blue-500 focus:outline-none bg-white"
                 >
                   <option value="">-- Selecione um IP Livre ({filteredFreeIps.length} disponíveis) --</option>
+                  {ipDefinitivo && !filteredFreeIps.includes(ipDefinitivo) && (
+                    <option key={ipDefinitivo} value={ipDefinitivo}>
+                      {ipDefinitivo} (Atual / Selecionado)
+                    </option>
+                  )}
                   {filteredFreeIps.map((ip) => (
                     <option key={ip} value={ip}>
                       {ip}
@@ -255,6 +271,11 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
                   <option value="">
                     -- Selecione a Estação para Reutilizar IP ({filteredWorkstationIps.length} cadastradas) --
                   </option>
+                  {ipDefinitivo && !filteredWorkstationIps.some((w) => w.ip === ipDefinitivo) && (
+                    <option key={ipDefinitivo} value={ipDefinitivo}>
+                      {ipDefinitivo} (Selecionado)
+                    </option>
+                  )}
                   {filteredWorkstationIps.map((w) => (
                     <option key={w.ip} value={w.ip}>
                       {w.ip} &mdash; {w.hostname} {w.patrimonio ? `(${w.patrimonio})` : ''} {w.sistema ? `[${w.sistema}]` : ''}

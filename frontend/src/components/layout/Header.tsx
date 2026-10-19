@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { RefreshCw, Download, Activity } from 'lucide-react';
+import { AgentInstallModal } from '@/pages/devices/components/AgentInstallModal';
 
 export const Header: React.FC = () => {
   const { isAdmin } = useAuth();
+  const location = useLocation();
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
-  // Auto-refresh silencioso a cada 5 minutos (300.000 ms)
+  // Fecha o modal de instalação automaticamente ao trocar de tela / módulo
+  useEffect(() => {
+    setIsInstallModalOpen(false);
+  }, [location.pathname]);
+
+  // Auto-refresh silencioso a cada 5 minutos (300.000 ms) e ouvinte global para abrir modal de agente
   useEffect(() => {
     const interval = setInterval(() => {
       // Dispara evento de atualização silenciosa sem travar a interface nem exibir spinner de página
@@ -19,7 +28,15 @@ export const Header: React.FC = () => {
       setLastSync(new Date());
     }, 5 * 60 * 1000);
 
-    return () => clearInterval(interval);
+    const handleOpenAgentModal = () => {
+      setIsInstallModalOpen(true);
+    };
+    window.addEventListener('app:open-install-agent', handleOpenAgentModal);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('app:open-install-agent', handleOpenAgentModal);
+    };
   }, []);
 
   const handleManualRefresh = () => {
@@ -34,7 +51,7 @@ export const Header: React.FC = () => {
   };
 
   const handleOpenInstallAgent = () => {
-    window.dispatchEvent(new CustomEvent('app:open-install-agent'));
+    setIsInstallModalOpen(true);
   };
 
   const formatHora = (d: Date) => {
@@ -97,6 +114,14 @@ export const Header: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* Modal Global de Instalação de Agentes (Acessível de qualquer tela) */}
+      {isAdmin && (
+        <AgentInstallModal
+          isOpen={isInstallModalOpen}
+          onClose={() => setIsInstallModalOpen(false)}
+        />
+      )}
     </header>
   );
 };

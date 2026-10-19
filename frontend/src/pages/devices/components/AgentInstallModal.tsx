@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Copy, Check, Terminal, Shield, Zap } from 'lucide-react';
 import { copyToClipboard as robustCopy } from '@/utils/clipboard';
 
@@ -10,6 +11,17 @@ interface AgentInstallModalProps {
 export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'linux' | 'windows'>('linux');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -32,10 +44,13 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
   const winPowerShell = `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; iex (New-Object Net.WebClient).DownloadString('${agentBaseUrl}/api/v1/agent/windows')`;
   const winSchtasks = `schtasks /create /tn "DeviceInventory" /tr "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -Command \\"[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {\\$true}; iex (New-Object Net.WebClient).DownloadString('${agentBaseUrl}/api/v1/agent/windows')\\"" /sc daily /st 12:00 /ru "SYSTEM" /f`;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden"
+        className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho */}
@@ -227,6 +242,7 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -105,6 +105,11 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
             isIpInRange(data.network_context.ip_anterior_sugerido!, r.ip_start, r.ip_end)
           );
           if (match) chosenRange = match;
+        } else if (data.device.ip && !data.device.is_rede_formatacao && initialRanges.length > 0) {
+          const match = initialRanges.find((r) =>
+            isIpInRange(data.device.ip, r.ip_start, r.ip_end)
+          );
+          if (match) chosenRange = match;
         }
 
         if (chosenRange) {
@@ -121,6 +126,13 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
             setReutilizarIpEstacao(true);
             setConfirmarSobrescrita(true);
           }
+        } else if (
+          data.device.ip &&
+          !data.device.is_rede_formatacao &&
+          chosenRange &&
+          isIpInRange(data.device.ip, chosenRange.ip_start, chosenRange.ip_end)
+        ) {
+          setIpDefinitivo(data.device.ip);
         } else if (chosenRange && chosenRange.free_ips.length > 0) {
           setIpDefinitivo(chosenRange.free_ips[0]);
         }
@@ -141,12 +153,12 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
   // Carrega as VLANs quando o usuário altera a filial selecionada
   const handleSiteChange = async (siteId: number | '') => {
     setSelectedSiteId(siteId);
-    setSelectedRangeId('');
-    setIpDefinitivo('');
-    setConfirmarSobrescrita(false);
     setIpFilterText('');
 
     if (!siteId) {
+      setSelectedRangeId('');
+      setIpDefinitivo('');
+      setConfirmarSobrescrita(false);
       setVlanRanges([]);
       return;
     }
@@ -154,13 +166,39 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
     try {
       setLoadingVlans(true);
       const res = await deviceService.getSiteVlanIps(siteId);
-      setVlanRanges(res.ranges || []);
-      if (res.ranges && res.ranges.length > 0) {
-        const first = res.ranges[0];
-        setSelectedRangeId(first.id);
-        if (first.free_ips.length > 0) {
-          setIpDefinitivo(first.free_ips[0]);
+      const ranges = res.ranges || [];
+      setVlanRanges(ranges);
+
+      if (ranges.length > 0) {
+        let first = ranges[0];
+        const devIp = device.ip;
+        if (devIp && !context?.device.is_rede_formatacao) {
+          const matched = ranges.find((r) => isIpInRange(devIp, r.ip_start, r.ip_end));
+          if (matched) first = matched;
         }
+
+        setSelectedRangeId(first.id);
+        if (reutilizarIpEstacao && first.workstation_used_ips.length > 0) {
+          setIpDefinitivo(first.workstation_used_ips[0].ip);
+          setConfirmarSobrescrita(true);
+        } else if (
+          devIp &&
+          !context?.device.is_rede_formatacao &&
+          isIpInRange(devIp, first.ip_start, first.ip_end)
+        ) {
+          setIpDefinitivo(devIp);
+          setConfirmarSobrescrita(false);
+        } else if (first.free_ips.length > 0) {
+          setIpDefinitivo(first.free_ips[0]);
+          setConfirmarSobrescrita(false);
+        } else {
+          setIpDefinitivo('');
+          setConfirmarSobrescrita(false);
+        }
+      } else {
+        setSelectedRangeId('');
+        setIpDefinitivo('');
+        setConfirmarSobrescrita(false);
       }
     } catch (err) {
       console.error('Erro ao buscar VLANs da filial:', err);
