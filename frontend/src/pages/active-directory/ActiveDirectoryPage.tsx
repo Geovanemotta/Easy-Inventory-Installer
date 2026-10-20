@@ -4,6 +4,7 @@ import { getADConfig, saveADConfig, testADConnection } from '../../services/adSe
 import { siteService } from '../../services/siteService'
 import type { ADConfig, TestConnectionResult } from '../../types/ad'
 import type { Site } from '../../types/site'
+import { ShieldCheck, Network, Users, UserCheck, KeyRound, AlertTriangle } from 'lucide-react'
 import ADConnectionTab from './components/ADConnectionTab'
 import ADMappingsTab from './components/ADMappingsTab'
 import ADSimulatorTab from './components/ADSimulatorTab'
@@ -94,16 +95,14 @@ export default function ActiveDirectoryPage() {
   // Trava para usuários que não são Superadministradores
   if (!loading && !isSuperAdmin) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
-          <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+      <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-[#1E2636] bg-[#121721] p-8 text-center shadow-xl">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-400 shadow-inner">
+          <AlertTriangle className="h-7 w-7" />
         </div>
-        <h2 className="text-base font-bold text-slate-900">
+        <h2 className="text-base font-bold text-white">
           Acesso Restrito a Administradores do Sistema
         </h2>
-        <p className="mt-1.5 max-w-md text-xs text-slate-500">
+        <p className="mt-2 max-w-md text-xs leading-relaxed text-slate-400">
           O módulo de integração e mapeamento de grupos do Active Directory / LDAP exige privilégios de superadministrador. Entre em contato com a equipe de infraestrutura para solicitar permissão.
         </p>
       </div>
@@ -115,92 +114,92 @@ export default function ActiveDirectoryPage() {
       {/* Toast Notificação */}
       {toastMsg && (
         <div
-          className={`fixed bottom-4 right-4 z-50 rounded-xl px-4 py-3 text-xs font-semibold text-white shadow-xl animate-in fade-in ${
-            toastMsg.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-semibold shadow-2xl border transition-all animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+            toastMsg.type === 'success'
+              ? 'bg-[#121721] border-emerald-500/40 text-emerald-400'
+              : 'bg-[#121721] border-rose-500/40 text-rose-400'
           }`}
         >
-          {toastMsg.text}
+          <span className="h-2 w-2 rounded-full shrink-0 bg-current" />
+          <span>{toastMsg.text}</span>
         </div>
       )}
 
       {/* Cabeçalho da Página com Abas */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            Active Directory &amp; LDAP
-          </h1>
-          <p className="text-xs text-slate-500">
-            Gerenciamento de autenticação corporativa, sincronização de grupos e controle de acesso baseado em roles (RBAC)
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-orange-500/20 bg-orange-500/10 text-orange-400 shadow-inner">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Active Directory &amp; LDAP
+            </h1>
+            <p className="text-xs text-slate-400">
+              Autenticação corporativa, sincronização de grupos de segurança e controle de acesso baseado em roles (RBAC)
+            </p>
+          </div>
         </div>
 
         {/* Seletor de Abas */}
-        <div className="flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-[#1E2636] bg-[#121721] p-1.5 shadow-sm">
           <button
             type="button"
             onClick={() => setActiveTab('connection')}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
               activeTab === 'connection'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-            Conexão LDAP
+            <Network className="h-3.5 w-3.5" />
+            <span>Configuração LDAP</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('mappings')}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
               activeTab === 'mappings'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Permissões &amp; Grupos
+            <Users className="h-3.5 w-3.5" />
+            <span>Mapeamento de Grupos</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('simulator')}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
               activeTab === 'simulator'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Simulador de Usuário
+            <UserCheck className="h-3.5 w-3.5" />
+            <span>Busca / Simulador de Usuário</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('twoFactor')}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
               activeTab === 'twoFactor'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            Autenticação 2FA
+            <KeyRound className="h-3.5 w-3.5" />
+            <span>Autenticação 2FA</span>
           </button>
         </div>
       </div>
 
       {/* Conteúdo da Aba */}
       {loading ? (
-        <div className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" />
+        <div className="h-64 animate-pulse rounded-2xl border border-[#1E2636] bg-[#121721] p-6 shadow-sm" />
       ) : activeTab === 'connection' ? (
         <ADConnectionTab
           config={config}

@@ -367,7 +367,8 @@ class DonutChartData(BaseModel):
 class DeviceChartsSummary(BaseModel):
     plataforma: DonutChartData
     status: DonutChartData
-    versoes: DonutChartData
+    conectividade: Optional[DonutChartData] = None
+    versoes: Optional[DonutChartData] = None
 
 
 class DeviceListResponse(BaseModel):

@@ -38,7 +38,7 @@ export const Sidebar: React.FC = () => {
   const canLicenses = isAdmin;
   const canApplications = isAdmin;
 
-  // Os 8 exatos módulos da aplicação original
+  // Os 8 módulos da aplicação
   const navItems = [
     {
       to: '/devices',
@@ -100,24 +100,24 @@ export const Sidebar: React.FC = () => {
     : 'Operador Loja';
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 w-64 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0 select-none h-screen overflow-y-auto">
+    <aside className="fixed inset-y-0 left-0 z-30 w-64 border-r border-[#1E2636] bg-[#080A0F] flex flex-col justify-between shrink-0 select-none h-screen overflow-y-auto">
       <div className="p-4 space-y-5">
-        {/* Marca / Identidade */}
+        {/* Marca / Identidade Obsidian & Amber */}
         <div className="flex items-center gap-2.5 px-2 py-1">
-          <div className="rounded-xl bg-blue-600 p-2 text-white shadow-xs">
+          <div className="rounded-xl bg-orange-500 p-2 text-white shadow-md shadow-orange-500/20">
             <Monitor className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-800 leading-tight">
+            <div className="text-sm font-bold text-white leading-tight">
               Grupo Giassi
             </div>
-            <div className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">
+            <div className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
               Inventário &bull; TI
             </div>
           </div>
         </div>
 
-        <div className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
           Módulos de Gestão
         </div>
 
@@ -132,21 +132,36 @@ export const Sidebar: React.FC = () => {
                   key={item.to}
                   to={item.to}
                   className={({ isActive }) =>
-                    `flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                    `flex items-center justify-between rounded-lg px-3 py-2 text-xs transition-all ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700 font-bold'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-md shadow-orange-500/20'
+                        : 'text-[#94A3B8] hover:bg-[#121721] hover:text-slate-100 font-medium'
                     }`
                   }
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge !== undefined && (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 font-mono">
-                      {item.badge}
-                    </span>
+                  {({ isActive }) => (
+                    <>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {isActive ? (
+                          <span className="h-1.5 w-1.5 rounded-full bg-white shrink-0 shadow-xs" />
+                        ) : (
+                          <span className="h-1.5 w-1.5 rounded-full bg-transparent shrink-0" />
+                        )}
+                        <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      {item.badge !== undefined && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold font-mono ${
+                            isActive
+                              ? 'bg-black/20 text-white'
+                              : 'bg-[#181F2E] text-slate-400 border border-[#1E2636]'
+                          }`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
                   )}
                 </NavLink>
               );
@@ -155,17 +170,17 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer com Usuário e Logout */}
-      <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
+      <div className="p-4 border-t border-[#1E2636] space-y-3 bg-[#080A0F]">
         {user && (
-          <div className="flex items-center gap-2.5 px-1">
-            <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-2xs shrink-0">
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-[#121721] border border-[#1E2636]">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs shrink-0">
               {user.username.charAt(0)}
             </div>
             <div className="min-w-0 flex-1 text-xs">
-              <div className="font-semibold text-slate-800 truncate" title={user.username}>
+              <div className="font-semibold text-slate-100 truncate" title={user.username}>
                 {user.username}
               </div>
-              <div className="text-[10px] font-bold text-blue-600 truncate">
+              <div className="text-[10px] font-bold text-orange-400 uppercase tracking-wider truncate">
                 {roleLabel}
               </div>
             </div>
@@ -176,14 +191,14 @@ export const Sidebar: React.FC = () => {
           type="button"
           onClick={logout}
           title="Encerrar sessão"
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-semibold text-slate-700 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors shadow-2xs"
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#1E2636] bg-[#121721] py-1.5 text-xs font-semibold text-slate-300 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30 transition-all cursor-pointer shadow-2xs"
         >
           <LogOut className="h-3.5 w-3.5" />
           <span>Sair da Conta</span>
         </button>
 
-        <div className="text-[10px] text-slate-400 text-center font-medium">
-          Giassi Inventory &bull; v2.0 Modular
+        <div className="text-[10px] text-slate-600 text-center font-medium tracking-wider">
+          Giassi Inventory &bull; v2.0 Obsidian
         </div>
       </div>
     </aside>

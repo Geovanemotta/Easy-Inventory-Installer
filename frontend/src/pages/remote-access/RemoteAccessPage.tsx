@@ -1,4 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  Monitor,
+  Search,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  X,
+  Radio,
+} from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { deviceService } from '../../services/deviceService'
 import { siteService } from '../../services/siteService'
@@ -6,14 +16,14 @@ import { getRemoteAccessConfig } from '../../services/remoteAccessService'
 import type { DeviceListItem } from '../../types/device'
 import type { Site } from '../../types/site'
 import type { ActiveRemoteSession, RemoteAccessConfig, SessionTabMode } from '../../types/remoteAccess'
+import { SelectDropdown, SelectOption } from '../../components/common/SelectDropdown'
 import AgentInstallModal from './components/AgentInstallModal'
 import EmbeddedSessionModal from './components/EmbeddedSessionModal'
-import RemoteAccessBanner from './components/RemoteAccessBanner'
 import RemoteDeviceCard from './components/RemoteDeviceCard'
 import { SshTerminalModal } from '../devices/components/SshTerminalModal'
 
 export default function RemoteAccessPage() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
 
   const [config, setConfig] = useState<RemoteAccessConfig | null>(null)
   const [devices, setDevices] = useState<DeviceListItem[]>([])
@@ -36,7 +46,7 @@ export default function RemoteAccessPage() {
   const [activeSession, setActiveSession] = useState<ActiveRemoteSession | null>(null)
   const [sshDevice, setSshDevice] = useState<DeviceListItem | null>(null)
   const [showAgentModal, setShowAgentModal] = useState(false)
-  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [toastMsg, _setToastMsg] = useState<string | null>(null)
 
   // Permissões
   const isOperadorMatriz = Boolean(user?.roles?.includes('operador_matriz'))
@@ -61,7 +71,7 @@ export default function RemoteAccessPage() {
     })
   }, [])
 
-  // Carrega dispositivos paginados diretamente do servidor (fim do per_page: 1500)
+  // Carrega dispositivos paginados diretamente do servidor
   const loadDevices = useCallback(async () => {
     setLoading(true)
     try {
@@ -191,104 +201,141 @@ export default function RemoteAccessPage() {
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  const handleMeshLogout = () => {
-    const logoutUrl = `${meshUrlBase}/logout`
-    const win = window.open(logoutUrl, 'MeshLogoutWindow', 'width=450,height=350')
-    if (win) {
-      setTimeout(() => {
-        try {
-          win.close()
-        } catch (_) {}
-      }, 1500)
-    }
-    setActiveSession(null)
-    setToastMsg('Sessão do MeshCentral encerrada com sucesso.')
-    setTimeout(() => setToastMsg(null), 4000)
-  }
+  // Opções para SelectDropdown
+  const siteOptions: SelectOption[] = useMemo(() => [
+    { value: 'todos', label: 'Todas as Filiais' },
+    ...sites.map((s) => ({ value: s.name, label: s.name })),
+  ], [sites])
+
+  const osOptions: SelectOption[] = [
+    { value: 'todos', label: 'Todos os Sistemas' },
+    { value: 'windows', label: 'Apenas Windows' },
+    { value: 'linux', label: 'Apenas Linux' },
+  ]
+
+  const statusOptions: SelectOption[] = [
+    { value: 'todos', label: 'Todos os Status' },
+    { value: 'online', label: 'Apenas Online' },
+    { value: 'offline', label: 'Apenas Offline' },
+  ]
+
+  const perPageOptions: SelectOption[] = [
+    { value: '12', label: '12 por pág.' },
+    { value: '24', label: '24 por pág.' },
+    { value: '48', label: '48 por pág.' },
+  ]
 
   return (
     <div className="space-y-6">
       {/* Toast Notificação */}
       {toastMsg && (
-        <div className="fixed bottom-4 right-4 z-50 rounded-xl bg-slate-900 px-4 py-3 text-xs font-semibold text-white shadow-xl ring-1 ring-slate-800 animate-in fade-in">
+        <div className="fixed bottom-4 right-4 z-50 rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-xs font-semibold text-white shadow-xl animate-in fade-in">
           {toastMsg}
         </div>
       )}
 
-      {/* Banner Principal */}
-      <RemoteAccessBanner
-        meshUrl={meshUrlBase}
-        canAccessServerConsole={canAccessServerConsole}
-        onMeshLogout={handleMeshLogout}
-        onOpenAgentHelp={() => setShowAgentModal(true)}
-      />
+      {/* Cabeçalho Padronizado no estilo Obsidian & Amber */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+            <Radio className="h-6 w-6 text-orange-400" />
+            Acesso Remoto &amp; Suporte
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Controle remoto cooperativo, transferência de arquivos e terminal nativo via MeshCentral e RustDesk
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            MeshCentral Online
+          </span>
+
+          {canAccessServerConsole && (
+            <a
+              href={meshUrlBase}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#222B3D] hover:text-white transition-all shadow-xs"
+              title="Abrir o painel administrativo do servidor MeshCentral"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-orange-400" />
+              <span>Console MeshCentral</span>
+            </a>
+          )}
+        </div>
+      </div>
 
       {/* Barra de Filtros e Busca */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-1 flex-wrap items-center gap-3 min-w-[280px]">
-          {/* Campo de Busca */}
-          <div className="relative min-w-[240px] flex-1">
-            <input
-              type="text"
-              placeholder="Buscar por hostname, IP, usuário ou loja..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            />
-            <svg
-              className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-[#1E2636] bg-[#121721] p-3 shadow-xs">
+        {/* Campo de Busca */}
+        <div className="relative min-w-[200px] flex-1">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar por hostname, IP, usuário ou loja..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-1.5 pl-8 pr-7 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 cursor-pointer"
+              title="Limpar busca"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
 
-          {/* Filtro de Filial */}
-          <select
+        {/* Filtro de Filial */}
+        <div className="w-48 shrink-0">
+          <SelectDropdown
             value={filtroFilial}
-            onChange={(e) => setFiltroFilial(e.target.value)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="todos">Todas as Filiais</option>
-            {sites.map((s) => (
-              <option key={s.id} value={s.name}>
-                {s.name} ({s.code})
-              </option>
-            ))}
-          </select>
+            onChange={setFiltroFilial}
+            options={siteOptions}
+            placeholder="Filial..."
+            triggerClassName="py-1.5 text-xs"
+          />
+        </div>
 
-          {/* Filtro de SO */}
-          <select
+        {/* Filtro de SO */}
+        <div className="w-38 shrink-0">
+          <SelectDropdown
             value={filtroOs}
-            onChange={(e) => setFiltroOs(e.target.value as any)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="todos">Todos os Sistemas</option>
-            <option value="windows">Apenas Windows</option>
-            <option value="linux">Apenas Linux</option>
-          </select>
+            onChange={(val) => setFiltroOs(val as any)}
+            options={osOptions}
+            placeholder="Sistema..."
+            triggerClassName="py-1.5 text-xs"
+          />
+        </div>
 
-          {/* Filtro de Status */}
-          <select
+        {/* Filtro de Status */}
+        <div className="w-36 shrink-0">
+          <SelectDropdown
             value={filtroStatus}
-            onChange={(e) => setFiltroStatus(e.target.value as any)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="todos">Todos os Status</option>
-            <option value="online">Apenas Online</option>
-            <option value="offline">Apenas Offline</option>
-          </select>
+            onChange={(val) => setFiltroStatus(val as any)}
+            options={statusOptions}
+            placeholder="Status..."
+            triggerClassName="py-1.5 text-xs"
+          />
         </div>
 
-        {/* Contador */}
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <span>Estações encontradas:</span>
-          <span className="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 font-bold text-blue-700">
-            {totalItems}
-          </span>
-        </div>
+        {/* Botão de Instalar Agente Mesh integrado na barra de filtros */}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setShowAgentModal(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-orange-500/30 bg-orange-500/15 hover:bg-orange-500/25 px-3 py-1.5 text-xs font-semibold text-orange-400 transition-colors shadow-xs cursor-pointer shrink-0 ml-auto"
+            title="Ver comandos de instalação do MeshAgent em novas máquinas"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Instalar Agente</span>
+          </button>
+        )}
       </div>
 
       {/* Grid de Dispositivos */}
@@ -297,19 +344,17 @@ export default function RemoteAccessPage() {
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="h-44 animate-pulse rounded-xl border border-slate-200 bg-white p-4"
+              className="h-44 animate-pulse rounded-xl border border-[#1E2636] bg-[#121721] p-4"
             />
           ))}
         </div>
       ) : devices.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center">
-          <svg className="mb-3 h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <h3 className="text-sm font-semibold text-slate-800">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#1E2636] bg-[#121721] py-16 text-center">
+          <Monitor className="mb-3 h-10 w-10 text-slate-600" />
+          <h3 className="text-sm font-semibold text-slate-200">
             Nenhuma máquina encontrada
           </h3>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-400">
             Tente ajustar os filtros de busca ou filial para encontrar os dispositivos desejados.
           </p>
         </div>
@@ -332,49 +377,61 @@ export default function RemoteAccessPage() {
         </div>
       )}
 
-      {/* Controles de Paginação */}
+      {/* Controles de Paginação Padronizados */}
       {totalItems > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>
-              Exibindo <strong>{startIndex + 1}-{endIndex}</strong> de <strong>{totalItems}</strong>
-            </span>
-            <span className="text-slate-300">•</span>
-            <label htmlFor="rem-ps" className="text-slate-500">Por página:</label>
-            <select
-              id="rem-ps"
-              value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700"
-            >
-              <option value={12}>12</option>
-              <option value={24}>24</option>
-              <option value={48}>48</option>
-            </select>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#1E2636] pt-4 text-xs text-slate-400">
+          <div className="flex items-center gap-3">
+            <div>
+              Exibindo{' '}
+              <span className="font-semibold text-white font-mono tabular-nums">
+                {startIndex + 1}
+              </span>{' '}
+              a{' '}
+              <span className="font-semibold text-white font-mono tabular-nums">
+                {endIndex}
+              </span>{' '}
+              de{' '}
+              <span className="font-semibold text-white font-mono tabular-nums">
+                {totalItems}
+              </span>{' '}
+              estações
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-400">Por página:</span>
+              <div className="w-28 shrink-0">
+                <SelectDropdown
+                  value={String(pageSize)}
+                  onChange={(val) => setPageSize(Number(val))}
+                  options={perPageOptions}
+                  triggerClassName="py-1 text-xs"
+                />
+              </div>
+            </div>
           </div>
 
           {totalPages > 1 && (
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                disabled={currentPage <= 1}
+                disabled={currentPage <= 1 || loading}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
-                Anterior
+                <ChevronLeft className="h-3.5 w-3.5" /> Anterior
               </button>
 
-              <span className="px-2 text-xs font-medium text-slate-600">
-                Página {currentPage} de {totalPages}
+              <span className="px-2 font-medium text-slate-300 font-mono tabular-nums">
+                Página <strong className="font-semibold text-white">{currentPage}</strong> de {totalPages}
               </span>
 
               <button
                 type="button"
-                disabled={currentPage >= totalPages}
+                disabled={currentPage >= totalPages || loading}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
-                Próxima
+                Próxima <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
@@ -410,3 +467,4 @@ export default function RemoteAccessPage() {
     </div>
   )
 }
+

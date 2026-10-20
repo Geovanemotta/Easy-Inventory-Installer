@@ -254,9 +254,13 @@ def resolver_ativo_por_patrimonio(
             old_ip = existing_dev.ip_definitivo.strip()
 
         old_mac = existing_dev.mac or (existing_net.mac if existing_net else "")
-        old_so = f"{existing_dev.sistema or ''} {existing_dev.versao or ''}".strip()
-        versao_val = existing_dev.versao or ""
-        fam_ant = classificar_familia_so(existing_dev.sistema, existing_dev.versao)
+        win_rel_old = getattr(existing_dev, "windows_release", None)
+        if not win_rel_old and isinstance(getattr(existing_dev, "extra_data", None), dict):
+            win_rel_old = existing_dev.extra_data.get("windows_release") or existing_dev.extra_data.get("release")
+        so_old_norm = normalizar_so(existing_dev.sistema, existing_dev.versao, getattr(existing_dev, "build", None), win_rel_old)
+        old_so = so_old_norm["so_formatado"] or "Sistema Desconhecido"
+        versao_val = so_old_norm["windows_release_formatado"] or ""
+        fam_ant = so_old_norm["familia_so"]
         origem_val = getattr(existing_dev, "origem", "estacao")
     else:
         tipo_origem = "network_asset"
@@ -265,9 +269,10 @@ def resolver_ativo_por_patrimonio(
         old_site_id = existing_net.site_id
         old_ip = existing_net.ip.strip() if is_valid_ipv4_non_bench(existing_net.ip) else ""
         old_mac = existing_net.mac or ""
-        old_so = existing_net.tipo or "Ativo Importado"
+        so_net_norm = normalizar_so(existing_net.tipo, existing_net.modelo)
+        old_so = so_net_norm["so_formatado"] or existing_net.tipo or "Ativo Importado"
         versao_val = existing_net.modelo or ""
-        fam_ant = classificar_familia_so(existing_net.tipo, existing_net.modelo)
+        fam_ant = so_net_norm["familia_so"]
         origem_val = existing_net.origem or "planilha"
 
     existing_asset_dict = {
@@ -418,71 +423,58 @@ def calcular_charts_summary(session: Session, base_where: Any, kpis: dict) -> di
         "slices": status_slices,
     }
 
-    # 3. Distribuição por Versão de Sistema
-    vers_rows = session.execute(
-        select(Device.sistema, Device.versao, Device.windows_release, func.count())
-        .where(base_where)
-        .group_by(Device.sistema, Device.versao, Device.windows_release)
-    ).all()
-    vers_grouped: dict[str, int] = {}
-    for sis, ver, win_rel, cnt in vers_rows:
-        norm = normalizar_so(sis, ver, windows_release=win_rel)
-        so_name = norm.get("so_formatado") or "Outros"
-        vers_grouped[so_name] = vers_grouped.get(so_name, 0) + cnt
+    # 2. Conectividade da Frota (Ativas / Semi-inativas / Inativas)
+    now_minus_24h = datetime.utcnow() - timedelta(hours=24)
+    now_minus_48h = datetime.utcnow() - timedelta(hours=48)
+    cx_row = session.execute(
+        select(
+            func.count().filter(Device.data_coleta >= now_minus_24h).label("tot_online"),
+            func.count().filter(and_(Device.data_coleta >= now_minus_48h, Device.data_coleta < now_minus_24h)).label("tot_alerta"),
+            func.count().filter(or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))).label("tot_offline"),
+        ).where(base_where)
+    ).one()
 
-    tot_vers = sum(vers_grouped.values())
-    sorted_vers = sorted(vers_grouped.items(), key=lambda x: x[1], reverse=True)
-    vers_colors = [
-        "#0284c7",  # Sky blue (Windows 11 Pro)
-        "#0d9488",  # Teal (Kubuntu 22.04)
-        "#10b981",  # Emerald (Kubuntu 24.04)
-        "#8b5cf6",  # Purple (Zorin 18)
-        "#f59e0b",  # Amber (Windows 10 Pro)
-        "#06b6d4",  # Cyan (Kubuntu 20.04)
-        "#3b82f6",  # Blue (Windows 11 Pro 25H2)
-        "#14b8a6",  # Mint (Kubuntu 26.04)
-        "#64748b",  # Slate (Windows)
-        "#ec4899",  # Pink
-        "#f97316",  # Orange
-        "#a855f7",  # Violet
-    ]
+    tot_online = cx_row.tot_online or 0
+    tot_alerta = cx_row.tot_alerta or 0
+    tot_offline = cx_row.tot_offline or 0
+    tot_cx = tot_online + tot_alerta + tot_offline
 
-    vers_slices = []
-    # Mostra todas as categorias reais presentes no parque sem agrupamento artificial prematuro
-    max_slices = 12
-    top_items = sorted_vers[:max_slices] if len(sorted_vers) <= max_slices + 1 else sorted_vers[:max_slices]
-    other_items = [] if len(sorted_vers) <= max_slices + 1 else sorted_vers[max_slices:]
-
-    for idx, (label, count) in enumerate(top_items):
-        if count > 0 and tot_vers > 0:
-            vers_slices.append({
-                "label": label,
-                "count": count,
-                "percent": round((count / tot_vers) * 100, 1),
-                "color": vers_colors[idx % len(vers_colors)],
+    cx_slices = []
+    if tot_cx > 0:
+        if tot_online > 0:
+            cx_slices.append({
+                "label": "Ativas",
+                "count": tot_online,
+                "percent": round((tot_online / tot_cx) * 100, 1),
+                "color": "#10b981",  # Verde
+            })
+        if tot_alerta > 0:
+            cx_slices.append({
+                "label": "Semi-inativas",
+                "count": tot_alerta,
+                "percent": round((tot_alerta / tot_cx) * 100, 1),
+                "color": "#f59e0b",  # Amarelo
+            })
+        if tot_offline > 0:
+            cx_slices.append({
+                "label": "Inativas",
+                "count": tot_offline,
+                "percent": round((tot_offline / tot_cx) * 100, 1),
+                "color": "#ef4444",  # Vermelho
             })
 
-    if other_items and tot_vers > 0:
-        other_cnt = sum(c for _, c in other_items)
-        if other_cnt > 0:
-            vers_slices.append({
-                "label": "Outras Versões",
-                "count": other_cnt,
-                "percent": round((other_cnt / tot_vers) * 100, 1),
-                "color": "#94a3b8",
-            })
-
-    versoes_chart = {
-        "title": "Distribuição por Versão",
-        "subtitle": "Versões de SO mais presentes no parque",
-        "total": tot_vers,
-        "slices": vers_slices,
+    conectividade_chart = {
+        "title": "Status de Conectividade",
+        "subtitle": "Ativas, semi-inativas e inativas",
+        "total": tot_cx,
+        "slices": cx_slices,
     }
 
     return {
         "plataforma": plataforma_chart,
+        "conectividade": conectividade_chart,
         "status": status_chart,
-        "versoes": versoes_chart,
+        "versoes": conectividade_chart,
     }
 
 
@@ -1197,8 +1189,15 @@ def lookup_patrimonio(
         old_hostname = match_info["old_hostname"]
         old_ip = match_info["old_ip"]
 
-        so_atual = f"{curr_dev.sistema or ''} {curr_dev.versao or ''}".strip() if curr_dev else ""
-        fam_atual = classificar_familia_so(curr_dev.sistema, curr_dev.versao) if curr_dev else ""
+        curr_so_norm = None
+        if curr_dev:
+            win_rel_curr = getattr(curr_dev, "windows_release", None)
+            if not win_rel_curr and isinstance(getattr(curr_dev, "extra_data", None), dict):
+                win_rel_curr = curr_dev.extra_data.get("windows_release") or curr_dev.extra_data.get("release")
+            curr_so_norm = normalizar_so(curr_dev.sistema, curr_dev.versao, getattr(curr_dev, "build", None), win_rel_curr)
+
+        so_atual = curr_so_norm["so_formatado"] if curr_so_norm else ""
+        fam_atual = curr_so_norm["familia_so"] if curr_so_norm else ""
         so_divergente = bool(curr_dev and match_info["existing_dev"] and fam_ant != fam_atual)
 
         mac_ant = old_mac
@@ -1715,6 +1714,11 @@ def get_approval_context(
         so_divergente = False
         ip_anterior_sugerido = ""
 
+        win_rel_dev = getattr(device, "windows_release", None)
+        if not win_rel_dev and isinstance(getattr(device, "extra_data", None), dict):
+            win_rel_dev = device.extra_data.get("windows_release") or device.extra_data.get("release")
+        dev_so_norm = normalizar_so(device.sistema, device.versao, getattr(device, "build", None), win_rel_dev)
+
         if match_info["exists"]:
             existing_dev = match_info["existing_dev"]
             host_val = match_info["old_hostname"]
@@ -1738,10 +1742,14 @@ def get_approval_context(
                 divergencias.append({"campo": "MAC", "anterior": old_mac_disp, "atual": new_mac_disp})
 
             if existing_dev:
-                old_so_str = f"{existing_dev.sistema or ''} {existing_dev.versao or ''}".strip()
-                new_so_str = f"{device.sistema or ''} {device.versao or ''}".strip()
-                fam_old = classificar_familia_so(existing_dev.sistema, existing_dev.versao)
-                fam_new = classificar_familia_so(device.sistema, device.versao)
+                win_rel_old = getattr(existing_dev, "windows_release", None)
+                if not win_rel_old and isinstance(getattr(existing_dev, "extra_data", None), dict):
+                    win_rel_old = existing_dev.extra_data.get("windows_release") or existing_dev.extra_data.get("release")
+                old_so_norm = normalizar_so(existing_dev.sistema, existing_dev.versao, getattr(existing_dev, "build", None), win_rel_old)
+                old_so_str = old_so_norm["so_formatado"] or "Sistema Desconhecido"
+                new_so_str = dev_so_norm["so_formatado"] or "Sistema Desconhecido"
+                fam_old = old_so_norm["familia_so"]
+                fam_new = dev_so_norm["familia_so"]
                 if fam_old != fam_new or old_so_str.lower() != new_so_str.lower():
                     so_divergente = (fam_old != fam_new)
                     divergencias.append({"campo": "Sistema Operacional", "anterior": old_so_str, "atual": new_so_str})
@@ -1887,8 +1895,8 @@ def get_approval_context(
                 "ip": device.ip or "",
                 "ip_definitivo": device.ip_definitivo or "",
                 "mac": device.mac or "",
-                "sistema": device.sistema or "",
-                "versao": device.versao or "",
+                "sistema": dev_so_norm["so_formatado"] or device.sistema or "",
+                "versao": dev_so_norm["windows_release_formatado"] or "",
                 "loja": site_name,
                 "site_id": device.site_id,
                 "patrimonio": device.patrimonio or "",

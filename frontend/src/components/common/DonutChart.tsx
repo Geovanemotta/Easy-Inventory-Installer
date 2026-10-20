@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { DonutChartData } from '@/types/device';
 
 interface DonutChartProps {
@@ -15,47 +15,50 @@ export const DonutChart: React.FC<DonutChartProps> = ({
   className = '',
 }) => {
   const { title, subtitle, total, slices } = data;
-  const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
   const R = 46;
   const C = 2 * Math.PI * R;
   let offset = 0;
 
-  const hoveredSlice = hoveredLabel ? slices.find((s) => s.label === hoveredLabel) : null;
+  const activeSlice = activeItem ? slices.find((s) => s.label === activeItem) : null;
 
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col justify-between h-full transition-all hover:shadow-sm ${className}`}>
+    <div className={`h-[230px] rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm flex flex-col justify-between transition-all hover:border-[#263044] select-none ${className}`}>
       {/* Cabeçalho do Card de Gráfico */}
-      <div className="mb-3 shrink-0">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">{title}</h4>
-        {subtitle && <p className="text-[11px] text-slate-400 mt-0.5">{subtitle}</p>}
+      <div className="shrink-0 mb-1">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-100">{title}</h4>
+        {subtitle && <p className="text-[11px] text-slate-400 mt-0.5 truncate">{subtitle}</p>}
       </div>
 
       {total === 0 || slices.length === 0 ? (
-        <div className="py-10 text-center text-xs text-slate-400 italic flex-1 flex items-center justify-center">
+        <div className="text-center text-xs text-slate-500 italic flex-1 flex items-center justify-center">
           Sem dados disponíveis para os filtros ativos.
         </div>
       ) : (
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 flex-1">
-          {/* SVG Donut Centralizado */}
-          <div className="relative shrink-0 flex items-center justify-center mx-auto sm:mx-0">
+        <div className="flex items-center justify-between gap-4 flex-1 my-auto">
+          {/* SVG Donut Centralizado com pontas arredondadas e trilha #1A2234 */}
+          <div className="relative shrink-0 flex items-center justify-center">
             <svg viewBox="0 0 130 130" width="124" height="124" className="transform -rotate-90">
-              {/* Círculo de fundo cinza */}
+              {/* Anel de fundo sutil */}
               <circle
                 cx="65"
                 cy="65"
                 r={R}
                 fill="none"
-                stroke="#f1f5f9"
-                strokeWidth={16}
+                stroke="#1A2234"
+                strokeWidth={15}
               />
 
-              {/* Fatias */}
+              {/* Fatias com strokeLinecap="round" e espaçamento visual */}
               {slices.map((slice, idx) => {
-                const sliceLength = total > 0 ? (slice.count / total) * C : 0;
+                const rawSliceLength = total > 0 ? (slice.count / total) * C : 0;
                 const isSelected = activeItem === slice.label;
-                const isHovered = hoveredLabel === slice.label;
-                const strokeDashoffset = -offset;
-                offset += sliceLength;
+                const hasActiveSelection = Boolean(activeItem);
+
+                // Espaçamento entre fatias se houver mais de 1 fatia
+                const gap = slices.length > 1 && total > 0 ? 8 : 0;
+                const sliceLength = Math.max(0, rawSliceLength - gap);
+                const strokeDashoffset = -(offset + (gap > 0 ? gap / 2 : 0));
+                offset += rawSliceLength;
 
                 return (
                   <circle
@@ -65,24 +68,15 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     r={R}
                     fill="none"
                     stroke={slice.color}
-                    strokeWidth={isSelected || isHovered ? 20 : 16}
+                    strokeWidth={isSelected ? 17 : 15}
+                    strokeLinecap="round"
                     strokeDasharray={`${sliceLength} ${C - sliceLength}`}
                     strokeDashoffset={strokeDashoffset}
-                    className="transition-all duration-200"
+                    className="transition-all duration-200 cursor-pointer"
                     style={{
-                      cursor: onItemClick ? 'pointer' : 'default',
-                      opacity: hoveredLabel
-                        ? isHovered
-                          ? 1
-                          : 0.35
-                        : activeItem
-                        ? isSelected
-                          ? 1
-                          : 0.4
-                        : 1,
+                      opacity: hasActiveSelection ? (isSelected ? 1 : 0.35) : 1,
+                      filter: isSelected ? `drop-shadow(0 0 6px ${slice.color}99)` : undefined,
                     }}
-                    onMouseEnter={() => setHoveredLabel(slice.label)}
-                    onMouseLeave={() => setHoveredLabel(null)}
                     onClick={() => onItemClick && onItemClick(slice.label)}
                   >
                     <title>{`${slice.label}: ${slice.count} (${slice.percent}%)`}</title>
@@ -91,47 +85,42 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               })}
             </svg>
 
-            {/* Texto central dinâmico com Total ou Fatia em Hover */}
+            {/* Texto central: Número grande com tabular-nums e legenda em laranja */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center">
-              <span className="text-xl font-extrabold text-slate-800 font-mono leading-none transition-all">
-                {hoveredSlice ? hoveredSlice.count : total}
+              <span className="text-2xl font-extrabold font-mono tabular-nums tracking-tight text-white leading-none transition-all">
+                {activeSlice ? activeSlice.count : total}
               </span>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1 transition-all">
-                {hoveredSlice ? `${hoveredSlice.percent}%` : 'máquinas'}
+              <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mt-1.5 transition-all">
+                {activeSlice ? `${activeSlice.percent}%` : 'máquinas'}
               </span>
             </div>
           </div>
 
-          {/* Legenda Interativa */}
+          {/* Legenda Interativa Verticalmente Alinhada */}
           <div className="flex-1 w-full space-y-1.5 min-w-0">
             {slices.map((slice, idx) => {
               const isSelected = activeItem === slice.label;
-              const isHovered = hoveredLabel === slice.label;
               return (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => onItemClick && onItemClick(slice.label)}
-                  onMouseEnter={() => setHoveredLabel(slice.label)}
-                  onMouseLeave={() => setHoveredLabel(null)}
                   title={`Filtrar por ${slice.label}`}
-                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-blue-50 text-blue-900 font-bold ring-1 ring-blue-300'
-                      : isHovered
-                      ? 'bg-slate-100 text-slate-900'
-                      : 'hover:bg-slate-50 text-slate-700'
+                      ? 'bg-orange-500/15 text-orange-300 font-semibold ring-1 ring-orange-500/30 border border-orange-500/40'
+                      : 'hover:bg-[#181F2E] text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span
-                      className="h-2.5 w-2.5 rounded-full shrink-0"
+                      className="h-2.5 w-2.5 rounded-full shrink-0 shadow-xs"
                       style={{ backgroundColor: slice.color }}
                     />
-                    <span className="truncate text-left">{slice.label}</span>
+                    <span className="truncate text-left text-slate-200">{slice.label}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0 font-mono text-[11px]">
-                    <span className="font-bold text-slate-800">{slice.count}</span>
+                  <div className="flex items-center gap-1.5 shrink-0 font-mono text-[11px] tabular-nums">
+                    <span className="font-bold text-white">{slice.count}</span>
                     <span className="text-slate-400 text-[10px]">({slice.percent}%)</span>
                   </div>
                 </button>

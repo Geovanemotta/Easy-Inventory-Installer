@@ -3,6 +3,9 @@ import {
   Layers,
   Trash2,
   CheckCircle2,
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/services/apiClient';
@@ -149,7 +152,7 @@ export const NetworkAssetsPage: React.FC = () => {
     }
   }, [siteId, faixaId, tipo, statusOnline, search, filtroOcupacao, filtroGrupo, page, pageSize, sortField, sortAsc]);
 
-  const [showKpis, setShowKpis] = useState(false);
+  const [showKpis, setShowKpis] = useState(true);
 
   useEffect(() => {
     loadSitesAndFaixas();
@@ -474,11 +477,11 @@ export const NetworkAssetsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2.5">
-            <Layers className="h-6 w-6 text-blue-600" />
+          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+            <Layers className="h-6 w-6 text-orange-400" />
             Ativos de Rede &amp; Conectividade
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Gestão integrada de impressoras, switches, roteadores, APs Wi-Fi, balanças, mapa de IPs e testes de ping
           </p>
         </div>
@@ -503,42 +506,64 @@ export const NetworkAssetsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Linha do botão de recolher/expandir indicadores (mb-3 isolada) */}
+      <div className="flex items-center justify-end mb-3">
+        <button
+          type="button"
+          onClick={() => setShowKpis((prev) => !prev)}
+          className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+            showKpis
+              ? 'bg-orange-500/15 border-orange-500/30 text-orange-400 hover:bg-orange-500/25'
+              : 'border-[#263044] bg-[#181F2E] text-slate-300 hover:bg-[#263044] hover:text-white'
+          }`}
+          title="Exibir ou ocultar resumo e indicadores"
+        >
+          <BarChart3 className="h-3.5 w-3.5 text-orange-400" />
+          <span>{showKpis ? 'Ocultar Indicadores' : 'Exibir Indicadores'}</span>
+          {showKpis ? (
+            <ChevronUp className="h-3.5 w-3.5 text-slate-400" />
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+          )}
+        </button>
+      </div>
+
       {/* Filters Toolbar em Linha Única */}
-      <NetworkAssetFilters
-        search={search}
-        onSearchChange={setSearch}
-        siteId={siteId}
-        onSiteChange={setSiteId}
-        tipo={tipo}
-        onTipoChange={setTipo}
-        statusOnline={statusOnline}
-        onStatusChange={setStatusOnline}
-        filtroOcupacao={filtroOcupacao}
-        onOcupacaoChange={setFiltroOcupacao}
-        faixaId={faixaId}
-        onFaixaChange={setFaixaId}
-        sites={sites}
-        faixas={faixas}
-        showKpis={showKpis}
-        onToggleKpis={() => setShowKpis((prev) => !prev)}
-        onOpenCreate={() => {
-          setEditingAsset(null);
-          setFormModalOpen(true);
-        }}
-        onOpenScan={() => setScanModalOpen(true)}
-        onOpenImport={() => setImportModalOpen(true)}
-        onExportCSV={handleExportCSV}
-        onResetFilters={handleResetFilters}
-        hasActiveFilters={hasActiveFilters}
-        isAdmin={isAdmin}
-        loading={loading}
-      />
+      <div className="relative z-20 mb-3">
+        <NetworkAssetFilters
+          search={search}
+          onSearchChange={setSearch}
+          siteId={siteId}
+          onSiteChange={setSiteId}
+          tipo={tipo}
+          onTipoChange={setTipo}
+          statusOnline={statusOnline}
+          onStatusChange={setStatusOnline}
+          filtroOcupacao={filtroOcupacao}
+          onOcupacaoChange={setFiltroOcupacao}
+          faixaId={faixaId}
+          onFaixaChange={setFaixaId}
+          sites={sites}
+          faixas={faixas}
+          onOpenCreate={() => {
+            setEditingAsset(null);
+            setFormModalOpen(true);
+          }}
+          onOpenScan={() => setScanModalOpen(true)}
+          onOpenImport={() => setImportModalOpen(true)}
+          onExportCSV={handleExportCSV}
+          onResetFilters={handleResetFilters}
+          hasActiveFilters={hasActiveFilters}
+          isAdmin={isAdmin}
+          loading={loading}
+        />
+      </div>
 
       {/* Bulk action floating/sticky strip */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-blue-50/90 border border-blue-200 text-xs shadow-xs animate-in fade-in">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-xs shadow-xs animate-in fade-in">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-blue-900">
+            <span className="font-bold text-orange-300">
               {selectedIds.size} {selectedIds.size === 1 ? 'ativo selecionado' : 'ativos selecionados'}
             </span>
           </div>
@@ -547,7 +572,7 @@ export const NetworkAssetsPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
-              className="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-white/80 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
             >
               Desmarcar todos
             </button>
@@ -555,7 +580,7 @@ export const NetworkAssetsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleBulkDelete}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 shadow-2xs transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-500 shadow-2xs transition-colors cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Excluir selecionados

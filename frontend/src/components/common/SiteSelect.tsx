@@ -178,9 +178,9 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
-          open ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'
-        } ${disabled ? 'cursor-not-allowed opacity-50 bg-slate-100' : ''}`}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-[#F1F5F9] transition-colors hover:border-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 ${
+          open ? 'border-orange-500 ring-1 ring-orange-500/30' : ''
+        } ${disabled ? 'cursor-not-allowed opacity-50 bg-[#121721]' : 'cursor-pointer'}`}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -190,16 +190,16 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
             {selectedLabel}
           </span>
         </div>
-        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180 text-orange-400' : ''}`} />
       </button>
 
       {open && (
         <div
-          className="absolute z-50 mt-1 max-h-80 w-full min-w-[280px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl animate-in fade-in zoom-in-95 duration-100"
+          className="absolute z-50 mt-1 max-h-80 w-full min-w-[280px] overflow-hidden rounded-xl border border-[#263044] bg-[#121721] shadow-2xl animate-in fade-in zoom-in-95 duration-100"
           role="listbox"
         >
           {/* Campo de Busca */}
-          <div className="p-2 border-b border-slate-100 bg-slate-50/70">
+          <div className="p-2 border-b border-[#1E2636] bg-[#181F2E]/60">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <input
@@ -208,7 +208,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                 placeholder="Pesquisar filial (código ou nome)..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-[#263044] bg-[#121721] pl-8 pr-7 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') {
                     setOpen(false);
@@ -220,7 +220,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                 <button
                   type="button"
                   onClick={() => setSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
                   title="Limpar pesquisa"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -235,14 +235,16 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
               <div
                 role="option"
                 aria-selected={value === 'todos'}
-                className={`flex cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 transition-colors ${
-                  value === 'todos' ? 'bg-blue-50 font-bold text-blue-700' : 'text-slate-700 hover:bg-slate-100'
+                className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors ${
+                  value === 'todos'
+                    ? 'bg-orange-500/20 text-orange-400 font-semibold'
+                    : 'text-slate-300 hover:bg-orange-500/15 hover:text-orange-400'
                 }`}
                 onClick={() => handleSelect('todos')}
               >
                 <span>{allLabel}</span>
                 {siteOpcoes && (
-                  <span className="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-600 font-mono">
+                  <span className="rounded bg-[#181F2E] border border-[#263044] px-1.5 py-0.2 text-[10px] font-mono text-slate-400">
                     {siteOpcoes.totalBase}
                   </span>
                 )}
@@ -251,7 +253,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
 
             {filteredLojas.length > 0 && (
               <>
-                <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-orange-400/90">
                   Lojas Giassi ({filteredLojas.length})
                 </div>
                 {filteredLojas.map(({ s, n }) => {
@@ -261,8 +263,10 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                       key={s.id}
                       role="option"
                       aria-selected={isSelected}
-                      className={`flex cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 transition-colors ${
-                        isSelected ? 'bg-blue-50 font-bold text-blue-700' : 'text-slate-700 hover:bg-slate-100'
+                      className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors ${
+                        isSelected
+                          ? 'bg-orange-500/20 text-orange-400 font-semibold'
+                          : 'text-slate-300 hover:bg-orange-500/15 hover:text-orange-400'
                       }`}
                       onClick={() => handleSelect(String(s.id))}
                     >
@@ -270,7 +274,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                         {s.name}
                       </span>
                       {n !== undefined && (
-                        <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-600 font-mono">
+                        <span className="ml-2 rounded bg-[#181F2E] border border-[#263044] px-1.5 py-0.2 text-[10px] font-mono text-slate-400">
                           {n}
                         </span>
                       )}
@@ -282,7 +286,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
 
             {filteredCombos.length > 0 && (
               <>
-                <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-orange-400/90">
                   Combo Atacarejo ({filteredCombos.length})
                 </div>
                 {filteredCombos.map(({ s, n }) => {
@@ -292,8 +296,10 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                       key={s.id}
                       role="option"
                       aria-selected={isSelected}
-                      className={`flex cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 transition-colors ${
-                        isSelected ? 'bg-blue-50 font-bold text-blue-700' : 'text-slate-700 hover:bg-slate-100'
+                      className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors ${
+                        isSelected
+                          ? 'bg-orange-500/20 text-orange-400 font-semibold'
+                          : 'text-slate-300 hover:bg-orange-500/15 hover:text-orange-400'
                       }`}
                       onClick={() => handleSelect(String(s.id))}
                     >
@@ -301,7 +307,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                         {s.name}
                       </span>
                       {n !== undefined && (
-                        <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-600 font-mono">
+                        <span className="ml-2 rounded bg-[#181F2E] border border-[#263044] px-1.5 py-0.2 text-[10px] font-mono text-slate-400">
                           {n}
                         </span>
                       )}
@@ -313,7 +319,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
 
             {filteredOutros.length > 0 && (
               <>
-                <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-orange-400/90">
                   Matriz / Outros ({filteredOutros.length})
                 </div>
                 {filteredOutros.map(({ s, n }) => {
@@ -323,8 +329,10 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                       key={s.id}
                       role="option"
                       aria-selected={isSelected}
-                      className={`flex cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 transition-colors ${
-                        isSelected ? 'bg-blue-50 font-bold text-blue-700' : 'text-slate-700 hover:bg-slate-100'
+                      className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors ${
+                        isSelected
+                          ? 'bg-orange-500/20 text-orange-400 font-semibold'
+                          : 'text-slate-300 hover:bg-orange-500/15 hover:text-orange-400'
                       }`}
                       onClick={() => handleSelect(String(s.id))}
                     >
@@ -332,7 +340,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                         {s.name}
                       </span>
                       {n !== undefined && (
-                        <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-600 font-mono">
+                        <span className="ml-2 rounded bg-[#181F2E] border border-[#263044] px-1.5 py-0.2 text-[10px] font-mono text-slate-400">
                           {n}
                         </span>
                       )}
@@ -346,16 +354,16 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
               <div
                 role="option"
                 aria-selected={value === 'sem' || (value === '' && !allowAll)}
-                className={`flex cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 mt-1 border-t border-slate-100 transition-colors ${
+                className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 mt-1 border-t border-[#1E2636] transition-colors ${
                   value === 'sem' || (value === '' && !allowAll)
-                    ? 'bg-amber-50 font-bold text-amber-800'
-                    : 'text-amber-700 hover:bg-amber-50/60'
+                    ? 'bg-amber-500/20 text-amber-300 font-semibold'
+                    : 'text-amber-400 hover:bg-amber-500/15 hover:text-amber-300'
                 }`}
                 onClick={() => handleSelect(allowAll ? 'sem' : '')}
               >
                 <span>{emptyLabel}</span>
                 {siteOpcoes && siteOpcoes.semFilial > 0 && (
-                  <span className="rounded bg-amber-100 px-1.5 py-0.2 text-[10px] font-bold text-amber-800 font-mono">
+                  <span className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.2 text-[10px] font-mono font-bold text-amber-300">
                     {siteOpcoes.semFilial}
                   </span>
                 )}
@@ -363,7 +371,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
             )}
 
             {totalResults === 0 && (
-              <div className="py-6 text-center text-xs text-slate-400">
+              <div className="py-6 text-center text-xs text-slate-500">
                 Nenhuma filial encontrada para &ldquo;{search}&rdquo;
               </div>
             )}

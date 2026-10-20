@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DeviceFilterOptions, DeviceQueryParams } from '@/types/device';
-import { Search, RotateCcw, Download, Building, Layers } from 'lucide-react';
+import { SelectDropdown, SelectOption } from '@/components/ui/SelectDropdown';
+import { Search, RotateCcw, Download } from 'lucide-react';
 
 interface DeviceFiltersProps {
   filters: DeviceQueryParams;
@@ -63,28 +64,46 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
     onFilterChange({ page: 1, per_page: filters.per_page || 50 });
   };
 
+  // Opções para o SelectDropdown de Filiais
+  const siteOptions: SelectOption[] = [
+    { value: '', label: 'Todas as filiais' },
+    { value: '-1', label: 'Sem Filial (Não vinculada)' },
+    ...(options?.sites?.map((s) => ({
+      value: String(s.id),
+      label: s.name,
+    })) || []),
+  ];
+
+  // Opções para o SelectDropdown de Versões
+  const versaoOptions: SelectOption[] = [
+    { value: '', label: 'Todas as versões' },
+    ...(options?.versoes?.map((v) => ({
+      value: v,
+      label: v,
+    })) || []),
+  ];
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+    <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-3.5 shadow-sm">
       <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2.5">
-        {/* Campo de Busca Rápida com Debounce */}
-        <div className="relative min-w-56 flex-1">
+        {/* Campo de Busca Rápida (ocupa o espaço principal flex-1) */}
+        <div className="relative min-w-64 flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por hostname, IP, MAC, usuário ou RustDesk (filtra ao digitar)..."
-            className="w-full rounded-lg border border-slate-300 py-2 pl-8 pr-3 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-2 pl-8 pr-3 text-xs text-[#F1F5F9] placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
           />
         </div>
 
         {/* 1. Filtro de Filial / Loja */}
-        <div className="w-44 flex items-center gap-1">
-          <Building className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-          <select
+        <div className="w-56">
+          <SelectDropdown
             value={filters.site_id ? String(filters.site_id) : (filters.loja || '')}
-            onChange={(e) => {
-              const val = e.target.value;
+            options={siteOptions}
+            onChange={(val) => {
               if (!val) {
                 onFilterChange({ ...filters, site_id: undefined, loja: undefined, page: 1 });
               } else if (/^-?\d+$/.test(val)) {
@@ -93,118 +112,26 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
                 onFilterChange({ ...filters, site_id: undefined, loja: val, page: 1 });
               }
             }}
-            className="w-full rounded-lg border border-slate-300 py-2 px-2 text-xs focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Todas as filiais</option>
-            <option value="-1">Sem Filial (Não vinculada)</option>
-            {options?.sites?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            placeholder="Todas as filiais"
+            className="w-full"
+          />
         </div>
 
-        {/* 2. Filtro de Plataforma (Linux / Windows) */}
-        <div className="w-32">
-          <select
-            value={filters.plataforma || ''}
-            onChange={(e) =>
-              onFilterChange({
-                ...filters,
-                plataforma: e.target.value || undefined,
-                versao: undefined, // Limpa versão ao alterar plataforma
-                page: 1,
-              })
-            }
-            className="w-full rounded-lg border border-slate-300 py-2 px-2 text-xs focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Plataforma (Todas)</option>
-            <option value="Linux">Linux</option>
-            <option value="Windows">Windows</option>
-          </select>
-        </div>
-
-        {/* 3. Filtro de Sistema / Versão */}
-        <div className="w-44 flex items-center gap-1">
-          <Layers className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-          <select
+        {/* 2. Filtro de Sistema / Versão */}
+        <div className="w-52">
+          <SelectDropdown
             value={filters.versao || ''}
-            onChange={(e) =>
+            options={versaoOptions}
+            onChange={(val) =>
               onFilterChange({
                 ...filters,
-                versao: e.target.value || undefined,
+                versao: val || undefined,
                 page: 1,
               })
             }
-            className="w-full rounded-lg border border-slate-300 py-2 px-2 text-xs focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Todas as versões</option>
-            {options?.versoes?.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* 4. Filtro de Status Operacional */}
-        <div className="w-36">
-          <select
-            value={filters.status || ''}
-            onChange={(e) =>
-              onFilterChange({
-                ...filters,
-                status: e.target.value || undefined,
-                page: 1,
-              })
-            }
-            className="w-full rounded-lg border border-slate-300 py-2 px-2 text-xs focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Status (Todos)</option>
-            <option value="OK">Atualizada</option>
-            <option value="UPGRADE_REQUIRED">Atualização Necessária</option>
-            <option value="OUTRO">Desatualizada</option>
-          </select>
-        </div>
-
-        {/* 5. Filtro de Disco Crítico */}
-        <div className="w-32">
-          <select
-            value={filters.disco_critico === true ? 'critico' : ''}
-            onChange={(e) =>
-              onFilterChange({
-                ...filters,
-                disco_critico: e.target.value === 'critico' ? true : undefined,
-                page: 1,
-              })
-            }
-            className="w-full rounded-lg border border-slate-300 py-2 px-2 text-xs focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Uso Disco (Todos)</option>
-            <option value="critico">Crítico (&ge; 85%)</option>
-          </select>
-        </div>
-
-        {/* 6. Filtro de Tipo de Armazenamento */}
-        <div className="w-32">
-          <select
-            value={filters.disco_tipo || ''}
-            onChange={(e) =>
-              onFilterChange({
-                ...filters,
-                disco_tipo: e.target.value || undefined,
-                page: 1,
-              })
-            }
-            className="w-full rounded-lg border border-slate-300 py-2 px-2 text-xs focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Armazenamento</option>
-            <option value="NVMe">NVMe</option>
-            <option value="SSD">SSD</option>
-            <option value="HDD">HDD</option>
-            <option value="Virtual">Virtual</option>
-          </select>
+            placeholder="Todas as versões"
+            className="w-full"
+          />
         </div>
 
         {/* Botão de Limpar Filtros */}
@@ -212,7 +139,7 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
           type="button"
           onClick={handleReset}
           title="Limpar todos os filtros"
-          className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           <span>Limpar</span>
@@ -225,7 +152,7 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
             onClick={onExportCsv}
             disabled={loading}
             title="Exportar inventário filtrado em CSV com UTF-8 BOM"
-            className="flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
           >
             <Download className="h-3.5 w-3.5" />
             <span>Exportar CSV</span>

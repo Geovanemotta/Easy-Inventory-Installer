@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DeviceApprovalContextResponse, SiteVlanIpRange } from '@/types/device';
 import {
   Building,
@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Search,
 } from 'lucide-react';
+import { SelectDropdown } from '@/components/ui/SelectDropdown';
 
 interface ApprovalVlanIpSelectorProps {
   context: DeviceApprovalContextResponse;
@@ -51,83 +52,109 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
   filteredWorkstationIps,
   selectedWorkstation,
 }) => {
+  const siteOptions = useMemo(() => {
+    return context.network_context.sites.map((s) => ({
+      value: String(s.id),
+      label: `${s.code ? `[${s.code}] ` : ''}${s.name}`,
+    }));
+  }, [context.network_context.sites]);
+
+  const vlanOptions = useMemo(() => {
+    return vlanRanges.map((r) => ({
+      value: String(r.id),
+      label: `${r.vlan_id ? `VLAN ${r.vlan_id} — ` : ''}${r.name} (${r.ip_start} a ${r.ip_end}) — ${r.free_count} livres`,
+    }));
+  }, [vlanRanges]);
+
+  const freeIpOptions = useMemo(() => {
+    const opts = filteredFreeIps.map((ip) => ({
+      value: ip,
+      label: ip,
+    }));
+    if (ipDefinitivo && !filteredFreeIps.includes(ipDefinitivo)) {
+      opts.unshift({ value: ipDefinitivo, label: `${ipDefinitivo} (Atual / Selecionado)` });
+    }
+    return opts;
+  }, [filteredFreeIps, ipDefinitivo]);
+
+  const workstationOptions = useMemo(() => {
+    const opts = filteredWorkstationIps.map((w) => ({
+      value: w.ip,
+      label: `${w.ip} — ${w.hostname}${w.patrimonio ? ` (${w.patrimonio})` : ''}${w.sistema ? ` [${w.sistema}]` : ''}`,
+    }));
+    if (ipDefinitivo && !filteredWorkstationIps.some((w) => w.ip === ipDefinitivo)) {
+      opts.unshift({ value: ipDefinitivo, label: `${ipDefinitivo} (Selecionado)` });
+    }
+    return opts;
+  }, [filteredWorkstationIps, ipDefinitivo]);
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-4 shadow-2xs">
+    <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-4 space-y-4 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 uppercase">
+          <span className="rounded-md bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 text-[10px] font-bold text-orange-400 uppercase">
             Seção C
           </span>
-          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <h4 className="text-xs font-bold text-white uppercase tracking-wider">
             Seleção do Endereço IP Definitivo na Loja
           </h4>
         </div>
         {context.network_context.matched_by && (
-          <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-medium text-emerald-800 flex items-center gap-1 w-fit">
-            <Sparkles className="h-3 w-3 text-emerald-600" />
+          <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-medium text-emerald-300 flex items-center gap-1 w-fit font-mono">
+            <Sparkles className="h-3 w-3 text-emerald-400" />
             Loja detectada por {context.network_context.matched_by}
           </span>
         )}
       </div>
 
-      <p className="text-xs text-slate-500">
-        O IP atual (<span className="font-mono font-medium text-slate-700">{context.device.ip}</span>) pertence à bancada de formatação.
+      <p className="text-xs text-slate-400">
+        O IP atual (<span className="font-mono font-medium text-white">{context.device.ip}</span>) pertence à bancada de formatação.
         Selecione a Filial, a VLAN e o IP corporativo fixo para a estação:
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Seletor 1 — Filial Destino */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-            <Building className="h-3.5 w-3.5 text-blue-600" /> Seletor 1 — Filial Destino *
+          <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <Building className="h-3.5 w-3.5 text-orange-400" /> Seletor 1 — Filial Destino *
           </label>
-          <select
-            value={selectedSiteId}
-            onChange={(e) => handleSiteChange(e.target.value ? Number(e.target.value) : '')}
-            className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs font-medium focus:border-blue-500 focus:outline-none bg-white"
-          >
-            <option value="">-- Selecione a Loja / Filial --</option>
-            {context.network_context.sites.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.code ? `[${s.code}] ` : ''}{s.name}
-              </option>
-            ))}
-          </select>
+          <SelectDropdown
+            value={selectedSiteId ? String(selectedSiteId) : ''}
+            onChange={(val) => handleSiteChange(val ? Number(val) : '')}
+            options={siteOptions}
+            placeholder="-- Selecione a Loja / Filial --"
+            className="w-full"
+          />
         </div>
 
         {/* Seletor 2 — VLAN / Faixa de Rede da Loja */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-            <span className="flex items-center gap-1">
-              <Network className="h-3.5 w-3.5 text-purple-600" /> Seletor 2 — VLAN / Faixa de Rede *
+          <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Network className="h-3.5 w-3.5 text-orange-400" /> Seletor 2 — VLAN / Faixa de Rede *
             </span>
             {loadingVlans && (
-              <span className="text-[10px] text-purple-600 flex items-center gap-1 font-normal">
+              <span className="text-[10px] text-orange-400 flex items-center gap-1 font-normal font-mono">
                 <Loader2 className="h-3 w-3 animate-spin" /> Carregando...
               </span>
             )}
           </label>
           {loadingVlans ? (
-            <div className="w-full rounded-lg border border-purple-200 bg-purple-50/50 py-2 px-3 text-xs text-purple-700 flex items-center gap-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-purple-600 shrink-0" />
+            <div className="w-full rounded-lg border border-orange-500/30 bg-[#181F2E] py-2 px-3 text-xs text-orange-300 flex items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400 shrink-0" />
               <span>Buscando VLANs da filial...</span>
             </div>
           ) : vlanRanges.length > 0 ? (
-            <select
-              value={selectedRangeId}
-              onChange={(e) => handleRangeChange(e.target.value ? Number(e.target.value) : '')}
+            <SelectDropdown
+              value={selectedRangeId ? String(selectedRangeId) : ''}
+              onChange={(val) => handleRangeChange(val ? Number(val) : '')}
+              options={vlanOptions}
+              placeholder="-- Selecione a VLAN / Faixa --"
               disabled={loadingVlans}
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs font-medium focus:border-purple-500 focus:outline-none bg-white"
-            >
-              <option value="">-- Selecione a VLAN / Faixa --</option>
-              {vlanRanges.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.vlan_id ? `VLAN ${r.vlan_id} — ` : ''}{r.name} ({r.ip_start} a {r.ip_end}) &mdash; {r.free_count} livres
-                </option>
-              ))}
-            </select>
+              className="w-full"
+            />
           ) : (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 text-xs text-slate-500 italic">
+            <div className="rounded-lg border border-[#1E2636] bg-[#0B0E14] py-2 px-3 text-xs text-slate-400 italic">
               {selectedSiteId
                 ? 'Nenhuma faixa cadastrada nesta filial.'
                 : 'Selecione uma filial para carregar as VLANs.'}
@@ -138,37 +165,37 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
 
       {/* Se há faixas cadastradas na filial */}
       {loadingVlans ? (
-        <div className="rounded-xl border border-purple-200 bg-purple-50/30 p-6 flex flex-col items-center justify-center gap-2 text-xs text-purple-700 animate-pulse">
-          <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
-          <span className="font-semibold text-slate-700">Atualizando faixas de rede e endereços IP...</span>
+        <div className="rounded-xl border border-orange-500/30 bg-[#0B0E14] p-6 flex flex-col items-center justify-center gap-2 text-xs text-orange-300 animate-pulse">
+          <Loader2 className="h-5 w-5 animate-spin text-orange-400" />
+          <span className="font-semibold text-slate-200">Atualizando faixas de rede e endereços IP...</span>
           <span className="text-[11px] text-slate-400">Consultando faixas VLAN e disponibilidade de IPs da filial selecionada</span>
         </div>
       ) : currentRange ? (
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
+        <div className="rounded-xl border border-[#1E2636] bg-[#0B0E14] p-3.5 space-y-3">
           {/* Linha de Status da Faixa & Modo de Escolha */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#1E2636]">
             <div className="flex items-center gap-2 text-xs">
-              <span className="font-semibold text-slate-700">Resumo da Faixa:</span>
-              <span className="rounded bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[11px] font-bold">
+              <span className="font-semibold text-slate-300">Resumo da Faixa:</span>
+              <span className="rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 text-[11px] font-bold font-mono">
                 {currentRange.free_count} IPs Livres
               </span>
-              <span className="rounded bg-blue-100 text-blue-800 px-2 py-0.5 text-[11px] font-bold">
+              <span className="rounded bg-sky-500/15 border border-sky-500/30 text-sky-300 px-2 py-0.5 text-[11px] font-bold font-mono">
                 {currentRange.workstations_count} Estações
               </span>
               {currentRange.gateway && (
-                <span className="text-slate-500 text-[11px]">
-                  Gateway: <code className="font-mono">{currentRange.gateway}</code>
+                <span className="text-slate-400 text-[11px] font-mono">
+                  Gateway: <code className="text-slate-200">{currentRange.gateway}</code>
                 </span>
               )}
             </div>
 
             {/* Checkbox de Modo de Escolha */}
-            <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-800 font-semibold bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs hover:bg-slate-50 transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-200 font-semibold bg-[#181F2E] px-2.5 py-1 rounded-lg border border-[#263044] hover:bg-[#263044] transition-colors">
               <input
                 type="checkbox"
                 checked={reutilizarIpEstacao}
                 onChange={(e) => handleToggleReutilizar(e.target.checked)}
-                className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                className="rounded border-[#263044] bg-[#0B0E14] text-orange-500 focus:ring-0 h-4 w-4"
               />
               <span>Reutilizar / Trocar IP de outra estação cadastrada</span>
             </label>
@@ -177,15 +204,15 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
           {/* Seletor 3 — Escolha do IP Definitivo */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1">
-                <Globe className="h-3.5 w-3.5 text-blue-600" />
+              <label className="block text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5 text-orange-400" />
                 Seletor 3 — Escolha do IP Definitivo *
                 {reutilizarIpEstacao ? (
-                  <span className="text-[11px] font-normal text-amber-700 ml-1">
+                  <span className="text-[11px] font-normal text-amber-300 ml-1">
                     (Listando estações cadastradas nesta VLAN)
                   </span>
                 ) : (
-                  <span className="text-[11px] font-normal text-emerald-700 ml-1">
+                  <span className="text-[11px] font-normal text-emerald-400 ml-1">
                     (Listando apenas IPs 100% livres)
                   </span>
                 )}
@@ -204,7 +231,7 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
                       setConfirmarSobrescrita(true);
                     }
                   }}
-                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-800"
+                  className="text-[11px] font-semibold text-orange-400 hover:text-orange-300 cursor-pointer"
                   title="Preencher com IP sugerido do ativo anterior"
                 >
                   IP Anterior: <span className="font-mono">{context.network_context.ip_anterior_sugerido}</span>
@@ -221,7 +248,7 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
                   value={ipFilterText}
                   onChange={(e) => setIpFilterText(e.target.value)}
                   placeholder={reutilizarIpEstacao ? "Filtrar por IP, Hostname ou Patrimônio..." : "Filtrar IP (ex: .105 ou 192.168.10)..."}
-                  className="w-full pl-8 pr-3 py-1 text-xs rounded border border-slate-200 bg-white placeholder-slate-400 focus:outline-none focus:border-blue-400"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-[#263044] bg-[#181F2E] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-orange-500"
                 />
               </div>
             )}
@@ -229,29 +256,19 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
             {!reutilizarIpEstacao ? (
               /* MODO PADRÃO: IPs LIVRES */
               currentRange.free_ips.length > 0 ? (
-                <select
+                <SelectDropdown
                   value={ipDefinitivo}
-                  onChange={(e) => {
-                    setIpDefinitivo(e.target.value);
+                  onChange={(val) => {
+                    setIpDefinitivo(val);
                     setConfirmarSobrescrita(false);
                   }}
-                  className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs font-mono focus:border-blue-500 focus:outline-none bg-white"
-                >
-                  <option value="">-- Selecione um IP Livre ({filteredFreeIps.length} disponíveis) --</option>
-                  {ipDefinitivo && !filteredFreeIps.includes(ipDefinitivo) && (
-                    <option key={ipDefinitivo} value={ipDefinitivo}>
-                      {ipDefinitivo} (Atual / Selecionado)
-                    </option>
-                  )}
-                  {filteredFreeIps.map((ip) => (
-                    <option key={ip} value={ip}>
-                      {ip}
-                    </option>
-                  ))}
-                </select>
+                  options={freeIpOptions}
+                  placeholder={`-- Selecione um IP Livre (${filteredFreeIps.length} disponíveis) --`}
+                  className="w-full font-mono"
+                />
               ) : (
-                <div className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
                   <span>
                     Não há nenhum IP livre nesta faixa. Escolha outra VLAN ou marque a opção de reutilizar IP de outra estação.
                   </span>
@@ -260,30 +277,18 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
             ) : (
               /* MODO REUTILIZAR: ESTAÇÕES DE TRABALHO */
               currentRange.workstation_used_ips.length > 0 ? (
-                <select
+                <SelectDropdown
                   value={ipDefinitivo}
-                  onChange={(e) => {
-                    setIpDefinitivo(e.target.value);
+                  onChange={(val) => {
+                    setIpDefinitivo(val);
                     setConfirmarSobrescrita(true);
                   }}
-                  className="w-full rounded-lg border border-amber-300 bg-amber-50/40 py-2 px-3 text-xs font-mono focus:border-amber-500 focus:outline-none"
-                >
-                  <option value="">
-                    -- Selecione a Estação para Reutilizar IP ({filteredWorkstationIps.length} cadastradas) --
-                  </option>
-                  {ipDefinitivo && !filteredWorkstationIps.some((w) => w.ip === ipDefinitivo) && (
-                    <option key={ipDefinitivo} value={ipDefinitivo}>
-                      {ipDefinitivo} (Selecionado)
-                    </option>
-                  )}
-                  {filteredWorkstationIps.map((w) => (
-                    <option key={w.ip} value={w.ip}>
-                      {w.ip} &mdash; {w.hostname} {w.patrimonio ? `(${w.patrimonio})` : ''} {w.sistema ? `[${w.sistema}]` : ''}
-                    </option>
-                  ))}
-                </select>
+                  options={workstationOptions}
+                  placeholder={`-- Selecione a Estação para Reutilizar IP (${filteredWorkstationIps.length} cadastradas) --`}
+                  className="w-full font-mono text-amber-300"
+                />
               ) : (
-                <div className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-500 italic">
+                <div className="rounded-lg border border-[#1E2636] bg-[#0B0E14] p-2.5 text-xs text-slate-400 italic">
                   Nenhuma estação de trabalho cadastrada nesta faixa/VLAN.
                 </div>
               )
@@ -291,14 +296,14 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
 
             {/* Alerta de Substituição quando estiver reutilizando IP */}
             {reutilizarIpEstacao && selectedWorkstation && (
-              <div className="mt-2.5 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 space-y-1">
-                <div className="font-bold flex items-center gap-1.5 text-amber-800">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+              <div className="mt-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300 space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-amber-400">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
                   Transferência de IP Confirmada
                 </div>
-                <p className="text-amber-800">
-                  O endereço <strong className="font-mono">{selectedWorkstation.ip}</strong> atualmente pertence à estação{' '}
-                  <strong>{selectedWorkstation.hostname}</strong> ({selectedWorkstation.patrimonio || 'Sem patrimônio'}).
+                <p className="text-amber-300/90 leading-relaxed">
+                  O endereço <strong className="font-mono text-white">{selectedWorkstation.ip}</strong> atualmente pertence à estação{' '}
+                  <strong className="text-white font-mono">{selectedWorkstation.hostname}</strong> ({selectedWorkstation.patrimonio || 'Sem patrimônio'}).
                   Ao homologar, o IP será assumido por este equipamento e liberado da estação anterior no inventário.
                 </p>
               </div>
@@ -307,8 +312,8 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
         </div>
       ) : (
         /* Fallback se a filial não tiver nenhuma faixa cadastrada */
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-2 text-xs">
-          <p className="text-slate-600">
+        <div className="rounded-xl border border-[#1E2636] bg-[#0B0E14] p-3.5 space-y-2 text-xs">
+          <p className="text-slate-400">
             Nenhuma faixa de rede/VLAN configurada para esta filial. Informe o endereço IP manualmente:
           </p>
           <input
@@ -316,7 +321,7 @@ export const ApprovalVlanIpSelector: React.FC<ApprovalVlanIpSelectorProps> = ({
             value={ipDefinitivo}
             onChange={(e) => setIpDefinitivo(e.target.value)}
             placeholder="Ex: 192.168.10.50"
-            className="w-full sm:w-64 rounded-lg border border-slate-300 py-1.5 px-3 text-xs font-mono focus:border-blue-500 focus:outline-none bg-white"
+            className="w-full sm:w-64 rounded-lg border border-[#263044] bg-[#181F2E] py-1.5 px-3 text-xs font-mono text-slate-100 focus:border-orange-500 focus:outline-none"
           />
         </div>
       )}

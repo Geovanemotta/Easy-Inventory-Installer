@@ -428,7 +428,8 @@ export interface DonutChartData {
 export interface DeviceChartsSummary {
   plataforma: DonutChartData;
   status: DonutChartData;
-  versoes: DonutChartData;
+  conectividade?: DonutChartData;
+  versoes?: DonutChartData;
 }
 
 export interface DeviceListResponse {

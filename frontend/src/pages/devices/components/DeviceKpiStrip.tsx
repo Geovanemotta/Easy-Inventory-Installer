@@ -1,6 +1,6 @@
 import React from 'react';
 import { DeviceKPIs, DeviceQueryParams } from '@/types/device';
-import { AlertTriangle, Clock, HardDrive, ShieldAlert, Wrench } from 'lucide-react';
+import { AlertTriangle, Clock, HardDrive, ShieldAlert, Wrench, Monitor } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 interface DeviceKpiStripProps {
@@ -19,146 +19,163 @@ export const DeviceKpiStrip: React.FC<DeviceKpiStripProps> = ({
 
   if (!kpis) return null;
 
+  const totalEstacoes = (kpis.total_linux || 0) + (kpis.total_windows || 0);
+
+  const isTotalActive =
+    !filters.plataforma &&
+    !filters.alerta &&
+    !filters.inativas &&
+    !filters.disco_critico &&
+    !filters.firewall_status &&
+    filters.bancada === undefined &&
+    !filters.status_conexao &&
+    !filters.status;
+
   return (
-    <div className={`grid gap-3 ${isOperator ? 'grid-cols-2 sm:max-w-md' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7'}`}>
-      {/* 1. Linux */}
+    <div className={`grid gap-3.5 ${isOperator ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'}`}>
+      {/* 1. Total de Estações - Acento Laranja Âmbar */}
       <button
         type="button"
         onClick={() =>
           onFilterChange({
-            plataforma: filters.plataforma === 'Linux' ? undefined : 'Linux',
+            plataforma: undefined,
+            alerta: undefined,
+            inativas: undefined,
+            disco_critico: undefined,
+            firewall_status: undefined,
+            bancada: undefined,
+            status_conexao: undefined,
+            status: undefined,
             page: 1,
           })
         }
-        className={`flex flex-col items-start justify-between rounded-xl border p-3 text-left transition-all ${
-          filters.plataforma === 'Linux'
-            ? 'border-blue-500 bg-blue-50/70 shadow-xs ring-1 ring-blue-500'
-            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
+          isTotalActive
+            ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex w-full items-center justify-between text-xs font-semibold text-slate-500">
-          <span>Linux</span>
-          <span className="text-[10px] font-bold text-blue-600 bg-blue-100/60 px-1.5 py-0.5 rounded">
-            SO
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F97316]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Total
           </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-orange-400 group-hover:scale-105 transition-transform">
+            <Monitor className="h-3.5 w-3.5" />
+          </div>
         </div>
-        <div className="mt-2 text-2xl font-bold text-slate-800">{kpis.total_linux}</div>
-        <div className="text-[11px] text-slate-400">Estações Linux</div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-white group-hover:text-orange-400 transition-colors">
+          {totalEstacoes}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#F97316] shrink-0 shadow-[0_0_6px_rgba(249,115,22,0.6)]" />
+          <span className="truncate">Parque Completo</span>
+        </div>
       </button>
 
-      {/* 2. Windows */}
+      {/* 2. Alertas HW - Acento Vermelho Crítico */}
       <button
         type="button"
         onClick={() =>
           onFilterChange({
-            plataforma: filters.plataforma === 'Windows' ? undefined : 'Windows',
+            alerta: filters.alerta ? undefined : true,
             page: 1,
           })
         }
-        className={`flex flex-col items-start justify-between rounded-xl border p-3 text-left transition-all ${
-          filters.plataforma === 'Windows'
-            ? 'border-indigo-500 bg-indigo-50/70 shadow-xs ring-1 ring-indigo-500'
-            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
+          filters.alerta
+            ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex w-full items-center justify-between text-xs font-semibold text-slate-500">
-          <span>Windows</span>
-          <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100/60 px-1.5 py-0.5 rounded">
-            SO
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#EF4444]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">
+            Alertas HW
           </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-rose-400 group-hover:scale-105 transition-transform">
+            <AlertTriangle className="h-3.5 w-3.5" />
+          </div>
         </div>
-        <div className="mt-2 text-2xl font-bold text-slate-800">{kpis.total_windows}</div>
-        <div className="text-[11px] text-slate-400">Estações Windows</div>
+        <div className={`my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight ${kpis.total_alertas > 0 ? 'text-rose-400' : 'text-white'} group-hover:text-rose-300 transition-colors`}>
+          {kpis.total_alertas}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#EF4444] shrink-0 shadow-[0_0_6px_rgba(239,68,68,0.7)]" />
+          <span className="truncate">Conflito MAC / SSD</span>
+        </div>
       </button>
 
-      {/* Cards adicionais exclusivos para Administrador e Operador Matriz */}
-      {!isOperator && (
+      {/* 3. Inativas (+48h) - Acento Amarelo Âmbar */}
+      <button
+        type="button"
+        onClick={() =>
+          onFilterChange({
+            inativas: filters.inativas ? undefined : true,
+            page: 1,
+          })
+        }
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
+          filters.inativas
+            ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+        }`}
+      >
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F59E0B]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+            Inativas
+          </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-amber-400 group-hover:scale-105 transition-transform">
+            <Clock className="h-3.5 w-3.5" />
+          </div>
+        </div>
+        <div className={`my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight ${kpis.total_inativas > 0 ? 'text-amber-400' : 'text-white'} group-hover:text-amber-300 transition-colors`}>
+          {kpis.total_inativas}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] shrink-0 shadow-[0_0_6px_rgba(245,158,11,0.7)]" />
+          <span className="truncate">Sem Comunicação (+48h)</span>
+        </div>
+      </button>
+
+      {/* 4. Disco Crítico (>=85%) - Acento Rosa / Vermelho */}
+      <button
+        type="button"
+        onClick={() =>
+          onFilterChange({
+            disco_critico: filters.disco_critico ? undefined : true,
+            page: 1,
+          })
+        }
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
+          filters.disco_critico
+            ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+        }`}
+      >
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F43F5E]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">
+            Disco &ge; 85%
+          </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-rose-400 group-hover:scale-105 transition-transform">
+            <HardDrive className="h-3.5 w-3.5" />
+          </div>
+        </div>
+        <div className={`my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight ${kpis.total_critico_disco > 0 ? 'text-rose-400' : 'text-white'} group-hover:text-rose-300 transition-colors`}>
+          {kpis.total_critico_disco}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#F43F5E] shrink-0 shadow-[0_0_6px_rgba(244,63,94,0.7)]" />
+          <span className="truncate">Espaço Crítico</span>
+        </div>
+      </button>
+
+      {/* Cards adicionais para Administrador e Operador Matriz */}
+      {!isOperator ? (
         <>
-          {/* 3. Conflitos / Alertas HW */}
-          <button
-            type="button"
-            onClick={() =>
-              onFilterChange({
-                alerta: filters.alerta ? undefined : true,
-                page: 1,
-              })
-            }
-            className={`flex flex-col items-start justify-between rounded-xl border p-3 text-left transition-all ${
-              filters.alerta
-                ? 'border-red-500 bg-red-50/70 shadow-xs ring-1 ring-red-500'
-                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex w-full items-center justify-between text-xs font-semibold text-slate-500">
-              <span className="flex items-center gap-1 text-red-600 font-bold">
-                <AlertTriangle className="h-3.5 w-3.5" /> Alertas HW
-              </span>
-              {kpis.total_alertas > 0 && (
-                <span className="text-[10px] font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
-                  Crítico
-                </span>
-              )}
-            </div>
-            <div className={`mt-2 text-2xl font-bold ${kpis.total_alertas > 0 ? 'text-red-600' : 'text-slate-800'}`}>
-              {kpis.total_alertas}
-            </div>
-            <div className="text-[11px] text-slate-400">Conflito MAC / SSD</div>
-          </button>
-
-          {/* 4. Inativas (+48h) */}
-          <button
-            type="button"
-            onClick={() =>
-              onFilterChange({
-                inativas: filters.inativas ? undefined : true,
-                page: 1,
-              })
-            }
-            className={`flex flex-col items-start justify-between rounded-xl border p-3 text-left transition-all ${
-              filters.inativas
-                ? 'border-amber-500 bg-amber-50/70 shadow-xs ring-1 ring-amber-500'
-                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex w-full items-center justify-between text-xs font-semibold text-slate-500">
-              <span className="flex items-center gap-1 text-amber-600 font-bold">
-                <Clock className="h-3.5 w-3.5" /> Inativas
-              </span>
-              <span className="text-[10px] text-slate-500">+48h</span>
-            </div>
-            <div className={`mt-2 text-2xl font-bold ${kpis.total_inativas > 0 ? 'text-amber-600' : 'text-slate-800'}`}>
-              {kpis.total_inativas}
-            </div>
-            <div className="text-[11px] text-slate-400">Sem comunicação</div>
-          </button>
-
-          {/* 5. Disco Crítico (>=85%) */}
-          <button
-            type="button"
-            onClick={() =>
-              onFilterChange({
-                disco_critico: filters.disco_critico ? undefined : true,
-                page: 1,
-              })
-            }
-            className={`flex flex-col items-start justify-between rounded-xl border p-3 text-left transition-all ${
-              filters.disco_critico
-                ? 'border-rose-500 bg-rose-50/70 shadow-xs ring-1 ring-rose-500'
-                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex w-full items-center justify-between text-xs font-semibold text-slate-500">
-              <span className="flex items-center gap-1 text-rose-600 font-bold">
-                <HardDrive className="h-3.5 w-3.5" /> Disco &ge; 85%
-              </span>
-            </div>
-            <div className={`mt-2 text-2xl font-bold ${kpis.total_critico_disco > 0 ? 'text-rose-600' : 'text-slate-800'}`}>
-              {kpis.total_critico_disco}
-            </div>
-            <div className="text-[11px] text-slate-400">Espaço crítico</div>
-          </button>
-
-          {/* 6. Novas / Firewall Pendente */}
+          {/* 5. Firewall Pendente - Acento Amarelo Âmbar */}
           <button
             type="button"
             onClick={() =>
@@ -167,29 +184,31 @@ export const DeviceKpiStrip: React.FC<DeviceKpiStripProps> = ({
                 page: 1,
               })
             }
-            className={`flex flex-col items-start justify-between rounded-xl border p-3 text-left transition-all ${
+            className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
               filters.firewall_status === 'pendente'
-                ? 'border-amber-500 bg-amber-50/70 shadow-xs ring-1 ring-amber-500'
-                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+                : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
             }`}
           >
-            <div className="flex w-full items-center justify-between text-xs font-semibold text-slate-500">
-              <span className="flex items-center gap-1 text-amber-700 font-bold">
-                <ShieldAlert className="h-3.5 w-3.5 text-amber-600" /> Firewall
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F59E0B]" />
+            <div className="flex w-full items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                Firewall
               </span>
-              {kpis.total_firewall_pendente > 0 && (
-                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
-                  Aprovar
-                </span>
-              )}
+              <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-amber-400 group-hover:scale-105 transition-transform">
+                <ShieldAlert className="h-3.5 w-3.5" />
+              </div>
             </div>
-            <div className={`mt-2 text-2xl font-bold ${kpis.total_firewall_pendente > 0 ? 'text-amber-600' : 'text-slate-800'}`}>
+            <div className={`my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight ${kpis.total_firewall_pendente > 0 ? 'text-amber-400' : 'text-white'} group-hover:text-amber-300 transition-colors`}>
               {kpis.total_firewall_pendente}
             </div>
-            <div className="text-[11px] text-slate-400">Aguardando liberação</div>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] shrink-0 shadow-[0_0_6px_rgba(245,158,11,0.7)]" />
+              <span className="truncate">Aguardando Liberação</span>
+            </div>
           </button>
 
-          {/* 7. Bancada (192.168.88.x) */}
+          {/* 6. Bancada (.88.x) - Acento Amarelo Âmbar */}
           <button
             type="button"
             onClick={() =>
@@ -198,25 +217,31 @@ export const DeviceKpiStrip: React.FC<DeviceKpiStripProps> = ({
                 page: 1,
               })
             }
-            className={`flex flex-col items-start justify-between rounded-xl border p-3 text-left transition-all ${
+            className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
               filters.bancada === true
-                ? 'border-blue-500 bg-blue-50/70 shadow-xs ring-1 ring-blue-500'
-                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+                : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
             }`}
           >
-            <div className="flex w-full items-center justify-between text-xs font-semibold text-slate-500">
-              <span className="flex items-center gap-1 text-blue-700 font-bold">
-                <Wrench className="h-3.5 w-3.5 text-blue-600" /> Bancada
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F59E0B]" />
+            <div className="flex w-full items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                Bancada
               </span>
-              <span className="text-[10px] text-slate-500">.88.x</span>
+              <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-amber-400 group-hover:scale-105 transition-transform">
+                <Wrench className="h-3.5 w-3.5" />
+              </div>
             </div>
-            <div className={`mt-2 text-2xl font-bold ${kpis.total_bancada_88 > 0 ? 'text-blue-600' : 'text-slate-800'}`}>
+            <div className={`my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight ${kpis.total_bancada_88 > 0 ? 'text-amber-400' : 'text-white'} group-hover:text-amber-300 transition-colors`}>
               {kpis.total_bancada_88}
             </div>
-            <div className="text-[11px] text-slate-400">Em preparação</div>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] shrink-0 shadow-[0_0_6px_rgba(245,158,11,0.7)]" />
+              <span className="truncate">Em Preparação (.88)</span>
+            </div>
           </button>
         </>
-      )}
+      ) : null}
     </div>
   );
 };

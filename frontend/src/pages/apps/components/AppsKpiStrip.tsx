@@ -33,52 +33,52 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
   const cards = [
     {
       id: 'todas',
-      label: 'Catálogo de Softwares',
+      label: 'Catálogo',
       valor: kpis?.total_softwares ?? 0,
-      sub: `${kpis?.total_maquinas_inventariadas ?? 0} máquinas inventariadas`,
+      sub: `${kpis?.total_maquinas_inventariadas ?? 0} máquinas`,
       icon: Package,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-      activeColor: 'ring-2 ring-indigo-500 bg-indigo-50/50',
+      accentColor: '#F97316',
+      iconColor: 'text-orange-400',
       isFilter: true,
     },
     {
       id: 'instalacoes',
-      label: 'Total de Instalações',
+      label: 'Instalações',
       valor: kpis?.total_instalacoes ?? 0,
-      sub: 'Pacotes em execução no parque',
+      sub: 'Pacotes em execução',
       icon: Layers,
-      color: 'text-blue-600 bg-blue-50 border-blue-200',
-      activeColor: '',
+      accentColor: '#3B82F6',
+      iconColor: 'text-blue-400',
       isFilter: false,
     },
     {
       id: 'aplicativo',
       label: 'Aplicativos',
       valor: kpis?.aplicativos ?? 0,
-      sub: 'Browsers, ERPs e Office',
+      sub: 'Browsers, ERP e Office',
       icon: AppWindow,
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-      activeColor: 'ring-2 ring-emerald-500 bg-emerald-50/50',
+      accentColor: '#10B981',
+      iconColor: 'text-emerald-400',
       isFilter: true,
     },
     {
       id: 'agente',
       label: 'Agentes & Gestão',
       valor: kpis?.agentes ?? 0,
-      sub: 'Inventário, AV e Monitoramento',
+      sub: 'Inventário e AV',
       icon: ShieldAlert,
-      color: 'text-purple-600 bg-purple-50 border-purple-200',
-      activeColor: 'ring-2 ring-purple-500 bg-purple-50/50',
+      accentColor: '#8B5CF6',
+      iconColor: 'text-purple-400',
       isFilter: true,
     },
     {
       id: 'com_apps',
-      label: 'Máquinas c/ Inventário',
+      label: 'c/ Inventário',
       valor: kpis?.maquinas_com_apps ?? 0,
-      sub: 'Clique p/ inspecionar lista',
+      sub: 'Clique p/ ver lista',
       icon: CheckCircle2,
-      color: 'text-teal-600 bg-teal-50 border-teal-200',
-      activeColor: 'ring-2 ring-teal-500 bg-teal-50/50',
+      accentColor: '#06B6D4',
+      iconColor: 'text-cyan-400',
       isFilter: false,
       isAction: true,
     },
@@ -86,10 +86,10 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
       id: 'sem_apps',
       label: 'Alerta: Sem Apps',
       valor: semAppsCount,
-      sub: semAppsCount > 0 ? 'Clique p/ ver pendências' : 'Frota 100% inventariada',
+      sub: semAppsCount > 0 ? 'Clique p/ pendências' : '100% inventariada',
       icon: AlertTriangle,
-      color: semAppsCount > 0 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-50 border-slate-200',
-      activeColor: 'ring-2 ring-amber-500 bg-amber-50/50',
+      accentColor: semAppsCount > 0 ? '#EF4444' : '#64748B',
+      iconColor: semAppsCount > 0 ? 'text-rose-400' : 'text-slate-400',
       isFilter: false,
       isAction: true,
       hasWarningBadge: semAppsCount > 0,
@@ -97,7 +97,7 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
       {cards.map((card) => {
         const Icon = card.icon;
         const isSelected =
@@ -122,38 +122,55 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
                 onSelectCategoria(card.id === 'todas' ? 'todas' : card.id);
               }
             }}
-            className={`text-left p-3.5 rounded-xl border bg-white shadow-xs transition-all duration-150 ${
-              isClickable ? 'hover:shadow-md cursor-pointer hover:border-slate-300' : 'cursor-default'
-            } ${isSelected ? card.activeColor : 'border-slate-200'}`}
+            className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden ${
+              isClickable ? 'cursor-pointer' : 'cursor-default'
+            } ${
+              isSelected
+                ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+                : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            }`}
           >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-semibold text-slate-500 truncate">
+            {/* Linha de acento no topo do card */}
+            <div
+              className="absolute top-0 left-0 right-0 h-0.5"
+              style={{ backgroundColor: card.accentColor }}
+            />
+
+            <div className="flex w-full items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
                 {card.label}
               </span>
-              <div className={`p-1.5 rounded-lg border ${card.color}`}>
-                <Icon className="h-4 w-4" />
+              <div className={`p-1 rounded-md bg-[#181F2E] border border-[#1E2636] ${card.iconColor} group-hover:scale-105 transition-transform`}>
+                <Icon className="h-3.5 w-3.5" />
               </div>
             </div>
 
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-slate-800">
+            <div className="my-1.5 flex items-baseline gap-2">
+              <span className={`text-2xl font-extrabold font-mono tabular-nums tracking-tight ${card.hasWarningBadge ? 'text-rose-400' : 'text-white'} group-hover:text-orange-400 transition-colors`}>
                 {loading ? (
-                  <span className="inline-block w-12 h-6 bg-slate-200 rounded animate-pulse" />
+                  <span className="inline-block w-12 h-6 bg-[#181F2E] rounded animate-pulse" />
                 ) : (
                   card.valor.toLocaleString('pt-BR')
                 )}
               </span>
               {card.hasWarningBadge && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse">
                   Atenção
                 </span>
               )}
             </div>
 
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">{card.sub}</p>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+              <span
+                className="h-1.5 w-1.5 rounded-full shrink-0 shadow-xs"
+                style={{ backgroundColor: card.accentColor }}
+              />
+              <span className="truncate">{card.sub}</span>
+            </div>
           </button>
         );
       })}
     </div>
   );
 };
+

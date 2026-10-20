@@ -210,38 +210,87 @@ def normalizar_so(
     familia_so = "Windows" if is_windows else "Linux"
 
     if is_windows:
-        alvo = v_raw if re.search(r"windows", v_raw, re.I) else s_raw
-        if not alvo:
-            alvo = "Windows"
-        limpo = re.sub(r"microsoft\s*", "", alvo, flags=re.I)
-        limpo = re.sub(r"\(r\)|®|\(tm\)", "", limpo, flags=re.I)
+        # Remove ruídos da Microsoft, marcas registradas e arquitetura
+        limpo = re.sub(r"\(r\)|®|\(tm\)", "", full_raw, flags=re.I)
+        limpo = re.sub(r"\bmicrosoft\b", "", limpo, flags=re.I)
+        limpo = re.sub(r"\b(x64|x86|64-bit|32-bit)\b", "", limpo, flags=re.I)
         limpo = re.sub(r"\s+", " ", limpo).strip()
-        limpo = re.sub(r"^windows", "Windows", limpo, flags=re.I)
 
         # Versão Release / Feature Update real enviada pelo agente (ex: '25H2', '24H2', '23H2', '22H2')
-        # Não faz dedução por build! Apenas utiliza a release real registrada ou explícita.
         rel_limpo = None
         if windows_release:
-            rel_limpo = str(windows_release).strip()
-            rel_limpo = re.sub(r"^windows\s*", "", rel_limpo, flags=re.I).strip()
-            m_rel = re.search(r"\b(2[0-9]H[1-2])\b", rel_limpo, re.I)
+            m_rel = re.search(r"\b(2[0-9]H[1-2])\b", str(windows_release), re.I)
             if m_rel:
                 rel_limpo = m_rel.group(1).upper()
-            elif not rel_limpo or rel_limpo.lower() in ("none", "null", ""):
-                rel_limpo = None
-
-        # Se a própria string da versão já contiver a release explicitamente (ex: 'Windows 11 Pro 25H2')
         if not rel_limpo:
-            m_rel = re.search(r"\b(2[0-9]H[1-2])\b", full_raw, re.I)
+            m_rel = re.search(r"\b(2[0-9]H[1-2])\b", limpo, re.I)
             if m_rel:
                 rel_limpo = m_rel.group(1).upper()
 
-        # Incorpora a release de feature diretamente no so_formatado apenas se informada
-        so_formatado = limpo or "Windows"
+        # 1. Caso Windows Server
+        m_srv = re.search(r"server\s*(20\d{2}|2008|2003)", limpo, re.I)
+        if m_srv:
+            yr = m_srv.group(1)
+            ed = (
+                "Datacenter"
+                if re.search(r"datacenter", limpo, re.I)
+                else ("Standard" if re.search(r"standard", limpo, re.I) else "")
+            )
+            so_formatado = f"Windows Server {yr} {ed}".strip()
+            return {
+                "familia_so": "Windows",
+                "so_formatado": so_formatado,
+                "windows_release_formatado": rel_limpo,
+                "build_formatado": str(build).strip() if build else None,
+            }
+
+        # 2. Caso Windows Desktop (11, 10, 8.1, 7)
+        # Detecção de Edição
+        ed = ""
+        if re.search(r"pro\s+for\s+workstations", limpo, re.I):
+            ed = "Pro for Workstations"
+        elif re.search(r"\bpro(fessional)?\b", limpo, re.I):
+            ed = "Pro"
+        elif re.search(r"\benterprise\b", limpo, re.I):
+            ed = "Enterprise"
+        elif re.search(r"\beducation\b", limpo, re.I):
+            ed = "Education"
+        elif re.search(r"\bhome\b", limpo, re.I):
+            ed = "Home"
+
+        # Detecção de Versão Numérica
+        ver = ""
+        b_str = str(build or "")
+        v_str = str(versao or "")
+        if (
+            re.search(r"\b11\b", limpo)
+            or (b_str and (b_str.startswith("22") or b_str.startswith("26") or "10.0.22" in b_str or "10.0.26" in b_str))
+            or (v_str and (v_str.startswith("22") or v_str.startswith("26") or "10.0.22" in v_str or "10.0.26" in v_str))
+        ):
+            ver = "11"
+        elif (
+            re.search(r"\b10\b", limpo)
+            or (b_str and ("10.0.19" in b_str or b_str.startswith("19")))
+            or (v_str and ("10.0.19" in v_str or v_str.startswith("19")))
+        ):
+            ver = "10"
+        elif re.search(r"\b8\.1\b", limpo):
+            ver = "8.1"
+        elif re.search(r"\b7\b", limpo):
+            ver = "7"
+
+        parts = ["Windows"]
+        if ver:
+            parts.append(ver)
+        if ed:
+            parts.append(ed)
         if rel_limpo:
-            # Se a string ainda não contém a release, anexa
-            if not re.search(r"\b" + re.escape(rel_limpo) + r"\b", so_formatado, re.I):
-                so_formatado = f"{so_formatado} {rel_limpo}".strip()
+            parts.append(rel_limpo)
+
+        so_formatado = " ".join(parts).strip()
+        if not so_formatado or so_formatado == "Windows":
+            # Fallback se só havia 'Windows'
+            so_formatado = "Windows 11 Pro" if (b_str and (b_str.startswith("22") or b_str.startswith("26"))) else "Windows"
 
         return {
             "familia_so": "Windows",

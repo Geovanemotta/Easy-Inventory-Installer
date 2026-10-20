@@ -50,14 +50,14 @@ export default function ReportGroupList({
   const paginatedGrupos = grupos.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="flex h-full flex-col justify-between rounded-xl border border-[#1E2636] bg-[#121721] p-5 shadow-sm">
       <div className="flex flex-col flex-1 min-h-0">
-        <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+        <div className="mb-4 flex items-center justify-between border-b border-[#1E2636] pb-3 shrink-0">
           <div>
-            <h2 className="text-sm font-bold text-slate-800">
+            <h2 className="text-sm font-bold text-white">
               Valores de {nomeCampo}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               {grupos.length} valores distintos em {totalMaquinas} máquinas
             </p>
           </div>
@@ -65,7 +65,7 @@ export default function ReportGroupList({
             <button
               type="button"
               onClick={() => onSelectKey(null)}
-              className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
+              className="rounded-md border border-[#263044] bg-[#181F2E] hover:bg-[#222B3D] text-slate-300 hover:text-white px-2 py-1 text-xs font-medium cursor-pointer transition-colors"
             >
               Limpar filtro
             </button>
@@ -75,11 +75,11 @@ export default function ReportGroupList({
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100" />
+              <div key={i} className="h-10 animate-pulse rounded-lg bg-[#181F2E]" />
             ))}
           </div>
         ) : grupos.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center py-12 text-xs text-slate-400">
+          <div className="flex flex-1 items-center justify-center py-12 text-xs text-slate-500">
             Nenhum dado encontrado para os filtros selecionados.
           </div>
         ) : (
@@ -97,16 +97,16 @@ export default function ReportGroupList({
                   onClick={() => onSelectKey(isSelected ? null : grp.chave)}
                   className={`group relative flex w-full flex-col overflow-hidden rounded-lg border p-2.5 text-left transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-50/70 ring-1 ring-blue-400'
-                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80'
+                      ? 'bg-orange-500/15 border-orange-500/40 text-orange-400 ring-1 ring-orange-500/30'
+                      : 'border-[#1E2636] bg-[#0E131B] hover:border-[#2E3B52] hover:bg-[#181F2E]'
                   }`}
                 >
                   {/* Barra de fundo visual */}
                   <div
                     className={`absolute bottom-0 left-0 top-0 transition-all ${
                       isSelected
-                        ? 'bg-blue-200/50'
-                        : 'bg-slate-100/70 group-hover:bg-slate-200/60'
+                        ? 'bg-orange-500/20'
+                        : 'bg-[#181F2E]/70 group-hover:bg-[#222B3D]/80'
                     }`}
                     style={{ width: `${barWidth}%` }}
                   />
@@ -114,15 +114,15 @@ export default function ReportGroupList({
                   <div className="relative z-10 flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
                       {isSelected && (
-                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
                           ✓
                         </span>
                       )}
                       <span
                         className={`truncate text-xs ${
                           isSelected
-                            ? 'font-bold text-blue-900'
-                            : 'font-medium text-slate-800'
+                            ? 'font-bold text-orange-400'
+                            : 'font-medium text-slate-200'
                         }`}
                         title={grp.chave}
                       >
@@ -130,17 +130,17 @@ export default function ReportGroupList({
                       </span>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2 text-xs">
+                    <div className="flex shrink-0 items-center gap-2 text-xs font-mono tabular-nums">
                       <span
                         className={`font-semibold ${
                           isSelected
-                            ? 'text-blue-800'
-                            : 'text-slate-700'
+                            ? 'text-orange-300'
+                            : 'text-slate-300'
                         }`}
                       >
                         {grp.total}
                       </span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-slate-500">
                         ({grp.percentual}%)
                       </span>
                     </div>
@@ -154,8 +154,8 @@ export default function ReportGroupList({
 
       {/* Paginação Compacta da Coluna Esquerda (limitada a 36 itens por página) */}
       {totalPages > 1 && (
-        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500 shrink-0">
-          <span className="text-[11px] text-slate-400">
+        <div className="mt-3 flex items-center justify-between border-t border-[#1E2636] pt-3 text-xs text-slate-400 shrink-0">
+          <span className="text-[11px] text-slate-400 font-mono tabular-nums">
             Exibindo <strong>{(safePage - 1) * PAGE_SIZE + 1}</strong>&ndash;
             <strong>{Math.min(safePage * PAGE_SIZE, grupos.length)}</strong> de{' '}
             <strong>{grupos.length}</strong>
@@ -166,19 +166,19 @@ export default function ReportGroupList({
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={safePage <= 1}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#263044] bg-[#181F2E] text-slate-300 hover:bg-[#222B3D] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
               title="Página anterior de grupos"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-            <span className="font-semibold text-[11px] text-slate-700 px-1 font-mono">
+            <span className="font-semibold text-[11px] text-slate-200 px-1 font-mono tabular-nums">
               {safePage} / {totalPages}
             </span>
             <button
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={safePage >= totalPages}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#263044] bg-[#181F2E] text-slate-300 hover:bg-[#222B3D] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
               title="Próxima página de grupos"
             >
               <ChevronRight className="h-3.5 w-3.5" />

@@ -9,15 +9,26 @@ import {
   Radio,
   CheckCircle2,
   Sparkles,
+  RotateCcw,
+  AlertTriangle,
+  X,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { siteService } from '@/services/siteService';
 import { Site, SiteKPIs, SiteCreateInput, SiteUpdateInput, SiteIpRange, SiteIpRangeInput } from '@/types/site';
+import { SelectDropdown, SelectOption } from '@/components/common/SelectDropdown';
 import { SitesTable } from './components/SitesTable';
 import { SiteFormModal } from './components/SiteFormModal';
 import { SiteIpRangesModal } from './components/SiteIpRangesModal';
 import { SiteSimulatorModal } from './components/SiteSimulatorModal';
 import { SiteReclassifyModal } from './components/SiteReclassifyModal';
+
+const STATUS_OPTIONS: SelectOption[] = [
+  { value: 'all', label: 'Todas as Lojas' },
+  { value: 'active', label: 'Apenas Ativas' },
+  { value: 'inactive', label: 'Apenas Desativadas' },
+];
 
 export const SitesPage: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -40,6 +51,8 @@ export const SitesPage: React.FC = () => {
   const [simInitialHostname, setSimInitialHostname] = useState('');
 
   const [reclassModalOpen, setReclassModalOpen] = useState(false);
+  const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -110,21 +123,19 @@ export const SitesPage: React.FC = () => {
     await loadData();
   };
 
-  const handleDeleteSite = async (site: Site) => {
-    if (
-      !confirm(
-        `Deseja realmente excluir ou desativar a filial '${site.code} - ${site.name}'?`
-      )
-    ) {
-      return;
-    }
+  const handleConfirmDeleteSite = async () => {
+    if (!siteToDelete) return;
+    setIsDeleting(true);
     try {
-      const res = await siteService.deleteSite(site.id);
+      const res = await siteService.deleteSite(siteToDelete.id);
       showToast(res.detail);
+      setSiteToDelete(null);
       await loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showToast(`Erro ao excluir filial: ${msg}`);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -167,8 +178,8 @@ export const SitesPage: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xl animate-in slide-in-from-bottom duration-150">
-          <Sparkles className="h-4 w-4 text-blue-400" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-[#0E131B] border border-[#263044] px-4 py-2.5 text-xs font-semibold text-white shadow-2xl animate-in slide-in-from-bottom duration-150">
+          <Sparkles className="h-4 w-4 text-orange-400" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -176,15 +187,16 @@ export const SitesPage: React.FC = () => {
       {/* 1. Cabeçalho & Ações Rápidas */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-slate-800">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+              <Building2 className="h-6 w-6 text-orange-400" />
               Lojas &amp; Filiais
             </h1>
-            <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700 font-mono">
+            <span className="rounded-full bg-orange-500/15 border border-orange-500/30 px-2.5 py-0.5 text-xs font-bold text-orange-400 font-mono">
               {sites.length} unidades
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Mapeamento de unidades, faixas de IP/VLANs e regras de reconhecimento automático
           </p>
         </div>
@@ -193,10 +205,10 @@ export const SitesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleOpenRanges()}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
             title="Gerenciar faixas de IP e sub-redes (VLANs)"
           >
-            <Network className="h-4 w-4 text-blue-600" />
+            <Network className="h-4 w-4 text-orange-400" />
             <span>Faixas de IP (VLANs)</span>
           </button>
 
@@ -206,10 +218,10 @@ export const SitesPage: React.FC = () => {
               setSimInitialHostname('');
               setSimModalOpen(true);
             }}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
             title="Testar como um hostname é reconhecido pelas regras"
           >
-            <Search className="h-4 w-4 text-purple-600" />
+            <Search className="h-4 w-4 text-orange-400" />
             <span>Simulador de Regras</span>
           </button>
 
@@ -217,11 +229,11 @@ export const SitesPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setReclassModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
               title="Reclassificar máquinas do parque conforme os padrões atuais"
             >
-              <RefreshCw className="h-4 w-4 text-amber-600" />
-              <span>Reclassificar Máquinas</span>
+              <RefreshCw className="h-4 w-4 text-orange-400" />
+              <span>Reclassificar Parque</span>
             </button>
           )}
 
@@ -229,96 +241,131 @@ export const SitesPage: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-xs font-semibold text-white hover:bg-orange-600 transition-colors shadow-md shadow-orange-500/20 cursor-pointer"
               title="Cadastrar nova filial ou loja"
             >
               <Plus className="h-4 w-4" />
-              <span>Nova Loja / Filial</span>
+              <span>+ Nova Filial</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 2. Cards de Métricas e KPIs (calculados pelo back-end) */}
+      {/* 2. Cards de Métricas e KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs flex items-center gap-3.5">
-          <div className="rounded-xl bg-blue-50 p-2.5 text-blue-600">
-            <Building2 className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-xl font-bold font-mono text-slate-800">
-              {kpis?.total_sites ?? sites.length}
+        {/* Card 1: Lojas Cadastradas */}
+        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-orange-500 to-amber-500" />
+          <div className="flex items-center gap-3.5">
+            <div className="rounded-xl bg-orange-500/15 border border-orange-500/30 p-2.5 text-orange-400">
+              <Building2 className="h-5 w-5" />
             </div>
-            <div className="text-xs font-medium text-slate-500">Lojas Cadastradas</div>
+            <div>
+              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+                {kpis?.total_sites ?? sites.length}
+              </div>
+              <div className="text-xs font-medium text-slate-400">Lojas Cadastradas</div>
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs flex items-center gap-3.5">
-          <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-            <CheckCircle2 className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-xl font-bold font-mono text-slate-800">
-              {kpis?.active_sites ?? sites.filter((s) => s.active).length}
+        {/* Card 2: Filiais Ativas */}
+        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500" />
+          <div className="flex items-center gap-3.5">
+            <div className="rounded-xl bg-emerald-500/15 border border-emerald-500/30 p-2.5 text-emerald-400">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
-            <div className="text-xs font-medium text-slate-500">Filiais Ativas</div>
+            <div>
+              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+                {kpis?.active_sites ?? sites.filter((s) => s.active).length}
+              </div>
+              <div className="text-xs font-medium text-slate-400">Filiais Ativas</div>
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs flex items-center gap-3.5">
-          <div className="rounded-xl bg-purple-50 p-2.5 text-purple-600">
-            <Monitor className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-xl font-bold font-mono text-slate-800">
-              {kpis?.total_devices ?? sites.reduce((acc, s) => acc + (s.devices_count || 0), 0)}
+        {/* Card 3: Estações Atribuídas */}
+        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500" />
+          <div className="flex items-center gap-3.5">
+            <div className="rounded-xl bg-blue-500/15 border border-blue-500/30 p-2.5 text-blue-400">
+              <Monitor className="h-5 w-5" />
             </div>
-            <div className="text-xs font-medium text-slate-500">Estações Atribuídas</div>
+            <div>
+              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+                {kpis?.total_devices ?? sites.reduce((acc, s) => acc + (s.devices_count || 0), 0)}
+              </div>
+              <div className="text-xs font-medium text-slate-400">Estações Atribuídas</div>
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs flex items-center gap-3.5">
-          <div className="rounded-xl bg-amber-50 p-2.5 text-amber-600">
-            <Radio className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-xl font-bold font-mono text-slate-800">
-              {kpis?.total_network_assets ?? sites.reduce((acc, s) => acc + (s.network_assets_count || 0), 0)}
+        {/* Card 4: Ativos de Rede */}
+        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 to-yellow-500" />
+          <div className="flex items-center gap-3.5">
+            <div className="rounded-xl bg-amber-500/15 border border-amber-500/30 p-2.5 text-amber-400">
+              <Radio className="h-5 w-5" />
             </div>
-            <div className="text-xs font-medium text-slate-500">Ativos de Rede</div>
+            <div>
+              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+                {kpis?.total_network_assets ?? sites.reduce((acc, s) => acc + (s.network_assets_count || 0), 0)}
+              </div>
+              <div className="text-xs font-medium text-slate-400">Ativos de Rede</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 3. Barra de Busca e Filtros */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#121721] p-3 rounded-xl border border-[#1E2636] shadow-sm">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
             type="text"
             placeholder="Pesquisar por código (ex: 01, CB01), nome ou padrão (ex: LJ01)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] pl-9 pr-8 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-white rounded cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="all">Todas as Lojas</option>
-            <option value="active">Apenas Ativas</option>
-            <option value="inactive">Apenas Desativadas</option>
-          </select>
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="flex items-center gap-1.5 py-2 px-3 text-xs font-semibold text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors cursor-pointer"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Limpar</span>
+            </button>
+          )}
+
+          <div className="w-44">
+            <SelectDropdown
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val as 'all' | 'active' | 'inactive')}
+              options={STATUS_OPTIONS}
+              className="w-full"
+            />
+          </div>
 
           <button
             type="button"
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer disabled:opacity-50"
             title="Recarregar lista"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -333,7 +380,7 @@ export const SitesPage: React.FC = () => {
         loading={loading}
         isAdmin={isAdmin}
         onEdit={handleOpenEdit}
-        onDelete={handleDeleteSite}
+        onDelete={(site) => setSiteToDelete(site)}
         onOpenRanges={handleOpenRanges}
         onSimulate={handleSimulate}
       />
@@ -368,6 +415,68 @@ export const SitesPage: React.FC = () => {
         onClose={() => setReclassModalOpen(false)}
         onSuccess={loadData}
       />
+
+      {/* Modal de Confirmação de Exclusão de Filial */}
+      {siteToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div
+            className="w-full max-w-md rounded-2xl bg-[#121721] shadow-2xl border border-[#1E2636] overflow-hidden text-xs animate-in zoom-in-95 duration-150"
+            role="dialog"
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B]">
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-xl bg-rose-500/15 border border-rose-500/30 p-2 text-rose-400">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Excluir / Desativar Filial</h3>
+                  <p className="text-[11px] text-slate-400">Confirmação de segurança</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSiteToDelete(null)}
+                className="rounded-lg p-1 text-slate-400 hover:text-white hover:bg-[#181F2E] transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-3">
+              <p className="text-slate-300 text-xs leading-relaxed">
+                Deseja realmente excluir ou desativar a filial{' '}
+                <strong className="text-white font-mono bg-[#181F2E] px-2 py-0.5 rounded border border-[#263044]">
+                  {siteToDelete.code} - {siteToDelete.name}
+                </strong>
+                ?
+              </p>
+              <p className="text-slate-400 text-[11px]">
+                Se a filial possuir estações ou sub-redes vinculadas, ela será desativada para manter o histórico de auditoria.
+              </p>
+            </div>
+
+            <div className="px-6 py-3 border-t border-[#1E2636] bg-[#0E131B] flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setSiteToDelete(null)}
+                disabled={isDeleting}
+                className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-2 font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteSite}
+                disabled={isDeleting}
+                className="flex items-center gap-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 px-4 py-2 font-semibold text-white transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>{isDeleting ? 'Excluindo...' : 'Excluir Filial'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

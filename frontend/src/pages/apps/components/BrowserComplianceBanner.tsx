@@ -33,19 +33,19 @@ export const BrowserComplianceBanner: React.FC<BrowserComplianceBannerProps> = (
   const outrosBrowsers = browsers.filter((b) => b.software_id !== chrome.software_id);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs border-l-4 border-l-blue-600">
+    <div className="bg-[#121721] rounded-xl border border-[#1E2636] p-4 shadow-sm border-l-4 border-l-orange-500">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
         {/* Coluna 1: Título, Versão mais recente e Botão Inspecionar */}
         <div className="lg:col-span-4 space-y-2.5">
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-blue-700 uppercase tracking-wider">
-              <ShieldCheck className="h-4 w-4" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-orange-400 uppercase tracking-wider">
+              <ShieldCheck className="h-4 w-4 text-orange-400" />
               <span>Conformidade de Navegadores</span>
             </div>
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 mt-0.5">
-              <Globe className="h-4 w-4 text-blue-600 shrink-0" />
+            <h3 className="text-sm font-bold text-white flex items-center gap-2 mt-0.5">
+              <Globe className="h-4 w-4 text-orange-400 shrink-0" />
               <span>Google Chrome</span>
-              <span className="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="font-mono text-xs font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
                 v{chrome.mais_recente}
               </span>
             </h3>
@@ -55,7 +55,7 @@ export const BrowserComplianceBanner: React.FC<BrowserComplianceBannerProps> = (
             <button
               type="button"
               onClick={() => onSelectSoftware(chrome.software_id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-2xs cursor-pointer group"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs transition-colors shadow-md shadow-orange-500/20 cursor-pointer group"
             >
               <Monitor className="h-3.5 w-3.5" />
               <span>Inspecionar Máquinas</span>
@@ -65,20 +65,20 @@ export const BrowserComplianceBanner: React.FC<BrowserComplianceBannerProps> = (
         </div>
 
         {/* Coluna 2: Métricas e Barra de Progresso Larga */}
-        <div className="lg:col-span-5 space-y-2 lg:px-4 lg:border-x lg:border-slate-100">
+        <div className="lg:col-span-5 space-y-2 lg:px-4 lg:border-x lg:border-[#1E2636]">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-slate-300">
               Total:{' '}
-              <strong className="text-slate-900 font-bold">
+              <strong className="text-white font-bold">
                 {chrome.total_instalacoes.toLocaleString('pt-BR')} máquinas
               </strong>
             </span>
-            <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px] border border-slate-200">
+            <span className="font-mono font-bold text-slate-200 bg-[#181F2E] px-2 py-0.5 rounded text-[11px] border border-[#263044]">
               {chrome.taxa_conformidade}% conformes
             </span>
           </div>
 
-          <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-[#181F2E] border border-[#263044] rounded-full h-2.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 chrome.taxa_conformidade >= 80
@@ -92,18 +92,18 @@ export const BrowserComplianceBanner: React.FC<BrowserComplianceBannerProps> = (
           </div>
 
           <div className="flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <span className="inline-flex items-center gap-1 font-semibold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
               <CheckCircle2 className="h-3 w-3" />
               Atualizadas: {chrome.total_atualizadas}
             </span>
 
             {chrome.total_desatualizadas > 0 ? (
-              <span className="inline-flex items-center gap-1 font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+              <span className="inline-flex items-center gap-1 font-semibold text-rose-400 bg-rose-500/15 px-2 py-0.5 rounded border border-rose-500/30">
                 <AlertTriangle className="h-3 w-3" />
                 Desatualizadas: {chrome.total_desatualizadas}
               </span>
             ) : (
-              <span className="text-emerald-600 font-semibold text-[11px]">100% atualizadas</span>
+              <span className="text-emerald-400 font-semibold text-[11px]">100% atualizadas</span>
             )}
           </div>
         </div>
@@ -120,24 +120,24 @@ export const BrowserComplianceBanner: React.FC<BrowserComplianceBannerProps> = (
                   key={b.software_id}
                   type="button"
                   onClick={() => onSelectSoftware(b.software_id)}
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-xs text-slate-700 font-medium transition-colors w-full group cursor-pointer"
+                  className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#181F2E] hover:bg-[#222B3D] border border-[#263044] hover:border-[#34425A] text-xs font-medium transition-colors w-full group cursor-pointer"
                   title={`Ver ${b.software_nome} (versão mais recente v${b.mais_recente})`}
                 >
-                  <span className="font-semibold text-slate-800 group-hover:text-blue-700 truncate">
+                  <span className="font-semibold text-slate-200 group-hover:text-orange-400 truncate">
                     {b.software_nome}
                   </span>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                    <span className="font-mono text-[10px] text-slate-600 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                    <span className="font-mono text-[10px] text-slate-300 bg-[#121721] px-1.5 py-0.5 rounded border border-[#1E2636]">
                       v{b.mais_recente}
                     </span>
-                    <span className="font-bold text-[11px] text-blue-600">
+                    <span className="font-bold text-[11px] text-orange-400">
                       ({b.total_instalacoes})
                     </span>
                   </div>
                 </button>
               ))
             ) : (
-              <p className="text-xs text-slate-400 italic">Nenhum outro navegador detectado</p>
+              <p className="text-xs text-slate-500 italic">Nenhum outro navegador detectado</p>
             )}
           </div>
         </div>

@@ -28,8 +28,9 @@ export const LicenseKpiStrip: React.FC<LicenseKpiStripProps> = ({
       valor: stats?.total_licencas ?? 0,
       sub: 'Lotes gerenciados',
       icon: KeyRound,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-      activeColor: 'ring-2 ring-indigo-500 bg-indigo-50/50',
+      color: 'text-orange-400 bg-orange-500/15 border-orange-500/30',
+      accentLine: 'bg-gradient-to-r from-orange-500 to-amber-500',
+      isFilter: true,
     },
     {
       id: 'em_uso',
@@ -37,8 +38,8 @@ export const LicenseKpiStrip: React.FC<LicenseKpiStripProps> = ({
       valor: stats?.total_em_uso ?? 0,
       sub: 'Ativações vinculadas',
       icon: CheckCircle2,
-      color: 'text-blue-600 bg-blue-50 border-blue-200',
-      activeColor: '',
+      color: 'text-blue-400 bg-blue-500/15 border-blue-500/30',
+      accentLine: 'bg-gradient-to-r from-blue-500 to-indigo-500',
       isFilter: false,
     },
     {
@@ -47,8 +48,8 @@ export const LicenseKpiStrip: React.FC<LicenseKpiStripProps> = ({
       valor: stats?.total_disponiveis ?? 0,
       sub: 'Ativações livres no estoque',
       icon: Sparkles,
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-      activeColor: 'ring-2 ring-emerald-500 bg-emerald-50/50',
+      color: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+      accentLine: 'bg-gradient-to-r from-emerald-500 to-teal-500',
       isFilter: true,
     },
     {
@@ -57,8 +58,8 @@ export const LicenseKpiStrip: React.FC<LicenseKpiStripProps> = ({
       valor: stats?.total_esgotadas ?? 0,
       sub: 'Sem ativações livres',
       icon: AlertOctagon,
-      color: 'text-rose-600 bg-rose-50 border-rose-200',
-      activeColor: 'ring-2 ring-rose-500 bg-rose-50/50',
+      color: 'text-rose-400 bg-rose-500/15 border-rose-500/30',
+      accentLine: 'bg-gradient-to-r from-rose-500 to-red-500',
       isFilter: true,
     },
     {
@@ -67,8 +68,8 @@ export const LicenseKpiStrip: React.FC<LicenseKpiStripProps> = ({
       valor: stats?.solicitacoes_pendentes ?? 0,
       sub: 'Aguardando chave Windows',
       icon: AlertTriangle,
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
-      activeColor: 'ring-2 ring-amber-500 bg-amber-50/50',
+      color: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+      accentLine: 'bg-gradient-to-r from-amber-500 to-yellow-500',
       isFilter: false,
       hasWarningBadge: (stats?.solicitacoes_pendentes ?? 0) > 0,
     },
@@ -93,12 +94,19 @@ export const LicenseKpiStrip: React.FC<LicenseKpiStripProps> = ({
                 onSelectStatus(card.id === 'todas' ? 'todas' : card.id);
               }
             }}
-            className={`text-left p-3.5 rounded-xl border bg-white shadow-xs transition-all duration-150 ${
-              card.isFilter !== false ? 'hover:shadow-md cursor-pointer' : 'cursor-default'
-            } ${isSelected ? card.activeColor : 'border-slate-200 hover:border-slate-300'}`}
+            className={`relative overflow-hidden text-left p-3.5 rounded-xl border bg-[#121721] shadow-sm transition-all duration-200 group ${
+              card.isFilter !== false ? 'hover:border-[#263044] cursor-pointer' : 'cursor-default'
+            } ${
+              isSelected
+                ? 'border-orange-500/80 shadow-md shadow-orange-500/10 ring-1 ring-orange-500/30'
+                : 'border-[#1E2636]'
+            }`}
           >
+            {/* Linha superior de acento */}
+            <div className={`absolute top-0 left-0 right-0 h-[2px] ${card.accentLine}`} />
+
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-semibold text-slate-500 truncate">
+              <span className="text-xs font-semibold text-slate-400 truncate">
                 {card.label}
               </span>
               <div className={`p-1.5 rounded-lg border ${card.color}`}>
@@ -107,15 +115,15 @@ export const LicenseKpiStrip: React.FC<LicenseKpiStripProps> = ({
             </div>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-slate-800">
+              <span className="text-xl sm:text-2xl font-bold font-mono text-white tabular-nums">
                 {loading ? (
-                  <span className="inline-block w-12 h-6 bg-slate-200 rounded animate-pulse" />
+                  <span className="inline-block w-12 h-6 bg-[#181F2E] rounded animate-pulse" />
                 ) : (
                   card.valor.toLocaleString('pt-BR')
                 )}
               </span>
               {card.hasWarningBadge && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
                   Pendente
                 </span>
               )}

@@ -59,32 +59,38 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-200 bg-white/95 backdrop-blur-xs px-6 shadow-2xs">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#1E2636] bg-[#0B0E14]/90 backdrop-blur-md px-6 shadow-sm">
       <div className="flex items-center gap-3">
-        <h1 className="text-sm font-bold tracking-tight text-slate-800 flex items-center gap-2">
-          <span>Giassi Inventory</span>
-          <span className="rounded bg-blue-100 px-1.5 py-0.2 text-[10px] font-extrabold text-blue-700">
-            V2
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2.5">
+          <span className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
+            Telemetria
           </span>
-        </h1>
+          <span className="hidden sm:inline text-slate-600 text-xs">&bull;</span>
+          <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+            <span>Giassi Inventory</span>
+            <span className="rounded bg-orange-500/15 border border-orange-500/30 px-1.5 py-0.2 text-[10px] font-bold text-orange-400 font-mono">
+              V2.0
+            </span>
+          </h1>
+        </div>
       </div>
 
       {/* Canto direito: Monitoramento Ativo + Atualizar Manual + Instalar Agente (Admin) */}
       <div className="flex items-center gap-3">
         {/* Indicador de Monitoramento Ativo / Sincronização */}
         <div
-          className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/70 px-3 py-1 text-xs text-emerald-800 cursor-help"
+          className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 cursor-help"
           title={`Sincronização automática em background a cada 5 minutos.\nÚltima atualização: ${formatHora(lastSync)}`}
         >
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
           </span>
           <span className="font-semibold text-[11px] flex items-center gap-1">
-            <Activity className="h-3 w-3 text-emerald-600" />
+            <Activity className="h-3 w-3 text-emerald-400" />
             <span>Monitoramento Ativo</span>
           </span>
-          <span className="text-[10px] text-emerald-600/80 font-mono hidden sm:inline">
+          <span className="text-[10px] text-emerald-500/80 font-mono hidden sm:inline">
             &bull; {formatHora(lastSync)}
           </span>
         </div>
@@ -95,19 +101,19 @@ export const Header: React.FC = () => {
           onClick={handleManualRefresh}
           disabled={isRefreshing}
           title="Atualizar dados agora"
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-2xs disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#1E2636] hover:text-white hover:border-orange-500/40 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
         >
-          <RefreshCw className={`h-3.5 w-3.5 text-slate-500 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+          <RefreshCw className={`h-3.5 w-3.5 text-slate-400 ${isRefreshing ? 'animate-spin text-orange-400' : ''}`} />
           <span className="hidden sm:inline">Atualizar</span>
         </button>
 
-        {/* Botão de Instalar Agente (exclusivo Admin) */}
+        {/* Botão de Instalar Agente (exclusivo Admin) em Laranja Âmbar */}
         {isAdmin && (
           <button
             type="button"
             onClick={handleOpenInstallAgent}
             title="Abrir instalador de agente (Windows / Linux)"
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-blue-700 transition-all shadow-xs"
+            className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-orange-600 transition-all shadow-md shadow-orange-500/20 cursor-pointer"
           >
             <Download className="h-3.5 w-3.5" />
             <span>Instalar Agente</span>

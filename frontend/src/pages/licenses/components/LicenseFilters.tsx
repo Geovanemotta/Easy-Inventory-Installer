@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Search,
   X,
@@ -6,9 +6,14 @@ import {
   RefreshCw,
   Download,
   SlidersHorizontal,
+  RotateCcw,
+  Building2,
+  Tag,
+  CheckCircle2,
+  AppWindow,
 } from 'lucide-react';
 import { Site } from '@/types/site';
-import { SiteSelect } from '@/components/common/SiteSelect';
+import { SelectDropdown, SelectOption } from '@/components/common/SelectDropdown';
 
 interface LicenseFiltersProps {
   search: string;
@@ -30,6 +35,19 @@ interface LicenseFiltersProps {
   loading?: boolean;
   totalFiltered: number;
 }
+
+const CATEGORIA_OPTIONS: SelectOption[] = [
+  { value: 'todos', label: 'Todas Categorias' },
+  { value: 'windows', label: 'Windows OS' },
+  { value: 'office', label: 'Office / M365' },
+  { value: 'outro', label: 'Outros Softwares' },
+];
+
+const STATUS_OPTIONS: SelectOption[] = [
+  { value: 'todas', label: 'Todos os Status' },
+  { value: 'disponiveis', label: 'Disponíveis (livres)' },
+  { value: 'esgotadas', label: 'Esgotadas (100% uso)' },
+];
 
 export const LicenseFilters: React.FC<LicenseFiltersProps> = ({
   search,
@@ -64,18 +82,48 @@ export const LicenseFilters: React.FC<LicenseFiltersProps> = ({
     setLocalSearch(search);
   }, [search]);
 
+  const siteOptions: SelectOption[] = useMemo(() => {
+    const opts: SelectOption[] = [{ value: 'todos', label: 'Todas as Lojas' }];
+    sites.forEach((s) => {
+      const cleanName = s.name
+        .replace(new RegExp(`^\\[?${s.code}\\]?\\s*[-–—]?\\s*`, 'i'), '')
+        .trim();
+      opts.push({
+        value: String(s.id),
+        label: `[${s.code}] ${cleanName || s.name}`,
+      });
+    });
+    return opts;
+  }, [sites]);
+
+  const softwareOptions: SelectOption[] = useMemo(() => {
+    const opts: SelectOption[] = [{ value: 'todos', label: 'Todos Softwares' }];
+    softwaresDisponiveis.forEach((s) => {
+      opts.push({ value: s, label: s });
+    });
+    return opts;
+  }, [softwaresDisponiveis]);
+
+  const hasActiveFilters = Boolean(
+    localSearch ||
+      (siteId && siteId !== 'todos') ||
+      (categoria && categoria !== 'todos') ||
+      (status && status !== 'todas') ||
+      (softwareNome && softwareNome !== 'todos'),
+  );
+
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-3">
+    <div className="bg-[#121721] rounded-xl border border-[#1E2636] p-3 shadow-sm space-y-3">
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Campo de Busca */}
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
             type="text"
             placeholder="Buscar por chave serial, software, nota fiscal, observações..."
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-[#263044] bg-[#181F2E] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
           />
           {localSearch && (
             <button
@@ -84,7 +132,7 @@ export const LicenseFilters: React.FC<LicenseFiltersProps> = ({
                 setLocalSearch('');
                 onSearchChange('');
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-white rounded cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -92,66 +140,81 @@ export const LicenseFilters: React.FC<LicenseFiltersProps> = ({
         </div>
 
         {/* Filtros em linha */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Filtro por Loja / Filial */}
-          <div className="w-52">
-            <SiteSelect
-              value={siteId}
+          <div className="w-48 shrink-0">
+            <SelectDropdown
+              value={siteId || 'todos'}
               onChange={onSiteChange}
-              sites={sites}
-              allowAll
-              allLabel="Todas as Lojas"
-              placeholder="Filtrar por filial..."
+              options={siteOptions}
+              icon={<Building2 className="h-3.5 w-3.5" />}
+              className="w-full"
             />
           </div>
 
           {/* Filtro por Categoria */}
-          <select
-            value={categoria}
-            onChange={(e) => onCategoriaChange(e.target.value)}
-            className="py-2 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-700"
-          >
-            <option value="todos">Todas Categorias</option>
-            <option value="windows">Windows</option>
-            <option value="office">Office / M365</option>
-            <option value="outro">Outros Softwares</option>
-          </select>
+          <div className="w-40 shrink-0">
+            <SelectDropdown
+              value={categoria || 'todos'}
+              onChange={onCategoriaChange}
+              options={CATEGORIA_OPTIONS}
+              icon={<Tag className="h-3.5 w-3.5" />}
+              className="w-full"
+            />
+          </div>
 
           {/* Filtro por Status */}
-          <select
-            value={status}
-            onChange={(e) => onStatusChange(e.target.value)}
-            className="py-2 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-700"
-          >
-            <option value="todas">Todos os Status</option>
-            <option value="disponiveis">Disponíveis (livres)</option>
-            <option value="esgotadas">Esgotadas (100% em uso)</option>
-          </select>
+          <div className="w-40 shrink-0">
+            <SelectDropdown
+              value={status || 'todas'}
+              onChange={onStatusChange}
+              options={STATUS_OPTIONS}
+              icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+              className="w-full"
+            />
+          </div>
 
           {/* Filtro por Software específico */}
           {softwaresDisponiveis.length > 0 && (
-            <select
-              value={softwareNome}
-              onChange={(e) => onSoftwareNomeChange(e.target.value)}
-              className="py-2 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-700 max-w-[160px] truncate"
-            >
-              <option value="todos">Todos Softwares</option>
-              {softwaresDisponiveis.map((nome) => (
-                <option key={nome} value={nome}>
-                  {nome}
-                </option>
-              ))}
-            </select>
+            <div className="w-44 shrink-0">
+              <SelectDropdown
+                value={softwareNome || 'todos'}
+                onChange={onSoftwareNomeChange}
+                options={softwareOptions}
+                icon={<AppWindow className="h-3.5 w-3.5" />}
+                className="w-full"
+              />
+            </div>
           )}
 
           {/* Ações */}
           <div className="flex items-center gap-1.5 ml-auto">
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLocalSearch('');
+                  onSearchChange('');
+                  onSiteChange('todos');
+                  onCategoriaChange('todos');
+                  onStatusChange('todas');
+                  onSoftwareNomeChange('todos');
+                }}
+                disabled={loading}
+                title="Limpar todos os filtros"
+                className="flex items-center gap-1.5 py-2 px-3 text-xs font-semibold text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors cursor-pointer"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Limpar</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onRefresh}
               disabled={loading}
               title="Recarregar"
-              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors disabled:opacity-50"
+              className="p-2 text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -160,9 +223,9 @@ export const LicenseFilters: React.FC<LicenseFiltersProps> = ({
               type="button"
               onClick={onExportCsv}
               disabled={loading || totalFiltered === 0}
-              className="flex items-center gap-1.5 py-2 px-3 text-xs font-medium text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 shadow-2xs transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 py-2 px-3 text-xs font-medium text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors disabled:opacity-50 cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5 text-slate-500" />
+              <Download className="h-3.5 w-3.5 text-slate-400" />
               <span>Exportar</span>
             </button>
 
@@ -170,7 +233,7 @@ export const LicenseFilters: React.FC<LicenseFiltersProps> = ({
               <button
                 type="button"
                 onClick={onNewLicense}
-                className="flex items-center gap-1.5 py-2 px-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs transition-colors"
+                className="flex items-center gap-1.5 py-2 px-3 text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-lg shadow-md shadow-orange-500/20 transition-colors cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Nova Licença</span>
@@ -181,43 +244,55 @@ export const LicenseFilters: React.FC<LicenseFiltersProps> = ({
       </div>
 
       {/* Contadores da listagem */}
-      <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
+      <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-[#1E2636]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
           <span>
-            Exibindo <strong>{totalFiltered}</strong> lote{totalFiltered !== 1 ? 's' : ''} de licenças
+            Exibindo <strong className="text-white font-semibold">{totalFiltered}</strong> lote{totalFiltered !== 1 ? 's' : ''} de licenças
           </span>
           {categoria !== 'todos' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-500/15 text-orange-400 border border-orange-500/30">
               Categoria: {categoria}
               <button
                 type="button"
                 onClick={() => onCategoriaChange('todos')}
-                className="hover:text-blue-900"
+                className="hover:text-white cursor-pointer ml-0.5"
               >
                 &times;
               </button>
             </span>
           )}
           {status !== 'todas' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
               Status: {status}
               <button
                 type="button"
                 onClick={() => onStatusChange('todas')}
-                className="hover:text-emerald-900"
+                className="hover:text-white cursor-pointer ml-0.5"
               >
                 &times;
               </button>
             </span>
           )}
           {siteId !== 'todos' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/30">
               Loja filtrada
               <button
                 type="button"
                 onClick={() => onSiteChange('todos')}
-                className="hover:text-indigo-900"
+                className="hover:text-white cursor-pointer ml-0.5"
+              >
+                &times;
+              </button>
+            </span>
+          )}
+          {softwareNome !== 'todos' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/15 text-blue-400 border border-blue-500/30">
+              Software: {softwareNome}
+              <button
+                type="button"
+                onClick={() => onSoftwareNomeChange('todos')}
+                className="hover:text-white cursor-pointer ml-0.5"
               >
                 &times;
               </button>

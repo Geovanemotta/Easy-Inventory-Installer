@@ -56,21 +56,21 @@ export const SiteSimulatorModal: React.FC<SiteSimulatorModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden text-xs animate-in zoom-in-95 duration-150"
+        className="w-full max-w-lg rounded-2xl bg-[#121721] shadow-2xl border border-[#1E2636] overflow-hidden text-xs animate-in zoom-in-95 duration-150"
         role="dialog"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B]">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-xl bg-purple-100 p-2 text-purple-600">
+            <div className="rounded-xl bg-orange-500/15 border border-orange-500/30 p-2 text-orange-400">
               <Search className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-800">
+              <h3 className="text-sm font-bold text-white">
                 Simulador de Regras de Nomenclatura
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-400">
                 Teste como um hostname é classificado e atribuído às filiais
               </p>
             </div>
@@ -78,7 +78,7 @@ export const SiteSimulatorModal: React.FC<SiteSimulatorModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-lg p-1 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -86,30 +86,30 @@ export const SiteSimulatorModal: React.FC<SiteSimulatorModalProps> = ({
 
         <form onSubmit={handleSimulate} className="p-6 space-y-4">
           {error && (
-            <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-rose-700 font-medium">
+            <div className="rounded-lg bg-rose-500/15 border border-rose-500/30 p-3 text-rose-300 font-medium">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
-              Hostname de Teste <span className="text-rose-500">*</span>
+            <label className="block font-semibold text-slate-300 mb-1">
+              Hostname de Teste <span className="text-orange-400">*</span>
             </label>
             <input
               type="text"
               placeholder="Ex: LJ01-PDV01, CB04-GERENCIA, AC-FINANC01"
               value={hostname}
               onChange={(e) => setHostname(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 font-bold focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono text-white font-bold placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
               required
             />
-            <span className="text-[10px] text-slate-400 mt-1 block">
+            <span className="text-[10px] text-slate-500 mt-1 block">
               Dica: pode testar nomes reais ou variações com prefixos como LJ, CB, AC, etc.
             </span>
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-semibold text-slate-300 mb-1">
               Campo Loja / Unidade Reportada (Opcional)
             </label>
             <input
@@ -117,14 +117,14 @@ export const SiteSimulatorModal: React.FC<SiteSimulatorModalProps> = ({
               placeholder="Ex: 01, LJ01, Giassi Criciúma"
               value={loja}
               onChange={(e) => setLoja(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-700 transition-colors shadow-xs disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white transition-colors shadow-md shadow-orange-500/20 disabled:opacity-50 cursor-pointer"
           >
             <Search className="h-3.5 w-3.5" />
             <span>{loading ? 'Simulando...' : 'Testar Reconhecimento'}</span>
@@ -133,36 +133,36 @@ export const SiteSimulatorModal: React.FC<SiteSimulatorModalProps> = ({
           {/* Resultado da Simulação */}
           {result && (
             <div
-              className={`rounded-xl border p-4 space-y-2 mt-4 animate-in fade-in duration-150 ${
+              className={`rounded-xl border p-4 space-y-2.5 mt-4 animate-in fade-in duration-150 ${
                 result.matched
-                  ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
-                  : 'bg-amber-50/70 border-amber-200 text-amber-900'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
               }`}
             >
               <div className="flex items-center gap-2 font-bold text-sm">
                 {result.matched ? (
                   <>
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-                    <span>Filial Identificada com Sucesso!</span>
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                    <span className="text-white">Filial Identificada com Sucesso!</span>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-                    <span>Nenhuma Filial Reconhecida</span>
+                    <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+                    <span className="text-white">Nenhuma Filial Reconhecida</span>
                   </>
                 )}
               </div>
 
               {result.matched && (
-                <div className="bg-white/80 p-3 rounded-lg border border-emerald-100 space-y-1 font-mono text-xs">
+                <div className="bg-[#0E131B] p-3 rounded-lg border border-[#1E2636] space-y-1.5 font-mono text-xs">
                   <div>
-                    <span className="text-slate-400 font-sans">Filial Atribuída: </span>
-                    <strong className="text-emerald-800">{result.site_code} - {result.site_name}</strong>
+                    <span className="text-slate-400 font-sans text-[11px]">Filial Atribuída: </span>
+                    <strong className="text-orange-400">[{result.site_code}] {result.site_name}</strong>
                   </div>
                   {result.matched_by && (
                     <div>
-                      <span className="text-slate-400 font-sans">Critério de Match: </span>
-                      <span className="rounded bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800">
+                      <span className="text-slate-400 font-sans text-[11px]">Critério de Match: </span>
+                      <span className="rounded bg-orange-500/15 border border-orange-500/30 px-1.5 py-0.2 text-[10px] font-bold text-orange-400">
                         {result.matched_by}
                       </span>
                     </div>
@@ -170,12 +170,12 @@ export const SiteSimulatorModal: React.FC<SiteSimulatorModalProps> = ({
                 </div>
               )}
 
-              <div className="text-[11px] opacity-90 pt-1">
-                <span className="font-semibold">Diagnóstico: </span>
+              <div className="text-[11px] text-slate-300 pt-1">
+                <span className="font-semibold text-slate-400">Diagnóstico: </span>
                 <span>{result.details}</span>
               </div>
 
-              <div className="flex justify-end pt-2 border-t border-slate-200/50">
+              <div className="flex justify-end pt-2 border-t border-[#1E2636]">
                 <button
                   type="button"
                   onClick={() => {
@@ -184,21 +184,21 @@ export const SiteSimulatorModal: React.FC<SiteSimulatorModalProps> = ({
                     setHostname('');
                     setLoja('');
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
                 >
-                  <RotateCcw className="h-3 w-3 text-slate-500" />
-                  Nova Simulação
+                  <RotateCcw className="h-3 w-3 text-slate-400" />
+                  <span>Nova Simulação</span>
                 </button>
               </div>
             </div>
           )}
         </form>
 
-        <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+        <div className="px-6 py-3 border-t border-[#1E2636] bg-[#0E131B] flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+            className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-1.5 font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
           >
             Fechar
           </button>

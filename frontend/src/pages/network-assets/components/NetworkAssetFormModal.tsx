@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { X, Network, CheckCircle } from 'lucide-react';
 import { NetworkAsset, NetworkAssetInput, TIPOS_PREDEFINIDOS } from '@/types/networkAsset';
 import { Site } from '@/types/site';
+import { SelectDropdown, SelectOption } from '@/components/common/SelectDropdown';
+import { formatarChaveInput } from './AssignLicenseModal';
 
 interface NetworkAssetFormModalProps {
   isOpen: boolean;
@@ -114,25 +116,35 @@ export const NetworkAssetFormModal: React.FC<NetworkAssetFormModalProps> = ({
     }
   };
 
+  const tipoOptions: SelectOption[] = TIPOS_PREDEFINIDOS.map((t) => ({
+    value: t,
+    label: t,
+  }));
+
+  const siteOptions: SelectOption[] = [
+    { value: '', label: 'Sem filial vinculada' },
+    ...sites.map((s) => ({ value: String(s.id), label: s.name })),
+  ];
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className="w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col text-xs animate-in zoom-in-95 duration-150"
+        className="w-full max-w-2xl max-h-[90vh] rounded-2xl bg-[#121721] text-slate-100 shadow-2xl border border-[#1E2636] overflow-hidden flex flex-col text-xs animate-in zoom-in-95 duration-150"
         role="dialog"
       >
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-xl bg-blue-100 p-2 text-blue-600">
+            <div className="rounded-xl bg-orange-500/15 border border-orange-500/30 p-2 text-orange-400">
               <Network className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-800">
+              <h3 className="text-sm font-bold text-white">
                 {asset ? `Editar Ativo: ${asset.nome}` : 'Cadastrar Novo Ativo de Rede'}
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 Impressoras, switches, pontos de acesso, coletores e dispositivos de rede
               </p>
             </div>
@@ -140,7 +152,7 @@ export const NetworkAssetFormModal: React.FC<NetworkAssetFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -149,194 +161,184 @@ export const NetworkAssetFormModal: React.FC<NetworkAssetFormModalProps> = ({
         {/* Formulário com Rolagem */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
           {error && (
-            <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-rose-700 font-medium">
+            <div className="rounded-lg bg-rose-500/15 border border-rose-500/30 p-3 text-rose-300 font-medium">
               {error}
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
-              <label className="block font-semibold text-slate-700 mb-1">
-                Nome / Identificador <span className="text-rose-500">*</span>
+              <label className="block font-semibold text-slate-300 mb-1">
+                Nome / Identificador <span className="text-orange-400">*</span>
               </label>
               <input
                 type="text"
                 placeholder="Ex: IMP-TERM-PADARIA01, SW-DIST-L02, AP-VENDAS"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 font-medium"
                 required
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Tipo de Ativo <span className="text-rose-500">*</span>
+              <label className="block font-semibold text-slate-300 mb-1">
+                Tipo de Ativo <span className="text-orange-400">*</span>
               </label>
-              <select
+              <SelectDropdown
                 value={tipo}
-                onChange={(e) => setTipo(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
-                required
-              >
-                {TIPOS_PREDEFINIDOS.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+                onChange={setTipo}
+                options={tipoOptions}
+                triggerClassName="py-2 text-xs"
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Filial / Loja</label>
-              <select
+              <label className="block font-semibold text-slate-300 mb-1">Filial / Loja</label>
+              <SelectDropdown
                 value={siteId}
-                onChange={(e) => setSiteId(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
-              >
-                <option value="">Sem filial vinculada</option>
-                {sites.map((s) => (
-                  <option key={s.id} value={String(s.id)}>
-                    {s.code} - {s.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setSiteId}
+                options={siteOptions}
+                triggerClassName="py-2 text-xs"
+              />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Endereço IPv4</label>
+              <label className="block font-semibold text-slate-300 mb-1">Endereço IPv4</label>
               <input
                 type="text"
                 placeholder="Ex: 192.168.4.15"
                 value={ip}
                 onChange={(e) => setIp(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono tabular-nums text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Endereço MAC</label>
+              <label className="block font-semibold text-slate-300 mb-1">Endereço MAC</label>
               <input
                 type="text"
                 placeholder="Ex: b4:2e:99:f2:a1:68"
                 value={mac}
                 onChange={(e) => setMac(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono tabular-nums text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Patrimônio (Tombamento)</label>
+              <label className="block font-semibold text-slate-300 mb-1">Patrimônio (Tombamento)</label>
               <input
                 type="text"
                 placeholder="Ex: pat.35192"
                 value={patrimonio}
                 onChange={(e) => setPatrimonio(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono font-bold text-blue-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono tabular-nums font-bold text-orange-400 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Fabricante (Marca)</label>
+              <label className="block font-semibold text-slate-300 mb-1">Fabricante (Marca)</label>
               <input
                 type="text"
                 placeholder="Ex: Zebra, HP, Cisco, Elgin"
                 value={fabricante}
                 onChange={(e) => setFabricante(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Modelo</label>
+              <label className="block font-semibold text-slate-300 mb-1">Modelo</label>
               <input
                 type="text"
                 placeholder="Ex: ZD220, SG300-28, UniFi AP"
                 value={modelo}
                 onChange={(e) => setModelo(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Número de Série</label>
+              <label className="block font-semibold text-slate-300 mb-1">Número de Série</label>
               <input
                 type="text"
                 placeholder="Ex: CNB210984"
                 value={numeroSerie}
                 onChange={(e) => setNumeroSerie(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono tabular-nums text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Localização / Setor Físico</label>
+              <label className="block font-semibold text-slate-300 mb-1">Localização / Setor Físico</label>
               <input
                 type="text"
                 placeholder="Ex: Frente de Caixa 02, Depósito, CPD"
                 value={localizacao}
                 onChange={(e) => setLocalizacao(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Observações e Detalhes</label>
+            <label className="block font-semibold text-slate-300 mb-1">Observações e Detalhes</label>
             <textarea
               rows={2}
               placeholder="Anotações adicionais, histórico de troca de peças ou porta do switch vinculada..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
             />
           </div>
 
-          {/* Licenças (Opcional) */}
-          <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Licenças (Opcional) - Limitado estritamente a 29 caracteres */}
+          <div className="pt-2 border-t border-[#1E2636] grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Chave Windows (Opcional)</label>
+              <label className="block font-semibold text-slate-300 mb-1">Chave Windows (Opcional)</label>
               <input
                 type="text"
+                maxLength={29}
                 placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
                 value={serialWindows}
-                onChange={(e) => setSerialWindows(e.target.value.toUpperCase())}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => setSerialWindows(formatarChaveInput(e.target.value))}
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono tabular-nums text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 uppercase tracking-wider"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Chave Office (Opcional)</label>
+              <label className="block font-semibold text-slate-300 mb-1">Chave Office (Opcional)</label>
               <input
                 type="text"
+                maxLength={29}
                 placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
                 value={serialOffice}
-                onChange={(e) => setSerialOffice(e.target.value.toUpperCase())}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => setSerialOffice(formatarChaveInput(e.target.value))}
+                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono tabular-nums text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 uppercase tracking-wider"
               />
             </div>
           </div>
 
           {/* Rodapé interno do form */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-[#1E2636] flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+              className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-2 font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700 transition-colors shadow-xs disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 px-5 py-2 font-bold text-white transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
             >
               <CheckCircle className="h-4 w-4" />
               <span>{saving ? 'Salvando...' : asset ? 'Salvar Alterações' : 'Cadastrar Ativo'}</span>

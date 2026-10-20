@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Copy,
   Check,
+  ShieldCheck,
 } from 'lucide-react';
 import { copyToClipboard } from '@/utils/clipboard';
 
@@ -164,16 +165,28 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="relative flex min-h-screen items-center justify-center bg-[#080A0F] p-4 overflow-hidden">
+      {/* Brilho radial sutil âmbar de fundo */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(249,115,22,0.12),rgba(11,14,20,0.8)_60%,#080A0F_100%)]" />
+
+      {/* Grid de padrão sutil no fundo */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `linear-gradient(#F97316 1px, transparent 1px), linear-gradient(90deg, #F97316 1px, transparent 1px)`,
+          backgroundSize: '48px 48px',
+        }}
+      />
+
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#1E2636] bg-[#121721] p-8 shadow-2xl backdrop-blur-md">
         {/* Cabeçalho */}
         <div className="mb-6 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white font-bold text-xl mb-3 shadow-sm">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10 text-orange-400 font-bold text-2xl mb-3 shadow-lg shadow-orange-500/10">
             GI
           </div>
-          <h2 className="text-xl font-bold text-slate-800">Giassi Inventory V2</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            {step === 'credentials' && 'Acesse com suas credenciais para gerenciar o inventário'}
+          <h2 className="text-xl font-bold tracking-tight text-white">Giassi Inventory V2</h2>
+          <p className="mt-1 text-xs text-slate-400">
+            {step === 'credentials' && 'Acesse com suas credenciais para gerenciar o parque computacional'}
             {step === 'challenge_2fa' && 'Confirmação de Segurança em Duas Etapas'}
             {step === 'setup_2fa' && 'Configuração Obrigatória do Autenticador (2FA)'}
           </p>
@@ -181,8 +194,8 @@ export const LoginPage: React.FC = () => {
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-rose-500/30 bg-[#181F2E] p-3 text-xs text-rose-400 shadow-sm animate-in fade-in duration-150">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
             <span>{error}</span>
           </div>
         )}
@@ -193,11 +206,11 @@ export const LoginPage: React.FC = () => {
         {step === 'credentials' && (
           <form onSubmit={handleCredentialsSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Usuário
+              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Usuário / Rede
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
                   <UserIcon className="h-4 w-4" />
                 </span>
                 <input
@@ -209,17 +222,17 @@ export const LoginPage: React.FC = () => {
                   disabled={loading}
                   autoComplete="username"
                   required
-                  className="w-full rounded-lg border border-slate-300 py-2.5 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-50"
+                  className="w-full rounded-xl border border-[#263044] bg-[#181F2E] py-2.5 pl-9 pr-3 text-xs font-medium text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Senha
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
                   <Lock className="h-4 w-4" />
                 </span>
                 <input
@@ -233,12 +246,12 @@ export const LoginPage: React.FC = () => {
                   disabled={loading}
                   autoComplete="current-password"
                   required
-                  className="w-full rounded-lg border border-slate-300 py-2.5 pl-9 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-50"
+                  className="w-full rounded-xl border border-[#263044] bg-[#181F2E] py-2.5 pl-9 pr-10 text-xs font-medium text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-white transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -246,20 +259,20 @@ export const LoginPage: React.FC = () => {
               </div>
 
               {capsLockActive && (
-                <p className="mt-1 text-xs text-amber-600 font-medium">
-                  ⚠️ Caps Lock ativado
+                <p className="mt-1.5 text-xs text-amber-400 font-medium flex items-center gap-1">
+                  <span>⚠️</span> Caps Lock ativado
                 </p>
               )}
             </div>
 
             <div className="flex items-center">
-              <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none hover:text-slate-300 transition-colors">
                 <input
                   type="checkbox"
                   checked={rememberUser}
                   onChange={(e) => setRememberUser(e.target.checked)}
                   disabled={loading}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-[#263044] bg-[#181F2E] text-orange-500 focus:ring-orange-500"
                 />
                 Lembrar meu usuário neste navegador
               </label>
@@ -268,10 +281,10 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:bg-blue-400"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-[#181F2E] disabled:text-slate-600 disabled:border disabled:border-[#263044] disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? 'Autenticando...' : 'Avançar'}
+              <span>{loading ? 'Autenticando...' : 'Entrar no Painel'}</span>
             </button>
           </form>
         )}
@@ -281,20 +294,20 @@ export const LoginPage: React.FC = () => {
         {/* ============================================================== */}
         {step === 'challenge_2fa' && (
           <form onSubmit={handle2FASubmit} className="space-y-4">
-            <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 border border-slate-200">
-              <div className="flex items-center gap-1.5 font-semibold text-slate-700 mb-1">
-                <Shield className="h-3.5 w-3.5 text-blue-600" />
+            <div className="rounded-xl border border-orange-500/20 bg-[#181F2E] p-3.5 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5 font-bold text-orange-400 mb-1">
+                <ShieldCheck className="h-4 w-4 text-orange-400" />
                 Autenticador Requerido
               </div>
               Digite o código de 6 dígitos gerado no Google Authenticator ou Microsoft Authenticator para sua conta.
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Código de Verificação (6 dígitos)
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
                   <Shield className="h-4 w-4" />
                 </span>
                 <input
@@ -308,7 +321,7 @@ export const LoginPage: React.FC = () => {
                   placeholder="000000"
                   disabled={loading}
                   required
-                  className="w-full text-center tracking-widest text-lg font-mono rounded-lg border border-slate-300 py-2.5 pl-9 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-50"
+                  className="w-full text-center tracking-[0.4em] text-xl font-mono font-bold rounded-xl border border-[#263044] bg-[#181F2E] py-3 pl-9 pr-3 text-white placeholder-slate-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
                 />
               </div>
             </div>
@@ -316,17 +329,17 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || totpCode.length !== 6}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-[#181F2E] disabled:text-slate-600 disabled:border disabled:border-[#263044] disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? 'Validando...' : 'Confirmar Acesso'}
+              <span>{loading ? 'Validando...' : 'Confirmar Acesso'}</span>
             </button>
 
             <button
               type="button"
               onClick={handleBackToCredentials}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors pt-1"
+              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors pt-1"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Voltar para o login
             </button>
@@ -338,9 +351,9 @@ export const LoginPage: React.FC = () => {
         {/* ============================================================== */}
         {step === 'setup_2fa' && (
           <form onSubmit={handle2FASubmit} className="space-y-4">
-            <div className="rounded-lg bg-blue-50 p-3 text-xs text-blue-800 border border-blue-200">
-              <div className="flex items-center gap-1.5 font-semibold mb-1">
-                <Shield className="h-3.5 w-3.5 text-blue-600" />
+            <div className="rounded-xl border border-orange-500/20 bg-[#181F2E] p-3.5 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5 font-bold text-orange-400 mb-1">
+                <ShieldCheck className="h-4 w-4 text-orange-400" />
                 Configuração Obrigatória
               </div>
               Escaneie o QR Code abaixo com seu app autenticador (Google Authenticator, Microsoft Authenticator, 1Password, etc.).
@@ -348,29 +361,29 @@ export const LoginPage: React.FC = () => {
 
             {/* QR Code */}
             {qrCodeUrl && (
-              <div className="flex justify-center p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="flex justify-center p-4 bg-white rounded-xl border border-[#1E2636] shadow-inner">
                 <img
                   src={qrCodeUrl}
                   alt="QR Code de 2FA"
-                  className="h-44 w-44 object-contain rounded border border-slate-300 bg-white p-1"
+                  className="h-44 w-44 object-contain rounded"
                 />
               </div>
             )}
 
             {/* Chave manual */}
             {secretKey && (
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs">
-                <div className="text-slate-500 mb-1">Ou digite o código manualmente:</div>
-                <div className="flex items-center justify-between gap-2 font-mono font-bold text-slate-800">
-                  <span className="truncate">{secretKey}</span>
+              <div className="rounded-xl border border-[#263044] bg-[#181F2E] p-3 text-xs">
+                <div className="text-slate-400 mb-1 text-[11px]">Ou digite a chave manualmente:</div>
+                <div className="flex items-center justify-between gap-2 font-mono font-bold text-white">
+                  <span className="truncate text-orange-400">{secretKey}</span>
                   <button
                     type="button"
                     onClick={handleCopySecret}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 text-[11px]"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#121721] border border-[#263044] text-slate-300 hover:bg-[#20293A] hover:text-white text-[11px] transition-colors"
                   >
                     {copiedSecret ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-600" /> Copiado
+                        <Check className="h-3 w-3 text-emerald-400" /> Copiado
                       </>
                     ) : (
                       <>
@@ -383,7 +396,7 @@ export const LoginPage: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Digite o código de 6 dígitos gerado:
               </label>
               <input
@@ -397,24 +410,24 @@ export const LoginPage: React.FC = () => {
                 placeholder="000000"
                 disabled={loading}
                 required
-                className="w-full text-center tracking-widest text-lg font-mono rounded-lg border border-slate-300 py-2.5 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-50"
+                className="w-full text-center tracking-[0.4em] text-xl font-mono font-bold rounded-xl border border-[#263044] bg-[#181F2E] py-3 px-3 text-white placeholder-slate-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || totpCode.length !== 6}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-[#181F2E] disabled:text-slate-600 disabled:border disabled:border-[#263044] disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? 'Ativando...' : 'Concluir e Acessar'}
+              <span>{loading ? 'Ativando...' : 'Concluir e Acessar'}</span>
             </button>
 
             <button
               type="button"
               onClick={handleBackToCredentials}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors pt-1"
+              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors pt-1"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Cancelar e voltar
             </button>
@@ -422,10 +435,11 @@ export const LoginPage: React.FC = () => {
         )}
 
         {/* Rodapé simples de segurança */}
-        <div className="mt-6 border-t border-slate-100 pt-4 text-center text-xs text-slate-400">
+        <div className="mt-6 border-t border-[#1E2636] pt-4 text-center text-[11px] text-slate-500">
           Autenticação corporativa protegida com criptografia ponta a ponta
         </div>
       </div>
     </div>
   );
 };
+

@@ -37,55 +37,55 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
     <div className="space-y-5">
       {/* 1. Especificações do Equipamento (Apenas para ativos de rede que não são estações integradas) */}
       {!isEstacao && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-            <Cpu className="h-4 w-4 text-indigo-600" />
+        <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-xs space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400/90 flex items-center gap-2">
+            <Cpu className="h-4 w-4 text-orange-400" />
             Especificações do Equipamento
           </h3>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <span className="text-slate-400 block mb-0.5">Filial</span>
-              <span className="font-semibold text-slate-800">
+            <div className="rounded-lg bg-[#181F2E] border border-[#263044] p-2.5">
+              <span className="text-slate-400 block mb-0.5 text-[11px]">Filial</span>
+              <span className="font-semibold text-slate-100">
                 {site
-                  ? `${site.code} - ${site.name}`
+                  ? site.name
                   : asset.site_id
                   ? `Filial #${asset.site_id}`
                   : 'Sem filial vinculada'}
               </span>
             </div>
 
-            <div>
-              <span className="text-slate-400 block mb-0.5">Localização / Setor</span>
-              <span className="font-semibold text-slate-800">
+            <div className="rounded-lg bg-[#181F2E] border border-[#263044] p-2.5">
+              <span className="text-slate-400 block mb-0.5 text-[11px]">Localização / Setor</span>
+              <span className="font-semibold text-slate-100">
                 {asset.localizacao || '—'}
               </span>
             </div>
 
-            <div>
-              <span className="text-slate-400 block mb-0.5">Patrimônio / Tombamento</span>
-              <span className="font-semibold font-mono text-slate-800">
+            <div className="rounded-lg bg-[#181F2E] border border-[#263044] p-2.5">
+              <span className="text-slate-400 block mb-0.5 text-[11px]">Patrimônio / Tombamento</span>
+              <span className="font-semibold font-mono tabular-nums text-slate-100">
                 {asset.patrimonio || '—'}
               </span>
             </div>
 
-            <div>
-              <span className="text-slate-400 block mb-0.5">Nº de Série</span>
-              <span className="font-semibold font-mono text-slate-800">
+            <div className="rounded-lg bg-[#181F2E] border border-[#263044] p-2.5">
+              <span className="text-slate-400 block mb-0.5 text-[11px]">Nº de Série</span>
+              <span className="font-semibold font-mono tabular-nums text-slate-100">
                 {asset.numero_serie || '—'}
               </span>
             </div>
 
-            <div>
-              <span className="text-slate-400 block mb-0.5">Fabricante</span>
-              <span className="font-semibold text-slate-800">
+            <div className="rounded-lg bg-[#181F2E] border border-[#263044] p-2.5">
+              <span className="text-slate-400 block mb-0.5 text-[11px]">Fabricante</span>
+              <span className="font-semibold text-slate-100">
                 {asset.fabricante || '—'}
               </span>
             </div>
 
-            <div>
-              <span className="text-slate-400 block mb-0.5">Modelo</span>
-              <span className="font-semibold text-slate-800">
+            <div className="rounded-lg bg-[#181F2E] border border-[#263044] p-2.5">
+              <span className="text-slate-400 block mb-0.5 text-[11px]">Modelo</span>
+              <span className="font-semibold text-slate-100">
                 {asset.modelo || '—'}
               </span>
             </div>
@@ -94,23 +94,19 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
       )}
 
       {/* 2. Licenças & Seriais (Windows / Office) */}
-      <div className={`rounded-xl border p-4 shadow-2xs space-y-3 ${
-        isEstacao ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 bg-white'
-      }`}>
+      <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
-            isEstacao ? 'text-amber-900' : 'text-slate-500'
-          }`}>
-            <Key className={`h-4 w-4 ${isEstacao ? 'text-amber-600' : 'text-amber-500'}`} />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400/90 flex items-center gap-2">
+            <Key className="h-4 w-4 text-orange-400" />
             {isEstacao ? 'Chaves & Licenciamento (Windows / Office)' : 'Licenças & Ativações'}
           </h3>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {/* Slot Windows */}
-          <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+          <div className="p-3.5 rounded-xl bg-[#181F2E] border border-[#263044] space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700">Serial Windows</span>
+              <span className="text-xs font-bold text-slate-200">Serial Windows</span>
               {isAdmin && (
                 <div className="flex items-center gap-1.5">
                   {asset.serial_windows && (
@@ -118,7 +114,7 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
                       type="button"
                       onClick={() => handleUnbindSerial('windows')}
                       disabled={unbindingSlot === 'windows'}
-                      className="px-2 py-0.5 rounded text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors disabled:opacity-50"
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold text-rose-400 hover:bg-rose-500/20 border border-rose-500/30 transition-colors disabled:opacity-50 cursor-pointer"
                       title="Desvincular chave"
                     >
                       {unbindingSlot === 'windows' ? 'Removendo...' : '✕ Remover'}
@@ -127,7 +123,7 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
                   <button
                     type="button"
                     onClick={() => handleOpenLicenseModal('windows')}
-                    className="px-2 py-0.5 rounded text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+                    className="px-2.5 py-0.5 rounded text-[11px] font-semibold text-orange-400 bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 transition-colors cursor-pointer"
                   >
                     {asset.serial_windows ? 'Alterar' : '+ Atribuir'}
                   </button>
@@ -135,25 +131,25 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
               )}
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+            <div className="group flex items-center justify-between p-2.5 rounded-lg bg-[#0B0E14] border border-[#1E2636]">
               {isAdmin ? (
                 asset.serial_windows ? (
-                  <span className="font-mono text-xs font-bold text-slate-800 tracking-wide select-all">
+                  <span className="font-mono text-xs font-bold text-slate-100 tracking-wider select-all">
                     {asset.serial_windows}
                   </span>
                 ) : (
-                  <span className="text-xs text-slate-400 italic">
+                  <span className="text-xs text-slate-500 italic">
                     — Nenhum serial de Windows vinculado —
                   </span>
                 )
               ) : (
                 asset.serial_windows ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
                     Licenciado / Possui chave
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#181F2E] text-slate-400 border border-[#263044]">
                     Sem chave
                   </span>
                 )
@@ -163,11 +159,11 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
                 <button
                   type="button"
                   onClick={() => copyToClipboard(asset.serial_windows!, 'win')}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded"
+                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-white transition-opacity p-1 rounded cursor-pointer"
                   title="Copiar serial"
                 >
                   {copiedKey === 'win' ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
@@ -177,9 +173,9 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
           </div>
 
           {/* Slot Office */}
-          <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+          <div className="p-3.5 rounded-xl bg-[#181F2E] border border-[#263044] space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700">Serial Office</span>
+              <span className="text-xs font-bold text-slate-200">Serial Office</span>
               {isAdmin && (
                 <div className="flex items-center gap-1.5">
                   {asset.serial_office && (
@@ -187,7 +183,7 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
                       type="button"
                       onClick={() => handleUnbindSerial('office')}
                       disabled={unbindingSlot === 'office'}
-                      className="px-2 py-0.5 rounded text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors disabled:opacity-50"
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold text-rose-400 hover:bg-rose-500/20 border border-rose-500/30 transition-colors disabled:opacity-50 cursor-pointer"
                       title="Desvincular chave"
                     >
                       {unbindingSlot === 'office' ? 'Removendo...' : '✕ Remover'}
@@ -196,7 +192,7 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
                   <button
                     type="button"
                     onClick={() => handleOpenLicenseModal('office')}
-                    className="px-2 py-0.5 rounded text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+                    className="px-2.5 py-0.5 rounded text-[11px] font-semibold text-orange-400 bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 transition-colors cursor-pointer"
                   >
                     {asset.serial_office ? 'Alterar' : '+ Atribuir'}
                   </button>
@@ -204,25 +200,25 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
               )}
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+            <div className="group flex items-center justify-between p-2.5 rounded-lg bg-[#0B0E14] border border-[#1E2636]">
               {isAdmin ? (
                 asset.serial_office ? (
-                  <span className="font-mono text-xs font-bold text-slate-800 tracking-wide select-all">
+                  <span className="font-mono text-xs font-bold text-slate-100 tracking-wider select-all">
                     {asset.serial_office}
                   </span>
                 ) : (
-                  <span className="text-xs text-slate-400 italic">
+                  <span className="text-xs text-slate-500 italic">
                     — Nenhum serial de Office vinculado —
                   </span>
                 )
               ) : (
                 asset.serial_office ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
                     Licenciado / Possui chave
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#181F2E] text-slate-400 border border-[#263044]">
                     Sem chave
                   </span>
                 )
@@ -232,11 +228,11 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
                 <button
                   type="button"
                   onClick={() => copyToClipboard(asset.serial_office!, 'off')}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded"
+                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-white transition-opacity p-1 rounded cursor-pointer"
                   title="Copiar serial"
                 >
                   {copiedKey === 'off' ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
@@ -249,12 +245,12 @@ export const NetworkAssetFormSection: React.FC<NetworkAssetFormSectionProps> = (
 
       {/* 3. Observações */}
       {asset.observacoes && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-            <FileText className="h-4 w-4 text-slate-500" />
+        <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-xs space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400/90 flex items-center gap-2">
+            <FileText className="h-4 w-4 text-orange-400" />
             Observações e Anotações
           </h3>
-          <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed whitespace-pre-line">
+          <p className="text-xs text-slate-300 bg-[#0B0E14] p-3 rounded-lg border border-[#1E2636] leading-relaxed whitespace-pre-line">
             {asset.observacoes}
           </p>
         </div>

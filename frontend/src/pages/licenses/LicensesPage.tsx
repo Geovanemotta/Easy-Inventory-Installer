@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, KeyRound, Sparkles, X, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
   License,
@@ -199,23 +199,25 @@ export const LicensesPage: React.FC = () => {
     <div className="space-y-4">
       {/* Toast Notificação */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 animate-in fade-in slide-in-from-bottom-2">
-          {toastMessage}
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-[#0E131B] border border-[#263044] px-4 py-2.5 text-xs font-semibold text-white shadow-2xl animate-in slide-in-from-bottom duration-150">
+          <Sparkles className="h-4 w-4 text-orange-400" />
+          <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Cabeçalho da Página */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-800">
-              Controle de Licenças & Seriais
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+              <KeyRound className="h-6 w-6 text-orange-400" />
+              Controle de Licenças &amp; Seriais
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-orange-500/15 text-orange-400 border border-orange-500/30">
               {stats?.total_licencas ?? 0} lotes
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Gestão de licenças de Windows, Office e softwares corporativos por filial
           </p>
         </div>
@@ -283,34 +285,50 @@ export const LicensesPage: React.FC = () => {
         onDeviceUnlinked={handleDeviceUnlinked}
       />
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modal de Confirmação de Exclusão no padrão Obsidian & Amber */}
       {licenseToDelete && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center gap-3 text-rose-600">
-              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
-                <AlertTriangle className="h-6 w-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-[#121721] rounded-2xl border border-[#1E2636] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B]">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Confirmar Exclusão</h3>
+                  <p className="text-[11px] text-slate-400">Ação irreversível de licença</p>
+                </div>
               </div>
-              <h3 className="text-base font-bold text-slate-800">Confirmar Exclusão</h3>
+              <button
+                type="button"
+                onClick={() => setLicenseToDelete(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Tem certeza que deseja excluir o lote de licença{' '}
-              <strong>"{licenseToDelete.software_nome}"</strong>?
+            <div className="p-6 space-y-3 text-xs leading-relaxed">
+              <p className="text-slate-300">
+                Tem certeza que deseja excluir o lote de licença{' '}
+                <strong className="text-white font-bold bg-[#181F2E] px-2 py-0.5 rounded border border-[#263044]">
+                  "{licenseToDelete.software_nome}"
+                </strong>
+                ?
+              </p>
               {licenseToDelete.quantidade_em_uso > 0 && (
-                <span className="block mt-2 font-semibold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200">
-                  Atenção: Existem {licenseToDelete.quantidade_em_uso} máquina(s) vinculadas a
-                  este serial.
-                </span>
+                <div className="p-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-semibold">
+                  Atenção: Existem {licenseToDelete.quantidade_em_uso} máquina(s) vinculadas a este serial.
+                </div>
               )}
-            </p>
+            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-2 px-6 py-3 border-t border-[#1E2636] bg-[#0E131B]">
               <button
                 type="button"
                 onClick={() => setLicenseToDelete(null)}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-xs"
+                className="px-4 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 font-semibold hover:text-white hover:bg-[#222B3D] transition-colors text-xs cursor-pointer"
               >
                 Cancelar
               </button>
@@ -318,10 +336,12 @@ export const LicensesPage: React.FC = () => {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700 transition-colors text-xs flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700 transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
-                {isDeleting && (
+                {isDeleting ? (
                   <span className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
                 )}
                 <span>Excluir Definitivamente</span>
               </button>

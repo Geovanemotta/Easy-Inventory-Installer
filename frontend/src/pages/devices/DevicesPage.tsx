@@ -20,6 +20,7 @@ import { DeviceDetailsDrawer } from './components/DeviceDetailsDrawer';
 import { DeleteDeviceModal } from './components/DeleteDeviceModal';
 import { SshTerminalModal } from './components/SshTerminalModal';
 import { DonutChart } from '@/components/common/DonutChart';
+import { SelectDropdown } from '@/components/ui/SelectDropdown';
 import {
   Monitor,
   AlertCircle,
@@ -41,7 +42,7 @@ export const DevicesPage: React.FC = () => {
   const [kpis, setKpis] = useState<DeviceKPIs | undefined>(undefined);
   const [filterOptions, setFilterOptions] = useState<DeviceFilterOptions | undefined>(undefined);
   const [chartsSummary, setChartsSummary] = useState<DeviceChartsSummary | null>(null);
-  const [showCharts, setShowCharts] = useState<boolean>(false);
+  const [showCharts, setShowCharts] = useState<boolean>(true);
   const [pagination, setPagination] = useState<DevicePagination>({
     page: 1,
     per_page: 50,
@@ -330,19 +331,19 @@ export const DevicesPage: React.FC = () => {
       {/* Cabeçalho da Página */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <Monitor className="h-6 w-6 text-blue-600" />
-            Estações de Trabalho &amp; Inventário
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Monitor className="h-6 w-6 text-orange-500" />
+            <span>Estações de Trabalho &amp; Inventário</span>
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Gerenciamento de hardware, discos, periféricos, histórico de drift e homologação no firewall
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-xs text-red-700">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div className="flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-300">
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
           <span>{error}</span>
         </div>
       )}
@@ -359,11 +360,11 @@ export const DevicesPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowCharts((prev) => !prev)}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-2xs transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl border border-[#1E2636] bg-[#121721] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-[#181F2E] hover:border-[#263044] hover:text-white shadow-2xs transition-all cursor-pointer"
         >
-          <PieChart className="h-4 w-4 text-blue-600" />
+          <PieChart className="h-4 w-4 text-orange-400" />
           <span>Gráficos de Distribuição</span>
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 font-mono">
+          <span className="rounded-full bg-[#181F2E] border border-[#1E2636] px-2 py-0.5 text-[10px] text-slate-400 font-mono">
             3 gráficos
           </span>
           {showCharts ? (
@@ -374,9 +375,9 @@ export const DevicesPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Seção Recolhível dos 3 Gráficos Donut alimentados pelo Back-end */}
+      {/* Seção dos 3 Gráficos Donut alimentados pelo Back-end */}
       {showCharts && chartsSummary && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch animate-in fade-in-50 duration-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
           <DonutChart
             data={chartsSummary.plataforma}
             activeItem={filters.plataforma}
@@ -388,17 +389,33 @@ export const DevicesPage: React.FC = () => {
               });
             }}
           />
-          <DonutChart
-            data={chartsSummary.versoes}
-            activeItem={filters.versao}
-            onItemClick={(label: string) => {
-              handleFilterChange({
-                ...filters,
-                versao: label === filters.versao ? undefined : label,
-                page: 1,
-              });
-            }}
-          />
+          {(chartsSummary.conectividade || chartsSummary.versoes) && (
+            <DonutChart
+              data={(chartsSummary.conectividade || chartsSummary.versoes)!}
+              activeItem={
+                filters.status_conexao === 'online'
+                  ? 'Ativas'
+                  : filters.status_conexao === 'alerta'
+                  ? 'Semi-inativas'
+                  : filters.status_conexao === 'offline'
+                  ? 'Inativas'
+                  : undefined
+              }
+              onItemClick={(label: string) => {
+                const cxMap: Record<string, string> = {
+                  'Ativas': 'online',
+                  'Semi-inativas': 'alerta',
+                  'Inativas': 'offline',
+                };
+                const val = cxMap[label];
+                handleFilterChange({
+                  ...filters,
+                  status_conexao: val === filters.status_conexao ? undefined : val,
+                  page: 1,
+                });
+              }}
+            />
+          )}
           <DonutChart
             data={chartsSummary.status}
             activeItem={
@@ -438,19 +455,19 @@ export const DevicesPage: React.FC = () => {
 
       {/* Banner / Chip de Filtro Ativo: Sem Apps */}
       {filters.sem_apps && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50/90 px-4 py-2.5 text-xs text-amber-900 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-amber-200 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-amber-200/80 text-amber-800">
+            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
               <AlertTriangle className="h-4 w-4 shrink-0" />
             </div>
             <div>
               <div className="font-bold flex items-center gap-2">
                 <span>Filtrando: Máquinas sem inventário de aplicativos ({pagination.total})</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   Pendente
                 </span>
               </div>
-              <p className="text-[11px] text-amber-700">
+              <p className="text-[11px] text-amber-300/80">
                 Estações de trabalho ativas que ainda não reportaram ou sincronizaram coleta de softwares instalados.
               </p>
             </div>
@@ -460,7 +477,7 @@ export const DevicesPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent('app:open-install-agent'))}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-colors cursor-pointer"
               >
                 <Zap className="h-3.5 w-3.5" />
                 <span>Instalar Agente</span>
@@ -480,9 +497,9 @@ export const DevicesPage: React.FC = () => {
                   return nextParams;
                 });
               }}
-              className="inline-flex items-center gap-1 rounded-lg bg-white hover:bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-700 border border-slate-300 transition-colors shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1 rounded-lg bg-[#181F2E] hover:bg-[#263044] px-2.5 py-1.5 text-xs font-semibold text-slate-300 border border-[#263044] transition-colors shadow-2xs cursor-pointer"
             >
-              <X className="h-3.5 w-3.5 text-slate-500" />
+              <X className="h-3.5 w-3.5 text-slate-400" />
               <span>Limpar filtro</span>
             </button>
           </div>
@@ -491,19 +508,19 @@ export const DevicesPage: React.FC = () => {
 
       {/* Banner / Chip de Filtro Ativo: Com Apps */}
       {filters.com_apps && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50/90 px-4 py-2.5 text-xs text-emerald-900 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-200 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-emerald-200/80 text-emerald-800">
+            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
             </div>
             <div>
               <div className="font-bold flex items-center gap-2">
-                <span>Filtrando: Máquinas com inventário de aplicativos ({pagination.total})</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-200 text-emerald-900 border border-emerald-300">
+                <span className="text-white">Filtrando: Máquinas com inventário de aplicativos ({pagination.total})</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   Inventariadas
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-700">
+              <p className="text-[11px] text-emerald-300/80">
                 Estações que reportaram catálogo de pacotes de softwares com sucesso.
               </p>
             </div>
@@ -522,37 +539,41 @@ export const DevicesPage: React.FC = () => {
                 return nextParams;
               });
             }}
-            className="inline-flex items-center gap-1 rounded-lg bg-white hover:bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-700 border border-slate-300 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1 rounded-lg bg-[#181F2E] hover:bg-[#263044] px-2.5 py-1.5 text-xs font-semibold text-slate-300 border border-[#263044] transition-colors shadow-2xs cursor-pointer"
           >
-            <X className="h-3.5 w-3.5 text-slate-500" />
+            <X className="h-3.5 w-3.5 text-slate-400" />
             <span>Limpar filtro</span>
           </button>
         </div>
       )}
 
       {/* Barra de Contagem e Controle 'Por Página' */}
-      <div className="flex items-center justify-between px-1 text-xs text-slate-600">
+      <div className="flex items-center justify-between px-1 text-xs text-slate-400">
         <div className="font-medium">
-          <span className="font-bold text-slate-900">{devices.length}</span> de{' '}
-          <span className="font-bold text-slate-900">{pagination.total}</span> máquinas
+          <span className="font-semibold text-white font-mono tabular-nums">{devices.length}</span> de{' '}
+          <span className="font-semibold text-white font-mono tabular-nums">{pagination.total}</span> máquinas
           {pagination.total !== (kpis ? (kpis.total_linux + kpis.total_windows) : pagination.total) && (
-            <span className="text-slate-400 ml-1">
+            <span className="text-slate-500 ml-1">
               (filtradas de {kpis ? (kpis.total_linux + kpis.total_windows) : pagination.total})
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-500 font-medium">Por página:</span>
-          <select
-            value={filters.per_page || 50}
-            onChange={(e) => handlePerPageChange(Number(e.target.value))}
-            className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none"
-          >
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
+          <span className="text-slate-400 font-medium">Por página:</span>
+          <div className="w-20">
+            <SelectDropdown
+              value={String(filters.per_page || 50)}
+              options={[
+                { value: '25', label: '25' },
+                { value: '50', label: '50' },
+                { value: '100', label: '100' },
+              ]}
+              onChange={(val) => handlePerPageChange(Number(val))}
+              className="w-full font-mono font-semibold"
+              triggerClassName="py-1 px-2.5"
+            />
+          </div>
         </div>
       </div>
 

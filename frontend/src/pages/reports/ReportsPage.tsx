@@ -1,8 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import {
+  BarChart3,
+  PieChart,
+  Search,
+  X,
+  RotateCcw,
+} from 'lucide-react'
 import { siteService } from '../../services/siteService'
 import { getDashboardCharts, getDashboardReports } from '../../services/dashboardService'
 import type { DashboardChartsResponse, ReportSummaryResponse } from '../../types/dashboard'
 import type { Site } from '../../types/site'
+import { SelectDropdown, SelectOption } from '../../components/common/SelectDropdown'
 import DistributionCharts from './components/DistributionCharts'
 import ReportGroupList from './components/ReportGroupList'
 import ReportMachinesTable from './components/ReportMachinesTable'
@@ -132,7 +140,6 @@ export default function ReportsPage() {
     setPage(1)
     setActiveTab('analytics')
 
-    // Executa imediatamente a consulta analítica para a dimensão e fatia clicada
     setLoadingReports(true)
     const numSiteId = siteId ? Number(siteId) : undefined
     getDashboardReports({
@@ -155,159 +162,183 @@ export default function ReportsPage() {
       })
   }
 
+  // Opções para SelectDropdown
+  const campoOptions: SelectOption[] = [
+    { value: 'processador', label: 'Processador' },
+    { value: 'modelo', label: 'Placa-mãe / Modelo' },
+    { value: 'ram', label: 'Memória RAM' },
+    { value: 'ram_tipo', label: 'Tipo de RAM' },
+    { value: 'disco', label: 'Tamanho do Disco' },
+    { value: 'disco_tipo', label: 'Tipo de Armazenamento' },
+    { value: 'sistema', label: 'Sistema Operacional' },
+    { value: 'windows_release', label: 'Release Windows' },
+    { value: 'fabricante', label: 'Fabricante' },
+    { value: 'dominio', label: 'Domínio de Rede' },
+    { value: 'filial', label: 'Loja / Filial' },
+    { value: 'status', label: 'Status Operacional' },
+  ]
+
+  const plataformaOptions: SelectOption[] = [
+    { value: '', label: 'Linux e Windows' },
+    { value: 'Windows', label: 'Apenas Windows' },
+    { value: 'Linux', label: 'Apenas Linux' },
+  ]
+
+  const siteOptions: SelectOption[] = useMemo(() => [
+    { value: '', label: 'Todas as Filiais' },
+    ...sites.map((s) => ({ value: String(s.id), label: `${s.name} (${s.code})` })),
+  ], [sites])
+
+  const handleResetFilters = () => {
+    setCampo('processador')
+    setPlataforma('')
+    setSiteId('')
+    setSearch('')
+    setGrupoSelecionado(null)
+    setPage(1)
+  }
+
+  const hasActiveFilters = Boolean(
+    campo !== 'processador' ||
+    plataforma !== '' ||
+    siteId !== '' ||
+    search !== '' ||
+    grupoSelecionado !== null
+  )
+
   return (
     <div className="space-y-6">
-      {/* Cabeçalho da Página com Abas */}
+      {/* Cabeçalho da Página com Abas Padronizadas */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            Relatórios e Indicadores Analíticos
+          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+            <BarChart3 className="h-6 w-6 text-orange-400" />
+            Relatórios &amp; Indicadores Analíticos
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400 mt-0.5">
             Consolidação em tempo real de hardware, software, licenças e conformidade
           </p>
         </div>
 
-        {/* Seletor de Abas */}
-        <div className="flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-              activeTab === 'analytics'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            Explorador Analítico
-          </button>
+        {/* Seletor de Abas em Obsidian & Amber */}
+        <div className="flex rounded-lg border border-[#1E2636] bg-[#121721] p-1 shadow-xs">
           <button
             type="button"
             onClick={() => setActiveTab('charts')}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'charts'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-orange-500 text-white shadow-xs'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-            </svg>
-            Painel de Distribuição
+            <PieChart className="h-4 w-4" />
+            <span>Visão Gráfica</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('analytics')}
+            className={`flex items-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'analytics'
+                ? 'bg-orange-500 text-white shadow-xs'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
+            }`}
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span>Explorador Analítico</span>
           </button>
         </div>
       </div>
 
-      {/* Barra de Filtros Unificada */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      {/* Barra de Filtros Superior */}
+      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-[#1E2636] bg-[#121721] p-3 shadow-xs">
         {activeTab === 'analytics' && (
-          <div className="flex flex-col gap-1">
-            <label htmlFor="rep-campo" className="text-[11px] font-semibold text-slate-500">
-              Agrupar por
-            </label>
-            <select
-              id="rep-campo"
+          <div className="w-52 shrink-0">
+            <SelectDropdown
               value={campo}
-              onChange={(e) => {
-                setCampo(e.target.value)
+              onChange={(val) => {
+                setCampo(val)
                 setGrupoSelecionado(null)
                 setPage(1)
               }}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="processador">Processador</option>
-              <option value="modelo">Placa-mãe / Modelo</option>
-              <option value="ram">Memória RAM</option>
-              <option value="ram_tipo">Tipo de RAM (DDR3, DDR4, DDR5...)</option>
-              <option value="disco">Tamanho do Disco</option>
-              <option value="disco_tipo">Tipo de Armazenamento (SSD / NVMe / HDD)</option>
-              <option value="sistema">Sistema Operacional</option>
-              <option value="windows_release">Versão Release Windows</option>
-              <option value="fabricante">Fabricante</option>
-              <option value="dominio">Domínio de Rede</option>
-              <option value="filial">Loja / Filial</option>
-              <option value="status">Status Operacional</option>
-            </select>
+              options={campoOptions}
+              placeholder="Agrupar por..."
+              triggerClassName="py-1.5 text-xs"
+            />
           </div>
         )}
 
         {activeTab === 'analytics' && (
-          <div className="flex flex-col gap-1">
-            <label htmlFor="rep-plat" className="text-[11px] font-semibold text-slate-500">
-              Plataforma
-            </label>
-            <select
-              id="rep-plat"
+          <div className="w-40 shrink-0">
+            <SelectDropdown
               value={plataforma}
-              onChange={(e) => {
-                setPlataforma(e.target.value)
+              onChange={(val) => {
+                setPlataforma(val)
                 setGrupoSelecionado(null)
                 setPage(1)
               }}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="">Linux e Windows</option>
-              <option value="Windows">Apenas Windows</option>
-              <option value="Linux">Apenas Linux</option>
-            </select>
+              options={plataformaOptions}
+              placeholder="Plataforma..."
+              triggerClassName="py-1.5 text-xs"
+            />
           </div>
         )}
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="rep-site" className="text-[11px] font-semibold text-slate-500">
-            Filial / Loja
-          </label>
-          <select
-            id="rep-site"
+        <div className="w-48 shrink-0">
+          <SelectDropdown
             value={siteId}
-            onChange={(e) => {
-              setSiteId(e.target.value)
+            onChange={(val) => {
+              setSiteId(val)
               setGrupoSelecionado(null)
               setPage(1)
             }}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="">Todas as Filiais</option>
-            {sites.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} ({s.code})
-              </option>
-            ))}
-          </select>
+            options={siteOptions}
+            placeholder="Filial..."
+            triggerClassName="py-1.5 text-xs"
+          />
         </div>
 
         {activeTab === 'analytics' && (
-          <div className="flex flex-1 flex-col gap-1 min-w-[200px]">
-            <label htmlFor="rep-search" className="text-[11px] font-semibold text-slate-500">
-              Buscar valor ou hostname
-            </label>
-            <div className="relative">
-              <input
-                id="rep-search"
-                type="text"
-                placeholder="Ex.: Core i5, 16 GB, DESKTOP-J2VG15L, mc-server..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar valor ou hostname (ex.: Core i5, 16 GB, DESKTOP-J2VG15L)..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setGrupoSelecionado(null)
+                setPage(1)
+              }}
+              className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-1.5 pl-8 pr-7 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('')
                   setGrupoSelecionado(null)
                   setPage(1)
                 }}
-                className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs font-medium text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              />
-              <svg
-                className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 cursor-pointer"
+                title="Limpar busca"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+                <X className="h-3 w-3" />
+              </button>
+            )}
           </div>
+        )}
+
+        {/* Botão Limpar Padronizado */}
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            title="Limpar todos os filtros"
+            className="flex items-center gap-1.5 bg-[#181F2E] hover:bg-[#222B3D] text-slate-300 border border-[#263044] px-3 py-2 rounded-lg text-xs font-medium shrink-0 transition-colors cursor-pointer ml-auto"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Limpar</span>
+          </button>
         )}
       </div>
 

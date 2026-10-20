@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { X, Plus, Network, Edit2, Trash2, CheckCircle, Database } from 'lucide-react';
 import { Site, SiteIpRange, SiteIpRangeInput } from '@/types/site';
+import { SelectDropdown, SelectOption } from '@/components/common/SelectDropdown';
 
 interface SiteIpRangesModalProps {
   isOpen: boolean;
@@ -41,6 +42,35 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Opções sem duplicação de código
+  const siteFilterOptions: SelectOption[] = useMemo(() => {
+    const opts: SelectOption[] = [
+      { value: 'todos', label: `Todas as Filiais (${ranges.length} faixas)` },
+    ];
+    sites.forEach((s) => {
+      const cleanName = s.name
+        .replace(new RegExp(`^\\[?${s.code}\\]?\\s*[-–—]?\\s*`, 'i'), '')
+        .trim();
+      opts.push({
+        value: String(s.id),
+        label: `[${s.code}] ${cleanName || s.name}`,
+      });
+    });
+    return opts;
+  }, [sites, ranges.length]);
+
+  const formSiteOptions: SelectOption[] = useMemo(() => {
+    return sites.map((s) => {
+      const cleanName = s.name
+        .replace(new RegExp(`^\\[?${s.code}\\]?\\s*[-–—]?\\s*`, 'i'), '')
+        .trim();
+      return {
+        value: String(s.id),
+        label: `[${s.code}] ${cleanName || s.name}`,
+      };
+    });
+  }, [sites]);
 
   const startEdit = (r: SiteIpRange) => {
     setEditingRange(r);
@@ -122,22 +152,22 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col text-xs animate-in zoom-in-95 duration-150"
+        className="w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[#121721] shadow-2xl border border-[#1E2636] overflow-hidden flex flex-col text-xs animate-in zoom-in-95 duration-150"
         role="dialog"
       >
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-xl bg-blue-100 p-2 text-blue-600">
+            <div className="rounded-xl bg-orange-500/15 border border-orange-500/30 p-2 text-orange-400">
               <Network className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-800">
+              <h3 className="text-sm font-bold text-white">
                 Gerenciador de Faixas de IP &amp; Sub-redes (VLANs)
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-400">
                 Mapeamento de sub-redes e controle de ocupação por loja do Grupo Giassi
               </p>
             </div>
@@ -145,7 +175,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-lg p-1 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -153,37 +183,33 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
 
         {/* Corpo com rolagem */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Seletor de Filial para visualização */}
-          <div className="flex items-center justify-between gap-4 bg-slate-50 border border-slate-200 p-3 rounded-xl">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-700">Filtrar por Filial:</span>
-              <select
-                value={selectedSiteId}
-                onChange={(e) => setSelectedSiteId(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="todos">Todas as Filiais ({ranges.length} faixas)</option>
-                {sites.map((s) => (
-                  <option key={s.id} value={String(s.id)}>
-                    {s.code} - {s.name}
-                  </option>
-                ))}
-              </select>
+          {/* Seletor de Filial para visualização com SelectDropdown sem código duplicado */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0E131B] border border-[#1E2636] p-3 rounded-xl">
+            <div className="flex items-center gap-2.5 flex-1">
+              <span className="font-semibold text-slate-300 shrink-0">Filtrar por Filial:</span>
+              <div className="w-72">
+                <SelectDropdown
+                  value={selectedSiteId}
+                  onChange={setSelectedSiteId}
+                  options={siteFilterOptions}
+                  className="w-full"
+                />
+              </div>
             </div>
-            <span className="text-[11px] text-slate-500 font-mono">
-              Total visível: <strong>{filteredRanges.length}</strong> faixa(s)
+            <span className="text-[11px] text-slate-400 font-mono">
+              Total visível: <strong className="text-white font-bold">{filteredRanges.length}</strong> faixa(s)
             </span>
           </div>
 
           {/* Lista de Faixas Cadastradas */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              <Database className="h-4 w-4 text-blue-600" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <Database className="h-4 w-4 text-orange-400" />
               Faixas Cadastradas
             </h4>
 
             {filteredRanges.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
+              <div className="rounded-xl border border-dashed border-[#1E2636] bg-[#0E131B] p-8 text-center text-slate-500">
                 Nenhuma faixa de IP cadastrada para a seleção atual.
               </div>
             ) : (
@@ -197,16 +223,16 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                   return (
                     <div
                       key={r.id}
-                      className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition-all space-y-3"
+                      className="rounded-xl border border-[#1E2636] bg-[#0E131B] p-4 shadow-sm hover:border-orange-500/40 transition-all space-y-3"
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                          <div className="font-bold text-white text-sm flex items-center gap-1.5">
                             <span>{r.nome}</span>
                           </div>
-                          <div className="text-[11px] text-slate-500 font-medium">
+                          <div className="text-[11px] text-slate-400 font-medium mt-0.5">
                             {r.site_codigo ? (
-                              <span className="font-mono text-blue-700 font-bold mr-1">[{r.site_codigo}]</span>
+                              <span className="font-mono text-orange-400 font-bold mr-1">[{r.site_codigo}]</span>
                             ) : null}
                             {r.site_nome || 'Filial não vinculada'}
                           </div>
@@ -217,7 +243,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                             <button
                               type="button"
                               onClick={() => startEdit(r)}
-                              className="rounded p-1 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                              className="rounded p-1 text-slate-400 hover:bg-[#181F2E] hover:text-orange-400 transition-colors cursor-pointer"
                               title="Editar Faixa"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
@@ -226,7 +252,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                               type="button"
                               onClick={() => handleDelete(r.id)}
                               disabled={deletingId === r.id}
-                              className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors disabled:opacity-50"
+                              className="rounded p-1 text-slate-400 hover:bg-rose-500/15 hover:text-rose-400 transition-colors disabled:opacity-50 cursor-pointer"
                               title="Excluir Faixa"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -236,15 +262,15 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                       </div>
 
                       {/* Faixa e Gateway */}
-                      <div className="grid grid-cols-2 gap-2 text-[11px] font-mono bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      <div className="grid grid-cols-2 gap-2 text-[11px] font-mono bg-[#181F2E] p-2.5 rounded-lg border border-[#263044]">
                         <div>
                           <span className="text-slate-400 block text-[9px] uppercase font-sans">Início / Fim</span>
-                          <span className="text-slate-800 font-bold">{r.ip_inicio}</span>
+                          <span className="text-white font-bold">{r.ip_inicio}</span>
                           <span className="text-slate-400 block">até {r.ip_fim}</span>
                         </div>
                         <div>
                           <span className="text-slate-400 block text-[9px] uppercase font-sans">Gateway / Máscara</span>
-                          <span className="text-slate-700">{r.gateway || '—'}</span>
+                          <span className="text-slate-200">{r.gateway || '—'}</span>
                           <span className="text-slate-400 block">{r.mascara || '/24'}</span>
                         </div>
                       </div>
@@ -252,23 +278,23 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                       {/* Barra de Ocupação */}
                       <div>
                         <div className="flex items-center justify-between text-[11px] mb-1">
-                          <span className="text-slate-500">
-                            Ocupação: <strong className="text-slate-800">{r.ips_ocupados || 0}</strong> de {r.total_ips || 0} IPs
+                          <span className="text-slate-400">
+                            Ocupação: <strong className="text-white font-bold">{r.ips_ocupados || 0}</strong> de {r.total_ips || 0} IPs
                           </span>
-                          <span className={`font-bold ${isHigh ? 'text-rose-600' : 'text-emerald-700'}`}>
+                          <span className={`font-bold font-mono ${isHigh ? 'text-rose-400' : 'text-emerald-400'}`}>
                             {pct}% ({r.ips_livres || 0} livres)
                           </span>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                        <div className="h-2 w-full rounded-full bg-[#181F2E] border border-[#263044] overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${isHigh ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                            className={`h-full rounded-full transition-all duration-300 ${isHigh ? 'bg-rose-500' : 'bg-emerald-500'}`}
                             style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
                           />
                         </div>
                       </div>
 
                       {r.observacoes && (
-                        <div className="text-[11px] text-slate-500 italic border-t border-slate-100 pt-1.5">
+                        <div className="text-[11px] text-slate-400 italic border-t border-[#1E2636] pt-1.5">
                           {r.observacoes}
                         </div>
                       )}
@@ -281,17 +307,17 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
 
           {/* Formulário de Criação / Edição de Faixa */}
           {isAdmin && (
-            <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-5 space-y-4">
+            <div className="rounded-xl border border-[#263044] bg-[#181F2E]/60 p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
-                  <Plus className="h-4 w-4 text-blue-600" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
+                  <Plus className="h-4 w-4 text-orange-400" />
                   {editingRange ? `Editando Faixa: ${editingRange.nome}` : 'Cadastrar Nova Sub-rede / Faixa de IP'}
                 </h4>
                 {editingRange && (
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    className="text-xs font-medium text-slate-500 hover:text-slate-700 underline"
+                    className="text-xs font-medium text-slate-400 hover:text-white underline cursor-pointer"
                   >
                     Cancelar Edição
                   </button>
@@ -299,7 +325,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
               </div>
 
               {error && (
-                <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-rose-700 font-medium">
+                <div className="rounded-lg bg-rose-500/15 border border-rose-500/30 p-3 text-rose-300 font-medium">
                   {error}
                 </div>
               )}
@@ -307,34 +333,28 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
               <form onSubmit={handleFormSubmit} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Filial / Loja <span className="text-rose-500">*</span>
+                    <label className="block font-semibold text-slate-300 mb-1">
+                      Filial / Loja <span className="text-orange-400">*</span>
                     </label>
-                    <select
+                    <SelectDropdown
                       value={formSiteId}
-                      onChange={(e) => setFormSiteId(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      required
-                    >
-                      <option value="">Selecione a loja...</option>
-                      {sites.map((s) => (
-                        <option key={s.id} value={String(s.id)}>
-                          {s.code} - {s.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setFormSiteId}
+                      options={formSiteOptions}
+                      placeholder="Selecione a loja..."
+                      className="w-full"
+                    />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Nome da Faixa / VLAN <span className="text-rose-500">*</span>
+                    <label className="block font-semibold text-slate-300 mb-1">
+                      Nome da Faixa / VLAN <span className="text-orange-400">*</span>
                     </label>
                     <input
                       type="text"
                       placeholder="Ex: VLAN 10 - Frente de Caixa (PDVs)"
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-[#263044] bg-[#121721] px-3 py-2 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
                       required
                     />
                   </div>
@@ -342,63 +362,63 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      IP Inicial <span className="text-rose-500">*</span>
+                    <label className="block font-semibold text-slate-300 mb-1">
+                      IP Inicial <span className="text-orange-400">*</span>
                     </label>
                     <input
                       type="text"
                       placeholder="Ex: 192.168.4.1 ou 10.1.0.0/20"
                       value={ipInicio}
                       onChange={(e) => setIpInicio(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-[#263044] bg-[#121721] px-3 py-2 font-mono text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      IP Final <span className="text-slate-400 font-normal text-[10px]">(ou auto via máscara)</span>
+                    <label className="block font-semibold text-slate-300 mb-1">
+                      IP Final <span className="text-slate-500 font-normal text-[10px]">(ou auto via máscara)</span>
                     </label>
                     <input
                       type="text"
                       placeholder="Ex: 192.168.4.254 ou 10.1.15.254"
                       value={ipFim}
                       onChange={(e) => setIpFim(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-[#263044] bg-[#121721] px-3 py-2 font-mono text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Gateway</label>
+                    <label className="block font-semibold text-slate-300 mb-1">Gateway</label>
                     <input
                       type="text"
                       placeholder="Ex: 192.168.4.254"
                       value={gateway}
                       onChange={(e) => setGateway(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-[#263044] bg-[#121721] px-3 py-2 font-mono text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Máscara Sub-rede</label>
+                    <label className="block font-semibold text-slate-300 mb-1">Máscara Sub-rede</label>
                     <input
                       type="text"
                       placeholder="Ex: 255.255.240.0 ou /20"
                       value={mascara}
                       onChange={(e) => setMascara(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-[#263044] bg-[#121721] px-3 py-2 font-mono text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Observações e Setores</label>
+                  <label className="block font-semibold text-slate-300 mb-1">Observações e Setores</label>
                   <input
                     type="text"
                     placeholder="Ex: Sub-rede dedicada para impressoras e balanças do setor de padaria"
                     value={observacoes}
                     onChange={(e) => setObservacoes(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-[#263044] bg-[#121721] px-3 py-2 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -407,7 +427,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                     <button
                       type="button"
                       onClick={cancelEdit}
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                      className="rounded-lg border border-[#263044] bg-[#121721] px-4 py-2 font-semibold text-slate-300 hover:text-white hover:bg-[#1E2636] transition-colors cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -415,7 +435,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700 transition-colors shadow-xs disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 px-5 py-2 font-semibold text-white transition-colors shadow-md shadow-orange-500/20 disabled:opacity-50 cursor-pointer"
                   >
                     <CheckCircle className="h-4 w-4" />
                     <span>{saving ? 'Salvando...' : editingRange ? 'Atualizar Faixa' : 'Cadastrar Faixa'}</span>
@@ -427,11 +447,11 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
         </div>
 
         {/* Rodapé */}
-        <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-end shrink-0">
+        <div className="px-6 py-3 border-t border-[#1E2636] bg-[#0E131B] flex justify-end shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+            className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-1.5 font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
           >
             Fechar
           </button>

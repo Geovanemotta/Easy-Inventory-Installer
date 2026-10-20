@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AppWindow } from 'lucide-react';
 import {
   BrowserComplianceSummary,
   SoftwareCatalogItem,
@@ -236,20 +237,22 @@ export const AppsPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Cabeçalho da Página */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Cabeçalho da Página Padronizado */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-800">
-              Catálogo de Aplicativos & Softwares
-            </h1>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
-              {kpis?.total_softwares ?? 0} softwares
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+            <AppWindow className="h-6 w-6 text-orange-400" />
+            Catálogo de Aplicativos &amp; Softwares
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">
             Visão unificada de softwares, agentes, runtimes e ferramentas instaladas nas estações Linux e Windows
           </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/10 border border-orange-500/30 text-orange-400 font-mono tabular-nums">
+            {kpis?.total_softwares ?? 0} softwares catalogados
+          </span>
         </div>
       </div>
 

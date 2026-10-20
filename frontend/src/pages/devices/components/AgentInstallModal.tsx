@@ -46,44 +46,44 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+        className="w-full max-w-2xl rounded-2xl bg-[#121721] shadow-2xl border border-[#1E2636] overflow-hidden animate-in zoom-in-95 duration-150 text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
-          <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
+        <div className="flex items-center justify-between border-b border-[#1E2636] px-6 py-4 bg-[#121721]">
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-xl bg-orange-500/15 p-2 text-orange-400 border border-orange-500/20">
               <Zap className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-slate-800">
+              <h3 className="text-base font-bold text-white">
                 Instalação de Agentes de Coleta
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400 font-mono mt-0.5">
                 Comandos de execução imediata e agendamento automático diário
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-[#181F2E] hover:text-slate-200 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Abas */}
-        <div className="flex border-b border-slate-200 bg-slate-100/60 px-6 pt-3 gap-2">
+        <div className="flex border-b border-[#1E2636] bg-[#0B0E14] px-6 pt-2.5 gap-2">
           <button
             onClick={() => setActiveTab('linux')}
-            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition-colors ${
               activeTab === 'linux'
-                ? 'border-blue-600 text-blue-600 bg-white rounded-t-lg'
-                : 'border-transparent text-slate-600 hover:text-slate-900'
+                ? 'border-b-2 border-orange-500 text-orange-400 bg-orange-500/10 rounded-t-lg'
+                : 'border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-[#121721]/60'
             }`}
           >
             <Terminal className="h-4 w-4" />
@@ -91,10 +91,10 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
           </button>
           <button
             onClick={() => setActiveTab('windows')}
-            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition-colors ${
               activeTab === 'windows'
-                ? 'border-blue-600 text-blue-600 bg-white rounded-t-lg'
-                : 'border-transparent text-slate-600 hover:text-slate-900'
+                ? 'border-b-2 border-orange-500 text-orange-400 bg-orange-500/10 rounded-t-lg'
+                : 'border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-[#121721]/60'
             }`}
           >
             <Shield className="h-4 w-4" />
@@ -109,17 +109,17 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
               {/* Passo 1 - Linux */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-semibold text-slate-300 font-mono">
                     1. Execução única / teste imediato (Bash / Terminal):
                   </span>
                   <button
                     onClick={() => copyToClipboard(linuxCurl, 'lnx-run')}
-                    className="flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-xs font-medium text-slate-300 hover:bg-[#222B3D] hover:text-white transition-colors"
                   >
                     {copiedKey === 'lnx-run' ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-600" />
-                        <span className="text-emerald-700">Copiado</span>
+                        <Check className="h-3 w-3 text-emerald-400" />
+                        <span className="text-emerald-400 font-medium">Copiado</span>
                       </>
                     ) : (
                       <>
@@ -129,7 +129,7 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
                     )}
                   </button>
                 </div>
-                <div className="rounded-lg bg-slate-950 p-3 font-mono text-xs text-slate-100 overflow-x-auto shadow-inner">
+                <div className="rounded-xl bg-[#0B0E14] border border-[#1E2636] p-3.5 font-mono text-xs text-slate-200 overflow-x-auto shadow-inner">
                   <code>{linuxCurl}</code>
                 </div>
               </div>
@@ -137,17 +137,17 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
               {/* Passo 2 - Linux */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-semibold text-slate-300 font-mono">
                     2. Agendamento diário automático (Cron em /etc/cron.d):
                   </span>
                   <button
                     onClick={() => copyToClipboard(linuxCron, 'lnx-cron')}
-                    className="flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-xs font-medium text-slate-300 hover:bg-[#222B3D] hover:text-white transition-colors"
                   >
                     {copiedKey === 'lnx-cron' ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-600" />
-                        <span className="text-emerald-700">Copiado</span>
+                        <Check className="h-3 w-3 text-emerald-400" />
+                        <span className="text-emerald-400 font-medium">Copiado</span>
                       </>
                     ) : (
                       <>
@@ -157,14 +157,14 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
                     )}
                   </button>
                 </div>
-                <div className="rounded-lg bg-slate-950 p-3 font-mono text-xs text-slate-100 overflow-x-auto shadow-inner">
+                <div className="rounded-xl bg-[#0B0E14] border border-[#1E2636] p-3.5 font-mono text-xs text-slate-200 overflow-x-auto shadow-inner">
                   <code>{linuxCron}</code>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 text-xs text-blue-900 leading-relaxed">
+              <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-3.5 text-xs text-sky-200 leading-relaxed font-sans">
                 💡 O agente Linux coleta hardware via DMI (placa-mãe, processador, RAM e slots),
-                particionamento e uso de disco, usuário logado, periféricos conectados e softwares instalados via <code>apt-mark</code> com controle inteligente de cache.
+                particionamento e uso de disco, usuário logado, periféricos conectados e softwares instalados via <code className="text-sky-300 font-mono">apt-mark</code> com controle inteligente de cache.
               </div>
             </>
           ) : (
@@ -172,17 +172,17 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
               {/* Passo 1 - Windows */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-semibold text-slate-300 font-mono">
                     1. Execução imediata no PowerShell (como Administrador):
                   </span>
                   <button
                     onClick={() => copyToClipboard(winPowerShell, 'win-run')}
-                    className="flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-xs font-medium text-slate-300 hover:bg-[#222B3D] hover:text-white transition-colors"
                   >
                     {copiedKey === 'win-run' ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-600" />
-                        <span className="text-emerald-700">Copiado</span>
+                        <Check className="h-3 w-3 text-emerald-400" />
+                        <span className="text-emerald-400 font-medium">Copiado</span>
                       </>
                     ) : (
                       <>
@@ -192,7 +192,7 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
                     )}
                   </button>
                 </div>
-                <div className="rounded-lg bg-slate-950 p-3 font-mono text-xs text-slate-100 overflow-x-auto shadow-inner">
+                <div className="rounded-xl bg-[#0B0E14] border border-[#1E2636] p-3.5 font-mono text-xs text-slate-200 overflow-x-auto shadow-inner">
                   <code>{winPowerShell}</code>
                 </div>
               </div>
@@ -200,17 +200,17 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
               {/* Passo 2 - Windows */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-semibold text-slate-300 font-mono">
                     2. Agendamento diário automático (Agendador de Tarefas / GPO):
                   </span>
                   <button
                     onClick={() => copyToClipboard(winSchtasks, 'win-schtasks')}
-                    className="flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-xs font-medium text-slate-300 hover:bg-[#222B3D] hover:text-white transition-colors"
                   >
                     {copiedKey === 'win-schtasks' ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-600" />
-                        <span className="text-emerald-700">Copiado</span>
+                        <Check className="h-3 w-3 text-emerald-400" />
+                        <span className="text-emerald-400 font-medium">Copiado</span>
                       </>
                     ) : (
                       <>
@@ -220,23 +220,23 @@ export const AgentInstallModal: React.FC<AgentInstallModalProps> = ({ isOpen, on
                     )}
                   </button>
                 </div>
-                <div className="rounded-lg bg-slate-950 p-3 font-mono text-xs text-slate-100 overflow-x-auto shadow-inner">
+                <div className="rounded-xl bg-[#0B0E14] border border-[#1E2636] p-3.5 font-mono text-xs text-slate-200 overflow-x-auto shadow-inner">
                   <code>{winSchtasks}</code>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3.5 text-xs text-amber-900 leading-relaxed">
-                💡 O agente Windows utiliza WMI e PowerShell para mapear Serials da máquina, processador, RAM, partições NTFS, ID do RustDesk e perfis de usuários locais em <code>C:\Users</code>.
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-200 leading-relaxed font-sans">
+                💡 O agente Windows utiliza WMI e PowerShell para mapear Serials da máquina, processador, RAM, partições NTFS, ID do RustDesk e perfis de usuários locais em <code className="text-amber-300 font-mono">C:\Users</code>.
               </div>
             </>
           )}
         </div>
 
         {/* Rodapé */}
-        <div className="flex items-center justify-end border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+        <div className="flex items-center justify-end border-t border-[#1E2636] px-6 py-3.5 bg-[#121721]">
           <button
             onClick={onClose}
-            className="rounded-lg bg-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-300 transition-colors"
+            className="rounded-xl border border-[#263044] bg-[#181F2E] px-4 py-2 text-xs font-medium text-slate-300 hover:bg-[#222B3D] hover:text-white transition-colors"
           >
             Fechar
           </button>

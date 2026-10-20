@@ -37,30 +37,33 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 select-none">
-      {/* 1. Todos os Ativos */}
+      {/* 1. Total de Ativos */}
       <button
         type="button"
         onClick={() => {
           onSelectStatus('todos');
           onSelectGrupo('');
         }}
-        className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all ${
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isTodosActive
-            ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-500/20 shadow-xs'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs'
+            ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] font-bold text-slate-600">Total Ativos</span>
-          <Layers className="h-4 w-4 text-blue-600" />
-        </div>
-        <div className="mt-2">
-          <div className="text-xl font-bold font-mono text-slate-800">
-            {kpis?.total ?? 0}
-          </div>
-          <span className="text-[10px] text-slate-400 font-medium">
-            {testados > 0 ? `${testados} testados` : 'Cadastrados'}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F97316]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Total Ativos
           </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-orange-400 group-hover:scale-105 transition-transform">
+            <Layers className="h-3.5 w-3.5" />
+          </div>
+        </div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-white group-hover:text-orange-400 transition-colors">
+          {kpis?.total ?? 0}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          {testados > 0 ? `${testados} testados` : 'Cadastrados'}
         </div>
       </button>
 
@@ -75,25 +78,28 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
             onSelectGrupo('');
           }
         }}
-        className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all ${
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isOnlineActive
-            ? 'bg-emerald-50/80 border-emerald-400 ring-2 ring-emerald-500/20 shadow-xs'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs'
+            ? 'border-emerald-500 ring-1 ring-emerald-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] font-bold text-slate-600">Online</span>
-          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-        </div>
-        <div className="mt-2">
-          <div className="text-xl font-bold font-mono text-emerald-700">
-            {kpis?.online ?? 0}
-          </div>
-          <span className="text-[10px] text-slate-400 font-medium">
-            {testados > 0
-              ? `${Math.round(((kpis?.online ?? 0) / testados) * 100)}% dos testados`
-              : 'Respondendo ping'}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#10B981]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400/90">
+            Online
           </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-emerald-400 group-hover:scale-105 transition-transform">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+          </div>
+        </div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-emerald-400 group-hover:text-emerald-300 transition-colors">
+          {kpis?.online ?? 0}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          {testados > 0
+            ? `${Math.round(((kpis?.online ?? 0) / testados) * 100)}% dos testados`
+            : 'Respondendo ping'}
         </div>
       </button>
 
@@ -108,25 +114,28 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
             onSelectGrupo('');
           }
         }}
-        className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all ${
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isOfflineActive
-            ? 'bg-rose-50/80 border-rose-400 ring-2 ring-rose-500/20 shadow-xs'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs'
+            ? 'border-rose-500 ring-1 ring-rose-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] font-bold text-slate-600">Offline</span>
-          <XCircle className="h-4 w-4 text-rose-600" />
-        </div>
-        <div className="mt-2">
-          <div className="text-xl font-bold font-mono text-rose-700">
-            {kpis?.offline ?? 0}
-          </div>
-          <span className="text-[10px] text-slate-400 font-medium">
-            {testados > 0
-              ? `${Math.round(((kpis?.offline ?? 0) / testados) * 100)}% dos testados`
-              : 'Sem resposta'}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F43F5E]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400/90">
+            Offline
           </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-rose-400 group-hover:scale-105 transition-transform">
+            <XCircle className="h-3.5 w-3.5" />
+          </div>
+        </div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-rose-400 group-hover:text-rose-300 transition-colors">
+          {kpis?.offline ?? 0}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          {testados > 0
+            ? `${Math.round(((kpis?.offline ?? 0) / testados) * 100)}% dos testados`
+            : 'Sem resposta'}
         </div>
       </button>
 
@@ -141,21 +150,26 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
             onSelectGrupo('');
           }
         }}
-        className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all ${
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isNaoTestadoActive
-            ? 'bg-slate-100 border-slate-400 ring-2 ring-slate-400/20 shadow-xs'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs'
+            ? 'border-slate-400 ring-1 ring-slate-400/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] font-bold text-slate-600">Não Testados</span>
-          <HelpCircle className="h-4 w-4 text-slate-400" />
-        </div>
-        <div className="mt-2">
-          <div className="text-xl font-bold font-mono text-slate-700">
-            {kpis?.nao_testado ?? 0}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#64748B]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Não Testados
+          </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-slate-400 group-hover:scale-105 transition-transform">
+            <HelpCircle className="h-3.5 w-3.5" />
           </div>
-          <span className="text-[10px] text-slate-400 font-medium">Aguardando scan</span>
+        </div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-300 group-hover:text-white transition-colors">
+          {kpis?.nao_testado ?? 0}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          Aguardando scan
         </div>
       </button>
 
@@ -170,21 +184,26 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
             onSelectStatus('todos');
           }
         }}
-        className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all ${
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isImpressorasActive
-            ? 'bg-amber-50/80 border-amber-400 ring-2 ring-amber-500/20 shadow-xs'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs'
+            ? 'border-amber-500 ring-1 ring-amber-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] font-bold text-slate-600">Impressoras</span>
-          <Printer className="h-4 w-4 text-amber-600" />
-        </div>
-        <div className="mt-2">
-          <div className="text-xl font-bold font-mono text-amber-700">
-            {kpis?.impressoras ?? 0}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F59E0B]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90">
+            Impressoras
+          </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-amber-400 group-hover:scale-105 transition-transform">
+            <Printer className="h-3.5 w-3.5" />
           </div>
-          <span className="text-[10px] text-slate-400 font-medium">Térmicas / Laser</span>
+        </div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-amber-400 group-hover:text-amber-300 transition-colors">
+          {kpis?.impressoras ?? 0}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          Térmicas / Laser
         </div>
       </button>
 
@@ -199,21 +218,26 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
             onSelectStatus('todos');
           }
         }}
-        className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all ${
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isRedeActive
-            ? 'bg-indigo-50/80 border-indigo-400 ring-2 ring-indigo-500/20 shadow-xs'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs'
+            ? 'border-indigo-500 ring-1 ring-indigo-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] font-bold text-slate-600">Switches &amp; Rede</span>
-          <Radio className="h-4 w-4 text-indigo-600" />
-        </div>
-        <div className="mt-2">
-          <div className="text-xl font-bold font-mono text-indigo-700">
-            {kpis?.switches ?? 0}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#6366F1]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400/90">
+            Switches &amp; Rede
+          </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-indigo-400 group-hover:scale-105 transition-transform">
+            <Radio className="h-3.5 w-3.5" />
           </div>
-          <span className="text-[10px] text-slate-400 font-medium">Ativos L2 / L3</span>
+        </div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-indigo-400 group-hover:text-indigo-300 transition-colors">
+          {kpis?.switches ?? 0}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          Ativos L2 / L3
         </div>
       </button>
 
@@ -228,21 +252,26 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
             onSelectStatus('todos');
           }
         }}
-        className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all ${
+        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isWifiActive
-            ? 'bg-cyan-50/80 border-cyan-400 ring-2 ring-cyan-500/20 shadow-xs'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs'
+            ? 'border-cyan-500 ring-1 ring-cyan-500/30 bg-[#181F2E]'
+            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] font-bold text-slate-600">Access Points</span>
-          <Wifi className="h-4 w-4 text-cyan-600" />
-        </div>
-        <div className="mt-2">
-          <div className="text-xl font-bold font-mono text-cyan-700">
-            {kpis?.aps ?? 0}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#06B6D4]" />
+        <div className="flex w-full items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400/90">
+            Access Points
+          </span>
+          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-cyan-400 group-hover:scale-105 transition-transform">
+            <Wifi className="h-3.5 w-3.5" />
           </div>
-          <span className="text-[10px] text-slate-400 font-medium">Pontos Wi-Fi</span>
+        </div>
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-cyan-400 group-hover:text-cyan-300 transition-colors">
+          {kpis?.aps ?? 0}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+          Pontos Wi-Fi
         </div>
       </button>
     </div>

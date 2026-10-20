@@ -38,20 +38,22 @@ export const DeviceHistoryDrawer: React.FC<DeviceHistoryDrawerProps> = ({
   }, [device.id]);
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/30 backdrop-blur-xs">
-      <div className="w-full max-w-md h-full bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-md h-full bg-[#0B0E14] shadow-2xl flex flex-col border-l border-[#1E2636] animate-in slide-in-from-right duration-200">
         {/* Header do Drawer */}
-        <div className="flex items-center justify-between border-b border-slate-200 p-4 bg-slate-50">
-          <div className="flex items-center gap-2">
-            <History className="h-5 w-5 text-blue-600" />
+        <div className="flex items-center justify-between border-b border-[#1E2636] p-4 bg-[#121721]">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-400">
+              <History className="h-4 w-4" />
+            </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-800">Histórico de Alterações</h3>
-              <p className="text-xs text-slate-500">{device.hostname}</p>
+              <h3 className="text-sm font-bold text-white">Histórico de Alterações</h3>
+              <p className="text-xs text-slate-400 font-mono">{device.hostname}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -60,52 +62,56 @@ export const DeviceHistoryDrawer: React.FC<DeviceHistoryDrawerProps> = ({
         {/* Lista da Linha do Tempo */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-              <AlertCircle className="h-4 w-4 shrink-0" />
+            <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {loading ? (
-            <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <div className="py-16 flex flex-col items-center justify-center gap-2 text-slate-400">
+              <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
               <span className="text-xs font-medium">Carregando linha do tempo...</span>
             </div>
           ) : history.length === 0 ? (
-            <div className="py-12 text-center text-xs text-slate-400 italic">
+            <div className="py-16 text-center text-xs text-slate-500 italic">
               Nenhuma alteração registrada para este equipamento até o momento.
             </div>
           ) : (
-            <div className="relative border-l-2 border-slate-200 ml-3 space-y-6">
+            <div className="relative border-l-2 border-[#1E2636] ml-3 space-y-4 py-2">
               {history.map((item) => (
                 <div key={item.id} className="relative pl-6">
-                  {/* Ponto indicador */}
-                  <div className="absolute -left-1.5 top-1 h-3 w-3 rounded-full border-2 border-white bg-blue-600" />
+                  {/* Ponto indicador em Âmbar */}
+                  <div className="absolute -left-1.5 top-2 h-3 w-3 rounded-full border-2 border-[#0B0E14] bg-[#F97316] shadow-xs" />
 
-                  <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-xs space-y-2">
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
-                      <span className="font-bold uppercase tracking-wider text-blue-800 text-[11px]">
+                  <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-3 text-xs space-y-2">
+                    <div className="flex items-center justify-between gap-2 border-b border-[#1E2636]/80 pb-1.5">
+                      <span className="font-bold uppercase tracking-wider text-orange-400 text-[11px]">
                         {item.campo}
                       </span>
-                      <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                        <Clock className="h-3 w-3" />
+                      <span className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
+                        <Clock className="h-3 w-3 text-slate-500" />
                         {item.data_alteracao}
                       </span>
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1.5 pt-0.5">
                       {item.valor_anterior && (
-                        <div className="text-slate-500 flex items-start gap-1">
-                          <span className="font-semibold text-slate-400 shrink-0">De:</span>
-                          <span className="line-through">{item.valor_anterior}</span>
+                        <div className="text-slate-400 flex items-start gap-1.5">
+                          <span className="font-semibold text-slate-500 shrink-0 text-[11px]">De:</span>
+                          <span className="line-through bg-rose-500/10 text-rose-300 border border-rose-500/20 px-1.5 py-0.5 rounded font-mono text-[11px]">
+                            {item.valor_anterior}
+                          </span>
                         </div>
                       )}
 
-                      <div className="text-slate-800 font-medium flex items-start gap-1">
-                        <span className="font-semibold text-emerald-600 shrink-0 flex items-center">
+                      <div className="text-slate-200 font-medium flex items-start gap-1.5">
+                        <span className="font-semibold text-emerald-400 shrink-0 flex items-center text-[11px]">
                           <ArrowRight className="h-3 w-3 inline mr-0.5" /> Para:
                         </span>
-                        <span>{item.valor_novo || '(vazio)'}</span>
+                        <span className="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono text-[11px] font-semibold">
+                          {item.valor_novo || '(vazio)'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -116,10 +122,10 @@ export const DeviceHistoryDrawer: React.FC<DeviceHistoryDrawerProps> = ({
         </div>
 
         {/* Rodapé do Drawer */}
-        <div className="border-t border-slate-200 p-3 bg-slate-50 text-right">
+        <div className="border-t border-[#1E2636] p-3.5 bg-[#121721] text-right">
           <button
             onClick={onClose}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+            className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
           >
             Fechar
           </button>

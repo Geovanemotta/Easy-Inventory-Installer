@@ -38,17 +38,17 @@ export const DeviceSoftwareTab: React.FC<DeviceSoftwareTabProps> = ({
             value={softwareSearch}
             onChange={(e) => setSoftwareSearch(e.target.value)}
             placeholder="Buscar por nome do aplicativo, agente ou pacote..."
-            className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-xs focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-2 pl-9 pr-3 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
           />
         </div>
 
         <div className="flex flex-wrap gap-1.5 text-[11px]">
           {[
-            { key: 'todos', label: 'Todos', count: softwareCounts.todos, color: 'text-slate-700' },
-            { key: 'aplicativo', label: 'Aplicativos', count: softwareCounts.aplicativo, color: 'text-blue-700' },
-            { key: 'agente', label: 'Agentes', count: softwareCounts.agente, color: 'text-purple-700' },
-            { key: 'runtime', label: 'Runtimes', count: softwareCounts.runtime, color: 'text-emerald-700' },
-            { key: 'ferramenta', label: 'Ferramentas', count: softwareCounts.ferramenta, color: 'text-amber-700' },
+            { key: 'todos', label: 'Todos', count: softwareCounts.todos },
+            { key: 'aplicativo', label: 'Aplicativos', count: softwareCounts.aplicativo },
+            { key: 'agente', label: 'Agentes', count: softwareCounts.agente },
+            { key: 'runtime', label: 'Runtimes', count: softwareCounts.runtime },
+            { key: 'ferramenta', label: 'Ferramentas', count: softwareCounts.ferramenta },
           ].map((cat) => {
             const active = softwareCategoryFilter === cat.key;
             return (
@@ -56,16 +56,18 @@ export const DeviceSoftwareTab: React.FC<DeviceSoftwareTabProps> = ({
                 key={cat.key}
                 type="button"
                 onClick={() => setSoftwareCategoryFilter(cat.key)}
-                className={`rounded-lg px-2.5 py-1 font-medium transition-colors border flex items-center gap-1.5 ${
+                className={`rounded-lg px-2.5 py-1 font-medium transition-colors border flex items-center gap-1.5 cursor-pointer ${
                   active
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-orange-500/20 text-orange-400 border-orange-500/40 shadow-xs font-semibold'
+                    : 'bg-[#181F2E] text-slate-400 border-[#263044] hover:bg-[#263044] hover:text-slate-200'
                 }`}
               >
                 <span>{cat.label}</span>
                 <span
-                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                    active ? 'bg-slate-700 text-slate-100' : 'bg-slate-200 text-slate-700'
+                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold font-mono border ${
+                    active
+                      ? 'bg-orange-500/30 text-orange-200 border-orange-500/50'
+                      : 'bg-[#121721] text-slate-400 border-[#1E2636]'
                   }`}
                 >
                   {cat.count}
@@ -78,34 +80,34 @@ export const DeviceSoftwareTab: React.FC<DeviceSoftwareTabProps> = ({
 
       {loadingSoftware ? (
         <div className="text-center py-16 text-xs text-slate-400">
-          Carregando inventário de softwares da máquina...
+          Carregando catálogo de softwares da estação...
         </div>
       ) : filteredSoftwares.length === 0 ? (
-        <div className="text-center py-16 text-xs text-slate-400">
-          Nenhum software encontrado.
+        <div className="text-center py-16 text-xs text-slate-500">
+          Nenhum software correspondente encontrado.
         </div>
       ) : (
-        <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+        <div className="divide-y divide-[#1E2636] rounded-xl border border-[#1E2636] bg-[#121721] overflow-hidden shadow-xs">
           {filteredSoftwares.map((sw: DeviceSoftwareItem, idx: number) => {
             const catLower = (sw.tipo || '').toLowerCase();
-            let badgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
+            let badgeClass = 'bg-[#181F2E] text-slate-400 border-[#263044]';
             if (catLower === 'aplicativo' || catLower === 'aplicativos') {
-              badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+              badgeClass = 'bg-sky-500/15 text-sky-300 border-sky-500/30';
             } else if (catLower === 'agente' || catLower === 'agentes') {
-              badgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
+              badgeClass = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
             } else if (catLower === 'runtime' || catLower === 'runtimes') {
-              badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+              badgeClass = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
             } else if (catLower === 'ferramenta' || catLower === 'ferramentas') {
-              badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+              badgeClass = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
             }
 
             const pkgs = sw.pacotes || (sw as any).packages || [];
 
             return (
-              <div key={idx} className="p-3 text-xs hover:bg-slate-50/70 transition-colors">
+              <div key={idx} className="p-3 text-xs hover:bg-[#181F2E]/60 transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-800 flex items-center gap-1.5 truncate" title={sw.nome}>
-                    <Package className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                  <span className="font-semibold text-white flex items-center gap-1.5 truncate" title={sw.nome}>
+                    <Package className="h-3.5 w-3.5 text-orange-400 shrink-0" />
                     <span className="truncate">{sw.nome}</span>
                   </span>
                   <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold shrink-0 uppercase tracking-wide ${badgeClass}`}>
@@ -113,13 +115,14 @@ export const DeviceSoftwareTab: React.FC<DeviceSoftwareTabProps> = ({
                   </span>
                 </div>
                 {pkgs && pkgs.length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     {pkgs.map((p: any, pIdx: number) => (
                       <span
                         key={pIdx}
-                        className="rounded bg-slate-50 px-1.5 py-0.5 text-[10px] font-mono text-slate-600 border border-slate-200"
+                        className="rounded bg-[#0B0E14] px-2 py-0.5 text-[10px] font-mono text-slate-300 border border-[#1E2636] flex items-center gap-1"
                       >
-                        {p.pacote} {p.versao && <span className="text-slate-400">@ {p.versao}</span>}
+                        <span>{p.pacote}</span>
+                        {p.versao && <span className="text-orange-400 font-semibold font-mono">@{p.versao}</span>}
                       </span>
                     ))}
                   </div>

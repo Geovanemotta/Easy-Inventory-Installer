@@ -30,28 +30,28 @@ export default function AgentInstallModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-[#1E2636] bg-[#121721] p-6 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#1E2636] pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-200">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500/15 text-orange-400 border border-orange-500/30">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-white">
                 Como Instalar o Agente MeshCentral
               </h2>
-              <p className="text-xs text-slate-500">
-                Servidor: <span className="font-mono font-semibold text-blue-600">{host}:{meshPort}</span>
+              <p className="text-xs text-slate-400">
+                Servidor: <span className="font-mono font-semibold text-orange-400">{host}:{meshPort}</span>
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -60,30 +60,30 @@ export default function AgentInstallModal({
         </div>
 
         {/* Abas SO */}
-        <div className="my-4 flex gap-2 border-b border-slate-100 pb-2">
+        <div className="my-4 flex gap-2 border-b border-[#1E2636] pb-2">
           <button
             type="button"
             onClick={() => setActiveTab('windows')}
-            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'windows'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-orange-500 text-white shadow-xs'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
             <span className="font-bold">W</span>
-            Windows (x64)
+            <span>Windows (x64)</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('linux')}
-            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'linux'
-                ? 'bg-orange-600 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-orange-500 text-white shadow-xs'
+                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
             <span className="font-bold">L</span>
-            Linux (Debian / Ubuntu / Zorin)
+            <span>Linux (Debian / Ubuntu / Zorin)</span>
           </button>
         </div>
 
@@ -91,15 +91,15 @@ export default function AgentInstallModal({
         {activeTab === 'windows' ? (
           <div className="space-y-4 text-xs">
             <div>
-              <p className="mb-1.5 font-semibold text-slate-800">
+              <p className="mb-1.5 font-semibold text-slate-200">
                 Opção 1: Executar Script Automatizado Pronto (.ps1)
               </p>
-              <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 p-2.5 font-mono text-slate-800">
+              <div className="flex items-center justify-between rounded-lg bg-[#0B0E14] border border-[#1E2636] p-2.5 font-mono text-amber-300">
                 <span className="truncate">{winPs1}</span>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(winPs1, 'win1')}
-                  className="ml-2 shrink-0 rounded bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs"
+                  className="ml-2 shrink-0 rounded-lg bg-[#181F2E] border border-[#263044] px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-[#222B3D] hover:text-white shadow-2xs transition-colors cursor-pointer"
                 >
                   {copied === 'win1' ? 'Copiado!' : 'Copiar'}
                 </button>
@@ -107,15 +107,15 @@ export default function AgentInstallModal({
             </div>
 
             <div>
-              <p className="mb-1.5 font-semibold text-slate-800">
+              <p className="mb-1.5 font-semibold text-slate-200">
                 Opção 2: Download e Instalação Direta via PowerShell Elevado
               </p>
-              <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 p-2.5 font-mono text-slate-800">
+              <div className="flex items-center justify-between rounded-lg bg-[#0B0E14] border border-[#1E2636] p-2.5 font-mono text-amber-300">
                 <span className="truncate">{winCmd}</span>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(winCmd, 'win2')}
-                  className="ml-2 shrink-0 rounded bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs"
+                  className="ml-2 shrink-0 rounded-lg bg-[#181F2E] border border-[#263044] px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-[#222B3D] hover:text-white shadow-2xs transition-colors cursor-pointer"
                 >
                   {copied === 'win2' ? 'Copiado!' : 'Copiar'}
                 </button>
@@ -125,15 +125,15 @@ export default function AgentInstallModal({
         ) : (
           <div className="space-y-4 text-xs">
             <div>
-              <p className="mb-1.5 font-semibold text-slate-800">
+              <p className="mb-1.5 font-semibold text-slate-200">
                 Opção 1: Executar Script Automatizado Pronto (.sh)
               </p>
-              <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 p-2.5 font-mono text-slate-800">
+              <div className="flex items-center justify-between rounded-lg bg-[#0B0E14] border border-[#1E2636] p-2.5 font-mono text-amber-300">
                 <span className="truncate">{linuxSh}</span>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(linuxSh, 'lnx1')}
-                  className="ml-2 shrink-0 rounded bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs"
+                  className="ml-2 shrink-0 rounded-lg bg-[#181F2E] border border-[#263044] px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-[#222B3D] hover:text-white shadow-2xs transition-colors cursor-pointer"
                 >
                   {copied === 'lnx1' ? 'Copiado!' : 'Copiar'}
                 </button>
@@ -141,15 +141,15 @@ export default function AgentInstallModal({
             </div>
 
             <div>
-              <p className="mb-1.5 font-semibold text-slate-800">
+              <p className="mb-1.5 font-semibold text-slate-200">
                 Opção 2: Download e Execução Manual via Terminal
               </p>
-              <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 p-2.5 font-mono text-slate-800">
+              <div className="flex items-center justify-between rounded-lg bg-[#0B0E14] border border-[#1E2636] p-2.5 font-mono text-amber-300">
                 <span className="truncate">{linuxCmd}</span>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(linuxCmd, 'lnx2')}
-                  className="ml-2 shrink-0 rounded bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs"
+                  className="ml-2 shrink-0 rounded-lg bg-[#181F2E] border border-[#263044] px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-[#222B3D] hover:text-white shadow-2xs transition-colors cursor-pointer"
                 >
                   {copied === 'lnx2' ? 'Copiado!' : 'Copiar'}
                 </button>
@@ -158,11 +158,11 @@ export default function AgentInstallModal({
           </div>
         )}
 
-        <div className="mt-6 flex justify-end border-t border-slate-100 pt-3">
+        <div className="mt-6 flex justify-end border-t border-[#1E2636] pt-3">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+            className="rounded-lg bg-[#181F2E] border border-[#263044] px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-[#222B3D] hover:text-white transition-colors cursor-pointer"
           >
             Fechar
           </button>
