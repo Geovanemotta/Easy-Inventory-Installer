@@ -1,18 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --bg-app: #0B0E14;
-  --bg-sidebar: #080A0F;
-  --bg-surface: #121721;
-  --bg-elevated: #181F2E;
-  --border-subtle: #1E2636;
-  --border-focus: #F97316;
+  /* ==========================================================
+     PALETA DE DESTAQUE / ACENTO (GIASSI AMBER / ORANGE)
+     Clique no quadradinho colorido ao lado do código hex para abrir
+     o seletor visual de cores do editor:
+     ========================================================== */
+  --color-orange-300: #fdba74; /* Textos e badges suaves */
+  --color-orange-400: #76c41e; /* Textos de destaque, tags e ícones */
+  --color-orange-500: #f97316; /* Cor principal de botões, barras e badges (Original Giassi) */
+  --color-orange-600: #ea580c; /* Estado hover de botões e links */
+
+  /* ==========================================================
+     ESTRUTURA & TEMA ESCURO (OBSIDIAN CORPORATIVO)
+     Cores base de superfícies e fundos do sistema:
+     ========================================================== */
+  --color-app: #141a25;           /* Fundo geral da página */
+  --color-sidebar: #080a0f;       /* Fundo da barra lateral */
+  --color-surface: #121721;       /* Fundo dos cards e tabelas */
+  --color-elevated: #181f2e;      /* Fundo de modais, gavetas e dropdowns */
+  --color-border-subtle: #283a17; /* Bordas divisórias discretas */
+  --color-border-medium: #263044; /* Bordas de campos de seleção e inputs */
+
+  /* Tokens de compatibilidade legado */
+  --bg-app: var(--color-app);
+  --bg-sidebar: var(--color-sidebar);
+  --bg-surface: var(--color-surface);
+  --bg-elevated: var(--color-elevated);
+  --border-subtle: var(--color-border-subtle);
+  --border-focus: var(--color-orange-500);
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --brand-amber: #F97316;
-  --brand-amber-hover: #EA580C;
+  --brand-amber: var(--color-orange-500);
+  --brand-amber-hover: var(--color-orange-600);
 }
+
+@theme {
+  --color-orange-300: var(--color-orange-300);
+  --color-orange-400: var(--color-orange-400);
+  --color-orange-500: var(--color-orange-500);
+  --color-orange-600: var(--color-orange-600);
+  --color-app: var(--color-app);
+  --color-sidebar: var(--color-sidebar);
+  --color-surface: var(--color-surface);
+  --color-elevated: var(--color-elevated);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-medium: var(--color-border-medium);
+}
+
+/* ==========================================================
+   PONTE DINÂMICA: Conecta as classes hexadecimais literais usadas
+   nos componentes (ex: bg-[#0B0E14], bg-[#121721]) às variáveis
+   do :root para que qualquer alteração nas cores reflita na tela!
+   ========================================================== */
+.bg-\[\#0B0E14\],
+.bg-\[\#0b0e14\] {
+  background-color: var(--color-app) !important;
+}
+
+.bg-\[\#0B0E14\]\/90,
+.bg-\[\#0b0e14\]\/90 {
+  background-color: color-mix(in srgb, var(--color-app) 90%, transparent) !important;
+}
+
+.bg-\[\#080A0F\],
+.bg-\[\#080a0f\] {
+  background-color: var(--color-sidebar) !important;
+}
+
+.bg-\[\#121721\] {
+  background-color: var(--color-surface) !important;
+}
+
+.bg-\[\#181F2E\],
+.bg-\[\#181f2e\] {
+  background-color: var(--color-elevated) !important;
+}
+
+.bg-\[\#181F2E\]\/60,
+.bg-\[\#181f2e\]\/60 {
+  background-color: color-mix(in srgb, var(--color-elevated) 60%, transparent) !important;
+}
+
+.border-\[\#1E2636\],
+.border-\[\#1e2636\] {
+  border-color: var(--color-border-subtle) !important;
+}
+
+.border-\[\#263044\],
+.border-\[\#263044\] {
+  border-color: var(--color-border-medium) !important;
+}
+
 
 @layer base {
   * {

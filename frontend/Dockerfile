@@ -1,23 +1,28 @@
 # ==========================================================
 # INVENTÁRIO CORPORATIVO - FRONTEND DOCKERFILE
-# Multi-stage build: Node.js 20 (Compilação) + Nginx Alpine
+# Multi-stage build: Node.js 20 (Dev & Compilação) + Nginx Alpine
 # ==========================================================
 
-# Estágio 1: Build da aplicação Vite / TypeScript
-FROM node:20-alpine AS builder
+# Estágio 1: Ambiente de desenvolvimento com Vite HMR
+FROM node:20-bookworm-slim AS dev
 
 WORKDIR /app
 
-# Instalação de dependências aproveitando cache de camadas
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+RUN npm install --no-audit --no-fund
 
-# Copia código-fonte e executa compilação (tsc -b && vite build)
 COPY . .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+
+# Estágio 2: Build da aplicação Vite / TypeScript (Produção)
+FROM dev AS builder
 RUN npm run build
 
-# Estágio 2: Nginx para servir arquivos estáticos e proxy SPA
-FROM nginx:1.27-alpine
+# Estágio 3: Nginx para servir arquivos estáticos e proxy SPA (Standalone)
+FROM nginx:1.27-alpine AS prod
 
 # Remove configuração padrão
 RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*

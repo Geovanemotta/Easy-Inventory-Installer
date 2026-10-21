@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { deviceService } from '@/services/deviceService';
+import logo from '@/assets/logo.png';
 
 export const Sidebar: React.FC = () => {
   const { user, isAdmin, isMatrizOperator, logout } = useAuth();
@@ -102,19 +103,16 @@ export const Sidebar: React.FC = () => {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 w-64 border-r border-[#1E2636] bg-[#080A0F] flex flex-col justify-between shrink-0 select-none h-screen overflow-y-auto">
       <div className="p-4 space-y-5">
-        {/* Marca / Identidade Obsidian & Amber */}
-        <div className="flex items-center gap-2.5 px-2 py-1">
-          <div className="rounded-xl bg-orange-500 p-2 text-white shadow-md shadow-orange-500/20">
-            <Monitor className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-white leading-tight">
-              Grupo Giassi
-            </div>
-            <div className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
-              Inventário &bull; TI
-            </div>
-          </div>
+        {/* Marca / Identidade Oficial Empresa */}
+        <div className="flex flex-col items-center justify-center gap-2 px-2 py-3">
+          <img
+            src={logo}
+            alt="Logo"
+            className="h-9 w-auto max-w-[185px] object-contain brightness-105"
+          />
+          <span className="text-[10px] font-bold text-orange-400 uppercase tracking-[0.2em] text-center">
+            Inventário
+          </span>
         </div>
 
         <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
@@ -198,7 +196,7 @@ export const Sidebar: React.FC = () => {
         </button>
 
         <div className="text-[10px] text-slate-600 text-center font-medium tracking-wider">
-          Giassi Inventory &bull; v2.0 Obsidian
+          Easy Inventory &bull; v2.0 Obsidian
         </div>
       </div>
     </aside>

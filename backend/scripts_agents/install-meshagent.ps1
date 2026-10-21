@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Instalador Silencioso do Agente MeshCentral para Windows (Grupo Giassi)
+    Instalador Silencioso do Agente MeshCentral para Windows (Grupo EASY INVENTORY)
 .DESCRIPTION
     Instala o agente MeshCentral como Serviço do Windows nativo (NT AUTHORITY\SYSTEM),
     habilitando acesso à tela em tempo real, suporte ao UAC (Secure Desktop) sem tela preta
@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "   INSTALADOR DO AGENTE MESHCENTRAL - GRUPO GIASSI TI    " -ForegroundColor Cyan
+Write-Host "   INSTALADOR DO AGENTE MESHCENTRAL -  EASY INVENTORY    " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # 1. Checagem de Privilégios de Administrador

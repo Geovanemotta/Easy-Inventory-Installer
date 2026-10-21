@@ -63,15 +63,8 @@ export const Header: React.FC = () => {
       <div className="flex items-center gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2.5">
           <span className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
-            Telemetria
-          </span>
-          <span className="hidden sm:inline text-slate-600 text-xs">&bull;</span>
-          <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
-            <span>Giassi Inventory</span>
-            <span className="rounded bg-orange-500/15 border border-orange-500/30 px-1.5 py-0.2 text-[10px] font-bold text-orange-400 font-mono">
-              V2.0
-            </span>
-          </h1>
+            Easy Inventory
+          </span>          
         </div>
       </div>
 
@@ -87,8 +80,7 @@ export const Header: React.FC = () => {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
           </span>
           <span className="font-semibold text-[11px] flex items-center gap-1">
-            <Activity className="h-3 w-3 text-emerald-400" />
-            <span>Monitoramento Ativo</span>
+            <span>Sincronização</span>
           </span>
           <span className="text-[10px] text-emerald-500/80 font-mono hidden sm:inline">
             &bull; {formatHora(lastSync)}

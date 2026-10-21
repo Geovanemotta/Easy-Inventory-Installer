@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Instalador Silencioso do Agente MeshCentral para Linux (Grupo Giassi)
+# Instalador Silencioso do Agente MeshCentral para Linux 
 # ==============================================================================
 
 set -e
@@ -10,7 +10,7 @@ SERVER_PORT="${SERVER_PORT:-4443}"
 MESH_ID="${MESH_ID:-@oLaTf\$n@RpilBaLgcYNw@0pLz2dR\$TQotm4DXxNwG7Di9sbsSW6hWN6KS9mwvZ4}"
 
 echo "=========================================================="
-echo "   INSTALADOR DO AGENTE MESHCENTRAL - GRUPO GIASSI TI    "
+echo "   INSTALADOR DO AGENTE MESHCENTRAL - EASY INVENTORY    "
 echo "=========================================================="
 
 if [[ $EUID -ne 0 ]]; then

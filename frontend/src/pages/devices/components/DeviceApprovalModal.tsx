@@ -377,7 +377,7 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
                 Revisar e Concluir Cadastro do Equipamento
               </h3>
               <p className="text-xs text-slate-400">
-                Giassi Enterprise &bull; Homologação de Ativo Físico e Atribuição de IP Definitivo
+                Easy Inventory &bull; Homologação de Ativo Físico e Atribuição de IP Definitivo
               </p>
             </div>
           </div>

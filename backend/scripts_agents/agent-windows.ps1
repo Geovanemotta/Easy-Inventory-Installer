@@ -1,6 +1,6 @@
 <#
 ==========================================================
-AGENTE DE INVENTÁRIO GIASSI - WINDOWS (v2.0)
+AGENTE DE INVENTÁRIO EASY INVENTORY - WINDOWS (v2.0)
 Compatível com Windows 10, 11 e Windows Server (PowerShell 5.1+)
 ==========================================================
 #>
@@ -50,7 +50,7 @@ if ($ServerURL -notmatch "/api/v1/inventory/receive") {
 $ErrorActionPreference = "SilentlyContinue"
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host " AGENTE DE INVENTÁRIO GIASSI - WINDOWS " -ForegroundColor Cyan
+Write-Host " AGENTE DE INVENTÁRIO EASY INVENTORY - WINDOWS " -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host "[*] Destino: $ServerURL"
 

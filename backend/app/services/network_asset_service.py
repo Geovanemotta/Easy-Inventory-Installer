@@ -103,7 +103,7 @@ def formatar_codigo_filial(site_nome: Optional[str], site_codigo: Optional[str])
         m = re.search(r"\d+", c) or re.search(r"\d+", n)
         return f"COMBO-{m.group(0).zfill(2)}" if m else "COMBO"
 
-    # Lojas (ex: Giassi Loja 04, LOJA 04, LJ04, L04, ou código puramente numérico '04')
+    # Lojas ('04')
     if "LOJA" in n or "LOJA" in c or c.startswith("LJ") or c.startswith("L") or n.startswith("LJ") or n.startswith("L") or re.match(r"^\d+$", c):
         m = re.search(r"\d+", c) or re.search(r"\d+", n)
         if m:

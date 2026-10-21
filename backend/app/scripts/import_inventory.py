@@ -203,7 +203,7 @@ def main():
         arquivos = carregar_jsons()
 
         print("=" * 70)
-        print("GIASSI INVENTORY V2 - DRY RUN")
+        print("EASY INVENTORY V2 - DRY RUN")
         print("=" * 70)
         print()
         print(f"Diretório : {INVENTORY_DIR}")
