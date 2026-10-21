@@ -31,12 +31,15 @@ from app.schemas.dashboard import (
     ReportSummaryResponse,
 )
 from app.services.device_normalizer import (
+    normalizar_capacidade_disco,
+    normalizar_capacidade_ram,
     normalizar_fabricante_modelo,
     normalizar_processador,
     normalizar_status_operacional,
     normalizar_ram,
     normalizar_so,
     normalizar_tipo_armazenamento,
+    normalizar_tipo_ram,
     tamanho_para_mb,
 )
 
@@ -236,16 +239,11 @@ def _extrair_valor_campo(d: Device, campo: str) -> str:
         info_ram = normalizar_ram(d.ram_total, d.ram_tipo)
         return info_ram.get("ram_total_formatada") or "Não informado"
     elif campo == "ram_tipo":
-        return d.ram_tipo or "Não informado"
+        return normalizar_tipo_ram(d.ram_tipo)
     elif campo == "disco_tipo":
         return normalizar_tipo_armazenamento(d)
     elif campo == "disco":
-        if d.disco_total:
-            mb = tamanho_para_mb(d.disco_total)
-            if mb > 0:
-                gb = round(mb / 1024 / 10) * 10
-                return f"≈ {gb} GB"
-        return "Não informado"
+        return normalizar_capacidade_disco(d.disco_total) or "Não informado"
     elif campo == "sistema":
         info_so = normalizar_so(d.sistema, d.versao, d.build, d.windows_release)
         return info_so.get("so_formatado") or "Não informado"
@@ -537,25 +535,12 @@ def get_dashboard_charts(
             ram_lbl = ram_info.get("ram_total_formatada") or "Não informado"
             cnt_ram[ram_lbl] = cnt_ram.get(ram_lbl, 0) + 1
 
-            # 3. Tipo RAM
-            tram = (d.ram_tipo or "Não informado").strip().upper()
-            if tram in ("DDR3", "DDR4", "DDR5", "DDR2"):
-                cnt_tipo_ram[tram] = cnt_tipo_ram.get(tram, 0) + 1
-            elif tram and tram != "NÃO INFORMADO":
-                cnt_tipo_ram[tram] = cnt_tipo_ram.get(tram, 0) + 1
-            else:
-                cnt_tipo_ram["Não informado"] = cnt_tipo_ram.get("Não informado", 0) + 1
+            # 3. Tipo RAM (agrupamento base DDR4, DDR5, DDR3 sem frequências)
+            tram = normalizar_tipo_ram(d.ram_tipo)
+            cnt_tipo_ram[tram] = cnt_tipo_ram.get(tram, 0) + 1
 
-            # 4. Disco
-            if d.disco_total:
-                mb = tamanho_para_mb(d.disco_total)
-                if mb > 0:
-                    gb = round(mb / 1024 / 10) * 10
-                    dlbl = f"≈ {gb} GB"
-                else:
-                    dlbl = "Não informado"
-            else:
-                dlbl = "Não informado"
+            # 4. Disco (arredondado comercialmente via cálculo de 1024/1000)
+            dlbl = normalizar_capacidade_disco(d.disco_total) or "Não informado"
             cnt_disco[dlbl] = cnt_disco.get(dlbl, 0) + 1
 
             # 5. Status Operacional (alinhado 100% com o Explorador Analítico campo=status)
@@ -590,11 +575,19 @@ def get_dashboard_charts(
             "Não Identificado": "#94a3b8",
         }
 
+        ram_type_colors = {
+            "DDR5": "#8b5cf6",
+            "DDR4": "#0ea5e9",
+            "DDR3": "#10b981",
+            "DDR2": "#f59e0b",
+            "Não informado": "#64748b",
+        }
+
         return DashboardChartsResponse(
             total_maquinas=total,
             sistema_operacional=_montar_fatias(cnt_so, total, PALETTE_SO),
             memoria_ram=_montar_fatias(cnt_ram, total),
-            tipo_ram=_montar_fatias(cnt_tipo_ram, total),
+            tipo_ram=_montar_fatias(cnt_tipo_ram, total, ram_type_colors),
             tipo_disco=_montar_fatias(cnt_disco, total),
             tipo_armazenamento=_montar_fatias(cnt_tipo_armazenamento, total, storage_colors),
             status_coleta=_montar_fatias(cnt_status, total, status_colors),

@@ -7,7 +7,7 @@
      o seletor visual de cores do editor:
      ========================================================== */
   --color-orange-300: #fdba74; /* Textos e badges suaves */
-  --color-orange-400: #76c41e; /* Textos de destaque, tags e ícones */
+  --color-orange-400: #84df1c; /* Textos de destaque, tags e ícones */
   --color-orange-500: #f97316; /* Cor principal de botões, barras e badges (Original Giassi) */
   --color-orange-600: #ea580c; /* Estado hover de botões e links */
 
@@ -19,7 +19,7 @@
   --color-sidebar: #080a0f;       /* Fundo da barra lateral */
   --color-surface: #121721;       /* Fundo dos cards e tabelas */
   --color-elevated: #181f2e;      /* Fundo de modais, gavetas e dropdowns */
-  --color-border-subtle: #283a17; /* Bordas divisórias discretas */
+  --color-border-subtle: #332e2a; /* Bordas divisórias discretas */
   --color-border-medium: #263044; /* Bordas de campos de seleção e inputs */
 
   /* Tokens de compatibilidade legado */

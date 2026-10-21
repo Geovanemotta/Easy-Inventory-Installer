@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Key, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { NetworkAsset } from '@/types/networkAsset';
 import { LicenseAvailable } from '@/types/license';
@@ -111,17 +112,26 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-[100] overflow-y-auto"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="flex min-h-full items-center justify-center p-4 text-center">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
-          onClick={() => !saving && onClose()}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!saving) onClose();
+          }}
         />
 
         {/* Modal Window Obsidian & Amber */}
-        <div className="relative transform overflow-hidden rounded-2xl bg-[#121721] text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-[#1E2636]">
+        <div
+          className="relative transform overflow-hidden rounded-2xl bg-[#121721] text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-[#1E2636]"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="px-6 py-4 border-b border-[#1E2636] bg-[#0E131B] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-orange-500/15 border border-orange-500/30 text-orange-400">
@@ -303,4 +313,6 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };

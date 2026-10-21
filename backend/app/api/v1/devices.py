@@ -337,28 +337,50 @@ def formatar_lista_versoes(vers_raw: list) -> list:
     return sorted(list(versoes_set))
 
 
-def calcular_charts_summary(session: Session, base_where: Any, kpis: dict) -> dict:
-    """Calcula os 3 gráficos Donut agregados para a tela de Estações: Plataforma, Status e Versões."""
-    # 1. Plataforma (Windows vs Linux)
-    tot_win = kpis.get("total_windows", 0)
-    tot_lnx = kpis.get("total_linux", 0)
+def calcular_charts_summary(
+    session: Session,
+    base_conditions: list,
+    plat_cond: Optional[Any] = None,
+    cx_cond: Optional[Any] = None,
+    st_cond: Optional[Any] = None,
+) -> dict:
+    """
+    Calcula os 3 gráficos Donut agregados para a tela de Estações: Plataforma, Status e Conectividade.
+    Aplica filtros cruzados de forma que cada gráfico calcule dinamicamente sobre o subconjunto selecionado
+    nos outros gráficos (ex: selecionar Ativas ou Inativas atualiza a Plataforma dinamicamente),
+    mas mantém todas as fatias padrão visíveis (sem sumir), permitindo foco/desfoco suave sem saltos de tela.
+    """
+    # 1. Plataforma (Windows vs Linux) - calculado respeitando conectividade e status
+    where_plat = list(base_conditions)
+    if cx_cond is not None:
+        where_plat.append(cx_cond)
+    if st_cond is not None:
+        where_plat.append(st_cond)
+
+    plat_row = session.execute(
+        select(
+            func.count().filter(Device.sistema.ilike("%windows%")).label("tot_win"),
+            func.count().filter(not_(Device.sistema.ilike("%windows%"))).label("tot_lnx"),
+        ).where(and_(*where_plat))
+    ).one()
+    tot_win = plat_row.tot_win or 0
+    tot_lnx = plat_row.tot_lnx or 0
     tot_plat = tot_win + tot_lnx
-    plat_slices = []
-    if tot_plat > 0:
-        if tot_win > 0:
-            plat_slices.append({
-                "label": "Windows",
-                "count": tot_win,
-                "percent": round((tot_win / tot_plat) * 100, 1),
-                "color": "#0284c7",
-            })
-        if tot_lnx > 0:
-            plat_slices.append({
-                "label": "Linux",
-                "count": tot_lnx,
-                "percent": round((tot_lnx / tot_plat) * 100, 1),
-                "color": "#f97316",
-            })
+
+    plat_slices = [
+        {
+            "label": "Windows",
+            "count": tot_win,
+            "percent": round((tot_win / tot_plat) * 100, 1) if tot_plat > 0 else 0.0,
+            "color": "#0284c7",
+        },
+        {
+            "label": "Linux",
+            "count": tot_lnx,
+            "percent": round((tot_lnx / tot_plat) * 100, 1) if tot_plat > 0 else 0.0,
+            "color": "#f97316",
+        },
+    ]
 
     plataforma_chart = {
         "title": "Distribuição por Plataforma",
@@ -367,14 +389,71 @@ def calcular_charts_summary(session: Session, base_where: Any, kpis: dict) -> di
         "slices": plat_slices,
     }
 
-    # 2. Status Operacional (Atualizada, Atualização Necessária, Desatualizada)
-    # Considera a regra de conformidade: toda máquina Windows 10 pertence a 'Atualização Necessária'
+    # 2. Conectividade da Frota (Ativas / Semi-inativas / Inativas) - calculado respeitando plataforma e status
+    now_minus_24h = datetime.utcnow() - timedelta(hours=24)
+    now_minus_48h = datetime.utcnow() - timedelta(hours=48)
+
+    where_cx = list(base_conditions)
+    if plat_cond is not None:
+        where_cx.append(plat_cond)
+    if st_cond is not None:
+        where_cx.append(st_cond)
+
+    cx_row = session.execute(
+        select(
+            func.count().filter(Device.data_coleta >= now_minus_24h).label("tot_online"),
+            func.count().filter(and_(Device.data_coleta >= now_minus_48h, Device.data_coleta < now_minus_24h)).label("tot_alerta"),
+            func.count().filter(or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))).label("tot_offline"),
+        ).where(and_(*where_cx))
+    ).one()
+
+    tot_online = cx_row.tot_online or 0
+    tot_alerta = cx_row.tot_alerta or 0
+    tot_offline = cx_row.tot_offline or 0
+    tot_cx = tot_online + tot_alerta + tot_offline
+
+    cx_slices = [
+        {
+            "label": "Ativas",
+            "count": tot_online,
+            "percent": round((tot_online / tot_cx) * 100, 1) if tot_cx > 0 else 0.0,
+            "color": "#10b981",  # Verde
+        },
+        {
+            "label": "Semi-inativas",
+            "count": tot_alerta,
+            "percent": round((tot_alerta / tot_cx) * 100, 1) if tot_cx > 0 else 0.0,
+            "color": "#f59e0b",  # Amarelo
+        },
+        {
+            "label": "Inativas",
+            "count": tot_offline,
+            "percent": round((tot_offline / tot_cx) * 100, 1) if tot_cx > 0 else 0.0,
+            "color": "#ef4444",  # Vermelho
+        },
+    ]
+
+    conectividade_chart = {
+        "title": "Status de Conectividade",
+        "subtitle": "Ativas, semi-inativas e inativas",
+        "total": tot_cx,
+        "slices": cx_slices,
+    }
+
+    # 3. Status Operacional (Atualizada, Atualização Necessária, Desatualizada) - calculado respeitando plataforma e conectividade
     cond_win10_chart = or_(
         func.coalesce(Device.versao, "").ilike("%windows 10%"),
         func.coalesce(Device.sistema, "").ilike("%windows 10%"),
         func.coalesce(Device.versao, "").ilike("10.0.1904%"),
         func.coalesce(Device.versao, "").ilike("%win10%"),
     )
+
+    where_st = list(base_conditions)
+    if plat_cond is not None:
+        where_st.append(plat_cond)
+    if cx_cond is not None:
+        where_st.append(cx_cond)
+
     st_row = session.execute(
         select(
             func.count().filter(Device.status == "OK", not_(cond_win10_chart)).label("tot_ok"),
@@ -383,91 +462,40 @@ def calcular_charts_summary(session: Session, base_where: Any, kpis: dict) -> di
                 or_(Device.status.is_(None), not_(Device.status.in_(["OK", "UPGRADE_REQUIRED"]))),
                 not_(cond_win10_chart),
             ).label("tot_des"),
-        ).where(base_where)
+        ).where(and_(*where_st))
     ).one()
-    st_counts = {
-        "Atualizada": st_row.tot_ok or 0,
-        "Atualização Necessária": st_row.tot_upg or 0,
-        "Desatualizada": st_row.tot_des or 0,
-    }
 
-    tot_status = sum(st_counts.values())
-    status_slices = []
-    if tot_status > 0:
-        if st_counts["Atualizada"] > 0:
-            status_slices.append({
-                "label": "Atualizada",
-                "count": st_counts["Atualizada"],
-                "percent": round((st_counts["Atualizada"] / tot_status) * 100, 1),
-                "color": "#10b981",
-            })
-        if st_counts["Atualização Necessária"] > 0:
-            status_slices.append({
-                "label": "Atualização Necessária",
-                "count": st_counts["Atualização Necessária"],
-                "percent": round((st_counts["Atualização Necessária"] / tot_status) * 100, 1),
-                "color": "#f59e0b",
-            })
-        if st_counts["Desatualizada"] > 0:
-            status_slices.append({
-                "label": "Desatualizada",
-                "count": st_counts["Desatualizada"],
-                "percent": round((st_counts["Desatualizada"] / tot_status) * 100, 1),
-                "color": "#ef4444",
-            })
+    tot_ok = st_row.tot_ok or 0
+    tot_upg = st_row.tot_upg or 0
+    tot_des = st_row.tot_des or 0
+    tot_status = tot_ok + tot_upg + tot_des
+
+    status_slices = [
+        {
+            "label": "Atualizada",
+            "count": tot_ok,
+            "percent": round((tot_ok / tot_status) * 100, 1) if tot_status > 0 else 0.0,
+            "color": "#10b981",
+        },
+        {
+            "label": "Atualização Necessária",
+            "count": tot_upg,
+            "percent": round((tot_upg / tot_status) * 100, 1) if tot_status > 0 else 0.0,
+            "color": "#f59e0b",
+        },
+        {
+            "label": "Desatualizada",
+            "count": tot_des,
+            "percent": round((tot_des / tot_status) * 100, 1) if tot_status > 0 else 0.0,
+            "color": "#ef4444",
+        },
+    ]
 
     status_chart = {
         "title": "Status das Máquinas",
         "subtitle": "Condição de conformidade e versão",
         "total": tot_status,
         "slices": status_slices,
-    }
-
-    # 2. Conectividade da Frota (Ativas / Semi-inativas / Inativas)
-    now_minus_24h = datetime.utcnow() - timedelta(hours=24)
-    now_minus_48h = datetime.utcnow() - timedelta(hours=48)
-    cx_row = session.execute(
-        select(
-            func.count().filter(Device.data_coleta >= now_minus_24h).label("tot_online"),
-            func.count().filter(and_(Device.data_coleta >= now_minus_48h, Device.data_coleta < now_minus_24h)).label("tot_alerta"),
-            func.count().filter(or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))).label("tot_offline"),
-        ).where(base_where)
-    ).one()
-
-    tot_online = cx_row.tot_online or 0
-    tot_alerta = cx_row.tot_alerta or 0
-    tot_offline = cx_row.tot_offline or 0
-    tot_cx = tot_online + tot_alerta + tot_offline
-
-    cx_slices = []
-    if tot_cx > 0:
-        if tot_online > 0:
-            cx_slices.append({
-                "label": "Ativas",
-                "count": tot_online,
-                "percent": round((tot_online / tot_cx) * 100, 1),
-                "color": "#10b981",  # Verde
-            })
-        if tot_alerta > 0:
-            cx_slices.append({
-                "label": "Semi-inativas",
-                "count": tot_alerta,
-                "percent": round((tot_alerta / tot_cx) * 100, 1),
-                "color": "#f59e0b",  # Amarelo
-            })
-        if tot_offline > 0:
-            cx_slices.append({
-                "label": "Inativas",
-                "count": tot_offline,
-                "percent": round((tot_offline / tot_cx) * 100, 1),
-                "color": "#ef4444",  # Vermelho
-            })
-
-    conectividade_chart = {
-        "title": "Status de Conectividade",
-        "subtitle": "Ativas, semi-inativas e inativas",
-        "total": tot_cx,
-        "slices": cx_slices,
     }
 
     return {
@@ -514,29 +542,20 @@ def list_devices(
 ):
     """Lista dispositivos paginados com filtros avançados, KPIs e controle de acesso por filial."""
     with Session(engine) as session:
-        query = select(Device).where(
-            Device.company_id == current_user.company_id,
-            Device.active.is_(True),
-        )
-        count_query = select(func.count(Device.id)).where(
-            Device.company_id == current_user.company_id,
-            Device.active.is_(True),
-        )
-
         # Controle de acesso por site para operadores locais
         is_global_viewer = is_admin_user(current_user) or is_matriz_operator(current_user)
+        allowed_sites = None
         if not is_global_viewer:
             allowed_sites = (
                 select(user_site_access.c.site_id)
                 .where(user_site_access.c.user_id == current_user.id)
             )
-            query = query.where(Device.site_id.in_(allowed_sites))
-            count_query = count_query.where(Device.site_id.in_(allowed_sites))
 
         # Padrão para operador_matriz: se bancada não foi fornecido (bancada is None), filtra bancada por padrão
         if is_matriz_operator(current_user) and not is_admin_user(current_user) and bancada is None:
             bancada = True
 
+        now_minus_24h = datetime.utcnow() - timedelta(hours=24)
         now_minus_48h = datetime.utcnow() - timedelta(hours=48)
 
         has_apps_subq = exists().where(
@@ -544,23 +563,13 @@ def list_devices(
             DeviceSoftware.installed.is_(True),
         )
 
-        # Cálculo otimizado de KPIs contextuais (respeitando Filial, Busca e Status sem acoplamento aos toggles de KPI)
-        kpi_query = select(
-            func.count().filter(Device.sistema.ilike("%windows%")).label("tot_win"),
-            func.count().filter(not_(Device.sistema.ilike("%windows%"))).label("tot_lnx"),
-            func.count().filter(Device.alerta_hardware.isnot(None)).label("tot_alert"),
-            func.count().filter(or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))).label("tot_inativas"),
-            func.count().filter(Device.firewall_status == "pendente").label("tot_fw"),
-            func.count().filter(Device.ip.like("192.168.88.%")).label("tot_88"),
-            func.count().filter(Device.disco_percentual >= 85).label("tot_crit_disk"),
-            func.count().filter(~has_apps_subq).label("tot_sem_apps"),
-            func.count().filter(has_apps_subq).label("tot_com_apps"),
-        ).where(
+        # Condições base comuns (empresa, escopo de filial, busca e refinamentos secundários)
+        base_conditions = [
             Device.company_id == current_user.company_id,
             Device.active.is_(True),
-        )
-        if not is_global_viewer:
-            kpi_query = kpi_query.where(Device.site_id.in_(allowed_sites))
+        ]
+        if not is_global_viewer and allowed_sites is not None:
+            base_conditions.append(Device.site_id.in_(allowed_sites))
 
         p_page = page if isinstance(page, int) else 1
         p_per_page = per_page if isinstance(per_page, int) else 50
@@ -568,16 +577,11 @@ def list_devices(
         # Filtro de Filial / Loja (Contextual)
         if site_id is not None and isinstance(site_id, int):
             if site_id in (-1, 0):
-                query = query.where(Device.site_id.is_(None))
-                count_query = count_query.where(Device.site_id.is_(None))
-                kpi_query = kpi_query.where(Device.site_id.is_(None))
+                base_conditions.append(Device.site_id.is_(None))
             else:
-                query = query.where(Device.site_id == site_id)
-                count_query = count_query.where(Device.site_id == site_id)
-                kpi_query = kpi_query.where(Device.site_id == site_id)
+                base_conditions.append(Device.site_id == site_id)
 
         # Filtro de Busca Textual (Contextual)
-        filtro_busca = None
         if search and isinstance(search, str) and search.strip():
             termo = f"%{search.strip()}%"
             filtro_busca = or_(
@@ -589,58 +593,14 @@ def list_devices(
                 Device.loja.ilike(termo),
                 Device.usuario.ilike(termo),
             )
-            query = query.where(filtro_busca)
-            count_query = count_query.where(filtro_busca)
-            kpi_query = kpi_query.where(filtro_busca)
-
-        # Filtro de Status Operacional (Contextual)
-        # Sincronizado com a regra: Windows 10 obrigatoriamente classificado em 'Atualização Necessária' (UPGRADE_REQUIRED)
-        if status and isinstance(status, str):
-            cond_win10_filter = or_(
-                func.coalesce(Device.versao, "").ilike("%windows 10%"),
-                func.coalesce(Device.sistema, "").ilike("%windows 10%"),
-                func.coalesce(Device.versao, "").ilike("10.0.1904%"),
-                func.coalesce(Device.versao, "").ilike("%win10%"),
-            )
-            if status == "OUTRO":
-                cond_status = and_(
-                    or_(Device.status.is_(None), not_(Device.status.in_(["OK", "UPGRADE_REQUIRED"]))),
-                    not_(cond_win10_filter),
-                )
-            elif status == "UPGRADE_REQUIRED":
-                cond_status = or_(Device.status == "UPGRADE_REQUIRED", cond_win10_filter)
-            elif status == "OK":
-                cond_status = and_(Device.status == "OK", not_(cond_win10_filter))
-            else:
-                cond_status = Device.status == status
-
-            query = query.where(cond_status)
-            count_query = count_query.where(cond_status)
-            kpi_query = kpi_query.where(cond_status)
+            base_conditions.append(filtro_busca)
 
         # Filtro de Loja por Nome Textual (Contextual)
         if loja and isinstance(loja, str):
             termo_loja = f"%{loja.strip()}%"
-            query = query.where(Device.loja.ilike(termo_loja))
-            count_query = count_query.where(Device.loja.ilike(termo_loja))
-            kpi_query = kpi_query.where(Device.loja.ilike(termo_loja))
-
-        # Execução da agregação dos KPIs contextuais
-        kpis_raw = session.execute(kpi_query).one()
-        kpis = {
-            "total_windows": kpis_raw.tot_win or 0,
-            "total_linux": kpis_raw.tot_lnx or 0,
-            "total_alertas": kpis_raw.tot_alert or 0,
-            "total_inativas": kpis_raw.tot_inativas or 0,
-            "total_firewall_pendente": kpis_raw.tot_fw or 0,
-            "total_bancada_88": kpis_raw.tot_88 or 0,
-            "total_critico_disco": kpis_raw.tot_crit_disk or 0,
-            "total_sem_apps": kpis_raw.tot_sem_apps or 0,
-            "total_com_apps": kpis_raw.tot_com_apps or 0,
-        }
+            base_conditions.append(Device.loja.ilike(termo_loja))
 
         # Filtros de Refinamento / Toggles da Lista
-
         if versao and isinstance(versao, str):
             v_clean = versao.strip()
             if re.match(r"^k?ubuntu\b", v_clean, re.I):
@@ -678,7 +638,6 @@ def list_devices(
                         Device.sistema.ilike(f"%{v_num}%"),
                     ))
                 else:
-                    # 'Windows' genérico (sem número de versão 10, 11, etc.)
                     conds.append(not_(or_(
                         func.coalesce(Device.versao, "").ilike("%10%"),
                         func.coalesce(Device.versao, "").ilike("%11%"),
@@ -691,7 +650,6 @@ def list_devices(
                         Device.versao.ilike(f"%{rel_target}%"),
                     ))
                 elif v_num and "11" in v_num:
-                    # Se filtramos 'Windows 11 Pro' sem release 25H2, isola a contagem de máquinas sem 25H2
                     conds.append(or_(
                         Device.windows_release.is_(None),
                         not_(Device.windows_release.ilike("%25H2%")),
@@ -712,65 +670,112 @@ def list_devices(
                     Device.versao.ilike(f"%{v_clean}%"),
                     Device.sistema.ilike(f"%{v_clean}%"),
                 )
-            query = query.where(cond_ver)
-            count_query = count_query.where(cond_ver)
+            base_conditions.append(cond_ver)
 
         if firewall_status:
-            query = query.where(Device.firewall_status == firewall_status)
-            count_query = count_query.where(Device.firewall_status == firewall_status)
+            base_conditions.append(Device.firewall_status == firewall_status)
 
         if alerta:
-            query = query.where(Device.alerta_hardware.isnot(None))
-            count_query = count_query.where(Device.alerta_hardware.isnot(None))
-
-        if inativas:
-            cond_inat = or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))
-            query = query.where(cond_inat)
-            count_query = count_query.where(cond_inat)
+            base_conditions.append(Device.alerta_hardware.isnot(None))
 
         if bancada:
-            query = query.where(Device.ip.like("192.168.88.%"))
-            count_query = count_query.where(Device.ip.like("192.168.88.%"))
-
-        if plataforma and isinstance(plataforma, str):
-            if plataforma.lower() == "windows":
-                query = query.where(Device.sistema.ilike("%windows%"))
-                count_query = count_query.where(Device.sistema.ilike("%windows%"))
-            elif plataforma.lower() == "linux":
-                query = query.where(not_(Device.sistema.ilike("%windows%")))
-                count_query = count_query.where(not_(Device.sistema.ilike("%windows%")))
+            base_conditions.append(Device.ip.like("192.168.88.%"))
 
         if disco_critico:
-            query = query.where(Device.disco_percentual >= 85)
-            count_query = count_query.where(Device.disco_percentual >= 85)
+            base_conditions.append(Device.disco_percentual >= 85)
 
         if sem_apps:
-            query = query.where(~has_apps_subq)
-            count_query = count_query.where(~has_apps_subq)
+            base_conditions.append(~has_apps_subq)
 
         if com_apps:
-            query = query.where(has_apps_subq)
-            count_query = count_query.where(has_apps_subq)
+            base_conditions.append(has_apps_subq)
 
-        if status_conexao and isinstance(status_conexao, str):
+        # -------------------------------------------------------------
+        # 3 Dimensões dos Gráficos Donut
+        # -------------------------------------------------------------
+        # 1. Plataforma (Windows vs Linux)
+        plat_cond = None
+        if plataforma and isinstance(plataforma, str):
+            if plataforma.lower() == "windows":
+                plat_cond = Device.sistema.ilike("%windows%")
+            elif plataforma.lower() == "linux":
+                plat_cond = not_(Device.sistema.ilike("%windows%"))
+
+        # 2. Conectividade (Ativas / Semi-inativas / Inativas)
+        cx_cond = None
+        if inativas:
+            cx_cond = or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))
+        elif status_conexao and isinstance(status_conexao, str):
             sc = status_conexao.lower().strip()
             if sc == "online":
-                now_minus_24h = datetime.utcnow() - timedelta(hours=24)
-                cond_online = Device.data_coleta >= now_minus_24h
-                query = query.where(cond_online)
-                count_query = count_query.where(cond_online)
-                kpi_query = kpi_query.where(cond_online)
+                cx_cond = Device.data_coleta >= now_minus_24h
             elif sc == "offline":
-                cond_offline = or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))
-                query = query.where(cond_offline)
-                count_query = count_query.where(cond_offline)
-                kpi_query = kpi_query.where(cond_offline)
+                cx_cond = or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))
             elif sc == "alerta":
-                now_minus_24h = datetime.utcnow() - timedelta(hours=24)
-                cond_alerta = and_(Device.data_coleta >= now_minus_48h, Device.data_coleta < now_minus_24h)
-                query = query.where(cond_alerta)
-                count_query = count_query.where(cond_alerta)
-                kpi_query = kpi_query.where(cond_alerta)
+                cx_cond = and_(Device.data_coleta >= now_minus_48h, Device.data_coleta < now_minus_24h)
+
+        # 3. Status Operacional (Atualizada / Atualização Necessária / Desatualizada)
+        st_cond = None
+        if status and isinstance(status, str):
+            cond_win10_filter = or_(
+                func.coalesce(Device.versao, "").ilike("%windows 10%"),
+                func.coalesce(Device.sistema, "").ilike("%windows 10%"),
+                func.coalesce(Device.versao, "").ilike("10.0.1904%"),
+                func.coalesce(Device.versao, "").ilike("%win10%"),
+            )
+            if status == "OUTRO":
+                st_cond = and_(
+                    or_(Device.status.is_(None), not_(Device.status.in_(["OK", "UPGRADE_REQUIRED"]))),
+                    not_(cond_win10_filter),
+                )
+            elif status == "UPGRADE_REQUIRED":
+                st_cond = or_(Device.status == "UPGRADE_REQUIRED", cond_win10_filter)
+            elif status == "OK":
+                st_cond = and_(Device.status == "OK", not_(cond_win10_filter))
+            else:
+                st_cond = Device.status == status
+
+        # Cálculo otimizado de KPIs contextuais
+        kpi_where = list(base_conditions)
+        if st_cond is not None:
+            kpi_where.append(st_cond)
+
+        kpis_raw = session.execute(
+            select(
+                func.count().filter(Device.sistema.ilike("%windows%")).label("tot_win"),
+                func.count().filter(not_(Device.sistema.ilike("%windows%"))).label("tot_lnx"),
+                func.count().filter(Device.alerta_hardware.isnot(None)).label("tot_alert"),
+                func.count().filter(or_(Device.data_coleta < now_minus_48h, Device.data_coleta.is_(None))).label("tot_inativas"),
+                func.count().filter(Device.firewall_status == "pendente").label("tot_fw"),
+                func.count().filter(Device.ip.like("192.168.88.%")).label("tot_88"),
+                func.count().filter(Device.disco_percentual >= 85).label("tot_crit_disk"),
+                func.count().filter(~has_apps_subq).label("tot_sem_apps"),
+                func.count().filter(has_apps_subq).label("tot_com_apps"),
+            ).where(and_(*kpi_where))
+        ).one()
+        kpis = {
+            "total_windows": kpis_raw.tot_win or 0,
+            "total_linux": kpis_raw.tot_lnx or 0,
+            "total_alertas": kpis_raw.tot_alert or 0,
+            "total_inativas": kpis_raw.tot_inativas or 0,
+            "total_firewall_pendente": kpis_raw.tot_fw or 0,
+            "total_bancada_88": kpis_raw.tot_88 or 0,
+            "total_critico_disco": kpis_raw.tot_crit_disk or 0,
+            "total_sem_apps": kpis_raw.tot_sem_apps or 0,
+            "total_com_apps": kpis_raw.tot_com_apps or 0,
+        }
+
+        # Query de dispositivos da tabela (aplica base + todas as dimensões ativas)
+        query_conditions = list(base_conditions)
+        if plat_cond is not None:
+            query_conditions.append(plat_cond)
+        if cx_cond is not None:
+            query_conditions.append(cx_cond)
+        if st_cond is not None:
+            query_conditions.append(st_cond)
+
+        query = select(Device).where(and_(*query_conditions))
+        count_query = select(func.count(Device.id)).where(and_(*query_conditions))
 
         offset = (page - 1) * per_page
 
@@ -809,46 +814,18 @@ def list_devices(
 
         # Sites disponíveis para o escopo do usuário
         sites_q = select(Site.id, Site.name, Site.code).where(Site.active.is_(True)).order_by(Site.name)
-        if not is_global_viewer:
+        if not is_global_viewer and allowed_sites is not None:
             sites_q = sites_q.where(Site.id.in_(allowed_sites))
         sites_opts = [{"id": s.id, "name": s.name, "code": s.code} for s in session.execute(sites_q).all()]
 
         # Faceta dinâmica de versões de SO calculada sobre o contexto ativo
         versoes_query = (
             select(Device.sistema, Device.versao, Device.windows_release)
-            .where(
-                Device.company_id == current_user.company_id,
-                Device.active.is_(True),
-            )
+            .where(and_(*base_conditions))
             .distinct()
         )
-        if not is_global_viewer:
-            versoes_query = versoes_query.where(Device.site_id.in_(allowed_sites))
-        if site_id is not None and isinstance(site_id, int):
-            if site_id in (-1, 0):
-                versoes_query = versoes_query.where(Device.site_id.is_(None))
-            else:
-                versoes_query = versoes_query.where(Device.site_id == site_id)
-        if loja and isinstance(loja, str) and loja.strip():
-            versoes_query = versoes_query.where(Device.loja.ilike(f"%{loja.strip()}%"))
-        if search and isinstance(search, str) and search.strip():
-            termo = f"%{search.strip()}%"
-            versoes_query = versoes_query.where(
-                or_(
-                    Device.hostname.ilike(termo),
-                    Device.ip.ilike(termo),
-                    Device.mac.ilike(termo),
-                    Device.rustdesk_id.ilike(termo),
-                    Device.patrimonio.ilike(termo),
-                    Device.loja.ilike(termo),
-                    Device.usuario.ilike(termo),
-                )
-            )
-        if plataforma:
-            if plataforma.lower() == "windows":
-                versoes_query = versoes_query.where(Device.sistema.ilike("%windows%"))
-            elif plataforma.lower() == "linux":
-                versoes_query = versoes_query.where(not_(Device.sistema.ilike("%windows%")))
+        if plat_cond is not None:
+            versoes_query = versoes_query.where(plat_cond)
 
         vers_raw = session.execute(versoes_query).all()
         versoes_opts = formatar_lista_versoes(vers_raw)
@@ -859,7 +836,13 @@ def list_devices(
             "plataformas": ["Linux", "Windows"],
         }
 
-        charts_summary = calcular_charts_summary(session, count_query.whereclause, kpis)
+        charts_summary = calcular_charts_summary(
+            session=session,
+            base_conditions=base_conditions,
+            plat_cond=plat_cond,
+            cx_cond=cx_cond,
+            st_cond=st_cond,
+        )
 
         return {
             "items": [normalizar_device_list_item(device) for device in devices],

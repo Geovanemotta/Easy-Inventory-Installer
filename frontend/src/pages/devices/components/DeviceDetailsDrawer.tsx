@@ -26,7 +26,9 @@ import { DevicePeripheralsTab } from './drawer-tabs/DevicePeripheralsTab';
 import { DeviceSoftwareTab } from './drawer-tabs/DeviceSoftwareTab';
 import { DeviceHistoryTab } from './drawer-tabs/DeviceHistoryTab';
 import { AssignLicenseModal } from '@/pages/network-assets/components/AssignLicenseModal';
+import { UnbindLicenseModal } from '@/pages/network-assets/components/UnbindLicenseModal';
 import { NetworkAsset } from '@/types/networkAsset';
+import { licenseService } from '@/services/licenseService';
 
 interface DeviceDetailsDrawerProps {
   deviceId: number | null;
@@ -57,6 +59,48 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
   const [activeTab, setActiveTab] = useState<'geral' | 'discos' | 'perifericos' | 'softwares' | 'historico'>('geral');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [licenseModalSlot, setLicenseModalSlot] = useState<'windows' | 'office' | null>(null);
+  const [unbindModalSlot, setUnbindModalSlot] = useState<'windows' | 'office' | null>(null);
+  const [unbindingSlot, setUnbindingSlot] = useState<'windows' | 'office' | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const handleOpenUnbindModal = (slot: 'windows' | 'office') => {
+    setUnbindModalSlot(slot);
+  };
+
+  const handleConfirmUnbind = async () => {
+    if (!device || !unbindModalSlot) return;
+    const slot = unbindModalSlot;
+    const slotLabel = slot === 'windows' ? 'Windows' : 'Office';
+
+    setUnbindingSlot(slot);
+    try {
+      const res = await licenseService.assignLicense({
+        device_id: device.id,
+        slot,
+        chave: null,
+      });
+
+      showToast(res.message || `Licença de ${slotLabel} desvinculada.`);
+      setDevice((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          ...(slot === 'windows' ? { serial_windows: null } : { serial_office: null }),
+        };
+      });
+      setUnbindModalSlot(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showToast(`Erro ao desvincular licença: ${msg}`);
+    } finally {
+      setUnbindingSlot(null);
+    }
+  };
 
   // Controle de acordeões expansíveis
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -247,10 +291,11 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
   if (!deviceId) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
-      onClick={onClose}
-    >
+    <>
+      <div
+        className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      >
       <div
         className="w-full max-w-3xl h-full bg-[#0B0E14] shadow-2xl flex flex-col border-l border-[#1E2636] overflow-hidden animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
@@ -480,6 +525,8 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
                   copyToClipboard={copyToClipboard}
                   copiedKey={copiedKey}
                   onOpenLicenseModal={(slot) => setLicenseModalSlot(slot)}
+                  onUnbindLicense={handleOpenUnbindModal}
+                  unbindingSlot={unbindingSlot}
                 />
               )}
 
@@ -560,32 +607,57 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
           </div>
         </div>
       </div>
-
-      {device && (
-        <AssignLicenseModal
-          isOpen={Boolean(licenseModalSlot)}
-          onClose={() => setLicenseModalSlot(null)}
-          asset={{
-            id: device.id,
-            device_id: device.id,
-            nome: device.hostname,
-            ip: device.ip,
-            site_id: device.site_id,
-            serial_windows: device.serial_windows,
-            serial_office: device.serial_office,
-            origem: 'estacao',
-          } as unknown as NetworkAsset}
-          slot={licenseModalSlot || 'windows'}
-          onAssigned={(slot, novaChave) => {
-            setDevice({
-              ...device,
-              ...(slot === 'windows' ? { serial_windows: novaChave } : { serial_office: novaChave }),
-            });
-          }}
-          showToast={() => {}}
-        />
-      )}
     </div>
-  );
+
+    {device && (
+      <AssignLicenseModal
+        isOpen={Boolean(licenseModalSlot)}
+        onClose={() => setLicenseModalSlot(null)}
+        asset={{
+          id: device.id,
+          device_id: device.id,
+          nome: device.hostname,
+          ip: device.ip,
+          site_id: device.site_id,
+          serial_windows: device.serial_windows,
+          serial_office: device.serial_office,
+          origem: 'estacao',
+        } as unknown as NetworkAsset}
+        slot={licenseModalSlot || 'windows'}
+        onAssigned={(slot, novaChave) => {
+          setDevice((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              ...(slot === 'windows' ? { serial_windows: novaChave } : { serial_office: novaChave }),
+            };
+          });
+        }}
+        showToast={showToast}
+      />
+    )}
+
+    {device && unbindModalSlot && (
+      <UnbindLicenseModal
+        isOpen={Boolean(unbindModalSlot)}
+        onClose={() => !unbindingSlot && setUnbindModalSlot(null)}
+        targetName={device.hostname}
+        targetIp={device.ip}
+        slot={unbindModalSlot}
+        currentKey={
+          (unbindModalSlot === 'windows' ? device.serial_windows : device.serial_office) || ''
+        }
+        onConfirm={handleConfirmUnbind}
+        loading={Boolean(unbindingSlot)}
+      />
+    )}
+
+    {toastMessage && (
+      <div className="fixed bottom-6 right-6 z-[110] rounded-xl bg-orange-600 px-4 py-3 text-sm font-bold text-white shadow-xl animate-in fade-in slide-in-from-bottom-2 flex items-center gap-2">
+        <span>{toastMessage}</span>
+      </div>
+    )}
+  </>
+);
 };
 export default DeviceDetailsDrawer;

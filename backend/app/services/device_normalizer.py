@@ -1,5 +1,6 @@
 import ipaddress
 import json
+import math
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
@@ -186,6 +187,118 @@ def padronizar_tamanho_str(val: Optional[str]) -> Optional[str]:
     return str(val).strip()
 
 
+# Capacidades comerciais padrão de Memória RAM (em GB)
+PADROES_RAM = [1, 2, 3, 4, 6, 8, 12, 16, 20, 24, 32, 48, 64, 96, 128, 256, 512]
+
+
+def normalizar_capacidade_ram(val: Any) -> Optional[str]:
+    """
+    Padroniza e arredonda para cima a capacidade de memória RAM para os tamanhos comerciais:
+    Compensa a memória reservada pelo hardware/vídeo integrado (ex: 7.6GiB vira 8 GB):
+    Ex: '7,6Gi', '7.8 GB', '7.9 GB', '6,9Gi' -> '8 GB'
+        '3,7Gi', '3.8 GB', '3,5Gi' -> '4 GB'
+        '5,7Gi', '5.9 GB' -> '6 GB'
+        '11Gi', '11.8 GB', '11.9 GB' -> '12 GB'
+        '14Gi', '15.2 GB', '15.8 GB' -> '16 GB'
+        '19.8 GB' -> '20 GB'
+        '23.6 GB' -> '24 GB'
+        '31.2 GB', '31.8 GB' -> '32 GB'
+        '61.7 GB', '63.8 GB' -> '64 GB'
+    """
+    if not val:
+        return None
+    mb = tamanho_para_mb(val)
+    if mb <= 0:
+        return None
+    gb = mb / 1024.0
+    if gb < 0.8:
+        return f"{round(mb)} MB"
+    for p in PADROES_RAM:
+        if gb <= p * 1.05:
+            return f"{p} GB"
+    gb_arr = math.ceil(gb / 64) * 64
+    return f"{gb_arr} GB"
+
+
+# Capacidades comerciais padrão de Discos/SSDs (em GB decimais de fábrica)
+PADROES_DISCO_GB = [
+    16, 20, 32, 40, 60, 64, 80, 120, 128, 160, 240, 250, 256,
+    320, 480, 500, 512, 960, 1000, 1024, 2000, 2048, 4000, 4096
+]
+
+
+def normalizar_capacidade_disco(val: Any) -> Optional[str]:
+    """
+    Padroniza capacidade total de armazenamento para padrões comerciais de fábrica (GB/TB).
+    Compensa o cálculo binário (GiB) reportado pelos sistemas operacionais (base 1024)
+    para a capacidade decimal comercializada pelos fabricantes (base 1000):
+    Ex: '109G', '110G', '110.8 GB', '102G' -> '120 GB'
+        '219G', '222.6 GB', '222.7 GB' -> '240 GB'
+        '237.2 GB' -> '256 GB'
+        '446.2 GB' -> '480 GB'
+        '464.9 GB' -> '500 GB'
+        '931.2 GB', '953.6 GB' -> '1 TB'
+    """
+    if not val:
+        return None
+    mb = tamanho_para_mb(val)
+    if mb <= 0:
+        return None
+    gb_binario = mb / 1024.0
+    # Converte de GiB binário (1024^3 bytes) para GB decimal de fábrica (10^9 bytes)
+    # 1 GiB = 1.073741824 GB decimal
+    gb_decimal = gb_binario * (1024.0 ** 3) / (10.0 ** 9)
+
+    if gb_decimal < 15:
+        return f"{round(gb_decimal)} GB"
+
+    # Encontra o padrão de fábrica mais próximo com tolerância de até 12%
+    # (cobre partições reservadas OEM, EFI, swap e over-provisioning)
+    melhor_padrao = None
+    menor_dif = float("inf")
+    for p in PADROES_DISCO_GB:
+        dif = abs(gb_decimal - p)
+        if dif < menor_dif:
+            menor_dif = dif
+            melhor_padrao = p
+
+    if melhor_padrao and (menor_dif / melhor_padrao) <= 0.12:
+        if melhor_padrao in (1000, 1024):
+            return "1 TB"
+        elif melhor_padrao in (2000, 2048):
+            return "2 TB"
+        elif melhor_padrao in (4000, 4096):
+            return "4 TB"
+        return f"{melhor_padrao} GB"
+
+    # Fallback arredonda de 10 em 10 GB
+    gb_arr = round(gb_decimal / 10.0) * 10
+    if gb_arr >= 1000:
+        tb = round(gb_arr / 1000.0, 1)
+        return f"{int(tb) if tb.is_integer() else tb} TB"
+    return f"{gb_arr} GB"
+
+
+def normalizar_tipo_ram(val: Optional[str]) -> str:
+    """
+    Normaliza e agrupa o tipo de memória RAM ignorando variações de frequência,
+    garantindo agrupamento consistente em relatórios e gráficos:
+    Ex: 'DDR4 (2667 MT/s)', 'DDR4 (3200 MT/s)' -> 'DDR4'
+        'DDR5 (4800 MT/s)' -> 'DDR5'
+    """
+    if not val:
+        return "Não informado"
+    s = str(val).strip()
+    if s.lower() in PLACEHOLDERS_OEM or s.lower() in ("não informado", "nao informado"):
+        return "Não informado"
+
+    # Extrai padrão base (DDR5, DDR4, DDR3, DDR2, DDR, LPDDR5, LPDDR4, SDRAM)
+    m = re.search(r"\b(LP-?DDR[1-5][A-Z]?|DDR[1-5][A-Z]?|SDRAM)\b", s, re.I)
+    if m:
+        return m.group(1).upper().replace("-", "")
+    return s
+
+
 # =====================================================================
 # 3. Normalização de Sistema Operacional, Versão, Build e Release
 # =====================================================================
@@ -364,15 +477,11 @@ def normalizar_ram(
     ram_total: Optional[str],
     ram_tipo: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Padroniza memória RAM total e tipo de memória."""
-    mb = tamanho_para_mb(ram_total)
-    ram_formatada = formatar_mb(mb) if mb > 0 else (ram_total or None)
-
-    tipo_limpo = None
-    if ram_tipo:
-        t_str = str(ram_tipo).strip()
-        if t_str.lower() not in PLACEHOLDERS_OEM:
-            tipo_limpo = t_str
+    """Padroniza memória RAM total com arredondamento para padrão comercial e tipo limpo sem frequências."""
+    ram_formatada = normalizar_capacidade_ram(ram_total)
+    if not ram_formatada or ram_formatada in ("0 GB", "0 MB"):
+        ram_formatada = "Não informado"
+    tipo_limpo = normalizar_tipo_ram(ram_tipo) if ram_tipo else None
 
     return {
         "ram_total_formatada": ram_formatada,
@@ -910,7 +1019,7 @@ def normalizar_analise_disco(
             "ponto_montagem": "Disco Principal",
             "tipo_fs": None,
             "rotulo": "Sistema",
-            "total": padronizar_tamanho_str(disco_total),
+            "total": normalizar_capacidade_disco(disco_total) or padronizar_tamanho_str(disco_total),
             "usado": padronizar_tamanho_str(disco_usado),
             "livre": padronizar_tamanho_str(disco_livre),
             "percentual": float(pct_dev),
@@ -1063,7 +1172,7 @@ def normalizar_device_list_item(device: Any) -> Dict[str, Any]:
     ram_info = normalizar_ram(device.ram_total, getattr(device, "ram_tipo", None))
 
     # 4. Discos
-    d_total_fmt = padronizar_tamanho_str(device.disco_total)
+    d_total_fmt = normalizar_capacidade_disco(device.disco_total) or padronizar_tamanho_str(device.disco_total)
     d_usado_fmt = padronizar_tamanho_str(device.disco_usado)
     d_livre_fmt = padronizar_tamanho_str(device.disco_livre)
 
@@ -1117,6 +1226,8 @@ def normalizar_device_list_item(device: Any) -> Dict[str, Any]:
         "processador_formatado": cpu_limpo,
         "ram_total": device.ram_total,
         "ram_total_formatada": ram_info["ram_total_formatada"],
+        "ram_tipo": ram_info["ram_tipo_limpo"] or getattr(device, "ram_tipo", None),
+        "ram_tipo_limpo": ram_info["ram_tipo_limpo"],
         "disco_total": device.disco_total,
         "disco_total_formatado": d_total_fmt,
         "disco_usado": device.disco_usado,

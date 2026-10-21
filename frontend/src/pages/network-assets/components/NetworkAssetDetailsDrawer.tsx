@@ -13,6 +13,7 @@ import { NetworkAsset } from '@/types/networkAsset';
 import { Site } from '@/types/site';
 import { getTipoIcon } from './NetworkAssetsTable';
 import { AssignLicenseModal } from './AssignLicenseModal';
+import { UnbindLicenseModal } from './UnbindLicenseModal';
 import { licenseService } from '@/services/licenseService';
 import { copyToClipboard as robustCopy } from '@/utils/clipboard';
 
@@ -51,6 +52,7 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
   // Modal de atribuição de licença
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const [targetSlot, setTargetSlot] = useState<'windows' | 'office'>('windows');
+  const [unbindModalSlot, setUnbindModalSlot] = useState<'windows' | 'office' | null>(null);
   const [unbindingSlot, setUnbindingSlot] = useState<'windows' | 'office' | null>(null);
 
   if (!isOpen || !asset) return null;
@@ -81,15 +83,15 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
     return `Há ${days} d atrás (${d.toLocaleDateString('pt-BR')})`;
   };
 
-  // Desvincular serial rápido
-  const handleUnbindSerial = async (slot: 'windows' | 'office') => {
-    const slotLabel = slot === 'windows' ? 'Windows' : 'Office';
-    const curKey = slot === 'windows' ? asset.serial_windows : asset.serial_office;
+  // Abrir modal de desvinculação padronizado
+  const handleOpenUnbindModal = (slot: 'windows' | 'office') => {
+    setUnbindModalSlot(slot);
+  };
 
-    if (!curKey) return;
-    if (!window.confirm(`Deseja remover e desvincular a chave de ${slotLabel} (${curKey}) de "${asset.nome}"?`)) {
-      return;
-    }
+  const handleConfirmUnbind = async () => {
+    if (!asset || !unbindModalSlot) return;
+    const slot = unbindModalSlot;
+    const slotLabel = slot === 'windows' ? 'Windows' : 'Office';
 
     setUnbindingSlot(slot);
     try {
@@ -114,6 +116,7 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
           ...(slot === 'windows' ? { serial_windows: null } : { serial_office: null }),
         });
       }
+      setUnbindModalSlot(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showToast(`Erro ao desvincular licença: ${msg}`);
@@ -274,7 +277,7 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
               isAdmin={isAdmin}
               copiedKey={copiedKey}
               copyToClipboard={copyToClipboard}
-              handleUnbindSerial={handleUnbindSerial}
+              handleUnbindSerial={handleOpenUnbindModal}
               handleOpenLicenseModal={handleOpenLicenseModal}
               unbindingSlot={unbindingSlot}
             />
@@ -302,6 +305,22 @@ export const NetworkAssetDetailsDrawer: React.FC<NetworkAssetDetailsDrawerProps>
         onAssigned={handleLicenseAssigned}
         showToast={showToast}
       />
+
+      {/* Modal de Desvinculação de Licença */}
+      {asset && unbindModalSlot && (
+        <UnbindLicenseModal
+          isOpen={Boolean(unbindModalSlot)}
+          onClose={() => !unbindingSlot && setUnbindModalSlot(null)}
+          targetName={asset.nome}
+          targetIp={asset.ip}
+          slot={unbindModalSlot}
+          currentKey={
+            (unbindModalSlot === 'windows' ? asset.serial_windows : asset.serial_office) || ''
+          }
+          onConfirm={handleConfirmUnbind}
+          loading={Boolean(unbindingSlot)}
+        />
+      )}
     </div>
   );
 };

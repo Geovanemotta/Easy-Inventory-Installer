@@ -263,6 +263,8 @@ class DeviceListItem(BaseModel):
     processador_formatado: Optional[str] = None
     ram_total: Optional[str] = None
     ram_total_formatada: Optional[str] = None
+    ram_tipo: Optional[str] = None
+    ram_tipo_limpo: Optional[str] = None
     disco_total: Optional[str] = None
     disco_total_formatado: Optional[str] = None
     disco_usado: Optional[str] = None

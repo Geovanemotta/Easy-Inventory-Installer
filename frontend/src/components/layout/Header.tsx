@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { RefreshCw, Download, Activity } from 'lucide-react';
+import { RefreshCw, Download } from 'lucide-react';
 import { AgentInstallModal } from '@/pages/devices/components/AgentInstallModal';
 
 export const Header: React.FC = () => {
@@ -72,7 +72,7 @@ export const Header: React.FC = () => {
       <div className="flex items-center gap-3">
         {/* Indicador de Monitoramento Ativo / Sincronização */}
         <div
-          className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 cursor-help"
+          className="flex items-center gap-2 rounded-full border border-emerald-500/30 px-3 py-1 text-xs text-emerald-400 cursor-help"
           title={`Sincronização automática em background a cada 5 minutos.\nÚltima atualização: ${formatHora(lastSync)}`}
         >
           <span className="relative flex h-2 w-2">

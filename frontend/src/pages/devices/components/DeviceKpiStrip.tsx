@@ -111,12 +111,13 @@ export const DeviceKpiStrip: React.FC<DeviceKpiStripProps> = ({
         type="button"
         onClick={() =>
           onFilterChange({
-            inativas: filters.inativas ? undefined : true,
+            inativas: (filters.inativas || filters.status_conexao === 'offline') ? undefined : true,
+            status_conexao: undefined,
             page: 1,
           })
         }
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
-          filters.inativas
+          filters.inativas || filters.status_conexao === 'offline'
             ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
             : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
         }`}

@@ -291,9 +291,9 @@ export const DevicesPage: React.FC = () => {
           i.ip || '',
           i.mac || '',
           i.disco_percentual !== null && i.disco_percentual !== undefined ? `${i.disco_percentual}%` : '',
-          i.disco_total || '',
-          i.disco_usado || '',
-          i.disco_livre || '',
+          i.disco_total_formatado || i.disco_total || '',
+          i.disco_usado_formatado || i.disco_usado || '',
+          i.disco_livre_formatado || i.disco_livre || '',
           i.sistema || '',
           i.versao || '',
           i.status === 'OK'
@@ -301,8 +301,8 @@ export const DevicesPage: React.FC = () => {
             : i.status === 'UPGRADE_REQUIRED'
             ? 'Atualização Necessária'
             : 'Não Identificada',
-          i.processador || '',
-          i.ram_total || '',
+          i.processador_formatado || i.processador || '',
+          i.ram_total_formatada || i.ram_total || '',
           i.patrimonio || '',
           i.firewall_status || '',
           i.rustdesk_id || '',
@@ -397,7 +397,7 @@ export const DevicesPage: React.FC = () => {
                   ? 'Ativas'
                   : filters.status_conexao === 'alerta'
                   ? 'Semi-inativas'
-                  : filters.status_conexao === 'offline'
+                  : filters.status_conexao === 'offline' || filters.inativas === true
                   ? 'Inativas'
                   : undefined
               }
@@ -408,9 +408,15 @@ export const DevicesPage: React.FC = () => {
                   'Inativas': 'offline',
                 };
                 const val = cxMap[label];
+                const isCurrentActive =
+                  (label === 'Inativas' && (filters.status_conexao === 'offline' || filters.inativas === true)) ||
+                  (label === 'Ativas' && filters.status_conexao === 'online') ||
+                  (label === 'Semi-inativas' && filters.status_conexao === 'alerta');
+
                 handleFilterChange({
                   ...filters,
-                  status_conexao: val === filters.status_conexao ? undefined : val,
+                  status_conexao: isCurrentActive ? undefined : val,
+                  inativas: undefined,
                   page: 1,
                 });
               }}
@@ -434,9 +440,14 @@ export const DevicesPage: React.FC = () => {
                 'Desatualizada': 'OUTRO',
               };
               const val = stMap[label];
+              const isCurrentActive =
+                (label === 'Atualizada' && filters.status === 'OK') ||
+                (label === 'Atualização Necessária' && filters.status === 'UPGRADE_REQUIRED') ||
+                (label === 'Desatualizada' && filters.status === 'OUTRO');
+
               handleFilterChange({
                 ...filters,
-                status: val === filters.status ? undefined : val,
+                status: isCurrentActive ? undefined : val,
                 page: 1,
               });
             }}

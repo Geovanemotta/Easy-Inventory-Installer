@@ -247,6 +247,8 @@ export interface DeviceListItem {
   processador_formatado?: string | null;
   ram_total?: string | null;
   ram_total_formatada?: string | null;
+  ram_tipo?: string | null;
+  ram_tipo_limpo?: string | null;
   disco_total?: string | null;
   disco_total_formatado?: string | null;
   disco_usado?: string | null;

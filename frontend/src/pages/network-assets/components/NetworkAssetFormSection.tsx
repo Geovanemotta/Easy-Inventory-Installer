@@ -17,7 +17,7 @@ interface NetworkAssetFormSectionProps {
   isAdmin: boolean;
   copiedKey: string | null;
   copyToClipboard: (text: string, label: string, e?: React.MouseEvent) => void;
-  handleUnbindSerial: (slot: 'windows' | 'office') => Promise<void>;
+  handleUnbindSerial: (slot: 'windows' | 'office') => void | Promise<void>;
   handleOpenLicenseModal: (slot: 'windows' | 'office') => void;
   unbindingSlot: 'windows' | 'office' | null;
 }
