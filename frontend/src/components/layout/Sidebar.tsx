@@ -43,7 +43,7 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     {
       to: '/devices',
-      label: 'Estações',
+      label: 'Dispositivos',
       icon: Monitor,
       badge: deviceCount !== null && deviceCount > 0 ? deviceCount : undefined,
       visible: true,

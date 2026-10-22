@@ -340,11 +340,11 @@ export default function RemoteAccessPage() {
 
       {/* Grid de Dispositivos */}
       {loading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="h-44 animate-pulse rounded-xl border border-[#1E2636] bg-[#121721] p-4"
+              className="h-48 animate-pulse rounded-xl border border-[#1E2636] bg-[#121721] p-4"
             />
           ))}
         </div>
@@ -359,7 +359,7 @@ export default function RemoteAccessPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {devices.map((d) => {
             const isOnline = d.status_conexao === 'online' || d.status === 'OK'
             return (
