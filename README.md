@@ -51,5 +51,5 @@ sudo ./update.sh
 * **Frontend:** React 19, TypeScript, Vite, Vanilla CSS Modular (Design System exclusivo).
 * **Backend:** Python 3.13, FastAPI, Pydantic v2, Uvicorn.
 * **Banco de Dados:** PostgreSQL 18, SQLAlchemy 2.0, Psycopg 3, Alembic.
-* **Proxy Reverso:** Nginx 1.27 Alpine com terminação SSL/TLS (HTTPS) e geração automática de certificados SAN.
+* **Proxy Reverso:** Nginx 1.30.6 Alpine com terminação SSL/TLS (HTTPS) e geração automática de certificados SAN.
 * **Infraestrutura:** Docker e Docker Compose.

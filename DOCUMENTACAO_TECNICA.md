@@ -61,7 +61,7 @@ flowchart TD
 | **ORM & Migrações** | SQLAlchemy / Alembic | 2.0+ / 1.14+ | Modelagem relacional orientada a objetos com versionamento seguro e rastreável de esquemas de banco de dados. |
 | **Driver PostgreSQL** | Psycopg 3 | 3.2+ | Conector PostgreSQL de última geração, com suporte nativo a tipos binários e alta performance. |
 | **Banco de Dados** | PostgreSQL | 18 | Banco de dados relacional robusto, com conformidade ACID completa, integridade referencial e suporte a JSONB. |
-| **Proxy Reverso / Web** | Nginx | 1.27 Alpine | Servidor web leve, terminação SSL/TLS com fallback auto-assinado SAN, mitigação de vulnerabilidades e roteamento SPA. |
+| **Proxy Reverso / Web** | Nginx | 1.30.6 Alpine | Servidor web leve, terminação SSL/TLS com fallback auto-assinado SAN, mitigação de vulnerabilidades e roteamento SPA. |
 | **Orquestração** | Docker / Compose | v2+ | Isolamento de dependências, portabilidade multiplataforma e deploys reproduzíveis. |
 | **Agente Windows** | PowerShell | 5.1+ / 7.x | Coleta nativa via CIM/WMI e Registro, sem necessidade de instalar executáveis terceiros nas máquinas clientes. |
 | **Agente Linux** | POSIX Bash | 4.x / 5.x | Coleta via ferramentas nativas (`/proc`, `dmidecode`, `lsblk`, `apt-mark`), compatível com Debian, Ubuntu, Zorin, etc. |

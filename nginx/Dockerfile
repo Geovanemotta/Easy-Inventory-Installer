@@ -1,4 +1,4 @@
-FROM nginx:1.27-alpine
+FROM nginx:1.30.6-alpine
 
 # Instalação do OpenSSL para geração de certificados fallback e utilitários de manutenção
 RUN apk add --no-cache openssl bash curl

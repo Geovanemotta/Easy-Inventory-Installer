@@ -22,7 +22,7 @@ FROM dev AS builder
 RUN npm run build
 
 # Estágio 3: Nginx para servir arquivos estáticos e proxy SPA (Standalone)
-FROM nginx:1.27-alpine AS prod
+FROM nginx:1.30.6-alpine AS prod
 
 # Remove configuração padrão
 RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*

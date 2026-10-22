@@ -27,12 +27,17 @@ for arg in "$@"; do
         --build)
             FORCE_DOCKER_BUILD=true
             ;;
+        --versions)
+            ./manage-versions.sh --status
+            exit 0
+            ;;
         --help|-h)
             echo ""
             echo -e "${BOLD}Uso:${NC} $0 [opções]"
             echo ""
             echo -e "  ${CYAN}--force-build${NC}           Força a compilação do frontend via NPM e rebuild das imagens Docker"
             echo -e "  ${CYAN}--build${NC}                 Força o rebuild das imagens Docker via 'docker compose up -d --build'"
+            echo -e "  ${CYAN}--versions${NC}              Exibe ou gerencia versões de imagens base via ./manage-versions.sh"
             echo -e "  ${CYAN}--help, -h${NC}              Exibe esta ajuda"
             echo ""
             exit 0
