@@ -97,6 +97,7 @@ services:
       - VITE_BACKEND_URL=http://backend:8000
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     develop:
       watch:
         - action: sync
@@ -127,6 +128,7 @@ services:
       - ./nginx/certs:/etc/nginx/certs
     depends_on:
       - backend
+      - frontend
       - meshcentral
     develop:
       watch:

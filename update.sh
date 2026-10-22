@@ -139,7 +139,7 @@ elif [ -d ".git" ]; then
     fi
     NEW_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
     if [ -n "$PREV_COMMIT" ] && [ "$PREV_COMMIT" != "$NEW_COMMIT" ]; then
-        CHANGED_DEPS=$(git diff --name-only "$PREV_COMMIT" "$NEW_COMMIT" -- backend/requirements.txt backend/Dockerfile nginx/Dockerfile meshcentral/Dockerfile 2>/dev/null || echo "")
+        CHANGED_DEPS=$(git diff --name-only "$PREV_COMMIT" "$NEW_COMMIT" -- backend/requirements.txt backend/Dockerfile frontend/package.json frontend/Dockerfile nginx/Dockerfile meshcentral/Dockerfile docker-compose.yml 2>/dev/null || echo "")
     fi
     echo -e "${GREEN}[✓] Código-fonte atualizado para a versão mais recente.${NC}"
 else
@@ -325,7 +325,7 @@ fi
 echo -e "${YELLOW}[3/5] Atualizando containers Docker e aplicando alterações...${NC}"
 
 IMAGES_EXIST=false
-if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null; then
+if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null && docker inspect giassi-frontend &>/dev/null; then
     IMAGES_EXIST=true
 fi
 
@@ -348,8 +348,8 @@ if [ "$NEED_BUILD" = false ]; then
         echo -e "${YELLOW} [!] 'docker compose up -d' falhou. Tentando com --build...${NC}"
         NEED_BUILD=true
     else
-        echo " [*] Reiniciando serviços backend e nginx para carregar o novo código..."
-        $DOCKER_COMPOSE restart backend nginx 2>/dev/null || true
+        echo " [*] Reiniciando serviços backend, frontend e nginx para carregar o novo código..."
+        $DOCKER_COMPOSE restart backend frontend nginx 2>/dev/null || true
     fi
 fi
 

@@ -311,7 +311,7 @@ start_or_update_containers() {
     local NEED_BUILD=false
     local IMAGES_EXIST=false
 
-    if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null; then
+    if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null && docker inspect giassi-frontend &>/dev/null; then
         IMAGES_EXIST=true
     fi
 
@@ -329,8 +329,8 @@ start_or_update_containers() {
             echo -e "${YELLOW} [!] 'docker compose up -d' falhou. Tentando com --build...${NC}"
             NEED_BUILD=true
         else
-            echo " [*] Reiniciando serviços backend e nginx para carregar o novo código..."
-            $DOCKER_COMPOSE restart backend nginx 2>/dev/null || true
+            echo " [*] Reiniciando serviços backend, frontend e nginx para carregar o novo código..."
+            $DOCKER_COMPOSE restart backend frontend nginx 2>/dev/null || true
         fi
     fi
 

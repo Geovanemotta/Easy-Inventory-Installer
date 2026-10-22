@@ -44,11 +44,11 @@ if (Test-Path "frontend/dist/index.html") {
 
 # 3. Atualização dos containers (sem tocar em volumes)
 Write-Host "[3/5] Atualizando containers Docker e aplicando alterações..." -ForegroundColor Yellow
-$backendRunning = docker inspect giassi-backend 2>$null
+$backendRunning = (docker inspect giassi-backend 2>$null) -and (docker inspect giassi-frontend 2>$null)
 if ($backendRunning) {
     Write-Host " [*] Imagens Docker locais detectadas. Aplicando alterações diretamente via volumes..."
     docker compose up -d
-    docker compose restart backend nginx 2>$null
+    docker compose restart backend frontend nginx 2>$null
 } else {
     Write-Host " [*] Executando build inicial dos containers..."
     docker compose up -d --build
@@ -76,12 +76,12 @@ docker image prune -f > $null 2>&1
 
 Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Cyan
-Write-Host "   SISTEMA ATUALIZADO COM SUCESSO! 🚀" -ForegroundColor Green
+Write-Host "   SISTEMA ATUALIZADO COM SUCESSO!" -ForegroundColor Green
 Write-Host "==================================================================" -ForegroundColor Cyan
 if (Test-Path ".git") {
     $lastCommit = git log -1 --pretty=format:"%h - %s (%cr)" 2>$null
     if ($lastCommit) {
-        Write-Host " Versão instalada: $lastCommit" -ForegroundColor Cyan
+        Write-Host " Versao instalada: $lastCommit" -ForegroundColor Cyan
     }
 }
 Write-Host " Status dos serviços:"
