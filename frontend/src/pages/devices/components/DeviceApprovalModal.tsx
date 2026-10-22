@@ -3,22 +3,15 @@ import { DeviceApprovalContextResponse, DeviceListItem, SiteVlanIpRange } from '
 import { deviceService } from '@/services/deviceService';
 import {
   X,
-  CheckCircle,
   AlertTriangle,
   ShieldCheck,
   Loader2,
-  Copy,
-  Check,
-  Globe,
-  Monitor,
-  Tag,
-  Layers,
 } from 'lucide-react';
-import { copyToClipboard } from '@/utils/clipboard';
 
 import { ApprovalComparisonSection } from './approval/ApprovalComparisonSection';
 import { ApprovalVlanIpSelector } from './approval/ApprovalVlanIpSelector';
 import { ApprovalPatrimonioSection } from './approval/ApprovalPatrimonioSection';
+import { ApprovalFirewallEmailStep, ConcluidoData } from './approval/ApprovalFirewallEmailStep';
 
 interface DeviceApprovalModalProps {
   device: DeviceListItem;
@@ -61,19 +54,21 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
   const [reutilizarIpEstacao, setReutilizarIpEstacao] = useState<boolean>(false);
   const [ipFilterText, setIpFilterText] = useState<string>('');
 
+  // Estados para Automação de E-mail para Operadora (Firewall - Etapa 2)
+  const [operatorEmail, setOperatorEmail] = useState<string>('');
+  const [senderEmail, setSenderEmail] = useState<string>('');
+  const [firewallCircuito, setFirewallCircuito] = useState<string>('');
+  const [firewallVlanName, setFirewallVlanName] = useState<string>('LAN');
+  const [isDirectSending, setIsDirectSending] = useState<boolean>(false);
+  const [directSendResult, setDirectSendResult] = useState<{ success: boolean; message: string } | null>(null);
+
   // Modo de Rejeição
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [motivoRejeicao, setMotivoRejeicao] = useState<string>('');
 
-  // Execução e Sucesso pós-aprovação
+  // Execução e Sucesso pós-aprovação (Etapa 2)
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [concluido, setConcluido] = useState<{
-    hostname: string;
-    ip: string;
-    mac: string;
-    patrimonio: string;
-  } | null>(null);
-  const [copiadoCampo, setCopiadoCampo] = useState<string>('');
+  const [concluido, setConcluido] = useState<ConcluidoData | null>(null);
 
   // Carrega o contexto de aprovação no início
   useEffect(() => {
@@ -112,8 +107,15 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
           if (match) chosenRange = match;
         }
 
+        // Dados SMTP reativos da filial e operadora
+        setOperatorEmail(data.default_operator_email || '');
+        setSenderEmail(data.sender_email || '');
+        const initialSiteObj = data.network_context.sites.find((s) => s.id === initialSite);
+        setFirewallCircuito(initialSiteObj?.circuito || data.device.circuito || '');
+
         if (chosenRange) {
           setSelectedRangeId(chosenRange.id);
+          setFirewallVlanName(chosenRange.name);
         }
 
         // Sugere o IP Definitivo inicial
@@ -169,6 +171,11 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
       const ranges = res.ranges || [];
       setVlanRanges(ranges);
 
+      const siteObj = context?.network_context.sites.find((s) => s.id === siteId);
+      if (siteObj?.circuito) {
+        setFirewallCircuito(siteObj.circuito);
+      }
+
       if (ranges.length > 0) {
         let first = ranges[0];
         const devIp = device.ip;
@@ -223,6 +230,7 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
     if (!rangeId) return;
     const r = vlanRanges.find((item) => item.id === rangeId);
     if (r) {
+      setFirewallVlanName(r.name);
       if (reutilizarIpEstacao && r.workstation_used_ips.length > 0) {
         setIpDefinitivo(r.workstation_used_ips[0].ip);
         setConfirmarSobrescrita(true);
@@ -287,13 +295,7 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
     );
   }, [currentRange, ipFilterText]);
 
-  const handleCopy = (campo: string, valor: string) => {
-    copyToClipboard(valor);
-    setCopiadoCampo(campo);
-    setTimeout(() => setCopiadoCampo(''), 2000);
-  };
-
-  // Submissão da Homologação (Aprovação)
+  // Submissão da Homologação (Aprovação e Continuação para Envio de E-mail Opcional)
   const handleAprovar = async () => {
     if (!selectedSiteId) {
       setError('Selecione a Filial Destino para o equipamento.');
@@ -322,20 +324,60 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
         patrimonio: patrimonioAjustado.trim() || null,
         observacao_admin: observacaoAdmin.trim() || null,
         confirmar_sobrescrita_ip: confirmarSobrescrita,
+        send_operator_email: false,
       };
 
       await deviceService.aprovarCadastro(device.id, payload);
+
+      const siteObj = context?.network_context.sites.find((s) => s.id === Number(selectedSiteId));
 
       setConcluido({
         hostname: context?.device.hostname || device.hostname,
         ip: ipDefinitivo.trim(),
         mac: context?.device.mac || device.mac || '',
         patrimonio: patrimonioAjustado.trim() || context?.device.patrimonio || '',
+        siteId: Number(selectedSiteId),
+        siteName: siteObj?.name || '',
+        circuito: firewallCircuito.trim() || siteObj?.circuito || '',
+        vlanName: firewallVlanName.trim() || 'LAN',
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Falha ao homologar o cadastro do equipamento.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Disparo de e-mail de reserva para a operadora (na tela da 2ª etapa)
+  const handleSendEmailDirectly = async () => {
+    const currentIp = concluido?.ip || ipDefinitivo.trim();
+    const currentMac = (concluido?.mac || context?.device.mac || device.mac || '').toUpperCase();
+    const currentCircuito = firewallCircuito.trim() || concluido?.circuito || '';
+
+    if (!operatorEmail.trim() || !currentCircuito || !currentIp) {
+      setDirectSendResult({
+        success: false,
+        message: 'Informe o e-mail da operadora, circuito e o IP definitivo para enviar.',
+      });
+      return;
+    }
+    setIsDirectSending(true);
+    setDirectSendResult(null);
+    try {
+      const res = await deviceService.sendFirewallEmail(device.id, {
+        operator_email: operatorEmail.trim(),
+        sender_email: senderEmail.trim(),
+        circuito: currentCircuito,
+        vlan_name: firewallVlanName.trim() || concluido?.vlanName || 'LAN',
+        ip_address: currentIp,
+        mac_address: currentMac,
+      });
+      setDirectSendResult({ success: true, message: res.message });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao disparar e-mail para a operadora.';
+      setDirectSendResult({ success: false, message: msg });
+    } finally {
+      setIsDirectSending(false);
     }
   };
 
@@ -374,15 +416,20 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold text-white tracking-tight">
-                Revisar e Concluir Cadastro do Equipamento
+                {concluido ? 'Reserva no Firewall da Operadora' : 'Revisar e Homologar Equipamento'}
               </h3>
               <p className="text-xs text-slate-400">
-                Easy Inventory &bull; Homologação de Ativo Físico e Atribuição de IP Definitivo
+                {concluido
+                  ? 'Easy Inventory • Disparo opcional de solicitação técnica para a operadora do circuito'
+                  : 'Easy Inventory • Homologação de Ativo Físico e Atribuição de IP Definitivo'}
               </p>
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (concluido) onSuccess();
+              onClose();
+            }}
             className="rounded-lg p-1.5 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
             title="Fechar"
           >
@@ -407,134 +454,27 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
               </span>
             </div>
           ) : concluido ? (
-            /* TELA DE SUCESSO E CÓPIA RÁPIDA */
-            <div className="py-6 space-y-6">
-              <div className="text-center space-y-2">
-                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 mb-1">
-                  <CheckCircle className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-bold text-white">
-                  Cadastro Homologado com Sucesso!
-                </h3>
-                <p className="text-xs text-slate-400 max-w-lg mx-auto">
-                  O equipamento <strong className="text-white font-mono">{concluido.hostname}</strong> foi
-                  aprovado e seu IP definitivo foi registrado no inventário. Você pode copiar os dados
-                  abaixo para configurar DHCP, Firewall ou monitoramento:
-                </p>
-              </div>
-
-              {/* Grid dos Cards de Cópia Rápida */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-2xl mx-auto">
-                {/* 1. IP Definitivo em Destaque */}
-                <div className="group sm:col-span-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 shadow-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-                      <Globe className="h-4 w-4 text-emerald-400" /> IP Definitivo na Filial
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('IP', concluido.ip)}
-                      className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
-                        copiadoCampo === 'IP'
-                          ? 'opacity-100 bg-emerald-600 text-white'
-                          : 'opacity-0 group-hover:opacity-100 bg-[#181F2E] border border-emerald-500/30 text-emerald-300 hover:bg-[#263044]'
-                      }`}
-                    >
-                      {copiadoCampo === 'IP' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                      <span>{copiadoCampo === 'IP' ? 'Copiado!' : 'Copiar IP'}</span>
-                    </button>
-                  </div>
-                  <div className="text-2xl font-mono font-black text-emerald-400">
-                    {concluido.ip}
-                  </div>
-                </div>
-
-                {/* 2. Hostname */}
-                <div className="group rounded-xl border border-[#1E2636] bg-[#121721] p-3.5 shadow-2xs">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                      <Monitor className="h-3.5 w-3.5 text-slate-500" /> Hostname
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('Hostname', concluido.hostname)}
-                      className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold transition-all cursor-pointer ${
-                        copiadoCampo === 'Hostname'
-                          ? 'opacity-100 bg-emerald-600 text-white'
-                          : 'opacity-0 group-hover:opacity-100 bg-[#181F2E] border border-[#263044] text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      {copiadoCampo === 'Hostname' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                      <span>{copiadoCampo === 'Hostname' ? 'Copiado!' : 'Copiar'}</span>
-                    </button>
-                  </div>
-                  <div className="text-sm font-bold text-slate-100 font-mono truncate">{concluido.hostname}</div>
-                </div>
-
-                {/* 3. MAC Address */}
-                <div className="group rounded-xl border border-[#1E2636] bg-[#121721] p-3.5 shadow-2xs">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                      <Layers className="h-3.5 w-3.5 text-slate-500" /> Endereço MAC
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('MAC', concluido.mac)}
-                      className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold transition-all cursor-pointer ${
-                        copiadoCampo === 'MAC'
-                          ? 'opacity-100 bg-emerald-600 text-white'
-                          : 'opacity-0 group-hover:opacity-100 bg-[#181F2E] border border-[#263044] text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      {copiadoCampo === 'MAC' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                      <span>{copiadoCampo === 'MAC' ? 'Copiado!' : 'Copiar'}</span>
-                    </button>
-                  </div>
-                  <div className="text-sm font-mono font-bold text-slate-100 truncate">
-                    {concluido.mac || '(sem MAC)'}
-                  </div>
-                </div>
-
-                {/* 4. Patrimônio */}
-                <div className="group sm:col-span-2 rounded-xl border border-[#1E2636] bg-[#121721] p-3.5 shadow-2xs">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                      <Tag className="h-3.5 w-3.5 text-slate-500" /> Número de Patrimônio
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('Patrimônio', concluido.patrimonio)}
-                      className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold transition-all cursor-pointer ${
-                        copiadoCampo === 'Patrimônio'
-                          ? 'opacity-100 bg-emerald-600 text-white'
-                          : 'opacity-0 group-hover:opacity-100 bg-[#181F2E] border border-[#263044] text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      {copiadoCampo === 'Patrimônio' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                      <span>{copiadoCampo === 'Patrimônio' ? 'Copiado!' : 'Copiar'}</span>
-                    </button>
-                  </div>
-                  <div className="text-sm font-bold text-orange-400 font-mono">
-                    {concluido.patrimonio || '(sem patrimônio)'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSuccess();
-                    onClose();
-                  }}
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-6 py-2.5 text-xs font-bold text-white shadow-md transition-colors cursor-pointer"
-                >
-                  Concluir e Retornar ao Inventário
-                </button>
-              </div>
-            </div>
+            /* TELA DA SEGUNDA ETAPA: ENVIO DE E-MAIL PARA A OPERADORA (OPCIONAL) */
+            <ApprovalFirewallEmailStep
+              concluido={concluido}
+              operatorEmail={operatorEmail}
+              setOperatorEmail={setOperatorEmail}
+              senderEmail={senderEmail}
+              setSenderEmail={setSenderEmail}
+              circuito={firewallCircuito}
+              setCircuito={setFirewallCircuito}
+              vlanName={firewallVlanName}
+              setVlanName={setFirewallVlanName}
+              onSendEmail={handleSendEmailDirectly}
+              isSending={isDirectSending}
+              sendResult={directSendResult}
+              onFinish={() => {
+                onSuccess();
+                onClose();
+              }}
+            />
           ) : context ? (
-            /* AS 4 SEÇÕES DE CONFRONTO ADMINISTRATIVO */
+            /* AS 3 SEÇÕES INICIAIS DE HOMOLOGAÇÃO */
             <div className="space-y-6">
               <ApprovalComparisonSection
                 context={context}

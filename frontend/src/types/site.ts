@@ -3,6 +3,7 @@ export interface Site {
   company_id: number;
   name: string;
   code: string;
+  circuito?: string | null;
   active: boolean;
   identifiers: string[];
   devices_count?: number;
@@ -22,6 +23,7 @@ export interface SiteKPIs {
 export interface SiteCreateInput {
   name: string;
   code: string;
+  circuito?: string | null;
   active?: boolean;
   identifiers?: string[];
 }
@@ -29,6 +31,7 @@ export interface SiteCreateInput {
 export interface SiteUpdateInput {
   name?: string;
   code?: string;
+  circuito?: string | null;
   active?: boolean;
   identifiers?: string[];
 }

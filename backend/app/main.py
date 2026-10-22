@@ -23,8 +23,36 @@ redoc_url = "/redoc" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "developm
 openapi_url = "/openapi.json" if (ENABLE_SWAGGER_DOCS or ENVIRONMENT in ("dev", "development")) else None
 
 
+def _run_startup_migrations():
+    try:
+        from app.database import engine
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE sites ADD COLUMN IF NOT EXISTS circuito VARCHAR(100);"))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS smtp_settings (
+                    id SERIAL PRIMARY KEY,
+                    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+                    smtp_host VARCHAR(255) NOT NULL DEFAULT '',
+                    smtp_port INTEGER NOT NULL DEFAULT 25,
+                    smtp_user VARCHAR(255),
+                    smtp_password VARCHAR(255),
+                    use_tls BOOLEAN NOT NULL DEFAULT FALSE,
+                    use_ssl BOOLEAN NOT NULL DEFAULT FALSE,
+                    default_operator_email VARCHAR(255) NOT NULL DEFAULT '',
+                    default_subject_prefix VARCHAR(255) NOT NULL DEFAULT 'Reserva de IP/MAC - Firewall',
+                    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
+                    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
+                );
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_smtp_settings_company_id ON smtp_settings(company_id);"))
+            conn.commit()
+    except Exception as e:
+        print(f"[STARTUP MIGRATION WARNING] {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _run_startup_migrations()
     sweeper_task = asyncio.create_task(iniciar_background_ping_sweeper())
     try:
         yield

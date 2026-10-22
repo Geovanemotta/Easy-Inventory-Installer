@@ -27,6 +27,11 @@ export interface DeviceAprovarCadastroIn {
   patrimonio?: string | null;
   observacao_admin?: string | null;
   confirmar_sobrescrita_ip?: boolean;
+  send_operator_email?: boolean;
+  operator_email?: string | null;
+  sender_email?: string | null;
+  circuito?: string | null;
+  vlan_name?: string | null;
 }
 
 export interface DeviceRejeitarCadastroIn {
@@ -126,6 +131,7 @@ export interface SiteOption {
   id: number;
   name: string;
   code: string;
+  circuito?: string;
 }
 
 export interface SiteIpRangeOption {
@@ -178,6 +184,8 @@ export interface DeviceNetworkContext {
   ip_anterior_sugerido: string;
   ip_confiavel: boolean;
   vlan_ranges?: SiteVlanIpRange[];
+  sender_email?: string;
+  default_operator_email?: string;
 }
 
 export interface DeviceDetailContext {
@@ -190,6 +198,7 @@ export interface DeviceDetailContext {
   versao: string;
   loja: string;
   site_id?: number | null;
+  circuito?: string;
   patrimonio: string;
   firewall_status: 'pendente' | 'confirmado' | 'rejeitado' | string;
   firewall_solicitado_por: string;
@@ -208,6 +217,8 @@ export interface DivergenciaItem {
 
 export interface DeviceApprovalContextResponse {
   device: DeviceDetailContext;
+  sender_email?: string;
+  default_operator_email?: string;
   existing_asset?: Record<string, unknown> | null;
   tem_conflito: boolean;
   conflitos: DeviceConflictItem[];

@@ -16,6 +16,7 @@ from app.models.ad_config import ADConfig
 from app.models.network_asset import NetworkAsset
 from app.models.site_ip_range import SiteIpRange
 from app.models.software_license import SoftwareLicense
+from app.models.smtp_settings import SMTPSettings
 
 
 __all__ = [
@@ -36,5 +37,6 @@ __all__ = [
     "NetworkAsset",
     "SiteIpRange",
     "SoftwareLicense",
+    "SMTPSettings",
 ]
 

@@ -130,6 +130,7 @@ def list_sites(
                 company_id=s.company_id,
                 name=s.name,
                 code=s.code,
+                circuito=s.circuito,
                 active=s.active,
                 identifiers=[
                     ident.identifier
@@ -290,6 +291,7 @@ def create_site(
                 company_id=current_user.company_id,
                 name=name,
                 code=code,
+                circuito=payload.circuito.strip() if payload.circuito else None,
                 active=payload.active,
             )
             session.add(site)
@@ -319,6 +321,7 @@ def create_site(
             company_id=site.company_id,
             name=site.name,
             code=site.code,
+            circuito=site.circuito,
             active=site.active,
             identifiers=clean_idents,
             devices_count=0,
@@ -396,6 +399,9 @@ def update_site(
 
         if payload.active is not None:
             site.active = payload.active
+
+        if payload.circuito is not None:
+            site.circuito = payload.circuito.strip() if payload.circuito.strip() else None
 
         if payload.identifiers is not None:
             clean_idents = []
@@ -479,6 +485,7 @@ def update_site(
             company_id=site.company_id,
             name=site.name,
             code=site.code,
+            circuito=site.circuito,
             active=site.active,
             identifiers=list(current_idents),
             devices_count=dev_count,

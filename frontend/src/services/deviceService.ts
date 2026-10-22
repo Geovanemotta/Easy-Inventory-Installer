@@ -268,4 +268,24 @@ export const deviceService = {
       body: JSON.stringify(data),
     });
   },
+
+  /**
+   * 13. POST /devices/{device_id}/send-firewall-email - Disparo de e-mail de reserva para a operadora
+   */
+  async sendFirewallEmail(
+    deviceId: number,
+    data: {
+      operator_email: string;
+      sender_email: string;
+      circuito: string;
+      vlan_name: string;
+      ip_address: string;
+      mac_address: string;
+    }
+  ): Promise<{ success: boolean; message: string }> {
+    return apiRequest(`/devices/${deviceId}/send-firewall-email`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };

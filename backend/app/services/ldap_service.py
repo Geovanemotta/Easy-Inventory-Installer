@@ -275,14 +275,24 @@ def search_user_in_ad(
     except Exception as e:
         logger.warning(f"Aviso ao consultar grupos reversos para {user_dn}: {e}")
 
-    groups = sorted(list(found_groups), key=lambda x: x.lower())
+    mail_val = str(getattr(entry, "mail", "") or "").strip()
+    upn_val = str(getattr(entry, "userPrincipalName", "") or "").strip()
+    resolved_email = ""
+    if mail_val and "@" in mail_val:
+        resolved_email = mail_val
+    elif upn_val and "@" in upn_val:
+        resolved_email = upn_val
+    elif mail_val:
+        resolved_email = mail_val
+    elif upn_val:
+        resolved_email = upn_val
 
     return {
         "dn": user_dn,
         "username": str(getattr(entry, "sAMAccountName", username)),
         "display_name": str(getattr(entry, "displayName", "") or ""),
-        "email": str(getattr(entry, "mail", "") or ""),
-        "groups": groups,
+        "email": resolved_email,
+        "groups": sorted(list(found_groups)),
         "guid": str(getattr(entry, "objectGUID", "") or ""),
     }
 
@@ -425,8 +435,11 @@ def authenticate_ldap_user(
         if user:
             # Atualiza dados existentes
             user.full_name = full_name or user.full_name
-            if email:
-                user.email = email
+            if email and email.strip():
+                clean_email = email.strip()
+                if user.email != clean_email:
+                    logger.info(f"Sincronizando e-mail do usuário AD '{clean_username}': '{user.email}' -> '{clean_email}'")
+                    user.email = clean_email
             user.auth_source = "ad"
             user.ad_dn = ad_dn or user.ad_dn
             user.ad_guid = ad_guid or user.ad_guid

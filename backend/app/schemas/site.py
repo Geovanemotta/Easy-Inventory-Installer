@@ -11,11 +11,19 @@ class SiteKPIs(BaseModel):
     total_ip_ranges: int = 0
 
 
+class SiteBase(BaseModel):
+    name: str
+    code: str
+    circuito: Optional[str] = None
+    active: bool = True
+
+
 class SiteResponse(BaseModel):
     id: int
     company_id: int
     name: str
     code: str
+    circuito: Optional[str] = None
     active: bool
     identifiers: List[str] = []
     devices_count: int = 0
@@ -26,10 +34,10 @@ class SiteResponse(BaseModel):
         from_attributes = True
 
 
-
 class SiteCreate(BaseModel):
     name: str
     code: str
+    circuito: Optional[str] = None
     active: bool = True
     identifiers: List[str] = []
 
@@ -37,6 +45,7 @@ class SiteCreate(BaseModel):
 class SiteUpdate(BaseModel):
     name: Optional[str] = None
     code: Optional[str] = None
+    circuito: Optional[str] = None
     active: Optional[bool] = None
     identifiers: Optional[List[str]] = None
 

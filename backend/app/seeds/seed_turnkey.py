@@ -181,6 +181,7 @@ def seed_database(
                 sites_to_create.append({
                     "name": f"{company_name} Loja {num_str}",
                     "code": num_str,
+                    "circuito": f"{company_slug}-lj{num_str}",
                     "identifiers": [f"LJ{num_str}", f"L{num_str}", f"LJ{i}", f"L{i}"],
                 })
 
@@ -190,6 +191,7 @@ def seed_database(
                 sites_to_create.append({
                     "name": f"Combo {num_str}",
                     "code": f"C{num_str}",
+                    "circuito": f"{company_slug}-cb{num_str}",
                     "identifiers": [f"CB{num_str}", f"C{num_str}", f"CB{i}", f"C{i}"],
                 })
 
@@ -197,6 +199,7 @@ def seed_database(
             sites_to_create.append({
                 "name": f"{company_name} Matriz",
                 "code": "MATRIZ",
+                "circuito": f"{company_slug}-matriz",
                 "identifiers": ["MATRIZ", "MT", "ADM", "AC"],
             })
 
@@ -204,6 +207,7 @@ def seed_database(
             sites_to_create.append({
                 "name": "Outros",
                 "code": "OUTROS",
+                "circuito": None,
                 "identifiers": ["OUTROS"],
             })
 
@@ -220,11 +224,15 @@ def seed_database(
                         company_id=company.id,
                         name=sdata["name"],
                         code=sdata["code"],
+                        circuito=sdata.get("circuito"),
                         active=True,
                     )
                     session.add(site)
                     session.flush()
                     sites_added += 1
+                elif not site.circuito and sdata.get("circuito"):
+                    site.circuito = sdata.get("circuito")
+                    session.flush()
 
                 for ident_str in sdata["identifiers"]:
                     s_ident = session.scalar(

@@ -69,6 +69,35 @@ class DeviceAprovarCadastroIn(BaseModel):
         default=False,
         description="Força a atribuição do IP mesmo se já estiver em uso por outro ativo",
     )
+    send_operator_email: bool = Field(
+        default=False,
+        description="Se verdadeiro, dispara o e-mail para a operadora solicitando a reserva no Firewall",
+    )
+    operator_email: Optional[str] = Field(
+        default=None,
+        description="E-mail da operadora",
+    )
+    sender_email: Optional[str] = Field(
+        default=None,
+        description="E-mail do remetente (admin)",
+    )
+    circuito: Optional[str] = Field(
+        default=None,
+        description="Identificador do circuito da loja (ex: 'giassi-lj19')",
+    )
+    vlan_name: Optional[str] = Field(
+        default=None,
+        description="Nome da VLAN (ex: 'VLAN 10 - CAIXAS')",
+    )
+
+
+class DeviceFirewallEmailIn(BaseModel):
+    operator_email: str = Field(..., description="E-mail de destino da operadora")
+    sender_email: str = Field(..., description="E-mail do remetente (admin logado)")
+    circuito: str = Field(..., description="Identificador do circuito da filial")
+    vlan_name: str = Field(default="", description="Nome da VLAN")
+    ip_address: str = Field(..., description="Endereço IP corporativo a ser reservado")
+    mac_address: str = Field(..., description="Endereço MAC da estação")
 
 
 class DeviceRejeitarCadastroIn(BaseModel):

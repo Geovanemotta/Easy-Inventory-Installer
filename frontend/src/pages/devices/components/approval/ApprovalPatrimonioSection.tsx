@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-  CheckCircle,
   ShieldAlert,
   Loader2,
+  ArrowRight,
 } from 'lucide-react';
 
 interface ApprovalPatrimonioSectionProps {
@@ -115,12 +115,12 @@ export const ApprovalPatrimonioSection: React.FC<ApprovalPatrimonioSectionProps>
                   {submitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Gravando e Concluindo...</span>
+                      <span>Homologando e Continuando...</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Aprovar e Concluir Cadastro</span>
+                      <span>Confirmar e Continuar</span>
+                      <ArrowRight className="h-4 w-4" />
                     </>
                   )}
                 </button>

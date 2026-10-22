@@ -4,13 +4,14 @@ import { getADConfig, saveADConfig, testADConnection } from '../../services/adSe
 import { siteService } from '../../services/siteService'
 import type { ADConfig, TestConnectionResult } from '../../types/ad'
 import type { Site } from '../../types/site'
-import { ShieldCheck, Network, Users, UserCheck, KeyRound, AlertTriangle } from 'lucide-react'
+import { Network, Users, UserCheck, KeyRound, AlertTriangle, Mail, Sliders } from 'lucide-react'
 import ADConnectionTab from './components/ADConnectionTab'
 import ADMappingsTab from './components/ADMappingsTab'
 import ADSimulatorTab from './components/ADSimulatorTab'
 import ADTwoFactorTab from './components/ADTwoFactorTab'
+import SMTPConfigTab from './components/SMTPConfigTab'
 
-type ADTab = 'connection' | 'mappings' | 'simulator' | 'twoFactor'
+type ADTab = 'connection' | 'mappings' | 'simulator' | 'twoFactor' | 'smtp'
 
 export default function ActiveDirectoryPage() {
   const { user } = useAuth()
@@ -129,14 +130,14 @@ export default function ActiveDirectoryPage() {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-orange-500/20 bg-orange-500/10 text-orange-400 shadow-inner">
-            <ShieldCheck className="h-5 w-5" />
+            <Sliders className="h-5 w-5" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white">
-              Active Directory &amp; LDAP
+              Configurações do Sistema
             </h1>
             <p className="text-xs text-slate-400">
-              Autenticação corporativa, sincronização de grupos de segurança e controle de acesso baseado em roles (RBAC)
+              Gestão integrada de infraestrutura: Active Directory / LDAP, Autenticação 2FA/MFA e Servidor SMTP
             </p>
           </div>
         </div>
@@ -146,7 +147,7 @@ export default function ActiveDirectoryPage() {
           <button
             type="button"
             onClick={() => setActiveTab('connection')}
-            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'connection'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
@@ -159,7 +160,7 @@ export default function ActiveDirectoryPage() {
           <button
             type="button"
             onClick={() => setActiveTab('mappings')}
-            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'mappings'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
@@ -172,20 +173,20 @@ export default function ActiveDirectoryPage() {
           <button
             type="button"
             onClick={() => setActiveTab('simulator')}
-            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'simulator'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
             }`}
           >
             <UserCheck className="h-3.5 w-3.5" />
-            <span>Busca / Simulador de Usuário</span>
+            <span>Busca / Simulador</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('twoFactor')}
-            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'twoFactor'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
@@ -193,6 +194,19 @@ export default function ActiveDirectoryPage() {
           >
             <KeyRound className="h-3.5 w-3.5" />
             <span>Autenticação 2FA</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('smtp')}
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'smtp'
+                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-bold'
+                : 'text-amber-400/80 hover:text-amber-300 hover:bg-[#181F2E]'
+            }`}
+          >
+            <Mail className="h-3.5 w-3.5" />
+            <span>Servidor SMTP &amp; Operadora</span>
           </button>
         </div>
       </div>
@@ -218,8 +232,10 @@ export default function ActiveDirectoryPage() {
         />
       ) : activeTab === 'simulator' ? (
         <ADSimulatorTab />
-      ) : (
+      ) : activeTab === 'twoFactor' ? (
         <ADTwoFactorTab onShowToast={showToast} />
+      ) : (
+        <SMTPConfigTab onShowToast={showToast} currentUserEmail={user?.email} />
       )}
     </div>
   )

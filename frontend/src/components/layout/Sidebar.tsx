@@ -8,7 +8,7 @@ import {
   Package,
   Building2,
   KeyRound,
-  FolderTree,
+  Settings,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -86,8 +86,8 @@ export const Sidebar: React.FC = () => {
     },
     {
       to: '/ad',
-      label: 'Active Directory',
-      icon: FolderTree,
+      label: 'Configurações',
+      icon: Settings,
       visible: isAdmin,
     },
   ];
@@ -196,7 +196,7 @@ export const Sidebar: React.FC = () => {
         </button>
 
         <div className="text-[10px] text-slate-600 text-center font-medium tracking-wider">
-          Easy Inventory &bull; v2.0 Obsidian
+          Easy Inventory &bull; v2.0
         </div>
       </div>
     </aside>

@@ -62,6 +62,7 @@ export const SitesTable: React.FC<SitesTableProps> = ({
               <th className="py-3 px-4 w-24">Status</th>
               <th className="py-3 px-4 w-28">Código</th>
               <th className="py-3 px-4">Nome da Filial</th>
+              <th className="py-3 px-4 w-36">Circuito</th>
               <th className="py-3 px-4">Identificadores de Hostname</th>
               <th className="py-3 px-4 text-center w-32">VLANs / Faixas</th>
               <th className="py-3 px-4 text-center w-28">Estações</th>
@@ -110,6 +111,17 @@ export const SitesTable: React.FC<SitesTableProps> = ({
                     <div className="flex items-center gap-2">
                       <span>{site.name}</span>
                     </div>
+                  </td>
+
+                  {/* Circuito */}
+                  <td className="py-3 px-4">
+                    {site.circuito ? (
+                      <span className="inline-block font-mono text-[11px] text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded">
+                        {site.circuito}
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 italic text-[11px]">Não informado</span>
+                    )}
                   </td>
 
                   {/* Identificadores / Tags */}

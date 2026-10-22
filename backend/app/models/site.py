@@ -35,6 +35,11 @@ class Site(Base):
         index=True,
     )
 
+    circuito: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
     active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,

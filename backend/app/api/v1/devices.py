@@ -14,10 +14,12 @@ from app.models.device_history import DeviceHistory
 from app.models.network_asset import NetworkAsset
 from app.models.site import Site
 from app.models.site_ip_range import SiteIpRange
+from app.models.smtp_settings import SMTPSettings
 from app.models.user_site_access import user_site_access
 from app.schemas.device import (
     DeviceAprovarCadastroIn,
     DeviceDetailResponse,
+    DeviceFirewallEmailIn,
     DeviceFirewallSolicitarIn,
     DeviceKPIs,
     DevicePatrimonioIn,
@@ -25,6 +27,7 @@ from app.schemas.device import (
     DeviceSolicitarRecadastroIn,
     SiteVlanIpsResponse,
 )
+from app.services.smtp_service import send_firewall_reservation_email
 from app.services.inventory_service import (
     IGNORED_HISTORY_FIELDS,
     is_subnet_88,
@@ -1755,7 +1758,15 @@ def get_approval_context(
             .where(Site.company_id == current_user.company_id, Site.active.is_(True))
             .order_by(Site.code.asc())
         ).all()
-        sites_list = [{"id": s.id, "name": s.name, "code": s.code} for s in all_sites]
+        sites_list = [
+            {
+                "id": s.id,
+                "name": s.name,
+                "code": s.code,
+                "circuito": s.circuito or "",
+            }
+            for s in all_sites
+        ]
 
         # Determinação automática da filial sugerida (suggested_site_id)
         suggested_site_id = None
@@ -1871,6 +1882,12 @@ def get_approval_context(
                 if ip_item:
                     ips_ocupados.add(ip_item)
 
+        smtp_cfg = session.scalar(
+            select(SMTPSettings).where(SMTPSettings.company_id == current_user.company_id)
+        )
+        default_operator_email = (smtp_cfg.default_operator_email if smtp_cfg else "") or ""
+        sender_email = (current_user.email or "").strip()
+
         return {
             "device": {
                 "id": device.id,
@@ -1882,6 +1899,7 @@ def get_approval_context(
                 "versao": dev_so_norm["windows_release_formatado"] or "",
                 "loja": site_name,
                 "site_id": device.site_id,
+                "circuito": (device.site.circuito if device.site else "") or "",
                 "patrimonio": device.patrimonio or "",
                 "firewall_status": device.firewall_status or "pendente",
                 "firewall_solicitado_por": device.firewall_solicitado_por or "",
@@ -1891,6 +1909,8 @@ def get_approval_context(
                 "so_anterior": device.so_anterior or "",
                 "is_rede_formatacao": is_88,
             },
+            "sender_email": sender_email,
+            "default_operator_email": default_operator_email,
             "existing_asset": match_info["existing_asset_dict"],
             "tem_conflito": match_info["tem_conflito"],
             "conflitos": match_info["conflitos"],
@@ -1908,6 +1928,8 @@ def get_approval_context(
                 "ip_anterior_sugerido": ip_anterior_sugerido,
                 "ip_confiavel": bool(ip_anterior_sugerido),
                 "vlan_ranges": vlan_ranges,
+                "sender_email": sender_email,
+                "default_operator_email": default_operator_email,
             },
         }
 
@@ -2094,6 +2116,28 @@ def aprovar_cadastro(
             )
         )
 
+        email_sent = False
+        email_message = ""
+        if payload.send_operator_email:
+            email_circuito = (payload.circuito or target_site.circuito or "").strip()
+            email_op = (payload.operator_email or "").strip()
+            email_snd = (payload.sender_email or current_user.email or "").strip()
+            email_vlan = (payload.vlan_name or "").strip()
+            res_email = send_firewall_reservation_email(
+                session=session,
+                company_id=current_user.company_id,
+                operator_email=email_op,
+                sender_email=email_snd,
+                circuito=email_circuito,
+                vlan_name=email_vlan,
+                ip_address=ip_def,
+                mac_address=device.mac or "",
+                device_id=device.id,
+                admin_name=admin_nome,
+            )
+            email_sent = True
+            email_message = res_email.get("message", "")
+
         session.commit()
         return {
             "status": "ok",
@@ -2108,8 +2152,64 @@ def aprovar_cadastro(
             "firewall_status": "confirmado",
             "firewall_confirmado_por": admin_nome,
             "firewall_confirmado_em": device.firewall_confirmado_em.strftime("%Y-%m-%d %H:%M:%S"),
-            "message": f"Cadastro do equipamento {device.hostname} concluído com sucesso com IP definitivo {ip_def}.",
+            "email_sent": email_sent,
+            "email_message": email_message,
+            "message": f"Cadastro do equipamento {device.hostname} concluído com sucesso com IP definitivo {ip_def}."
+            + (f" {email_message}" if email_message else ""),
         }
+
+
+@router.post("/{device_id}/approve", include_in_schema=False)
+def approve_alias(
+    device_id: int,
+    payload: DeviceAprovarCadastroIn,
+    current_user: User = Depends(get_current_user),
+):
+    """Alias para aprovar_cadastro."""
+    return aprovar_cadastro(device_id=device_id, payload=payload, current_user=current_user)
+
+
+@router.post("/{device_id}/send-firewall-email")
+def send_firewall_email_endpoint(
+    device_id: int,
+    payload: DeviceFirewallEmailIn,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Dispara o e-mail de solicitação de reserva de IP/MAC no Firewall para a operadora,
+    registrando o evento na auditoria (DeviceHistory) da máquina.
+    """
+    if not is_admin_user(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas administradores podem disparar o e-mail de reserva para a operadora.",
+        )
+
+    with Session(engine) as session:
+        device = session.scalar(
+            select(Device).where(
+                Device.id == device_id,
+                Device.company_id == current_user.company_id,
+            )
+        )
+        if not device:
+            raise HTTPException(status_code=404, detail="Dispositivo não encontrado")
+
+        admin_nome = current_user.full_name or current_user.username
+        res = send_firewall_reservation_email(
+            session=session,
+            company_id=current_user.company_id,
+            operator_email=payload.operator_email,
+            sender_email=payload.sender_email or current_user.email or "",
+            circuito=payload.circuito,
+            vlan_name=payload.vlan_name,
+            ip_address=payload.ip_address,
+            mac_address=payload.mac_address,
+            device_id=device.id,
+            admin_name=admin_nome,
+        )
+        session.commit()
+        return res
 
 
 @router.post("/{device_id}/rejeitar-cadastro")

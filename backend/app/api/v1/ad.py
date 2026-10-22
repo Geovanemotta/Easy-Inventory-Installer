@@ -9,6 +9,9 @@ from app.database import engine
 from app.models.ad_config import ADConfig
 from app.models.site import Site
 from app.models.user import User
+from app.models.smtp_settings import SMTPSettings
+from app.schemas.smtp import SMTPConfigResponse, SMTPConfigUpdate, SMTPTestRequest
+from app.services.smtp_service import test_smtp_connection
 from app.services.ldap_service import (
     test_ldap_connection,
     search_user_in_ad,
@@ -392,3 +395,108 @@ def test_user_authentication(
                 "authenticated": False,
                 "message": f"Erro ao comunicar com o AD: {e}",
             }
+
+
+@router.get("/smtp-config", response_model=SMTPConfigResponse)
+def get_smtp_config(
+    current_user: User = Depends(get_current_user),
+):
+    """Retorna a configuração atual do SMTP para a empresa (mascara a senha)."""
+    with Session(engine) as session:
+        cfg = session.scalar(
+            select(SMTPSettings).where(SMTPSettings.company_id == current_user.company_id)
+        )
+        if not cfg:
+            return SMTPConfigResponse()
+
+        return SMTPConfigResponse(
+            id=cfg.id,
+            smtp_host=cfg.smtp_host,
+            smtp_port=cfg.smtp_port,
+            smtp_user=cfg.smtp_user,
+            has_smtp_password=bool(cfg.smtp_password),
+            use_tls=cfg.use_tls,
+            use_ssl=cfg.use_ssl,
+            default_operator_email=cfg.default_operator_email,
+            default_subject_prefix=cfg.default_subject_prefix,
+        )
+
+
+@router.put("/smtp-config", response_model=SMTPConfigResponse)
+def update_smtp_config(
+    data: SMTPConfigUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    """Salva ou atualiza a configuração SMTP e e-mail padrão da operadora."""
+    is_admin = current_user.is_superadmin or any(
+        r.slug == "admin" for r in (current_user.roles or [])
+    )
+    if not is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso restrito a administradores para configurar o SMTP.",
+        )
+
+    with Session(engine) as session:
+        cfg = session.scalar(
+            select(SMTPSettings).where(SMTPSettings.company_id == current_user.company_id)
+        )
+        if not cfg:
+            cfg = SMTPSettings(company_id=current_user.company_id)
+            session.add(cfg)
+
+        cfg.smtp_host = data.smtp_host.strip()
+        cfg.smtp_port = data.smtp_port
+        cfg.smtp_user = data.smtp_user.strip() if data.smtp_user else None
+
+        if data.smtp_password is not None:
+            pwd_clean = data.smtp_password.strip()
+            if pwd_clean == "":
+                cfg.smtp_password = None
+            elif pwd_clean != "********":
+                cfg.smtp_password = pwd_clean
+
+        cfg.use_tls = data.use_tls
+        cfg.use_ssl = data.use_ssl
+        cfg.default_operator_email = data.default_operator_email.strip()
+        if data.default_subject_prefix:
+            cfg.default_subject_prefix = data.default_subject_prefix.strip()
+
+        session.commit()
+        session.refresh(cfg)
+
+        return SMTPConfigResponse(
+            id=cfg.id,
+            smtp_host=cfg.smtp_host,
+            smtp_port=cfg.smtp_port,
+            smtp_user=cfg.smtp_user,
+            has_smtp_password=bool(cfg.smtp_password),
+            use_tls=cfg.use_tls,
+            use_ssl=cfg.use_ssl,
+            default_operator_email=cfg.default_operator_email,
+            default_subject_prefix=cfg.default_subject_prefix,
+        )
+
+
+@router.post("/smtp-test")
+def test_smtp(
+    data: SMTPTestRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Dispara um e-mail de teste para validar a conectividade SMTP."""
+    is_admin = current_user.is_superadmin or any(
+        r.slug == "admin" for r in (current_user.roles or [])
+    )
+    if not is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso restrito a administradores para testar o SMTP.",
+        )
+
+    with Session(engine) as session:
+        return test_smtp_connection(
+            session=session,
+            company_id=current_user.company_id,
+            recipient_email=data.recipient_email,
+        )
+
