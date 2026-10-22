@@ -6,21 +6,21 @@
      Clique no quadradinho colorido ao lado do código hex para abrir
      o seletor visual de cores do editor:
      ========================================================== */
-  --color-orange-300: #fdba74; /* Textos e badges suaves */
-  --color-orange-400: #84df1c; /* Textos de destaque, tags e ícones */
-  --color-orange-500: #f97316; /* Cor principal de botões, barras e badges (Original Giassi) */
-  --color-orange-600: #ea580c; /* Estado hover de botões e links */
+  --color-orange-300: #ffffff; /* Textos e badges suaves */
+  --color-orange-400: #e87722; /* Textos de destaque, tags e ícones */
+  --color-orange-500: #e87722; /* Cor principal de botões, barras e badges (Original Giassi) */
+  --color-orange-600: #e87722; /* Estado hover de botões e links */
 
   /* ==========================================================
      ESTRUTURA & TEMA ESCURO (OBSIDIAN CORPORATIVO)
      Cores base de superfícies e fundos do sistema:
      ========================================================== */
-  --color-app: #141a25;           /* Fundo geral da página */
-  --color-sidebar: #080a0f;       /* Fundo da barra lateral */
+  --color-app: #19202e;           /* Fundo geral da página */
+  --color-sidebar: #17191e;       /* Fundo da barra lateral */
   --color-surface: #121721;       /* Fundo dos cards e tabelas */
   --color-elevated: #181f2e;      /* Fundo de modais, gavetas e dropdowns */
-  --color-border-subtle: #332e2a; /* Bordas divisórias discretas */
-  --color-border-medium: #263044; /* Bordas de campos de seleção e inputs */
+  --color-border-subtle: #1b140f; /* Bordas divisórias discretas */
+  --color-border-medium: #181d29; /* Bordas de campos de seleção e inputs */
 
   /* Tokens de compatibilidade legado */
   --bg-app: var(--color-app);
