@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { deviceService } from '@/services/deviceService';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/logo-dark.png';
 
 export const Sidebar: React.FC = () => {
   const { user, isAdmin, isMatrizOperator, logout } = useAuth();
