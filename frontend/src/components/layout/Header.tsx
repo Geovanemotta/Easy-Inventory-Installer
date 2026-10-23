@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { RefreshCw, Download } from 'lucide-react';
+import { RefreshCw, Download, Sun, Moon } from 'lucide-react';
 import { AgentInstallModal } from '@/pages/devices/components/AgentInstallModal';
 
 export const Header: React.FC = () => {
@@ -10,6 +10,15 @@ export const Header: React.FC = () => {
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  // Alterna o tema (classe .dark no <html>) e salva a preferência no navegador
+  const toggleTheme = () => {
+    const next = !isDark;
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    setIsDark(next);
+  };
 
   // Fecha o modal de instalação automaticamente ao trocar de tela / módulo
   useEffect(() => {
@@ -59,7 +68,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#1E2636] bg-[#0B0E14]/90 backdrop-blur-md px-6 shadow-sm">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border-subtle bg-app/90 backdrop-blur-md px-6 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2.5">
           <span className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
@@ -72,7 +81,7 @@ export const Header: React.FC = () => {
       <div className="flex items-center gap-3">
         {/* Indicador de Monitoramento Ativo / Sincronização */}
         <div
-          className="flex items-center gap-2 rounded-full border border-emerald-500/30 px-3 py-1 text-xs text-emerald-400 cursor-help"
+          className="flex items-center gap-2 rounded-full border border-emerald-500/30 px-3 py-1 text-xs text-emerald-600 dark:text-emerald-400 cursor-help"
           title={`Sincronização automática em background a cada 5 minutos.\nÚltima atualização: ${formatHora(lastSync)}`}
         >
           <span className="relative flex h-2 w-2">
@@ -93,10 +102,20 @@ export const Header: React.FC = () => {
           onClick={handleManualRefresh}
           disabled={isRefreshing}
           title="Atualizar dados agora"
-          className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#1E2636] hover:text-white hover:border-orange-500/40 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-1.5 rounded-lg border border-border-medium bg-elevated px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg hover:border-orange-500/40 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
         >
-          <RefreshCw className={`h-3.5 w-3.5 text-slate-400 ${isRefreshing ? 'animate-spin text-orange-400' : ''}`} />
+          <RefreshCw className={`h-3.5 w-3.5 text-fg-secondary ${isRefreshing ? 'animate-spin text-orange-400' : ''}`} />
           <span className="hidden sm:inline">Atualizar</span>
+        </button>
+
+        {/* Botão de Alternar Tema Claro / Escuro */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          className="flex items-center justify-center rounded-lg border border-border-medium bg-elevated p-1.5 text-fg-secondary hover:bg-border-subtle hover:text-orange-500 hover:border-orange-500/40 transition-colors shadow-2xs cursor-pointer"
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
 
         {/* Botão de Instalar Agente (exclusivo Admin) em Laranja Âmbar */}

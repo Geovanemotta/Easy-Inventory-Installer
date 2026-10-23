@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { deviceService } from '@/services/deviceService';
 import logo from '@/assets/logo-dark.png';
+import logoLight from '@/assets/logo-light.png';
 
 export const Sidebar: React.FC = () => {
   const { user, isAdmin, isMatrizOperator, logout } = useAuth();
@@ -101,21 +102,26 @@ export const Sidebar: React.FC = () => {
     : 'Operador Loja';
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 w-64 border-r border-[#1E2636] bg-[#080A0F] flex flex-col justify-between shrink-0 select-none h-screen overflow-y-auto">
+    <aside className="fixed inset-y-0 left-0 z-30 w-64 border-r border-border-subtle bg-sidebar flex flex-col justify-between shrink-0 select-none h-screen overflow-y-auto">
       <div className="p-4 space-y-5">
         {/* Marca / Identidade Oficial Empresa */}
         <div className="flex flex-col items-center justify-center gap-2 px-2 py-3">
           <img
+            src={logoLight}
+            alt="Logo"
+            className="h-9 w-auto max-w-[185px] object-contain dark:hidden"
+          />
+          <img
             src={logo}
             alt="Logo"
-            className="h-9 w-auto max-w-[185px] object-contain brightness-105"
+            className="h-9 w-auto max-w-[185px] object-contain brightness-105 hidden dark:block"
           />
           <span className="text-[10px] font-bold text-orange-400 uppercase tracking-[0.2em] text-center">
             Inventário
           </span>
         </div>
 
-        <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-fg-muted">
           Módulos de Gestão
         </div>
 
@@ -133,7 +139,7 @@ export const Sidebar: React.FC = () => {
                     `flex items-center justify-between rounded-lg px-3 py-2 text-xs transition-all ${
                       isActive
                         ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-md shadow-orange-500/20'
-                        : 'text-[#94A3B8] hover:bg-[#121721] hover:text-slate-100 font-medium'
+                        : 'text-fg-secondary hover:bg-app hover:text-fg font-medium'
                     }`
                   }
                 >
@@ -145,7 +151,7 @@ export const Sidebar: React.FC = () => {
                         ) : (
                           <span className="h-1.5 w-1.5 rounded-full bg-transparent shrink-0" />
                         )}
-                        <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                        <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-fg-secondary'}`} />
                         <span className="truncate">{item.label}</span>
                       </div>
                       {item.badge !== undefined && (
@@ -153,7 +159,7 @@ export const Sidebar: React.FC = () => {
                           className={`rounded-full px-2 py-0.5 text-[10px] font-bold font-mono ${
                             isActive
                               ? 'bg-black/20 text-white'
-                              : 'bg-[#181F2E] text-slate-400 border border-[#1E2636]'
+                              : 'bg-elevated text-fg-secondary border border-border-subtle'
                           }`}
                         >
                           {item.badge}
@@ -168,14 +174,14 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer com Usuário e Logout */}
-      <div className="p-4 border-t border-[#1E2636] space-y-3 bg-[#080A0F]">
+      <div className="p-4 border-t border-border-subtle space-y-3 bg-sidebar">
         {user && (
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-[#121721] border border-[#1E2636]">
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-app border border-border-subtle">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs shrink-0">
               {user.username.charAt(0)}
             </div>
             <div className="min-w-0 flex-1 text-xs">
-              <div className="font-semibold text-slate-100 truncate" title={user.username}>
+              <div className="font-semibold text-fg truncate" title={user.username}>
                 {user.username}
               </div>
               <div className="text-[10px] font-bold text-orange-400 uppercase tracking-wider truncate">
@@ -189,13 +195,13 @@ export const Sidebar: React.FC = () => {
           type="button"
           onClick={logout}
           title="Encerrar sessão"
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#1E2636] bg-[#121721] py-1.5 text-xs font-semibold text-slate-300 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30 transition-all cursor-pointer shadow-2xs"
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border-subtle bg-surface py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-500/30 transition-all cursor-pointer shadow-2xs"
         >
           <LogOut className="h-3.5 w-3.5" />
           <span>Sair da Conta</span>
         </button>
 
-        <div className="text-[10px] text-slate-600 text-center font-medium tracking-wider">
+        <div className="text-[10px] text-fg-muted text-center font-medium tracking-wider">
           Easy Inventory &bull; v2.0
         </div>
       </div>

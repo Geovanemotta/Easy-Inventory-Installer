@@ -6,14 +6,14 @@ import { GlobalToastContainer } from '@/components/common/GlobalToastContainer';
 
 export const AppLayout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-slate-100 flex">
+    <div className="min-h-screen bg-app text-fg flex">
       {/* Sidebar Fixa na Lateral Esquerda (h-screen, fixed) */}
       <Sidebar />
 
       {/* Container Principal Deslocado à Direita da Sidebar (ml-64) */}
-      <div className="ml-64 flex min-h-screen flex-1 flex-col bg-[#0B0E14]">
+      <div className="ml-64 flex min-h-screen flex-1 flex-col bg-app">
         <Header />
-        <main className="flex-1 p-6 overflow-x-auto bg-[#0B0E14]">
+        <main className="flex-1 p-6 overflow-x-auto bg-app">
           <Outlet />
         </main>
       </div>

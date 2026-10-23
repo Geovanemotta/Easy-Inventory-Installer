@@ -331,19 +331,19 @@ export const DevicesPage: React.FC = () => {
       {/* Cabeçalho da Página */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold text-fg flex items-center gap-2">
             <Monitor className="h-6 w-6 text-orange-500" />
             <span>Estações de Trabalho &amp; Inventário</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-fg-secondary mt-0.5">
             Gerenciamento de hardware, discos, periféricos, histórico de drift e homologação no firewall
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-300">
-          <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+        <div className="flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-700 dark:text-rose-300">
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
           <span>{error}</span>
         </div>
       )}
@@ -360,17 +360,17 @@ export const DevicesPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowCharts((prev) => !prev)}
-          className="inline-flex items-center gap-2 rounded-xl border border-[#1E2636] bg-[#121721] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-[#181F2E] hover:border-[#263044] hover:text-white shadow-2xs transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl border border-border-subtle bg-surface px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-elevated hover:border-border-medium hover:text-fg shadow-2xs transition-all cursor-pointer"
         >
           <PieChart className="h-4 w-4 text-orange-400" />
           <span>Gráficos de Distribuição</span>
-          <span className="rounded-full bg-[#181F2E] border border-[#1E2636] px-2 py-0.5 text-[10px] text-slate-400 font-mono">
+          <span className="rounded-full bg-elevated border border-border-subtle px-2 py-0.5 text-[10px] text-fg-secondary font-mono">
             3 gráficos
           </span>
           {showCharts ? (
-            <ChevronUp className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronUp className="h-3.5 w-3.5 text-fg-secondary" />
           ) : (
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown className="h-3.5 w-3.5 text-fg-secondary" />
           )}
         </button>
       </div>
@@ -466,19 +466,19 @@ export const DevicesPage: React.FC = () => {
 
       {/* Banner / Chip de Filtro Ativo: Sem Apps */}
       {filters.sem_apps && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-amber-200 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-amber-800 dark:text-amber-200 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
+            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-4 w-4 shrink-0" />
             </div>
             <div>
               <div className="font-bold flex items-center gap-2">
                 <span>Filtrando: Máquinas sem inventário de aplicativos ({pagination.total})</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                   Pendente
                 </span>
               </div>
-              <p className="text-[11px] text-amber-300/80">
+              <p className="text-[11px] text-amber-700/80 dark:text-amber-300/80">
                 Estações de trabalho ativas que ainda não reportaram ou sincronizaram coleta de softwares instalados.
               </p>
             </div>
@@ -508,9 +508,9 @@ export const DevicesPage: React.FC = () => {
                   return nextParams;
                 });
               }}
-              className="inline-flex items-center gap-1 rounded-lg bg-[#181F2E] hover:bg-[#263044] px-2.5 py-1.5 text-xs font-semibold text-slate-300 border border-[#263044] transition-colors shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1 rounded-lg bg-elevated hover:bg-border-subtle px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 border border-border-medium transition-colors shadow-2xs cursor-pointer"
             >
-              <X className="h-3.5 w-3.5 text-slate-400" />
+              <X className="h-3.5 w-3.5 text-fg-secondary" />
               <span>Limpar filtro</span>
             </button>
           </div>
@@ -519,19 +519,19 @@ export const DevicesPage: React.FC = () => {
 
       {/* Banner / Chip de Filtro Ativo: Com Apps */}
       {filters.com_apps && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-200 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-800 dark:text-emerald-200 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
             </div>
             <div>
               <div className="font-bold flex items-center gap-2">
-                <span className="text-white">Filtrando: Máquinas com inventário de aplicativos ({pagination.total})</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-fg">Filtrando: Máquinas com inventário de aplicativos ({pagination.total})</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                   Inventariadas
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/80">
+              <p className="text-[11px] text-emerald-700/80 dark:text-emerald-300/80">
                 Estações que reportaram catálogo de pacotes de softwares com sucesso.
               </p>
             </div>
@@ -550,28 +550,28 @@ export const DevicesPage: React.FC = () => {
                 return nextParams;
               });
             }}
-            className="inline-flex items-center gap-1 rounded-lg bg-[#181F2E] hover:bg-[#263044] px-2.5 py-1.5 text-xs font-semibold text-slate-300 border border-[#263044] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1 rounded-lg bg-elevated hover:bg-border-subtle px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 border border-border-medium transition-colors shadow-2xs cursor-pointer"
           >
-            <X className="h-3.5 w-3.5 text-slate-400" />
+            <X className="h-3.5 w-3.5 text-fg-secondary" />
             <span>Limpar filtro</span>
           </button>
         </div>
       )}
 
       {/* Barra de Contagem e Controle 'Por Página' */}
-      <div className="flex items-center justify-between px-1 text-xs text-slate-400">
+      <div className="flex items-center justify-between px-1 text-xs text-fg-secondary">
         <div className="font-medium">
-          <span className="font-semibold text-white font-mono tabular-nums">{devices.length}</span> de{' '}
-          <span className="font-semibold text-white font-mono tabular-nums">{pagination.total}</span> máquinas
+          <span className="font-semibold text-fg font-mono tabular-nums">{devices.length}</span> de{' '}
+          <span className="font-semibold text-fg font-mono tabular-nums">{pagination.total}</span> máquinas
           {pagination.total !== (kpis ? (kpis.total_linux + kpis.total_windows) : pagination.total) && (
-            <span className="text-slate-500 ml-1">
+            <span className="text-fg-muted ml-1">
               (filtradas de {kpis ? (kpis.total_linux + kpis.total_windows) : pagination.total})
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-400 font-medium">Por página:</span>
+          <span className="text-fg-secondary font-medium">Por página:</span>
           <div className="w-20">
             <SelectDropdown
               value={String(filters.per_page || 50)}

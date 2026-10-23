@@ -297,22 +297,22 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
         onClick={onClose}
       >
       <div
-        className="w-full max-w-3xl h-full bg-[#0B0E14] shadow-2xl flex flex-col border-l border-[#1E2636] overflow-hidden animate-in slide-in-from-right duration-200"
+        className="w-full max-w-3xl h-full bg-app shadow-2xl flex flex-col border-l border-border-subtle overflow-hidden animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho do Drawer */}
-        <div className="flex items-center justify-between border-b border-[#1E2636] px-6 py-4 bg-[#121721]">
+        <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4 bg-surface">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-orange-500/15 border border-orange-500/30 p-2 text-orange-400">
               <Monitor className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white tracking-tight">
+                <h3 className="text-base font-bold text-fg tracking-tight">
                   {device?.hostname || 'Carregando...'}
                 </h3>
                 {device?.alerta_hardware && (
-                  <span className="flex items-center gap-1 rounded bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[11px] font-semibold text-rose-400">
+                  <span className="flex items-center gap-1 rounded bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
                     <AlertTriangle className="h-3 w-3" /> Alerta HW
                   </span>
                 )}
@@ -325,10 +325,10 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1 border ${
                       device.status_conexao === 'online'
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                         : device.status_conexao === 'alerta'
-                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                        : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                        : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
                     }`}
                   >
                     <span
@@ -345,7 +345,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="inline-flex items-center rounded-md bg-[#181F2E] border border-[#263044] px-2 py-0.5 text-xs font-semibold text-slate-300 font-sans">
+                <span className="inline-flex items-center rounded-md bg-elevated border border-border-medium px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-slate-300 font-sans">
                   {device?.loja || 'Sem Filial'}
                 </span>
               </div>
@@ -366,7 +366,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
             )}
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
+              className="rounded-lg p-2 text-fg-secondary hover:bg-elevated hover:text-fg transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -374,13 +374,13 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
         </div>
 
         {/* Barra de Abas */}
-        <div className="flex border-b border-[#1E2636] bg-[#0B0E14] px-6 pt-2 gap-2 text-xs font-semibold select-none overflow-x-auto">
+        <div className="flex border-b border-border-subtle bg-app px-6 pt-2 gap-2 text-xs font-semibold select-none overflow-x-auto">
           <button
             onClick={() => setActiveTab('geral')}
             className={`border-b-2 px-4 py-2.5 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'geral'
                 ? 'border-orange-500 text-orange-400 font-semibold bg-orange-500/10 rounded-t-lg'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                : 'border-transparent text-fg-secondary hover:text-fg'
             }`}
           >
             Visão Geral &amp; Specs
@@ -390,7 +390,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
             className={`border-b-2 px-4 py-2.5 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'discos'
                 ? 'border-orange-500 text-orange-400 font-semibold bg-orange-500/10 rounded-t-lg'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                : 'border-transparent text-fg-secondary hover:text-fg'
             }`}
           >
             Discos &amp; Pastas {unidadesDisco.length > 0 && `(${unidadesDisco.length})`}
@@ -400,7 +400,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
             className={`border-b-2 px-4 py-2.5 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'perifericos'
                 ? 'border-orange-500 text-orange-400 font-semibold bg-orange-500/10 rounded-t-lg'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                : 'border-transparent text-fg-secondary hover:text-fg'
             }`}
           >
             Periféricos {perifericos.length > 0 && `(${perifericos.length})`}
@@ -410,7 +410,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
             className={`border-b-2 px-4 py-2.5 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'softwares'
                 ? 'border-orange-500 text-orange-400 font-semibold bg-orange-500/10 rounded-t-lg'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                : 'border-transparent text-fg-secondary hover:text-fg'
             }`}
           >
             Softwares Instalados
@@ -420,7 +420,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
             className={`border-b-2 px-4 py-2.5 transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'historico'
                 ? 'border-orange-500 text-orange-400 font-semibold bg-orange-500/10 rounded-t-lg'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                : 'border-transparent text-fg-secondary hover:text-fg'
             }`}
           >
             <History className="h-3.5 w-3.5" />
@@ -428,8 +428,8 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
             {history.length > 0 && (
               <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold font-mono border ${
                 activeTab === 'historico'
-                  ? 'bg-orange-500/20 text-orange-300 border-orange-500/40'
-                  : 'bg-[#181F2E] text-slate-400 border-[#1E2636]'
+                  ? 'bg-orange-500/20 text-orange-600 dark:text-orange-300 border-orange-500/40'
+                  : 'bg-elevated text-fg-secondary border-border-subtle'
               }`}>
                 {history.length}
               </span>
@@ -438,19 +438,19 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
         </div>
 
         {/* Corpo com Rolagem */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0B0E14]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-app">
           {loading ? (
-            <div className="py-24 text-center text-slate-400 text-sm flex flex-col items-center justify-center">
+            <div className="py-24 text-center text-fg-secondary text-sm flex flex-col items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />
               <div>Carregando detalhes do dispositivo...</div>
             </div>
           ) : error ? (
             <div className="py-20 text-center flex flex-col items-center justify-center">
-              <div className="rounded-full bg-rose-500/15 p-3 text-rose-400 mb-3 border border-rose-500/30">
+              <div className="rounded-full bg-rose-500/15 p-3 text-rose-600 dark:text-rose-400 mb-3 border border-rose-500/30">
                 <AlertTriangle className="h-6 w-6" />
               </div>
-              <h4 className="text-sm font-bold text-slate-200">Falha ao carregar detalhes</h4>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm">{error}</p>
+              <h4 className="text-sm font-bold text-fg">Falha ao carregar detalhes</h4>
+              <p className="text-xs text-fg-secondary mt-1 max-w-sm">{error}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -472,25 +472,25 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
                       setLoading(false);
                     });
                 }}
-                className="mt-4 rounded-lg bg-[#181F2E] border border-[#263044] px-3.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-[#263044] transition-colors cursor-pointer"
+                className="mt-4 rounded-lg bg-elevated border border-border-medium px-3.5 py-1.5 text-xs font-semibold text-fg hover:bg-border-subtle transition-colors cursor-pointer"
               >
                 Tentar novamente
               </button>
             </div>
           ) : !device ? (
-            <div className="py-24 text-center text-slate-400 text-sm">
+            <div className="py-24 text-center text-fg-secondary text-sm">
               Dispositivo não encontrado.
             </div>
           ) : (
             <>
               {/* Alerta de Hardware Destacado */}
               {device.alerta_hardware && (
-                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-200 flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <div className="font-bold text-rose-300">Conflito de Hardware / MAC Detectado</div>
-                    <p className="mt-0.5 text-rose-200">{device.alerta_hardware}</p>
-                    <p className="mt-1 text-[11px] text-rose-300/80">
+                    <div className="font-bold text-rose-700 dark:text-rose-300">Conflito de Hardware / MAC Detectado</div>
+                    <p className="mt-0.5 text-rose-800 dark:text-rose-200">{device.alerta_hardware}</p>
+                    <p className="mt-1 text-[11px] text-rose-700/80 dark:text-rose-300/80">
                       Geralmente provocado por clonagem de disco/SSD sem troca de UUID ou duplicidade de endereço MAC físico.
                     </p>
                     {isAdmin && (
@@ -503,7 +503,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
                         </button>
                         <button
                           onClick={() => onDeleteDevice(device)}
-                          className="rounded border border-rose-500/30 bg-[#181F2E] px-2.5 py-1 text-rose-300 font-medium hover:bg-rose-500/20 transition-colors cursor-pointer"
+                          className="rounded border border-rose-500/30 bg-elevated px-2.5 py-1 text-rose-700 dark:text-rose-300 font-medium hover:bg-rose-500/20 transition-colors cursor-pointer"
                         >
                           Excluir Registro
                         </button>
@@ -582,8 +582,8 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
         </div>
 
         {/* Rodapé do Drawer */}
-        <div className="flex items-center justify-between border-t border-[#1E2636] px-6 py-3.5 bg-[#121721]">
-          <div className="text-xs text-slate-500 font-mono">
+        <div className="flex items-center justify-between border-t border-border-subtle px-6 py-3.5 bg-surface">
+          <div className="text-xs text-fg-muted font-mono">
             {device ? `ID: #${device.id}` : ''}
           </div>
           <div className="flex items-center gap-2">
@@ -591,7 +591,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => onDeleteDevice(device)}
-                className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>Excluir</span>
@@ -600,7 +600,7 @@ export const DeviceDetailsDrawer: React.FC<DeviceDetailsDrawerProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
+              className="rounded-lg border border-border-medium bg-elevated px-4 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors cursor-pointer"
             >
               Fechar
             </button>

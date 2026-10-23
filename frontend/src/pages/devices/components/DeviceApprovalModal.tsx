@@ -407,18 +407,18 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-[#1E2636] bg-[#121721] text-slate-100 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+      <div className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-border-subtle bg-surface text-fg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
         {/* Cabeçalho do Modal */}
-        <div className="flex items-center justify-between border-b border-[#1E2636] px-6 py-4 bg-[#181F2E]/70">
+        <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4 bg-elevated/70">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white tracking-tight">
+              <h3 className="text-base font-bold text-fg tracking-tight">
                 {concluido ? 'Reserva no Firewall da Operadora' : 'Revisar e Homologar Equipamento'}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-fg-secondary">
                 {concluido
                   ? 'Easy Inventory • Disparo opcional de solicitação técnica para a operadora do circuito'
                   : 'Easy Inventory • Homologação de Ativo Físico e Atribuição de IP Definitivo'}
@@ -430,7 +430,7 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
               if (concluido) onSuccess();
               onClose();
             }}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-fg-secondary hover:bg-elevated hover:text-fg transition-colors cursor-pointer"
             title="Fechar"
           >
             <X className="h-5 w-5" />
@@ -438,18 +438,18 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
         </div>
 
         {/* Corpo do Modal com Scroll */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 text-sm text-slate-300 bg-[#0B0E14]">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 text-sm text-gray-700 dark:text-slate-300 bg-app">
           {error && (
-            <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-300">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400" />
+            <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-700 dark:text-rose-300">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {loadingContext ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <div className="py-20 flex flex-col items-center justify-center gap-3 text-fg-secondary">
               <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
-              <span className="text-xs font-semibold text-slate-300">
+              <span className="text-xs font-semibold text-gray-700 dark:text-slate-300">
                 Carregando dados completos de aprovação e contexto de rede do ativo...
               </span>
             </div>

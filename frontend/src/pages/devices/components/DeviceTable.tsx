@@ -135,23 +135,23 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
 
     if (nivel === 'ok') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-400 border border-emerald-500/30">
-          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+          <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
           <span>{label}</span>
         </span>
       );
     }
     if (nivel === 'warning') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-400 border border-amber-500/30">
-          <AlertTriangle className="h-3 w-3 text-amber-400" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/30">
+          <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
           <span>{label}</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-400 border border-rose-500/30">
-        <XCircle className="h-3 w-3 text-rose-400" />
+      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-500/30">
+        <XCircle className="h-3 w-3 text-rose-600 dark:text-rose-400" />
         <span>{label}</span>
       </span>
     );
@@ -172,9 +172,9 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                 onOpenApproval(dev);
               }}
               title="Clique para revisar e homologar cadastro do equipamento"
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 hover:scale-105 cursor-pointer shadow-xs transition-all"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 hover:scale-105 cursor-pointer shadow-xs transition-all"
             >
-              <Clock className="h-3 w-3 text-amber-400" />
+              <Clock className="h-3 w-3 text-amber-600 dark:text-amber-400" />
               <span>Homologar</span>
             </button>
           );
@@ -188,9 +188,9 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                 onOpenPatrimonio(dev);
               }}
               title="Clique para ajustar dados do patrimônio ou solicitação na bancada"
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 cursor-pointer shadow-xs transition-all"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 cursor-pointer shadow-xs transition-all"
             >
-              <Clock className="h-3 w-3 text-amber-400" />
+              <Clock className="h-3 w-3 text-amber-600 dark:text-amber-400" />
               <span>Pendente - Ajustar</span>
             </button>
           );
@@ -206,7 +206,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                 onOpenPatrimonio(dev);
               }}
               title="Clique para cadastrar patrimônio e solicitar liberação no firewall"
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-orange-500/15 text-orange-300 border border-orange-500/30 hover:bg-orange-500/25 cursor-pointer shadow-xs transition-all"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-orange-500/15 text-orange-600 dark:text-orange-300 border border-orange-500/30 hover:bg-orange-500/25 cursor-pointer shadow-xs transition-all"
             >
               <Tag className="h-3 w-3 text-orange-400" />
               <span>Solicitar</span>
@@ -219,7 +219,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
     switch (dev.firewall_status) {
       case 'confirmado':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-400 border border-emerald-500/30">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
             <CheckCircle2 className="h-3 w-3" /> Confirmado
           </span>
         );
@@ -240,23 +240,23 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
             }
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold border transition-all ${
               isAdmin
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30 hover:scale-105 cursor-pointer shadow-xs'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/25 cursor-default'
+                ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/30 hover:scale-105 cursor-pointer shadow-xs'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25 cursor-default'
             }`}
           >
-            <Clock className="h-3 w-3 text-amber-400" />
+            <Clock className="h-3 w-3 text-amber-600 dark:text-amber-400" />
             <span>Pendente {isAdmin ? '(Homologar)' : ''}</span>
           </button>
         );
       case 'rejeitado':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-400 border border-rose-500/30">
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border border-rose-500/30">
             <XCircle className="h-3 w-3" /> Rejeitado
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center rounded-full bg-slate-800/60 px-2 py-0.5 text-[11px] text-slate-400 border border-slate-700/60">
+          <span className="inline-flex items-center rounded-full bg-elevated/60 px-2 py-0.5 text-[11px] text-fg-secondary border border-border-medium/60">
             Não solicitado
           </span>
         );
@@ -274,21 +274,21 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
     const tipoStorage = device.disco_tipo || 'Não Identificado';
     const tooltipText = `Tipo: ${tipoStorage} — Usado: ${usado} / Total: ${total}${livre !== '---' ? ` (Livre: ${livre})` : ''}`;
 
-    let tagClass = 'bg-slate-800 text-slate-400 border-slate-700';
+    let tagClass = 'bg-elevated text-fg-secondary border-border-medium';
     let tagLabel = 'N/I';
 
     const tLower = (device.disco_tipo || '').trim().toLowerCase();
     if (tLower === 'nvme') {
-      tagClass = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+      tagClass = 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30';
       tagLabel = 'NVMe';
     } else if (tLower === 'ssd') {
-      tagClass = 'bg-sky-500/15 text-sky-300 border-sky-500/30';
+      tagClass = 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30';
       tagLabel = 'SSD';
     } else if (tLower === 'hdd') {
-      tagClass = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+      tagClass = 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30';
       tagLabel = 'HDD';
     } else if (tLower === 'virtual') {
-      tagClass = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+      tagClass = 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30';
       tagLabel = 'Virtual';
     }
 
@@ -308,10 +308,10 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
             <span
               className={`font-semibold shrink-0 text-[11px] leading-none font-mono ${
                 isCritico
-                  ? 'text-rose-400 font-bold'
+                  ? 'text-rose-600 dark:text-rose-400 font-bold'
                   : isAlerta
-                  ? 'text-amber-400'
-                  : 'text-slate-300'
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-gray-700 dark:text-slate-300'
               }`}
             >
               {pct > 0 ? `${Math.round(pct)}%` : (device.disco_percentual != null ? `${device.disco_percentual}%` : '---')}
@@ -319,7 +319,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
           </div>
 
           {/* Linha inferior: Barrinha de percentual do disco com trilha bg-slate-800 */}
-          <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-slate-700/50">
+          <div className="w-full h-1.5 rounded-full bg-elevated overflow-hidden shrink-0 border border-border-medium/50">
             <div
               className={`h-full rounded-full transition-all ${
                 isCritico ? 'bg-rose-500' : isAlerta ? 'bg-amber-500' : 'bg-emerald-500'
@@ -330,14 +330,14 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
         </div>
       );
     }
-    return <span className="text-slate-500 text-xs">---</span>;
+    return <span className="text-fg-muted text-xs">---</span>;
   };
 
   const renderOsIcon = (device: DeviceListItem) => {
     const isWin = device.familia_so === 'Windows' || !isLinux(device.sistema);
     if (isWin) {
       return (
-        <span className="inline-flex text-[#38BDF8] shrink-0" title="Windows">
+        <span className="inline-flex text-sky-600 dark:text-[#38BDF8] shrink-0" title="Windows">
           <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
             <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
           </svg>
@@ -356,7 +356,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
       ordenarPor === col || (col === 'loja' && (ordenarPor === 'loja' || ordenarPor === 'filial'));
     if (!isSorted) {
       return (
-        <ArrowUpDown className="h-3 w-3 text-slate-500 group-hover/th:text-slate-300 transition-colors shrink-0" />
+        <ArrowUpDown className="h-3 w-3 text-fg-muted group-hover/th:text-gray-700 dark:group-hover/th:text-slate-300 transition-colors shrink-0" />
       );
     }
     if (ordemDir === 'desc') {
@@ -370,14 +370,14 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
   };
 
   return (
-    <div className="rounded-xl border border-[#1E2636] bg-[#121721] shadow-sm overflow-hidden flex flex-col">
+    <div className="rounded-xl border border-border-subtle bg-surface shadow-sm overflow-hidden flex flex-col">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-[#1E2636] bg-[#0E131B] text-[11px] font-semibold uppercase tracking-wider text-slate-400 select-none">
+            <tr className="border-b border-border-subtle bg-app text-[11px] font-semibold uppercase tracking-wider text-fg-secondary select-none">
               <th
                 onClick={() => onSortChange?.('loja')}
-                className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                   isColSorted('loja') ? 'text-orange-400 font-bold' : ''
                 }`}
                 title="Clique para alternar ordenação por Filial"
@@ -390,7 +390,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
               <th className="py-2.5 px-3 whitespace-nowrap">Hostname</th>
               <th
                 onClick={() => onSortChange?.('ip')}
-                className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                   isColSorted('ip') ? 'text-orange-400 font-bold' : ''
                 }`}
                 title="Clique para alternar ordenação por IP"
@@ -403,7 +403,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
               <th className="py-2.5 px-3 whitespace-nowrap">MAC</th>
               <th
                 onClick={() => onSortChange?.('disco')}
-                className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                   isColSorted('disco') ? 'text-orange-400 font-bold' : ''
                 }`}
                 title="Clique para alternar ordenação por Uso de Disco"
@@ -420,10 +420,10 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
               <th className="py-2.5 px-3 text-right whitespace-nowrap">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1A2230]">
+          <tbody className="divide-y divide-border-subtle">
             {loading ? (
               <tr>
-                <td colSpan={10} className="py-12 text-center text-slate-400 text-sm">
+                <td colSpan={10} className="py-12 text-center text-fg-secondary text-sm">
                   <div className="inline-flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-orange-400 animate-ping" />
                     <span>Carregando dispositivos...</span>
@@ -432,7 +432,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
               </tr>
             ) : devices.length === 0 ? (
               <tr>
-                <td colSpan={10} className="py-12 text-center text-slate-500 text-sm">
+                <td colSpan={10} className="py-12 text-center text-fg-muted text-sm">
                   Nenhum dispositivo encontrado com os filtros selecionados.
                 </td>
               </tr>
@@ -447,17 +447,17 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                   <tr
                     key={device.id}
                     onClick={() => onSelectDevice(device)}
-                    className="hover:bg-[#181F2E]/90 transition-colors cursor-pointer group"
+                    className="hover:bg-elevated/90 transition-colors cursor-pointer group"
                     title="Clique para abrir detalhes desta máquina"
                   >
                     {/* 1. FILIAL (Badges Translúcidos de Alto Contraste) */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
                       {filialInfo.isUnlinked ? (
-                        <span className="inline-flex items-center rounded-md bg-slate-900/60 px-2 py-0.5 text-xs font-medium text-slate-400 border border-slate-800">
+                        <span className="inline-flex items-center rounded-md bg-surface/60 px-2 py-0.5 text-xs font-medium text-fg-secondary border border-border-subtle">
                           {filialInfo.text}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-md bg-slate-800/80 px-2 py-0.5 text-xs font-semibold text-slate-200 border border-slate-700">
+                        <span className="inline-flex items-center rounded-md bg-elevated/80 px-2 py-0.5 text-xs font-semibold text-fg border border-border-medium">
                           {filialInfo.text}
                         </span>
                       )}
@@ -470,22 +470,22 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                           className={`h-2 w-2 rounded-full shrink-0 ${sync.dotClass}`}
                           title={sync.text}
                         />
-                        <strong className="text-slate-100 group-hover:text-orange-400 transition-colors font-medium">
+                        <strong className="text-fg group-hover:text-orange-400 transition-colors font-medium">
                           {device.hostname}
                         </strong>
                         {device.alerta_hardware && (
                           <span title={`Alerta HW: ${device.alerta_hardware}`} className="inline-flex shrink-0">
-                            <AlertTriangle className="h-3 w-3 text-amber-400 cursor-help" />
+                            <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-400 cursor-help" />
                           </span>
                         )}
                         <button
                           type="button"
                           onClick={(e) => copy(device.hostname, `host_${device.id}`, 'Hostname', e)}
-                          className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-500 hover:text-slate-300 transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 p-0.5 text-fg-muted hover:text-gray-700 dark:hover:text-slate-300 transition-opacity"
                           title="Copiar hostname"
                         >
                           {copiedKey === `host_${device.id}` ? (
-                            <Check className="h-3 w-3 text-emerald-400" />
+                            <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                           ) : (
                             <Copy className="h-3 w-3" />
                           )}
@@ -496,31 +496,31 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                     {/* 3. IP (Coluna própria com botão copiar e badge .88 / +N) */}
                     <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs">
                       <div className="flex items-center gap-1">
-                        <span className={bench ? 'font-bold text-amber-400' : 'text-slate-300'}>
+                        <span className={bench ? 'font-bold text-amber-600 dark:text-amber-400' : 'text-gray-700 dark:text-slate-300'}>
                           {device.ip || '---'}
                         </span>
                         {device.ip && (
                           <button
                             type="button"
                             onClick={(e) => copy(device.ip!, `ip_${device.id}`, 'IP', e)}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-500 hover:text-slate-300 transition-opacity"
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-fg-muted hover:text-gray-700 dark:hover:text-slate-300 transition-opacity"
                             title="Copiar IP Principal"
                           >
                             {copiedKey === `ip_${device.id}` ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
                           </button>
                         )}
                         {bench && (
-                          <span className="rounded bg-amber-500/15 px-1 py-0.2 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                          <span className="rounded bg-amber-500/15 px-1 py-0.2 text-[10px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/30">
                             .88
                           </span>
                         )}
                         {device.ips_extras && device.ips_extras.length > 0 && (
                           <span
-                            className="inline-flex items-center rounded bg-[#181F2E] hover:bg-[#263044] px-1.5 py-0.2 text-[10px] font-bold text-slate-300 border border-[#263044] transition-colors cursor-help"
+                            className="inline-flex items-center rounded bg-elevated hover:bg-border-subtle px-1.5 py-0.2 text-[10px] font-bold text-gray-700 dark:text-slate-300 border border-border-medium transition-colors cursor-help"
                             title={`IPs adicionais: ${device.ips_extras.join(', ')}`}
                           >
                             +{device.ips_extras.length}
@@ -530,18 +530,18 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                     </td>
 
                     {/* 4. MAC (Coluna própria em fonte mono + copiar) */}
-                    <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs text-slate-400">
+                    <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs text-fg-secondary">
                       <div className="flex items-center gap-1">
                         <span>{device.mac || '---'}</span>
                         {device.mac && (
                           <button
                             type="button"
                             onClick={(e) => copy(device.mac!, `mac_${device.id}`, 'MAC', e)}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-500 hover:text-slate-300 transition-opacity"
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-fg-muted hover:text-gray-700 dark:hover:text-slate-300 transition-opacity"
                             title="Copiar MAC"
                           >
                             {copiedKey === `mac_${device.id}` ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
@@ -557,7 +557,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
 
                     {/* 6. SO / VERSÃO (Ícone + so_formatado) */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 text-xs text-slate-200 font-medium">
+                      <div className="flex items-center gap-1.5 text-xs text-fg font-medium">
                         {renderOsIcon(device)}
                         <span className="truncate max-w-[200px]" title={soFormatado}>
                           {soFormatado}
@@ -578,7 +578,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                     {/* 9. PATRIMÔNIO (Badge técnico elegante em laranja suave) */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
                       {device.patrimonio ? (
-                        <div className="flex items-center gap-1 font-mono font-bold text-orange-300 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/25 w-fit text-xs">
+                        <div className="flex items-center gap-1 font-mono font-bold text-orange-600 dark:text-orange-300 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/25 w-fit text-xs">
                           <span>
                             {device.patrimonio.startsWith('pat.')
                               ? device.patrimonio
@@ -591,14 +591,14 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                             title="Copiar Patrimônio"
                           >
                             {copiedKey === `pat_${device.id}` ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
                           </button>
                         </div>
                       ) : (
-                        <span className="text-slate-500 italic text-xs">Não informado</span>
+                        <span className="text-fg-muted italic text-xs">Não informado</span>
                       )}
                     </td>
 
@@ -616,8 +616,8 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                             title="Homologação e Ajuste Cadastral"
                             className={`rounded p-1.5 transition-colors ${
                               device.firewall_status === 'pendente' || bench
-                                ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 ring-1 ring-amber-500/40'
-                                : 'text-emerald-400 hover:bg-emerald-500/10'
+                                ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500/30 ring-1 ring-amber-500/40'
+                                : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
                             }`}
                           >
                             <ShieldCheck className="h-3.5 w-3.5" />
@@ -630,7 +630,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                             type="button"
                             onClick={() => onClearAlert(device)}
                             title="Resolver / Limpar Alerta de Hardware"
-                            className="rounded p-1.5 text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            className="rounded p-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-colors"
                           >
                             <AlertTriangle className="h-3.5 w-3.5" />
                           </button>
@@ -642,7 +642,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                             type="button"
                             onClick={() => onDeleteDevice(device)}
                             title="Excluir Dispositivo"
-                            className="rounded p-1.5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors"
+                            className="rounded p-1.5 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300 transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -658,35 +658,35 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
       </div>
 
       {/* Barra de Paginação Inferior */}
-      <div className="flex items-center justify-between border-t border-[#1E2636] px-4 py-3 bg-[#0E131B] text-xs text-slate-400">
+      <div className="flex items-center justify-between border-t border-border-subtle px-4 py-3 bg-app text-xs text-fg-secondary">
         <div>
           Exibindo{' '}
-          <span className="font-semibold text-white font-mono tabular-nums">
+          <span className="font-semibold text-fg font-mono tabular-nums">
             {pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.per_page + 1}
           </span>{' '}
           a{' '}
-          <span className="font-semibold text-white font-mono tabular-nums">
+          <span className="font-semibold text-fg font-mono tabular-nums">
             {Math.min(pagination.page * pagination.per_page, pagination.total)}
           </span>{' '}
-          de <span className="font-semibold text-white font-mono tabular-nums">{pagination.total}</span> registros
+          de <span className="font-semibold text-fg font-mono tabular-nums">{pagination.total}</span> registros
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => onPageChange(pagination.page - 1)}
             disabled={pagination.page <= 1 || loading}
-            className="flex items-center gap-1 rounded border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer"
+            className="flex items-center gap-1 rounded border border-border-medium bg-elevated px-2.5 py-1 text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg disabled:opacity-40 transition-colors cursor-pointer"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Anterior
           </button>
           <span>
-            Página <strong className="font-semibold text-slate-200">{pagination.page}</strong> de{' '}
+            Página <strong className="font-semibold text-fg">{pagination.page}</strong> de{' '}
             {pagination.total_pages || 1}
           </span>
           <button
             onClick={() => onPageChange(pagination.page + 1)}
             disabled={pagination.page >= pagination.total_pages || loading}
-            className="flex items-center gap-1 rounded border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer"
+            className="flex items-center gap-1 rounded border border-border-medium bg-elevated px-2.5 py-1 text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg disabled:opacity-40 transition-colors cursor-pointer"
           >
             Próxima <ChevronRight className="h-3.5 w-3.5" />
           </button>

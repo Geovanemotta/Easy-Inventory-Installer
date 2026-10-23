@@ -252,7 +252,7 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
 
   const modalContent = (
     <div
-      className={`flex flex-col bg-[#0B0E14] border border-[#1E2636] shadow-2xl transition-all duration-200 overflow-hidden ${
+      className={`flex flex-col bg-app border border-border-subtle shadow-2xl transition-all duration-200 overflow-hidden ${
         isMaximized
           ? 'fixed inset-2 z-50 rounded-xl'
           : standalone
@@ -262,35 +262,35 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
       onClick={(e) => e.stopPropagation()}
     >
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between border-b border-[#1E2636] bg-[#121721] px-4 py-2.5 select-none">
+      <div className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-2.5 select-none">
         <div className="flex items-center gap-2.5">
           <TerminalIcon className="h-4 w-4 text-orange-400" />
-          <span className="text-xs font-bold text-white tracking-wider">
+          <span className="text-xs font-bold text-fg tracking-wider">
             TERMINAL SSH
           </span>
-          <span className="rounded-lg border border-[#1E2636] bg-[#0B0E14] px-2 py-0.5 text-xs font-mono font-medium text-slate-200">
+          <span className="rounded-lg border border-border-subtle bg-app px-2 py-0.5 text-xs font-mono font-medium text-fg">
             {device.hostname}
           </span>
-          <span className="rounded-lg border border-[#1E2636] bg-[#0B0E14] px-2 py-0.5 text-xs font-mono text-slate-400">
+          <span className="rounded-lg border border-border-subtle bg-app px-2 py-0.5 text-xs font-mono text-fg-secondary">
             {device.ip || 'Sem IP'}
           </span>
 
           {isConnected && (
-            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-400 border border-emerald-500/30">
+            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Ativo
             </span>
           )}
           {isConnecting && (
-            <span className="flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-400 border border-amber-500/30">
+            <span className="flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/30">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" /> Conectando...
             </span>
           )}
           {!isConnected && !isConnecting && statusMessage && (
-            <span className="text-xs text-slate-500 font-mono">⚪ {statusMessage}</span>
+            <span className="text-xs text-fg-muted font-mono">⚪ {statusMessage}</span>
           )}
         </div>
 
-        <div className="flex items-center gap-1 text-slate-400">
+        <div className="flex items-center gap-1 text-fg-secondary">
           {!standalone && (
             <button
               type="button"
@@ -300,7 +300,7 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
                 onClose();
               }}
               title="Destacar para janela popup"
-              className="rounded-lg p-1.5 hover:bg-[#181F2E] hover:text-slate-200 transition-colors"
+              className="rounded-lg p-1.5 hover:bg-elevated hover:text-fg transition-colors"
             >
               <ExternalLink className="h-4 w-4" />
             </button>
@@ -309,7 +309,7 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
             type="button"
             onClick={() => setIsMaximized((prev) => !prev)}
             title={isMaximized ? 'Restaurar tamanho' : 'Maximizar'}
-            className="rounded-lg p-1.5 hover:bg-[#181F2E] hover:text-slate-200 transition-colors"
+            className="rounded-lg p-1.5 hover:bg-elevated hover:text-fg transition-colors"
           >
             {isMaximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
@@ -320,7 +320,7 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
               onClose();
             }}
             title="Fechar terminal"
-            className="rounded-lg p-1.5 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
+            className="rounded-lg p-1.5 hover:bg-rose-500/20 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -328,10 +328,10 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
       </div>
 
       {/* Credenciais e Barra de Conexão */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-[#1E2636] bg-[#121721]/90 px-4 py-2 text-xs text-slate-300">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border-subtle bg-surface/90 px-4 py-2 text-xs text-gray-700 dark:text-slate-300">
         <div className="flex items-center gap-1.5">
-          <Server className="h-3.5 w-3.5 text-slate-400" />
-          <label className="text-slate-400 font-mono">Usuário:</label>
+          <Server className="h-3.5 w-3.5 text-fg-secondary" />
+          <label className="text-fg-secondary font-mono">Usuário:</label>
           <input
             type="text"
             value={username}
@@ -343,20 +343,20 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
               }
             }}
             placeholder="ex: suporte"
-            className="w-28 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-100 placeholder-slate-500 focus:border-orange-500 focus:outline-none font-mono disabled:opacity-50 transition-colors"
+            className="w-28 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 text-fg placeholder-fg-muted focus:border-orange-500 focus:outline-none font-mono disabled:opacity-50 transition-colors"
           />
         </div>
 
         <div className="flex items-center gap-1.5">
-          <KeyRound className="h-3.5 w-3.5 text-slate-400" />
-          <label className="text-slate-400 font-mono">Senha:</label>
+          <KeyRound className="h-3.5 w-3.5 text-fg-secondary" />
+          <label className="text-fg-secondary font-mono">Senha:</label>
           {useSessionCred ? (
             <input
               type="text"
               value="••••••••••••"
               disabled
               title="Usando a sessão segura do Active Directory"
-              className="w-36 rounded-lg border border-emerald-500/40 bg-emerald-950/20 px-2.5 py-1 font-mono text-emerald-400 cursor-default"
+              className="w-36 rounded-lg border border-emerald-500/40 bg-emerald-950/20 px-2.5 py-1 font-mono text-emerald-600 dark:text-emerald-400 cursor-default"
             />
           ) : (
             <input
@@ -370,13 +370,13 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
                   handleConnect();
                 }
               }}
-              className="w-36 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-100 placeholder-slate-500 focus:border-orange-500 focus:outline-none font-mono disabled:opacity-50 transition-colors"
+              className="w-36 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 text-fg placeholder-fg-muted focus:border-orange-500 focus:outline-none font-mono disabled:opacity-50 transition-colors"
             />
           )}
         </div>
 
         {hasAdSession && (
-          <label className="flex items-center gap-1.5 cursor-pointer text-slate-300 select-none">
+          <label className="flex items-center gap-1.5 cursor-pointer text-gray-700 dark:text-slate-300 select-none">
             <input
               type="checkbox"
               checked={useSessionCred}
@@ -388,22 +388,22 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
                   setUsername(user.username);
                 }
               }}
-              className="rounded border-[#263044] bg-[#181F2E] text-orange-500 focus:ring-orange-500"
+              className="rounded border-border-medium bg-elevated text-orange-500 focus:ring-orange-500"
             />
-            <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-semibold">
+            <span className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
               <Shield className="h-3 w-3" /> Sessão AD
             </span>
           </label>
         )}
 
         <div className="flex items-center gap-1.5">
-          <label className="text-slate-400 font-mono">Porta:</label>
+          <label className="text-fg-secondary font-mono">Porta:</label>
           <input
             type="number"
             value={port}
             disabled={isConnected || isConnecting}
             onChange={(e) => setPort(Number(e.target.value))}
-            className="w-16 rounded-lg border border-[#263044] bg-[#181F2E] px-2 py-1 text-slate-100 focus:border-orange-500 focus:outline-none font-mono disabled:opacity-50 transition-colors"
+            className="w-16 rounded-lg border border-border-medium bg-elevated px-2 py-1 text-fg focus:border-orange-500 focus:outline-none font-mono disabled:opacity-50 transition-colors"
           />
         </div>
 
@@ -435,11 +435,11 @@ export const SshTerminalModal: React.FC<SshTerminalModalProps> = ({
       <div
         ref={terminalRef}
         onClick={() => termInstanceRef.current?.focus()}
-        className="flex-1 bg-[#080A0F] p-2 overflow-hidden cursor-text"
+        className="flex-1 bg-sidebar p-2 overflow-hidden cursor-text"
       />
 
       {/* Rodapé informativo */}
-      <div className="flex items-center justify-between border-t border-[#1E2636] bg-[#0B0E14] px-4 py-1.5 text-[11px] text-slate-400 font-mono">
+      <div className="flex items-center justify-between border-t border-border-subtle bg-app px-4 py-1.5 text-[11px] text-fg-secondary font-mono">
         <span>Dica: Use <code>su &lt;usuario&gt;</code> para elevar privilégios.</span>
         <span>Ctrl+C ou <code>exit</code> para encerrar.</span>
       </div>

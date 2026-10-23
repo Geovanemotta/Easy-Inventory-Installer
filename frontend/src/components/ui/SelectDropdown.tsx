@@ -73,20 +73,20 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-[#F1F5F9] transition-colors hover:border-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 ${
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg transition-colors hover:border-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 ${
           open ? 'border-orange-500 ring-1 ring-orange-500/30' : ''
-        } ${disabled ? 'cursor-not-allowed opacity-50 bg-[#121721]' : 'cursor-pointer'} ${triggerClassName}`}
+        } ${disabled ? 'cursor-not-allowed opacity-50 bg-surface' : 'cursor-pointer'} ${triggerClassName}`}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         <div className="flex items-center gap-2 truncate">
-          {icon && <span className="shrink-0 text-slate-400">{icon}</span>}
+          {icon && <span className="shrink-0 text-fg-secondary">{icon}</span>}
           <span className="truncate font-medium">
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 shrink-0 text-fg-secondary transition-transform duration-200 ${
             open ? 'rotate-180 text-orange-400' : ''
           }`}
         />
@@ -94,12 +94,12 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
 
       {open && (
         <div
-          className={`absolute left-0 z-50 mt-1 min-w-full max-h-60 overflow-y-auto rounded-xl border border-[#263044] bg-[#121721] p-1 shadow-2xl animate-in fade-in zoom-in-95 duration-100 ${menuClassName}`}
+          className={`absolute left-0 z-50 mt-1 min-w-full max-h-60 overflow-y-auto rounded-xl border border-border-medium bg-surface p-1 shadow-2xl animate-in fade-in zoom-in-95 duration-100 ${menuClassName}`}
           role="listbox"
         >
           {options.length === 0 ? (
-            <div className="py-3 px-3 text-center text-xs text-slate-500">
-              Nenhuma opção disponível
+            <div className="py-3 px-3 text-center text-xs text-fg-muted">
+              Nenhuma opÃ§Ã£o disponÃ­vel
             </div>
           ) : (
             options.map((opt) => {
@@ -113,19 +113,19 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
                   className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                     isSelected
                       ? 'bg-orange-500/20 text-orange-400 font-semibold'
-                      : 'text-slate-300 hover:bg-orange-500/15 hover:text-orange-400'
+                      : 'text-gray-700 dark:text-slate-300 hover:bg-orange-500/15 hover:text-orange-400'
                   }`}
                 >
                   <div className="flex flex-col truncate">
                     <span className="truncate">{opt.label}</span>
                     {opt.description && (
-                      <span className="text-[10px] text-slate-500 truncate">{opt.description}</span>
+                      <span className="text-[10px] text-fg-muted truncate">{opt.description}</span>
                     )}
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     {opt.badge !== undefined && (
-                      <span className="rounded bg-[#181F2E] border border-[#263044] px-1.5 py-0.2 text-[10px] font-mono font-medium text-slate-400">
+                      <span className="rounded bg-elevated border border-border-medium px-1.5 py-0.2 text-[10px] font-mono font-medium text-fg-secondary">
                         {opt.badge}
                       </span>
                     )}

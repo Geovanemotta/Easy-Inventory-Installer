@@ -84,17 +84,17 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
   ];
 
   return (
-    <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-3.5 shadow-sm">
+    <div className="rounded-xl border border-border-subtle bg-surface p-3.5 shadow-sm">
       <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2.5">
         {/* Campo de Busca Rápida (ocupa o espaço principal flex-1) */}
         <div className="relative min-w-64 flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fg-secondary" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por hostname, IP, MAC, usuário ou RustDesk (filtra ao digitar)..."
-            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-2 pl-8 pr-3 text-xs text-[#F1F5F9] placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+            className="w-full rounded-lg border border-border-medium bg-elevated py-2 pl-8 pr-3 text-xs text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
           />
         </div>
 
@@ -139,7 +139,7 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
           type="button"
           onClick={handleReset}
           title="Limpar todos os filtros"
-          className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 rounded-lg border border-border-medium bg-elevated px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors cursor-pointer"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           <span>Limpar</span>
@@ -152,7 +152,7 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({
             onClick={onExportCsv}
             disabled={loading}
             title="Exportar inventário filtrado em CSV com UTF-8 BOM"
-            className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
+            className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-3.5 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
           >
             <Download className="h-3.5 w-3.5" />
             <span>Exportar CSV</span>
