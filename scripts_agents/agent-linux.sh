@@ -20,16 +20,14 @@ ARQUIVO_URL="$DIRETORIO/server_url"
 
 mkdir -p "$DIRETORIO"
 
-# Se houver URL salva de execução anterior bem-sucedida e ZENITHMAP_SERVER_URL não foi definida
-if [[ -z "$ZENITHMAP_SERVER_URL" && -f "$ARQUIVO_URL" ]]; then
+URL_PADRAO="http://localhost:8000/api/v1/inventory/receive"
+
+# O cache local só é utilizado se a URL embutida ainda for o localhost de desenvolvimento
+if [[ "$URL_PADRAO" == *"localhost:8000"* && -z "$ZENITHMAP_SERVER_URL" && -f "$ARQUIVO_URL" ]]; then
     SAVED_URL=$(cat "$ARQUIVO_URL" 2>/dev/null | tr -d '\r\n')
     if [[ -n "$SAVED_URL" ]]; then
         URL_PADRAO="$SAVED_URL"
-    else
-        URL_PADRAO="http://localhost:8000/api/v1/inventory/receive"
     fi
-else
-    URL_PADRAO="http://localhost:8000/api/v1/inventory/receive"
 fi
 
 URL_SERVIDOR="${ZENITHMAP_SERVER_URL:-"$URL_PADRAO"}"

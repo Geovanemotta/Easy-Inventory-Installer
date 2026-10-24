@@ -27,7 +27,8 @@ if (-not (Test-Path $BaseDir)) {
 }
 
 $DefaultURL = "http://localhost:8000/api/v1/inventory/receive"
-if (Test-Path $SavedUrlFile) {
+# O cache local só é utilizado se a URL embutida ainda for o localhost de desenvolvimento
+if ($DefaultURL -like "*localhost:8000*" -and (Test-Path $SavedUrlFile)) {
     try {
         $Cached = (Get-Content $SavedUrlFile -Raw).Trim()
         if ($Cached) { $DefaultURL = $Cached }
