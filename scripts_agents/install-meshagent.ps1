@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Instalador Silencioso do Agente MeshCentral para Windows (Grupo Giassi)
+    Instalador Silencioso do Agente MeshCentral para Windows (ZenithMap)
 .DESCRIPTION
     Instala o agente MeshCentral como Serviço do Windows nativo (NT AUTHORITY\SYSTEM),
     habilitando acesso à tela em tempo real, suporte ao UAC (Secure Desktop) sem tela preta
@@ -9,15 +9,15 @@
 
 [CmdletBinding()]
 param(
-    [string]$ServerHost = "inventario.giassi.com.br",
+    [string]$ServerHost = "localhost",
     [int]$ServerPort = 4443,
-    [string]$MeshGroup = "Giassi"
+    [string]$MeshGroup = "Estacoes"
 )
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "   INSTALADOR DO AGENTE MESHCENTRAL - GRUPO GIASSI TI    " -ForegroundColor Cyan
+Write-Host "   INSTALADOR DO AGENTE MESHCENTRAL - ZENITHMAP    " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # 1. Checagem de Privilégios de Administrador

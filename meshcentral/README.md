@@ -32,7 +32,7 @@ O serviço responderá através do Nginx na porta HTTPS `4443` (ou porta configu
 1. Abra no navegador: `https://<IP_DO_SERVIDOR>:4443` (aceite o certificado se for autoassinado).
 2. Na primeira vez, crie a conta de administrador inicial (ex.: `admin`).
    - *Nota:* A primeira conta criada no MeshCentral torna-se automaticamente a administradora do servidor.
-3. Crie um **Grupo de Dispositivos** (Device Group), por exemplo: `Estações Giassi`.
+3. Crie um **Grupo de Dispositivos** (Device Group), por exemplo: `Estações`.
 4. Clique em **"Add Agent"** para obter o executável ou o comando de instalação para Windows e Linux.
 
 ---

@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 from datetime import datetime
 from sqlalchemy import select
@@ -172,44 +173,27 @@ def seed_database(
 
         # 5. FILIAIS / SITES PADRÃO
         if create_default_sites:
-            print(" [*] Criando estrutura padrão de filiais e lojas...")
-            sites_to_create = []
-
-            # Lojas 01 a 30
-            for i in range(1, 31):
-                num_str = f"{i:02d}"
-                sites_to_create.append({
-                    "name": f"{company_name} Loja {num_str}",
-                    "code": num_str,
-                    "circuito": f"{company_slug}-lj{num_str}",
-                    "identifiers": [f"LJ{num_str}", f"L{num_str}", f"LJ{i}", f"L{i}"],
-                })
-
-            # Combos 01 a 10
-            for i in range(1, 11):
-                num_str = f"{i:02d}"
-                sites_to_create.append({
-                    "name": f"Combo {num_str}",
-                    "code": f"C{num_str}",
-                    "circuito": f"{company_slug}-cb{num_str}",
-                    "identifiers": [f"CB{num_str}", f"C{num_str}", f"CB{i}", f"C{i}"],
-                })
-
-            # Matriz
-            sites_to_create.append({
-                "name": f"{company_name} Matriz",
-                "code": "MATRIZ",
-                "circuito": f"{company_slug}-matriz",
-                "identifiers": ["MATRIZ", "MT", "ADM", "AC"],
-            })
-
-            # Outros
-            sites_to_create.append({
-                "name": "Outros",
-                "code": "OUTROS",
-                "circuito": None,
-                "identifiers": ["OUTROS"],
-            })
+            print(" [*] Criando estrutura padrão limpa de filiais...")
+            sites_to_create = [
+                {
+                    "name": f"{company_name} - Matriz",
+                    "code": "MATRIZ",
+                    "circuito": f"{company_slug}-matriz",
+                    "identifiers": ["MATRIZ", "MT", "ADM", "AC"],
+                },
+                {
+                    "name": f"{company_name} - Filial 01",
+                    "code": "01",
+                    "circuito": f"{company_slug}-filial01",
+                    "identifiers": ["LJ01", "L01", "FILIAL01", "F01"],
+                },
+                {
+                    "name": "Outros",
+                    "code": "OUTROS",
+                    "circuito": None,
+                    "identifiers": ["OUTROS"],
+                },
+            ]
 
             sites_added = 0
             for sdata in sites_to_create:
@@ -311,11 +295,11 @@ def sync_roles_only():
 def main():
     parser = argparse.ArgumentParser(description="Seed inicial turnkey para instalação limpa.")
     parser.add_argument("--sync-roles", action="store_true", help="Apenas sincronizar papéis e permissões sem alterar dados")
-    parser.add_argument("--company-name", default="Giassi Supermercados", help="Nome da empresa")
-    parser.add_argument("--company-slug", default="giassi", help="Slug único da empresa")
-    parser.add_argument("--admin-username", default="admin", help="Nome de usuário do admin")
+    parser.add_argument("--company-name", default=os.getenv("COMPANY_NAME", "Minha Empresa"), help="Nome da empresa")
+    parser.add_argument("--company-slug", default=os.getenv("COMPANY_SLUG", "empresa"), help="Slug único da empresa")
+    parser.add_argument("--admin-username", default=os.getenv("ADMIN_USER", "admin"), help="Nome de usuário do admin")
     parser.add_argument("--admin-fullname", default="Administrador do Sistema", help="Nome completo do admin")
-    parser.add_argument("--admin-email", default="admin@giassi.com.br", help="E-mail do admin")
+    parser.add_argument("--admin-email", default=os.getenv("ADMIN_EMAIL", "admin@empresa.local"), help="E-mail do admin")
     parser.add_argument("--admin-password", required=False, help="Senha do admin inicial")
     parser.add_argument("--no-default-sites", action="store_true", help="Não criar lista padrão de lojas/filiais")
 

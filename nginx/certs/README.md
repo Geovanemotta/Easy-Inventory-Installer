@@ -1,13 +1,13 @@
 # 🔐 Gerenciamento de Certificados SSL/TLS e Manutenção sem Downtime
 
-Esta pasta (`./nginx/certs/`) gerencia os certificados SSL/TLS que protegem o Giassi Inventário na porta **443 (HTTPS)**.
+Esta pasta (`./nginx/certs/`) gerencia os certificados SSL/TLS que protegem o ZenithMap na porta **443 (HTTPS)**.
 
 ---
 
 ## 🚀 1. Como Funciona o Fallback Automático
 
 Se você subir o sistema sem ter colocado nenhum certificado aqui, o Nginx **não quebra**:
-- O `entrypoint.sh` detecta a ausência dos arquivos e gera automaticamente um certificado auto-assinado temporário válido por 365 dias.
+- O `entrypoint.sh` detecta a ausência dos arquivos e gera automaticamente um certificado auto-assinado temporário válido por 10 anos.
 - O sistema fica imediatamente acessível em `https://<ip_ou_dominio>/`.
 
 ---
@@ -15,15 +15,15 @@ Se você subir o sistema sem ter colocado nenhum certificado aqui, o Nginx **nã
 ## 🏢 2. Como Importar o Certificado Oficial da Empresa
 
 O Nginx espera dois arquivos com estes nomes exatos nesta pasta:
-1. `giassi.crt` : Certificado SSL corporativo público (incluindo as cadeias intermediárias da Autoridade Certificadora / CA).
-2. `giassi.key` : Chave privada correspondente (sem senha / desprotegida).
+1. `server.crt` : Certificado SSL corporativo público (incluindo as cadeias intermediárias da Autoridade Certificadora / CA).
+2. `server.key` : Chave privada correspondente (sem senha / desprotegida).
 
 ---
 
 ### Opção A: A empresa já forneceu `.crt` / `.pem` e `.key`
 Basta copiar os arquivos para esta pasta com os nomes esperados:
-- Copie o certificado para: `nginx/certs/giassi.crt`
-- Copie a chave privada para: `nginx/certs/giassi.key`
+- Copie o certificado para: `nginx/certs/server.crt`
+- Copie a chave privada para: `nginx/certs/server.key`
 
 ---
 
@@ -45,10 +45,10 @@ Você pode extrair facilmente usando os scripts auxiliares inclusos nesta pasta:
 #### Ou manualmente via comando OpenSSL:
 ```bash
 # 1. Extrair a chave privada
-openssl pkcs12 -in seu_certificado.pfx -nocerts -out nginx/certs/giassi.key -nodes
+openssl pkcs12 -in seu_certificado.pfx -nocerts -out nginx/certs/server.key -nodes
 
 # 2. Extrair o certificado e as cadeias
-openssl pkcs12 -in seu_certificado.pfx -clcerts -nokeys -out nginx/certs/giassi.crt
+openssl pkcs12 -in seu_certificado.pfx -clcerts -nokeys -out nginx/certs/server.crt
 ```
 
 ---
@@ -60,10 +60,10 @@ Sempre que você trocar ou renovar um certificado, **NÃO é necessário reinici
 Execute:
 ```bash
 # 1. Valida a sintaxe e os certificados
-docker exec giassi-nginx nginx -t
+docker exec zenithmap-nginx nginx -t
 
 # 2. Recarrega as configurações em milissegundos
-docker exec giassi-nginx nginx -s reload
+docker exec zenithmap-nginx nginx -s reload
 ```
 O Nginx continuará atendendo as conexões atuais e abrirá novos processos com o novo certificado instantaneamente.
 
@@ -71,7 +71,7 @@ O Nginx continuará atendendo as conexões atuais e abrirá novos processos com 
 
 ## 🛡️ 4. Tratamento Rápido de Vulnerabilidades (CVEs)
 
-Assim como em arquiteturas corporativas (ex: Apache Guacamole com Tomcat atrás de Proxy Reverso), separar o Nginx na frente traz grandes vantagens:
+Assim como em arquiteturas corporativas, separar o Nginx na frente traz grandes vantagens:
 
 1. **Atualização do Web Server sem tocar na aplicação:**
    Se sair uma correção de vulnerabilidade para o Nginx ou OpenSSL, você atualiza a imagem em segundos:

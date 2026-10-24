@@ -1,15 +1,15 @@
 #!/bin/bash
 # ==========================================================
 # IMPORTADOR AUTOMÁTICO DE CERTIFICADO PFX (LINUX)
-# Converte .pfx para giassi.crt e giassi.key e recarrega o Nginx
+# Converte .pfx para server.crt e server.key e recarrega o Nginx
 # ==========================================================
 
 set -e
 
 PFX_PATH="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KEY_OUT="$SCRIPT_DIR/giassi.key"
-CRT_OUT="$SCRIPT_DIR/giassi.crt"
+KEY_OUT="$SCRIPT_DIR/server.key"
+CRT_OUT="$SCRIPT_DIR/server.crt"
 
 if [ -z "$PFX_PATH" ] || [ ! -f "$PFX_PATH" ]; then
     echo "Uso: $0 /caminho/para/certificado.pfx [senha]"
@@ -36,15 +36,15 @@ echo "[2/3] Extraindo certificado e cadeias..."
 openssl pkcs12 -in "$PFX_PATH" -clcerts -nokeys -out "$CRT_OUT" $PASS_ARG
 
 echo "[3/3] Validando e recarregando Nginx..."
-if docker ps --format '{{.Names}}' | grep -q "giassi-nginx"; then
-    docker exec giassi-nginx nginx -t
-    docker exec giassi-nginx nginx -s reload
+if docker ps --format '{{.Names}}' | grep -q "zenithmap-nginx"; then
+    docker exec zenithmap-nginx nginx -t
+    docker exec zenithmap-nginx nginx -s reload
     echo "[+] SUCESSO: Certificado aplicado no Nginx!"
-    if docker ps --format '{{.Names}}' | grep -q "giassi-meshcentral"; then
+    if docker ps --format '{{.Names}}' | grep -q "zenithmap-meshcentral"; then
         echo "[*] Reiniciando MeshCentral para carregar o novo certificado..."
-        docker restart giassi-meshcentral
+        docker restart zenithmap-meshcentral
         echo "[+] SUCESSO: MeshCentral atualizado com o novo certificado!"
     fi
 else
-    echo "[i] Container giassi-nginx não está rodando. O certificado será usado no próximo start."
+    echo "[i] Container zenithmap-nginx não está rodando. O certificado será usado no próximo start."
 fi

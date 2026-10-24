@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Instalador Silencioso do Agente MeshCentral para Linux (Grupo Giassi)
+# Instalador Silencioso do Agente MeshCentral para Linux (ZenithMap)
 # ==============================================================================
 
 set -e
 
-SERVER_HOST="${SERVER_HOST:-inventario.giassi.com.br}"
+SERVER_HOST="${SERVER_HOST:-localhost}"
 SERVER_PORT="${SERVER_PORT:-4443}"
 MESH_ID="${MESH_ID:-@oLaTf\$n@RpilBaLgcYNw@0pLz2dR\$TQotm4DXxNwG7Di9sbsSW6hWN6KS9mwvZ4}"
 
 echo "=========================================================="
-echo "   INSTALADOR DO AGENTE MESHCENTRAL - GRUPO GIASSI TI    "
+echo "   INSTALADOR DO AGENTE MESHCENTRAL - ZENITHMAP    "
 echo "=========================================================="
 
 if [[ $EUID -ne 0 ]]; then
@@ -63,7 +63,7 @@ sleep 3
 if systemctl is-active --quiet meshagent 2>/dev/null; then
     echo "=========================================================="
     echo " [SUCESSO] MeshAgent instalado e conectado com sucesso!"
-    echo " A máquina já deve aparecer no grupo 'Maquinas Giassi'."
+    echo " A máquina já deve aparecer no grupo 'Estacoes'."
     echo "=========================================================="
 else
     echo "[AVISO] Verifique o status com: sudo systemctl status meshagent"

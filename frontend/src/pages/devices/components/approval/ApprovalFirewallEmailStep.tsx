@@ -199,7 +199,7 @@ MAC: ${cleanMac || '(sem MAC)'}`;
               type="email"
               value={senderEmail}
               onChange={(e) => setSenderEmail(e.target.value)}
-              placeholder="Ex: seu.email@giassi.com.br"
+              placeholder="Ex: ti@empresa.com.br"
               className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-1.5 text-fg placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
             />
             <span className="text-[10px] text-fg-muted mt-0.5 block">
@@ -218,7 +218,7 @@ MAC: ${cleanMac || '(sem MAC)'}`;
               type="text"
               value={circuito}
               onChange={(e) => setCircuito(e.target.value)}
-              placeholder="Ex: giassi-lj19"
+              placeholder="Ex: link-filial01"
               className="w-full rounded-lg border border-border-medium bg-elevated px-2.5 py-1.5 font-mono text-amber-700 dark:text-amber-300 font-semibold placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
             />
           </div>

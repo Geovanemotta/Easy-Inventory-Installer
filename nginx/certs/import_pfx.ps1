@@ -1,6 +1,6 @@
 # ==========================================================
 # IMPORTADOR AUTOMÁTICO DE CERTIFICADO PFX (WINDOWS)
-# Converte .pfx para giassi.crt e giassi.key e recarrega o Nginx
+# Converte .pfx para server.crt e server.key e recarrega o Nginx
 # ==========================================================
 
 [CmdletBinding()]
@@ -13,8 +13,8 @@ param(
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$KeyOut = Join-Path $ScriptDir "giassi.key"
-$CrtOut = Join-Path $ScriptDir "giassi.crt"
+$KeyOut = Join-Path $ScriptDir "server.key"
+$CrtOut = Join-Path $ScriptDir "server.crt"
 
 if (-not (Test-Path $PfxPath)) {
     Write-Error "Arquivo PFX não encontrado: $PfxPath"
@@ -49,15 +49,15 @@ if (-not (Test-Path $CrtOut)) {
     exit 1
 }
 
-Write-Host "[3/3] Validando e recarregando Nginx no container giassi-nginx..." -ForegroundColor Yellow
+Write-Host "[3/3] Validando e recarregando Nginx no container zenithmap-nginx..." -ForegroundColor Yellow
 try {
-    docker exec giassi-nginx nginx -t
-    docker exec giassi-nginx nginx -s reload
+    docker exec zenithmap-nginx nginx -t
+    docker exec zenithmap-nginx nginx -s reload
     Write-Host "[+] SUCESSO: Certificado aplicado no Nginx!" -ForegroundColor Green
-    $runningMesh = docker ps --format '{{.Names}}' | Select-String "giassi-meshcentral"
+    $runningMesh = docker ps --format '{{.Names}}' | Select-String "zenithmap-meshcentral"
     if ($runningMesh) {
         Write-Host "[*] Reiniciando MeshCentral para carregar o novo certificado..." -ForegroundColor Yellow
-        docker restart giassi-meshcentral
+        docker restart zenithmap-meshcentral
         Write-Host "[+] SUCESSO: MeshCentral atualizado com o novo certificado!" -ForegroundColor Green
     }
 }

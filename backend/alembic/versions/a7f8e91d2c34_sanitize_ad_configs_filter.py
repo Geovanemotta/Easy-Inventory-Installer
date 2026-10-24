@@ -19,13 +19,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Sanitiza qualquer registro corrompido em ad_configs."""
-    op.execute("""
-        UPDATE ad_configs
-        SET user_search_filter = '(&(objectClass=user)(sAMAccountName={username})(memberOf:1.2.840.113556.1.4.1941:=CN=JumpServer_Users,OU=Jump-Server,OU=Grupos,OU=Servidores,OU=Matriz,OU=giassisuper,DC=giassisuper,DC=corp))'
-        WHERE user_search_filter LIKE '%(&(ob(%'
-           OR user_search_filter LIKE '%))jectClass=user)%';
-    """)
+    """Sanitização neutra para ad_configs."""
+    pass
 
 
 def downgrade() -> None:

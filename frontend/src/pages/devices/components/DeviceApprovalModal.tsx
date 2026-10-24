@@ -420,8 +420,8 @@ export const DeviceApprovalModal: React.FC<DeviceApprovalModalProps> = ({
               </h3>
               <p className="text-xs text-fg-secondary">
                 {concluido
-                  ? 'Easy Inventory • Disparo opcional de solicitação técnica para a operadora do circuito'
-                  : 'Easy Inventory • Homologação de Ativo Físico e Atribuição de IP Definitivo'}
+                  ? 'ZenithMap • Disparo opcional de solicitação técnica para a operadora do circuito'
+                  : 'ZenithMap • Homologação de Ativo Físico e Atribuição de IP Definitivo'}
               </p>
             </div>
           </div>

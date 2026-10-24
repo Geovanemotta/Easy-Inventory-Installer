@@ -8,7 +8,7 @@ from ldap3 import ALL, Connection, Server
 
 from app.models.ad_config import ADConfig
 
-logger = logging.getLogger("giassi_app.meshcentral")
+logger = logging.getLogger("zenithmap.meshcentral")
 
 MESHCENTRAL_CONFIG_PATHS = [
     Path("/app/meshcentral/config.json"),

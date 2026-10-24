@@ -45,14 +45,14 @@ def test_smtp_connection(
     sender = cfg.smtp_user if (cfg.smtp_user and "@" in cfg.smtp_user) else recipient
 
     test_body = (
-        "Olá,\n\nEste é um e-mail de teste disparado pelo Easy Inventory para validar a conectividade e autenticação com o servidor SMTP.\n\n"
+        "Olá,\n\nEste é um e-mail de teste disparado pelo ZenithMap para validar a conectividade e autenticação com o servidor SMTP.\n\n"
         f"Servidor: {cfg.smtp_host}:{cfg.smtp_port}\n"
         f"TLS: {cfg.use_tls} | SSL: {cfg.use_ssl}\n"
         f"Data do teste: {datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S UTC')}\n\n"
         "Configuração validada com sucesso!"
     )
     msg = EmailMessage()
-    msg["Subject"] = "Teste de Conexão SMTP - Easy Inventory"
+    msg["Subject"] = "Teste de Conexão SMTP - ZenithMap"
     msg["From"] = sender
     msg["To"] = recipient
     msg["Date"] = formatdate(localtime=True)

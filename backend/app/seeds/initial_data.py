@@ -129,26 +129,27 @@ def main():
         # EMPRESA
         # -----------------------------------------
 
+        company_name = os.getenv("COMPANY_NAME", "Minha Empresa").strip()
+        company_slug = os.getenv("COMPANY_SLUG", "empresa").strip().lower()
+
         company = session.scalar(
-            select(Company).where(
-                Company.slug == "giassi"
-            )
+            select(Company).limit(1)
         )
 
         if company is None:
             company = Company(
-                name="Giassi",
-                slug="giassi",
+                name=company_name,
+                slug=company_slug,
                 active=True,
             )
 
             session.add(company)
             session.flush()
 
-            print("Empresa criada: Giassi")
+            print(f"Empresa criada: {company.name} ({company.slug})")
 
         else:
-            print("Empresa já existe: Giassi")
+            print(f"Empresa já existe: {company.name} ({company.slug})")
 
 
         # -----------------------------------------

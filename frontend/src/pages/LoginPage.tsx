@@ -203,12 +203,14 @@ export const LoginPage: React.FC = () => {
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-border-subtle bg-surface p-8 shadow-2xl backdrop-blur-md">
         {/* Cabeçalho */}
         <div className="mb-6 text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-2xl mb-3 shadow-lg shadow-orange-500/10">
-            GI
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10 text-orange-500 font-extrabold text-2xl mb-3 shadow-lg shadow-orange-500/15">
+            ZM
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-fg">Giassi Inventory V2</h2>
+          <h2 className="text-xl font-bold tracking-tight text-fg">
+            Zenith<span className="text-orange-500">Map</span>
+          </h2>
           <p className="mt-1 text-xs text-fg-secondary">
-            {step === 'credentials' && 'Acesse com suas credenciais para gerenciar o parque computacional'}
+            {step === 'credentials' && 'Acesse com suas credenciais para gerenciar ativos de TI e parque computacional'}
             {step === 'challenge_2fa' && 'Confirmação de Segurança em Duas Etapas'}
             {step === 'setup_2fa' && 'Configuração Obrigatória do Autenticador (2FA)'}
           </p>

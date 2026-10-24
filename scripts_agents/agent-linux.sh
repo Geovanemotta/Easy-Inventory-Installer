@@ -1,5 +1,6 @@
 #!/bin/bash
 # ==========================================================
+# AGENTE DE INVENTÁRIO ZENITHMAP - LINUX (v2.0)
 # Compatível com Ubuntu 20.04/22.04/24.04, Zorin OS, Debian
 # ==========================================================
 
@@ -10,17 +11,17 @@ set -e
 # ----------------------------------------------------------
 # Permite definir a URL via:
 # 1) Argumento de linha de comando: ./agent-linux.sh http://ip:8000/api/v1/inventory/receive
-# 2) Variável de ambiente: export GIASSI_SERVER_URL="http://ip:8000/api/v1/inventory/receive"
+# 2) Variável de ambiente: export ZENITHMAP_SERVER_URL="http://ip:8000/api/v1/inventory/receive"
 # 3) Fallback padrão
-DIRETORIO="/var/lib/giassi-inventory"
+DIRETORIO="/var/lib/zenithmap-agent"
 ARQUIVO_ATUAL="$DIRETORIO/inventory.json"
 ARQUIVO_ULTIMO="$DIRETORIO/inventory.last.json"
 ARQUIVO_URL="$DIRETORIO/server_url"
 
 mkdir -p "$DIRETORIO"
 
-# Se houver URL salva de execução anterior bem-sucedida e GIASSI_SERVER_URL não foi definida
-if [[ -z "$GIASSI_SERVER_URL" && -f "$ARQUIVO_URL" ]]; then
+# Se houver URL salva de execução anterior bem-sucedida e ZENITHMAP_SERVER_URL não foi definida
+if [[ -z "$ZENITHMAP_SERVER_URL" && -f "$ARQUIVO_URL" ]]; then
     SAVED_URL=$(cat "$ARQUIVO_URL" 2>/dev/null | tr -d '\r\n')
     if [[ -n "$SAVED_URL" ]]; then
         URL_PADRAO="$SAVED_URL"
@@ -31,7 +32,7 @@ else
     URL_PADRAO="http://localhost:8000/api/v1/inventory/receive"
 fi
 
-URL_SERVIDOR="${GIASSI_SERVER_URL:-"$URL_PADRAO"}"
+URL_SERVIDOR="${ZENITHMAP_SERVER_URL:-"$URL_PADRAO"}"
 FORCAR_ENVIO=false
 
 for arg in "$@"; do
@@ -301,9 +302,7 @@ fi
 # RustDesk ID (Acesso Remoto)
 # ----------------------------------------------------------
 RUSTDESK_ID=""
-if command -v rustdesk-giassi-cliente-li >/dev/null 2>&1; then
-    RUSTDESK_ID=$(rustdesk-giassi-cliente-li --get-id 2>/dev/null | tail -n 1 || true)
-elif command -v rustdesk >/dev/null 2>&1; then
+if command -v rustdesk >/dev/null 2>&1; then
     RUSTDESK_ID=$(rustdesk --get-id 2>/dev/null | tail -n 1 || true)
 fi
 
@@ -626,10 +625,6 @@ if command -v apt-mark >/dev/null 2>&1; then
                 adicionar_pacote "aplicativos" "firefox" "Firefox" "$pacote" "aplicativo"
                 continue
                 ;;
-            rustdesk-giassi-cliente-li)
-                adicionar_pacote "aplicativos" "rustdesk-giassi" "RustDesk Giassi Cliente" "$pacote" "aplicativo"
-                continue
-                ;;
             hplip-gui)
                 adicionar_pacote "ferramentas" "hplip" "HPLIP" "$pacote" "ferramenta"
                 continue
@@ -679,7 +674,7 @@ fi
 # ----------------------------------------------------------
 PACOTES_ESSENCIAIS=(
     "libreoffice-writer" "libreoffice-calc" "libreoffice-impress" "libreoffice-base" "libreoffice-draw" "libreoffice-math"
-    "google-chrome-stable" "firefox" "rustdesk" "rustdesk-giassi-cliente-li"
+    "google-chrome-stable" "firefox" "rustdesk"
     "zabbix-agent2" "zabbix-agent" "wazuh-agent"
 )
 for p_ess in "${PACOTES_ESSENCIAIS[@]}"; do
@@ -699,8 +694,8 @@ for p_ess in "${PACOTES_ESSENCIAIS[@]}"; do
             if ! jq -e '.[] | select(.id == "firefox")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
                 adicionar_pacote "aplicativos" "firefox" "Firefox" "$p_ess" "aplicativo"
             fi
-        elif [[ "$p_ess" == "rustdesk" || "$p_ess" == "rustdesk-giassi-cliente-li" ]]; then
-            if ! jq -e '.[] | select(.id == "rustdesk-giassi" or .id == "rustdesk")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
+        elif [[ "$p_ess" == "rustdesk" ]]; then
+            if ! jq -e '.[] | select(.id == "rustdesk")' <<< "$APLICATIVOS" >/dev/null 2>&1; then
                 adicionar_pacote "aplicativos" "rustdesk" "RustDesk" "$p_ess" "aplicativo"
             fi
         elif [[ "$p_ess" == "zabbix-agent2" || "$p_ess" == "zabbix-agent" ]]; then

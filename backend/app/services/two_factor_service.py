@@ -14,7 +14,7 @@ def generate_totp_setup(username: str) -> Tuple[str, str, str]:
     totp = pyotp.TOTP(secret)
     provisioning_uri = totp.provisioning_uri(
         name=username,
-        issuer_name="Giassi Inventário",
+        issuer_name="ZenithMap",
     )
 
     qr = qrcode.QRCode(

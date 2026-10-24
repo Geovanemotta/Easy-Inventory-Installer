@@ -5,8 +5,8 @@
 
 :root {
   /* ==========================================================
-     PALETA DE DESTAQUE / ACENTO (GIASSI AMBER / ORANGE)
-     Mantida a cor original para os botões e destaques
+     PALETA DE DESTAQUE / ACENTO (ZENITHMAP AMBER / ORANGE BRAND ACCENT)
+     Mantida a cor para os botões e destaques
      ========================================================== */
   --color-orange-300: #fbd38d; /* Ajustado para um tom mais suave em fundos claros */
   --color-orange-400: #e87722; 
@@ -45,13 +45,13 @@
 
 html.dark {
   /* ==========================================================
-     PALETA DE DESTAQUE / ACENTO (GIASSI AMBER / ORANGE)
+     PALETA DE DESTAQUE / ACENTO (ZENITHMAP AMBER / ORANGE BRAND ACCENT)
      Clique no quadradinho colorido ao lado do código hex para abrir
      o seletor visual de cores do editor:
      ========================================================== */
   --color-orange-300: #ffffff; /* Textos e badges suaves */
   --color-orange-400: #e87722; /* Textos de destaque, tags e ícones */
-  --color-orange-500: #e87722; /* Cor principal de botões, barras e badges (Original Giassi) */
+  --color-orange-500: #e87722; /* Cor principal de botões, barras e badges */
   --color-orange-600: #e87722; /* Estado hover de botões e links */
 
   /* ==========================================================

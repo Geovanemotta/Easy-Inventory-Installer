@@ -168,7 +168,7 @@ export const SiteIpRangesModal: React.FC<SiteIpRangesModalProps> = ({
                 Gerenciador de Faixas de IP &amp; Sub-redes (VLANs)
               </h3>
               <p className="text-[11px] text-fg-secondary">
-                Mapeamento de sub-redes e controle de ocupação por loja do Grupo Giassi
+                Mapeamento de sub-redes e controle de ocupação por unidade / filial
               </p>
             </div>
           </div>

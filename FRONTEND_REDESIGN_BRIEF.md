@@ -1,5 +1,5 @@
 # FRONTEND REDESIGN BRIEF & UI/UX AUDIT SPECIFICATION
-**Projeto:** Giassi Enterprise Inventory & Fleet RMM  
+**Projeto:** ZenithMap Asset & Network Intelligence & Fleet RMM  
 **Documento:** Especificação Técnica de Produto, Auditoria de UI/UX e Briefing para Redesign (UX Pilot)  
 **Versão:** 1.0.0  
 **Perfil do Documento:** Documentação autossuficiente para reprodução e redesign por IA de UI/UX  
@@ -9,7 +9,7 @@
 ## 1. RESUMO EXECUTIVO
 
 ### 1.1 Contexto e Missão do Produto
-O **Giassi Enterprise Inventory** é uma plataforma corporativa web de **RMM (Remote Monitoring & Management), Descoberta de Ativos e Inventário de Hardware/Software**, desenvolvida para sustentar a operação de TI do Grupo Giassi (rede com dezenas de unidades operacionais entre Lojas Giassi Supermercados, atacados Combo e departamentos da Matriz Administrativa em Santa Catarina).
+O **ZenithMap Asset & Network Intelligence** é uma plataforma corporativa web de **RMM (Remote Monitoring & Management), Descoberta de Ativos e Inventário de Hardware/Software**, desenvolvida para sustentar a operação de TI do ZenithMap (rede com dezenas de unidades operacionais entre Unidades e Filiais, atacados Combo e departamentos da Matriz Administrativa em Santa Catarina).
 
 O produto atua como uma **torre de controle operacional unificada** para a equipe de infraestrutura e suporte de TI, centralizando:
 1. **Telemetria de Estações de Trabalho:** Coleta periódica de agentes locais (Linux e Windows), abrangendo saúde de SSD/HD, ocupação de disco particionado, inventário de hardware (CPU, RAM, placa-mãe, monitor, periféricos USB), alertas de drift de componentes e conformidade no Firewall.
@@ -34,7 +34,7 @@ Este briefing traduz todas as regras de negócio, dados, fluxos e restrições r
 ## 2. DESCRIÇÃO DO PRODUTO E ESCOPO ANALISADO
 
 ### 2.1 Finalidade e Problemas Resolvidos
-| Problema no Chão de Operação | Solução no Sistema Giassi Inventory |
+| Problema no Chão de Operação | Solução no Sistema ZenithMap |
 | :--- | :--- |
 | Falta de visibilidade da integridade física de milhares de PDVs e caixas de supermercado. | Telemetria automatizada que audita RAM, disco e alerta instantaneamente sobre substituição não autorizada ou quebra física de hardware (Hardware Drift). |
 | Conflito de IPs e dificuldade em identificar endereços livres para novos equipamentos de loja. | Mapeamento automático de faixas de IP por filial, calculando dinamicamente IPs livres e permitindo provisionamento com 1 clique. |
@@ -251,7 +251,7 @@ frontend/src/
 4. **Header Global (`Header.tsx`):**
    - Tag colorida do módulo atual, contador de pulso verde com timestamp da última telemetria, botão "Instalar Agente", botão de refresh de dados e toggle de tema Claro/Escuro.
 5. **Sidebar Global (`Sidebar.tsx`):**
-   - Logotipo Giassi, navegação por ícones com badges de contagem em tempo real, rodapé com avatar do usuário, nome, papel hierárquico e botão de encerramento seguro de sessão.
+   - Logotipo ZenithMap, navegação por ícones com badges de contagem em tempo real, rodapé com avatar do usuário, nome, papel hierárquico e botão de encerramento seguro de sessão.
 
 ---
 
@@ -282,7 +282,7 @@ A nova direção visual abandona qualquer traço de template de entretenimento o
 - **Superfície 1 (Sidebars e Painéis de Filtro):** `#0e1422` (Contraste estrutural claro contra a área de trabalho).
 - **Superfície 2 (Tabelas e Cards):** `#131a2c` (Superfície limpa de trabalho).
 - **Bordas Estruturais:** `#1f293d` (Delimitação sutil e nítida de divisões).
-- **Cor Primária Institucional:** `#0284c7` (Azul Giassi corporativo, transmitindo confiabilidade técnica).
+- **Cor Primária Institucional:** `#0284c7` (Laranja Âmbar ZenithMap, transmitindo confiabilidade técnica).
 - **Cores Semânticas Funcionais:**
   - *Normalidade / Online:* `#10b981` (Verde esmeralda equilibrado).
   - *Atenção / Conflito / Pendência:* `#f59e0b` (Âmbar/Laranja de alerta funcional).
@@ -399,7 +399,7 @@ Permitir que o engenheiro ou técnico de TI monitore o estado de centenas de com
 - `SlideOverDrawer`: Painel deslizante à direita contendo abas organizadas: *Hardware*, *Discos & Pastas*, *Periféricos*, *Firewall* e *Histórico de Drift*.
 
 #### Conteúdo Real Encontrado
-- Nomenclatura das lojas: `LJ01 - Giassi Criciúma Centro`, `LJ05 - Giassi Tubarão`, `COMB01 - Combo Araranguá`, `MATRIZ - Administrativo Içara`.
+- Nomenclatura das lojas: `LJ01 - Filial Centro`, `LJ05 - Filial Sul`, `COMB01 - Combo Araranguá`, `MATRIZ - Administrativo Içara`.
 - Nomes reais de estações: `LJ01PDV01`, `LJ05ADM03`, `C01SERV01`.
 - Sistemas: `Zorin OS 16.3`, `Zorin OS 17`, `Windows 10 Pro`, `Windows 11 Pro`.
 
@@ -479,7 +479,7 @@ sequenceDiagram
     actor Operador as Técnico de Campo
     participant Net as Ativos de Rede (#net)
     participant Modal as Modal de Cadastro
-    Operador->>Net: Seleciona Filial "LJ01 - Giassi Centro" e Faixa "VLAN Checkouts"
+    Operador->>Net: Seleciona Filial "LJ01 - Filial Centro" e Faixa "VLAN Checkouts"
     Net-->>Operador: Lista IPs ordenados; exibe linha azul "192.168.4.88 (Livre)"
     Operador->>Net: Clica em "+ Usar IP"
     Net->>Modal: Abre formulário com IP e Loja pré-travados
@@ -546,17 +546,17 @@ Abaixo encontra-se o prompt consolidado e autossuficiente, pronto para ser copia
 
 ```markdown
 Role: Senior Enterprise UI/UX Designer & Systems Architect.
-Task: Design a high-density, mission-critical Enterprise RMM & Fleet Hardware Inventory Web Dashboard for "Grupo Giassi", a large supermarket and wholesale retail network with thousands of workstations and IoT network assets.
+Task: Design a high-density, mission-critical Enterprise RMM & Fleet Hardware Inventory Web Dashboard for "ZenithMap", a large supermarket and wholesale retail network with thousands of workstations and IoT network assets.
 
 Design Aesthetic & Personality:
 - Concept: "Enterprise Precision Slate" (inspired by professional infrastructure platforms like Cloudflare Dashboard, Datadog and AWS Console, moving completely away from generic AI templates, bright neon gradients, and floating pastel cards).
-- Color Palette: Dark mode default. Base background #090D14, elevated surface #111827, borders #1F293D. Primary brand accent #0284C7 (Corporate Giassi Blue). Semantics: emerald #10B981 (online/healthy), amber #F59E0B (warning/firewall pending), crimson #EF4444 (hardware conflict/drive full/exhausted licenses).
+- Color Palette: Dark mode default. Base background #090D14, elevated surface #111827, borders #1F293D. Primary brand accent #0284C7 (ZenithMap Amber / Orange Accent). Semantics: emerald #10B981 (online/healthy), amber #F59E0B (warning/firewall pending), crimson #EF4444 (hardware conflict/drive full/exhausted licenses).
 - Typography: Clean sans-serif 'Inter' for UI labels and titles; strictly tabular and crisp 'JetBrains Mono' for IPv4 addresses, MAC addresses, hardware serials, software license keys, and asset tags.
 - Spacing & Density: High information density tailored for enterprise IT engineers. Compact 36px inputs, 44px table rows, zero wasted padding.
 
 Layout Architecture:
 1. Left Navigation Sidebar (240px fixed width, #0A0F1A):
-   - Top: Minimalist corporate brand logo with "GIASSI INVENTORY" bold lettering and an "ENTERPRISE RMM" badge.
+   - Top: Minimalist corporate brand logo with "ZENITHMAP" bold lettering and an "ENTERPRISE RMM" badge.
    - Menu items with clear SVG outline icons and numeric badges:
      * Estações de Trabalho (Active, displaying fleet count badge e.g. "1,842")
      * Ativos de Rede & IoT

@@ -1,6 +1,6 @@
 <#
 ==========================================================
-AGENTE DE INVENTÁRIO GIASSI - WINDOWS (v2.0)
+AGENTE DE INVENTÁRIO ZENITHMAP - WINDOWS (v2.0)
 Compatível com Windows 10, 11 e Windows Server (PowerShell 5.1+)
 ==========================================================
 #>
@@ -17,7 +17,7 @@ param(
 # ----------------------------------------------------------
 # CONFIGURAÇÕES E DIRETÓRIOS
 # ----------------------------------------------------------
-$BaseDir = "C:\ProgramData\GiassiInventory"
+$BaseDir = "C:\ProgramData\ZenithMap"
 $InventoryFile = Join-Path $BaseDir "inventory.json"
 $LastInventoryFile = Join-Path $BaseDir "inventory.last.json"
 $SavedUrlFile = Join-Path $BaseDir "server_url.txt"
@@ -35,8 +35,8 @@ if (Test-Path $SavedUrlFile) {
 }
 
 if (-not $ServerURL) {
-    if ($env:GIASSI_SERVER_URL) {
-        $ServerURL = $env:GIASSI_SERVER_URL
+    if ($env:ZENITHMAP_SERVER_URL) {
+        $ServerURL = $env:ZENITHMAP_SERVER_URL
     } else {
         $ServerURL = $DefaultURL
     }
@@ -50,7 +50,7 @@ if ($ServerURL -notmatch "/api/v1/inventory/receive") {
 $ErrorActionPreference = "SilentlyContinue"
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host " AGENTE DE INVENTÁRIO GIASSI - WINDOWS " -ForegroundColor Cyan
+Write-Host " AGENTE DE INVENTÁRIO ZENITHMAP - WINDOWS " -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host "[*] Destino: $ServerURL"
 
@@ -282,7 +282,6 @@ foreach ($d in $AllDrives) {
 # ----------------------------------------------------------
 $RustDeskID = ""
 $RustDeskPaths = @(
-    "C:\Program Files\Rustdesk-Giassi-Cliente\Rustdesk-Giassi-Cliente.exe",
     "C:\Program Files\RustDesk\rustdesk.exe",
     "C:\Program Files (x86)\RustDesk\rustdesk.exe"
 )

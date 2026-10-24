@@ -152,8 +152,8 @@ load_env_config() {
     PORT_HTTPS=${PORT_HTTPS:-443}
     PORT_HTTP=${PORT_HTTP:-80}
     PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
-    POSTGRES_DB=${POSTGRES_DB:-"giassi_inventory"}
-    POSTGRES_USER=${POSTGRES_USER:-"giassi_app"}
+    POSTGRES_DB=${POSTGRES_DB:-"zenithmap_db"}
+    POSTGRES_USER=${POSTGRES_USER:-"zenithmap_app"}
 }
 
 # Retorna a URL completa do painel web respeitando portas alternativas
@@ -316,7 +316,7 @@ start_or_update_containers() {
     local NEED_BUILD=false
     local IMAGES_EXIST=false
 
-    if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null && docker inspect giassi-frontend &>/dev/null; then
+    if docker inspect zenithmap-backend &>/dev/null && docker inspect zenithmap-nginx &>/dev/null && docker inspect zenithmap-frontend &>/dev/null; then
         IMAGES_EXIST=true
     fi
 
@@ -376,7 +376,7 @@ wait_for_postgres() {
     echo " [*] Aguardando o banco de dados PostgreSQL estar operacional..."
     local MAX_ATTEMPTS=30
     local ATTEMPT=0
-    until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-giassi_app}" -d "${POSTGRES_DB:-giassi_inventory}" &>/dev/null || \
+    until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-zenithmap_app}" -d "${POSTGRES_DB:-zenithmap_db}" &>/dev/null || \
           $DOCKER_COMPOSE exec -T postgres pg_isready &>/dev/null; do
         ATTEMPT=$((ATTEMPT + 1))
         if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
@@ -456,7 +456,7 @@ show_completion_summary() {
     echo -e "------------------------------------------------------------------"
     echo -e " ${YELLOW}[i] Dica de Certificado SSL:${NC}"
     echo -e "     Caso deseje usar o certificado oficial da sua empresa, basta"
-    echo -e "     substituir os arquivos em: ${BOLD}./nginx/certs/giassi.crt${NC} e ${BOLD}.key${NC}"
+    echo -e "     substituir os arquivos em: ${BOLD}./nginx/certs/server.crt${NC} e ${BOLD}.key${NC}"
     echo -e "     e rodar: ${BOLD}$DOCKER_COMPOSE exec -T nginx nginx -s reload${NC}"
     echo -e "${CYAN}==================================================================${NC}"
     echo ""
@@ -517,12 +517,12 @@ fi
 DEFAULT_HOST="${ENV_SERVER_HOST:-$HOST_IP}"
 
 # Nome da Empresa
-read -p " Nome da empresa [Giassi Supermercados]: " INPUT_COMPANY_NAME
-COMPANY_NAME=${INPUT_COMPANY_NAME:-"Giassi Supermercados"}
+read -p " Nome da empresa [Minha Empresa]: " INPUT_COMPANY_NAME
+COMPANY_NAME=${INPUT_COMPANY_NAME:-"Minha Empresa"}
 
 # Slug da Empresa
 DEFAULT_SLUG=$(echo "$COMPANY_NAME" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]')
-[ -z "$DEFAULT_SLUG" ] && DEFAULT_SLUG="giassi"
+[ -z "$DEFAULT_SLUG" ] && DEFAULT_SLUG="empresa"
 read -p " Identificador curto / slug da empresa [$DEFAULT_SLUG]: " INPUT_COMPANY_SLUG
 COMPANY_SLUG=${INPUT_COMPANY_SLUG:-"$DEFAULT_SLUG"}
 
@@ -544,11 +544,11 @@ read -p " Porta MeshCentral [$DEFAULT_PORT_MESHCENTRAL]: " INPUT_PORT_MESHCENTRA
 PORT_MESHCENTRAL=${INPUT_PORT_MESHCENTRAL:-"$DEFAULT_PORT_MESHCENTRAL"}
 
 # Banco de Dados
-DEFAULT_DB="${ENV_POSTGRES_DB:-${COMPANY_SLUG}_inventory}"
+DEFAULT_DB="${ENV_POSTGRES_DB:-zenithmap_db}"
 read -p " Nome do banco de dados [$DEFAULT_DB]: " INPUT_POSTGRES_DB
 POSTGRES_DB=${INPUT_POSTGRES_DB:-"$DEFAULT_DB"}
 
-DEFAULT_USER="${ENV_POSTGRES_USER:-${COMPANY_SLUG}_app}"
+DEFAULT_USER="${ENV_POSTGRES_USER:-zenithmap_app}"
 read -p " Usuário do banco de dados [$DEFAULT_USER]: " INPUT_POSTGRES_USER
 POSTGRES_USER=${INPUT_POSTGRES_USER:-"$DEFAULT_USER"}
 
@@ -564,8 +564,8 @@ ADMIN_USER=${INPUT_ADMIN_USER:-"admin"}
 read -p " Nome completo do administrador [Administrador do Sistema]: " INPUT_ADMIN_FULLNAME
 ADMIN_FULLNAME=${INPUT_ADMIN_FULLNAME:-"Administrador do Sistema"}
 
-read -p " E-mail do administrador [admin@${COMPANY_SLUG}.com.br]: " INPUT_ADMIN_EMAIL
-ADMIN_EMAIL=${INPUT_ADMIN_EMAIL:-"admin@${COMPANY_SLUG}.com.br"}
+read -p " E-mail do administrador [admin@${COMPANY_SLUG}.local]: " INPUT_ADMIN_EMAIL
+ADMIN_EMAIL=${INPUT_ADMIN_EMAIL:-"admin@${COMPANY_SLUG}.local"}
 
 # Senha do Admin (com máscara)
 while true; do

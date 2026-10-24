@@ -226,7 +226,7 @@ export const AppsPage: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `catalogo_softwares_giassi.csv`);
+      link.setAttribute('download', `zenithmap_catalogo_softwares.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

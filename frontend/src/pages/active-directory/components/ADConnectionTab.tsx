@@ -49,7 +49,7 @@ export default function ADConnectionTab({
               Autenticação Corporativa Active Directory / LDAP
             </h3>
             <p className="text-xs text-fg-secondary">
-              Habilite o logon único (SSO) com as credenciais corporativas do domínio Giassi
+              Habilite o logon único (SSO) com as credenciais corporativas do domínio Active Directory
             </p>
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function ADConnectionTab({
             </label>
             <input
               type="text"
-              placeholder="Ex: giassi.local ou GIASSI"
+              placeholder="Ex: empresa.local ou EMPRESA"
               value={config.domain}
               onChange={(e) => onChange({ ...config, domain: e.target.value })}
               className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-xs font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -117,7 +117,7 @@ export default function ADConnectionTab({
             </label>
             <input
               type="text"
-              placeholder="Ex: DC=giassi,DC=local"
+              placeholder="Ex: DC=empresa,DC=local"
               value={config.base_dn}
               onChange={(e) => onChange({ ...config, base_dn: e.target.value })}
               className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 font-mono text-xs font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"
@@ -165,7 +165,7 @@ export default function ADConnectionTab({
             </label>
             <input
               type="text"
-              placeholder="Ex: svc-inventario@giassi.local ou CN=svc,OU=TI,DC=..."
+              placeholder="Ex: svc-zenithmap@empresa.local ou CN=svc,OU=TI,DC=..."
               value={config.bind_user || ''}
               onChange={(e) => onChange({ ...config, bind_user: e.target.value })}
               className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-xs font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-colors"

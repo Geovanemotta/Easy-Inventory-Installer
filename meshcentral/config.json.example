@@ -28,7 +28,7 @@
   },
   "domains": {
     "": {
-      "title": "Giassi - Acesso Remoto",
+      "title": "ZenithMap - Acesso Remoto",
       "force2factor": true,
       "ignoreAgentHashCheck": true,
       "allowedOrigin": true,
@@ -43,11 +43,11 @@
       ],
       "userNameIsEmail": false,
       "hideMeshCentral": false,
-      "certUrl": "file:///opt/meshcentral/meshcentral-data/giassi.crt"
+      "certUrl": "file:///opt/meshcentral/meshcentral-data/server.crt"
     },
     "local": {
       "siteStyle": 2,
-      "title": "Giassi - Acesso Local (Admin)",
+      "title": "ZenithMap - Acesso Local (Admin)",
       "title2": "Autenticação Local de Contingência",
       "allowedOrigin": true,
       "minify": true,

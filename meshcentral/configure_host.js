@@ -35,11 +35,11 @@ function updateMeshConfig() {
     data.settings.allowFraming = true;
     data.settings.allowedFramingOrigins = '*';
 
-    const hasCert = fs.existsSync(path.join(baseDir, 'nginx', 'certs', 'giassi.crt'));
+    const hasCert = fs.existsSync(path.join(baseDir, 'nginx', 'certs', 'server.crt'));
     if (!data.domains) data.domains = {};
     if (data.domains['']) {
       if (hasCert) {
-        data.domains[''].certUrl = 'file:///opt/meshcentral/meshcentral-data/giassi.crt';
+        data.domains[''].certUrl = 'file:///opt/meshcentral/meshcentral-data/server.crt';
       } else {
         delete data.domains[''].certUrl;
       }
@@ -51,7 +51,7 @@ function updateMeshConfig() {
     }
     if (data.domains.local) {
       if (hasCert) {
-        data.domains.local.certUrl = 'file:///opt/meshcentral/meshcentral-data/giassi.crt';
+        data.domains.local.certUrl = 'file:///opt/meshcentral/meshcentral-data/server.crt';
       } else {
         delete data.domains.local.certUrl;
       }

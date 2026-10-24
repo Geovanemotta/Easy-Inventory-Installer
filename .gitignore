@@ -7,7 +7,7 @@ dados.txt
 *.sql
 *.sqlite
 *.sqlite3
-import-data/*.json
+import-data/
 
 # Node & Frontend
 node_modules/

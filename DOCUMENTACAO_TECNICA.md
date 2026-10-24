@@ -147,14 +147,14 @@ Para evitar tráfego de rede e processamento inútil no servidor, os agentes Win
 
 * **Auto-Recuperação de Serviços:** Todos os containers no `docker-compose.yml` utilizam a diretiva `restart: unless-stopped`, garantindo que o sistema suba automaticamente após reinicializações do servidor físico ou do sistema operacional.
 * **Integridade Estrutural (Alembic):** Atualizações do sistema nunca dependem de scripts SQL manuais. Novas tabelas e colunas são aplicadas de forma programática através de migrações rastreáveis.
-* **Persistência de Dados Isolada:** O armazenamento do banco de dados fica contido no volume Docker `postgres_data`, totalmente separado das imagens e do código-fonte, garantindo que atualizações de versão de software nunca afetem os dados corporativos.
+* **Persistência de Dados Isolada:** O armazenamento do banco de dados fica contido no volume Docker `zenithmap_pgdata`, totalmente separado das imagens e do código-fonte, garantindo que atualizações de versão de software nunca afetem os dados corporativos.
 
 ---
 
 ## 8. Estrutura de Diretórios do Projeto
 
 ```text
-giassi-inventory/
+zenithmap/
 ├── backend/                      # Backend Python FastAPI
 │   ├── alembic/                  # Versionamento de esquema de banco de dados
 │   │   └── versions/             # Migrações incrementais

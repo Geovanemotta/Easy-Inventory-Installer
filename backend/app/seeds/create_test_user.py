@@ -16,9 +16,9 @@ engine = create_engine(
 )
 
 
-USERNAME = "lj01"
-FULL_NAME = "Usuário Loja 01"
-EMAIL = "lj01@giassi.com.br"
+USERNAME = "operador01"
+FULL_NAME = "Operador Filial 01"
+EMAIL = os.getenv("TEST_USER_EMAIL", "operador01@empresa.local")
 SITE_CODE = "01"
 
 
@@ -29,15 +29,11 @@ def main():
         # EMPRESA
         # -----------------------------------------
 
-        company = session.scalar(
-            select(Company).where(
-                Company.slug == "giassi"
-            )
-        )
+        company = session.scalar(select(Company).limit(1))
 
         if company is None:
             raise RuntimeError(
-                "Empresa Giassi não encontrada."
+                "Nenhuma empresa cadastrada no sistema. Execute initial_data primeiro."
             )
 
         # -----------------------------------------

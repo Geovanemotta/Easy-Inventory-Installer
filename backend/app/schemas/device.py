@@ -83,7 +83,7 @@ class DeviceAprovarCadastroIn(BaseModel):
     )
     circuito: Optional[str] = Field(
         default=None,
-        description="Identificador do circuito da loja (ex: 'giassi-lj19')",
+        description="Identificador do circuito da loja (ex: 'link-filial01')",
     )
     vlan_name: Optional[str] = Field(
         default=None,

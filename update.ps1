@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 #  SISTEMA DE INVENTÁRIO - SCRIPT DE ATUALIZAÇÃO CONTÍNUA (WINDOWS / POWERSHELL)
 #  Puxa as novidades do Git, recompila o frontend, aplica migrações e
 #  reinicia os containers com downtime mínimo (sem perder nenhum dado).
@@ -44,7 +44,7 @@ if (Test-Path "frontend/dist/index.html") {
 
 # 3. Atualização dos containers (sem tocar em volumes)
 Write-Host "[3/5] Atualizando containers Docker e aplicando alterações..." -ForegroundColor Yellow
-$backendRunning = (docker inspect giassi-backend 2>$null) -and (docker inspect giassi-frontend 2>$null)
+$backendRunning = (docker inspect zenithmap-backend 2>$null) -and (docker inspect zenithmap-frontend 2>$null)
 if ($backendRunning) {
     Write-Host " [*] Imagens Docker locais detectadas. Aplicando alterações diretamente via volumes..."
     docker compose up -d

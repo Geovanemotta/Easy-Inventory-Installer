@@ -254,7 +254,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
             {filteredLojas.length > 0 && (
               <>
                 <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-orange-400/90">
-                  Lojas Giassi ({filteredLojas.length})
+                  Unidades / Filiais ({filteredLojas.length})
                 </div>
                 {filteredLojas.map(({ s, n }) => {
                   const isSelected = String(value) === String(s.id);

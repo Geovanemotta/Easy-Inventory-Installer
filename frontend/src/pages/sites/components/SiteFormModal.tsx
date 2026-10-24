@@ -175,7 +175,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
               </label>
               <input
                 type="text"
-                placeholder="Ex: Giassi Criciúma Centro"
+                placeholder="Ex: Filial Centro / Loja 01"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none font-medium transition-colors"
@@ -189,7 +189,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
               </label>
               <input
                 type="text"
-                placeholder="Ex: giassi-lj19"
+                placeholder="Ex: link-filial01"
                 value={circuito}
                 onChange={(e) => setCircuito(e.target.value)}
                 className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg font-mono placeholder:text-fg-muted focus:border-orange-500 focus:outline-none transition-colors"

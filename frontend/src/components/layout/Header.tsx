@@ -72,7 +72,7 @@ export const Header: React.FC = () => {
       <div className="flex items-center gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2.5">
           <span className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
-            Easy Inventory
+            ZenithMap
           </span>          
         </div>
       </div>

@@ -182,8 +182,8 @@ load_env_config() {
     PORT_HTTPS=${PORT_HTTPS:-443}
     PORT_HTTP=${PORT_HTTP:-80}
     PORT_MESHCENTRAL=${PORT_MESHCENTRAL:-4443}
-    POSTGRES_DB=${POSTGRES_DB:-"giassi_inventory"}
-    POSTGRES_USER=${POSTGRES_USER:-"giassi_app"}
+    POSTGRES_DB=${POSTGRES_DB:-"zenithmap_db"}
+    POSTGRES_USER=${POSTGRES_USER:-"zenithmap_app"}
 }
 
 load_env_config
@@ -330,7 +330,7 @@ fi
 echo -e "${YELLOW}[3/5] Atualizando containers Docker e aplicando alterações...${NC}"
 
 IMAGES_EXIST=false
-if docker inspect giassi-backend &>/dev/null && docker inspect giassi-nginx &>/dev/null && docker inspect giassi-frontend &>/dev/null; then
+if docker inspect zenithmap-backend &>/dev/null && docker inspect zenithmap-nginx &>/dev/null && docker inspect zenithmap-frontend &>/dev/null; then
     IMAGES_EXIST=true
 fi
 
@@ -397,7 +397,7 @@ echo -e "${GREEN}[✓] Containers Docker atualizados e em execução.${NC}"
 echo -e "${YELLOW}[4/5] Aguardando o banco de dados PostgreSQL estar operacional...${NC}"
 MAX_ATTEMPTS=30
 ATTEMPT=0
-until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-giassi_app}" -d "${POSTGRES_DB:-giassi_inventory}" &>/dev/null || \
+until $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-zenithmap_app}" -d "${POSTGRES_DB:-zenithmap_db}" &>/dev/null || \
       $DOCKER_COMPOSE exec -T postgres pg_isready &>/dev/null; do
     ATTEMPT=$((ATTEMPT + 1))
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then

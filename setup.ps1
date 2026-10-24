@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 #  SISTEMA DE INVENTÁRIO - INSTALADOR TURNKEY (WINDOWS / POWERSHELL)
 #  Prepara e inicializa todo o ecossistema Docker do zero ou atualiza
 #  servidores já em execução mantendo 100% dos dados intactos.
@@ -106,11 +106,11 @@ Write-Host "------------------------------------------------------------------"
 $hostIp = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Wi-Fi*", "Ethernet*" -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notmatch '^169\.254\.' -and $_.IPAddress -notmatch '^127\.' } | Select-Object -ExpandProperty IPAddress -First 1)
 if (-not $hostIp) { $hostIp = "127.0.0.1" }
 
-$companyName = Read-Host " Nome da empresa [Giassi Supermercados]"
-if (-not $companyName) { $companyName = "Giassi Supermercados" }
+$companyName = Read-Host " Nome da empresa [Minha Empresa]"
+if (-not $companyName) { $companyName = "Minha Empresa" }
 
 $defaultSlug = ($companyName.ToLower() -replace '[^a-z0-9]', '')
-if (-not $defaultSlug) { $defaultSlug = "giassi" }
+if (-not $defaultSlug) { $defaultSlug = "empresa" }
 $companySlug = Read-Host " Identificador curto / slug da empresa [$defaultSlug]"
 if (-not $companySlug) { $companySlug = $defaultSlug }
 
@@ -123,11 +123,11 @@ if (-not $portHttps) { $portHttps = "443" }
 $portHttp = Read-Host " Porta HTTP [80]"
 if (-not $portHttp) { $portHttp = "80" }
 
-$dbName = Read-Host " Nome do banco de dados [${companySlug}_inventory]"
-if (-not $dbName) { $dbName = "${companySlug}_inventory" }
+$dbName = Read-Host " Nome do banco de dados [zenithmap_db]"
+if (-not $dbName) { $dbName = "zenithmap_db" }
 
-$dbUser = Read-Host " Usuário do banco de dados [${companySlug}_app]"
-if (-not $dbUser) { $dbUser = "${companySlug}_app" }
+$dbUser = Read-Host " Usuário do banco de dados [zenithmap_app]"
+if (-not $dbUser) { $dbUser = "zenithmap_app" }
 
 $suggestedPass = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 14 | ForEach-Object { [char]$_ })
 $dbPass = Read-Host " Senha do banco de dados [$suggestedPass]"
@@ -139,8 +139,8 @@ if (-not $adminUser) { $adminUser = "admin" }
 $adminFullname = Read-Host " Nome completo do administrador [Administrador do Sistema]"
 if (-not $adminFullname) { $adminFullname = "Administrador do Sistema" }
 
-$adminEmail = Read-Host " E-mail do administrador [admin@${companySlug}.com.br]"
-if (-not $adminEmail) { $adminEmail = "admin@${companySlug}.com.br" }
+$adminEmail = Read-Host " E-mail do administrador [admin@${companySlug}.local]"
+if (-not $adminEmail) { $adminEmail = "admin@${companySlug}.local" }
 
 $adminPass = ""
 while ($true) {
@@ -280,8 +280,8 @@ Write-Host "------------------------------------------------------------------"
 Write-Host " [i] Dica de Certificado SSL:" -ForegroundColor Yellow
 Write-Host "     Um certificado auto-assinado válido por 10 anos foi gerado."
 Write-Host "     Para usar o certificado da sua empresa, coloque os arquivos"
-Write-Host "     'giassi.crt' e 'giassi.key' na pasta './nginx/certs/'"
-Write-Host "     e execute: docker exec giassi-nginx nginx -s reload"
+Write-Host "     'server.crt' e 'server.key' na pasta './nginx/certs/'"
+Write-Host "     e execute: docker exec zenithmap-nginx nginx -s reload"
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ""
 
