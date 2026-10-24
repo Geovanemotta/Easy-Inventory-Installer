@@ -123,6 +123,9 @@ if (-not $portHttps) { $portHttps = "443" }
 $portHttp = Read-Host " Porta HTTP [80]"
 if (-not $portHttp) { $portHttp = "80" }
 
+$portMeshcentral = Read-Host " Porta MeshCentral [4443]"
+if (-not $portMeshcentral) { $portMeshcentral = "4443" }
+
 $dbName = Read-Host " Nome do banco de dados [zenithmap_db]"
 if (-not $dbName) { $dbName = "zenithmap_db" }
 
@@ -163,7 +166,7 @@ while ($true) {
     }
 }
 
-$defaultSitesInput = Read-Host " Criar lista padrão de filiais (Lojas 01 a 30, Combos, Matriz)? [S/n]"
+$defaultSitesInput = Read-Host " Criar filiais padrão iniciais (Matriz, Filial 01, Outros)? [S/n]"
 $noSitesFlag = ""
 if ($defaultSitesInput -match '^[Nn]') {
     $noSitesFlag = "--no-default-sites"
@@ -188,10 +191,15 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=1440
 SERVER_HOST=$serverHost
 PORT_HTTP=$portHttp
 PORT_HTTPS=$portHttps
+PORT_MESHCENTRAL=$portMeshcentral
 "@
 
 Set-Content -Path ".env" -Value $envContent -Encoding utf8
 Write-Host "[✓] Arquivo .env gerado com sucesso." -ForegroundColor Green
+
+if (Test-Path "meshcentral/configure_host.js") {
+    node meshcentral/configure_host.js $serverHost $portMeshcentral 2>$null
+}
 
 # 5. Frontend
 Write-Host "[4/6] Verificando painel frontend..." -ForegroundColor Yellow
@@ -213,7 +221,7 @@ if (Test-Path "frontend/dist/index.html") {
 # 6. Inicialização dos Containers
 Write-Host "[5/6] Construindo e iniciando containers Docker..." -ForegroundColor Yellow
 
-$existingVol = docker volume ls -q 2>$null | Select-String "postgres_data"
+$existingVol = docker volume ls -q 2>$null | Select-String -Pattern "zenithmap_pgdata|postgres_data"
 if ($existingVol) {
     Write-Host " [!] Foi detectado um volume de banco de dados pré-existente." -ForegroundColor Yellow
     Write-Host " [ATENÇÃO] Recriar o banco do zero apagará todas as máquinas e dados coletados!" -ForegroundColor Red

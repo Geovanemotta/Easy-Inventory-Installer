@@ -587,7 +587,7 @@ while true; do
 done
 
 # Filiais padrão
-read -p " Criar lista padrão de filiais (Lojas 01 a 30, Combos, Matriz)? [S/n]: " INPUT_DEFAULT_SITES
+read -p " Criar filiais padrão iniciais (Matriz, Filial 01, Outros)? [S/n]: " INPUT_DEFAULT_SITES
 INPUT_DEFAULT_SITES=${INPUT_DEFAULT_SITES:-"S"}
 if [[ "$INPUT_DEFAULT_SITES" =~ ^[Nn] ]]; then
     CREATE_SITES_FLAG="--no-default-sites"
@@ -635,7 +635,7 @@ compile_frontend
 echo -e "${YELLOW}[5/6] Construindo e iniciando containers Docker...${NC}"
 
 # Detecta se existe volume antigo de banco de dados
-if docker volume ls -q 2>/dev/null | grep -E "postgres_data" &>/dev/null; then
+if docker volume ls -q 2>/dev/null | grep -E "zenithmap_pgdata|postgres_data" &>/dev/null; then
     echo -e "${YELLOW} [!] Foi detectado um volume de banco de dados pré-existente.${NC}"
     echo -e "${RED} [ATENÇÃO] Recriar o banco do zero apagará todas as máquinas e dados coletados!${NC}"
     read -p "     Deseja realmente APAGAR o banco de dados existente? [s/N]: " RESET_DB
