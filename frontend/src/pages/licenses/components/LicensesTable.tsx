@@ -59,19 +59,19 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
 
   if (loading) {
     return (
-      <div className="bg-[#121721] rounded-xl border border-[#1E2636] p-8 text-center shadow-sm">
+      <div className="bg-surface rounded-xl border border-border-subtle p-8 text-center shadow-sm">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent" />
-        <p className="mt-2 text-xs font-medium text-slate-400">Carregando licenças...</p>
+        <p className="mt-2 text-xs font-medium text-fg-secondary">Carregando licenças...</p>
       </div>
     );
   }
 
   if (licenses.length === 0) {
     return (
-      <div className="bg-[#121721] rounded-xl border border-[#1E2636] p-12 text-center shadow-sm space-y-2">
-        <KeyRound className="h-10 w-10 text-slate-600 mx-auto" />
-        <h4 className="text-sm font-bold text-white">Nenhum lote de licença encontrado</h4>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+      <div className="bg-surface rounded-xl border border-border-subtle p-12 text-center shadow-sm space-y-2">
+        <KeyRound className="h-10 w-10 text-fg-muted mx-auto" />
+        <h4 className="text-sm font-bold text-fg">Nenhum lote de licença encontrado</h4>
+        <p className="text-xs text-fg-secondary max-w-sm mx-auto">
           Tente ajustar os filtros por categoria, status, loja ou cadastre uma nova licença.
         </p>
       </div>
@@ -79,11 +79,11 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
   }
 
   return (
-    <div className="bg-[#121721] rounded-xl border border-[#1E2636] shadow-sm overflow-hidden">
+    <div className="bg-surface rounded-xl border border-border-subtle shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-[#1E2636] bg-[#0E131B] text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <tr className="border-b border-border-subtle bg-app text-[11px] font-bold uppercase tracking-wider text-fg-secondary">
               <th className="py-3 px-4">Software / Edição</th>
               <th className="py-3 px-4">Chave Serial</th>
               <th className="py-3 px-4">Filial / Local</th>
@@ -92,7 +92,7 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
               <th className="py-3 px-4 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1A2230] text-xs">
+          <tbody className="divide-y divide-border-subtle text-xs">
             {licenses.map((lic) => {
               const isRevelada = Boolean(reveladas[lic.id]);
               const percentualUso =
@@ -103,7 +103,7 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
               return (
                 <tr
                   key={lic.id}
-                  className="hover:bg-[#181F2E]/80 transition-colors group"
+                  className="hover:bg-elevated/80 transition-colors group"
                 >
                   {/* Software & Categoria */}
                   <td className="py-3 px-4">
@@ -111,31 +111,31 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                       <div
                         className={`p-2 rounded-lg shrink-0 border ${
                           lic.categoria === 'windows'
-                            ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                            ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
                             : lic.categoria === 'office'
-                            ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
                             : 'bg-orange-500/15 text-orange-400 border-orange-500/30'
                         }`}
                       >
                         <KeyRound className="h-4 w-4" />
                       </div>
                       <div>
-                        <div className="font-bold text-white">{lic.software_nome}</div>
+                        <div className="font-bold text-fg">{lic.software_nome}</div>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
                               lic.categoria === 'windows'
-                                ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                                ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
                                 : lic.categoria === 'office'
-                                ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                                : 'bg-[#181F2E] text-slate-300 border-[#263044]'
+                                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                                : 'bg-elevated text-gray-700 dark:text-slate-300 border-border-medium'
                             }`}
                           >
                             {lic.categoria}
                           </span>
                           {lic.observacoes && (
                             <span
-                              className="text-[11px] text-slate-400 truncate max-w-[150px]"
+                              className="text-[11px] text-fg-secondary truncate max-w-[150px]"
                               title={lic.observacoes}
                             >
                               {lic.observacoes}
@@ -148,15 +148,15 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
 
                   {/* Chave Serial */}
                   <td className="py-3 px-4">
-                    <div className="inline-flex items-center gap-2 bg-[#181F2E] border border-[#263044] px-2.5 py-1.5 rounded-lg">
-                      <span className="font-mono text-xs font-semibold text-slate-200 tracking-wider">
+                    <div className="inline-flex items-center gap-2 bg-elevated border border-border-medium px-2.5 py-1.5 rounded-lg">
+                      <span className="font-mono text-xs font-semibold text-fg tracking-wider">
                         {mascararChave(lic.chave, isRevelada)}
                       </span>
                       <button
                         type="button"
                         onClick={() => toggleRevelar(lic.id)}
                         title={isRevelada ? 'Ocultar chave' : 'Revelar chave'}
-                        className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer transition-colors"
+                        className="text-fg-secondary hover:text-fg p-0.5 rounded cursor-pointer transition-colors"
                       >
                         {isRevelada ? (
                           <EyeOff className="h-3.5 w-3.5" />
@@ -168,10 +168,10 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                         type="button"
                         onClick={(e) => handleCopy(lic.id, lic.chave, 'Chave de Licença', e)}
                         title="Copiar serial"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-fg-secondary hover:text-fg p-0.5 rounded cursor-pointer"
                       >
                         {copiadoId === lic.id ? (
-                          <Check className="h-3.5 w-3.5 text-emerald-400" />
+                          <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                         ) : (
                           <Copy className="h-3.5 w-3.5" />
                         )}
@@ -181,8 +181,8 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
 
                   {/* Filial */}
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-                      <Building2 className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-gray-700 dark:text-slate-300 font-medium">
+                      <Building2 className="h-3.5 w-3.5 text-fg-muted shrink-0" />
                       <span>
                         {lic.site_nome ? (
                           <>
@@ -190,7 +190,7 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                             {lic.site_nome}
                           </>
                         ) : (
-                          <span className="text-slate-500 italic">Matriz / Corporativo</span>
+                          <span className="text-fg-muted italic">Matriz / Corporativo</span>
                         )}
                       </span>
                     </div>
@@ -199,19 +199,19 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                   {/* Tipo & NF */}
                   <td className="py-3 px-4">
                     <div className="space-y-0.5">
-                      <div className="font-semibold text-slate-200">
+                      <div className="font-semibold text-fg">
                         {lic.tipo_licenca || 'OEM'}
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                      <div className="flex items-center gap-2 text-[11px] text-fg-secondary">
                         {lic.nota_fiscal && (
                           <span className="flex items-center gap-1" title="Nota Fiscal">
-                            <Receipt className="h-3 w-3 text-slate-500" />
+                            <Receipt className="h-3 w-3 text-fg-muted" />
                             NF: {lic.nota_fiscal}
                           </span>
                         )}
                         {lic.data_aquisicao && (
                           <span className="flex items-center gap-1" title="Data de Aquisição">
-                            <Calendar className="h-3 w-3 text-slate-500" />
+                            <Calendar className="h-3 w-3 text-fg-muted" />
                             {new Date(lic.data_aquisicao).toLocaleDateString('pt-BR')}
                           </span>
                         )}
@@ -223,15 +223,15 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                   <td className="py-3 px-4 min-w-[190px]">
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-white tabular-nums">
+                        <span className="font-bold text-fg tabular-nums">
                           {lic.quantidade_em_uso} / {lic.quantidade_total}{' '}
-                          <span className="text-[11px] font-normal text-slate-400">em uso</span>
+                          <span className="text-[11px] font-normal text-fg-secondary">em uso</span>
                         </span>
                         <span
                           className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${
                             lic.esgotada
-                              ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                              : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                              ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                              : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                           }`}
                         >
                           {lic.esgotada
@@ -241,7 +241,7 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                               }`}
                         </span>
                       </div>
-                      <div className="w-full bg-[#181F2E] border border-[#263044] rounded-full h-1.5 overflow-hidden">
+                      <div className="w-full bg-elevated border border-border-medium rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
                             lic.esgotada
@@ -275,7 +275,7 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                             type="button"
                             onClick={() => onEditLicense(lic)}
                             title="Editar licença"
-                            className="p-1.5 text-slate-400 hover:text-white hover:bg-[#181F2E] rounded-lg border border-[#263044] transition-colors cursor-pointer"
+                            className="p-1.5 text-fg-secondary hover:text-fg hover:bg-elevated rounded-lg border border-border-medium transition-colors cursor-pointer"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
@@ -283,7 +283,7 @@ export const LicensesTable: React.FC<LicensesTableProps> = ({
                             type="button"
                             onClick={() => onDeleteLicense(lic)}
                             title="Excluir licença"
-                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 rounded-lg border border-rose-500/30 transition-colors cursor-pointer"
+                            className="p-1.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-500/15 rounded-lg border border-rose-500/30 transition-colors cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

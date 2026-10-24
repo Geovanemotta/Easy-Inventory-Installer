@@ -199,7 +199,7 @@ export const LicensesPage: React.FC = () => {
     <div className="space-y-4">
       {/* Toast Notificação */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-[#0E131B] border border-[#263044] px-4 py-2.5 text-xs font-semibold text-white shadow-2xl animate-in slide-in-from-bottom duration-150">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-app border border-border-medium px-4 py-2.5 text-xs font-semibold text-fg shadow-2xl animate-in slide-in-from-bottom duration-150">
           <Sparkles className="h-4 w-4 text-orange-400" />
           <span>{toastMessage}</span>
         </div>
@@ -209,7 +209,7 @@ export const LicensesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+            <h1 className="text-xl font-bold text-fg flex items-center gap-2.5">
               <KeyRound className="h-6 w-6 text-orange-400" />
               Controle de Licenças &amp; Seriais
             </h1>
@@ -217,7 +217,7 @@ export const LicensesPage: React.FC = () => {
               {stats?.total_licencas ?? 0} lotes
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-fg-secondary mt-0.5">
             Gestão de licenças de Windows, Office e softwares corporativos por filial
           </p>
         </div>
@@ -288,47 +288,47 @@ export const LicensesPage: React.FC = () => {
       {/* Modal de Confirmação de Exclusão no padrão Obsidian & Amber */}
       {licenseToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-[#121721] rounded-2xl border border-[#1E2636] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B]">
+          <div className="bg-surface rounded-2xl border border-border-subtle shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-app">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
+                <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400">
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Confirmar Exclusão</h3>
-                  <p className="text-[11px] text-slate-400">Ação irreversível de licença</p>
+                  <h3 className="text-sm font-bold text-fg">Confirmar Exclusão</h3>
+                  <p className="text-[11px] text-fg-secondary">Ação irreversível de licença</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setLicenseToDelete(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
+                className="rounded-lg p-1 text-fg-secondary hover:bg-elevated hover:text-fg transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-3 text-xs leading-relaxed">
-              <p className="text-slate-300">
+              <p className="text-gray-700 dark:text-slate-300">
                 Tem certeza que deseja excluir o lote de licença{' '}
-                <strong className="text-white font-bold bg-[#181F2E] px-2 py-0.5 rounded border border-[#263044]">
+                <strong className="text-fg font-bold bg-elevated px-2 py-0.5 rounded border border-border-medium">
                   "{licenseToDelete.software_nome}"
                 </strong>
                 ?
               </p>
               {licenseToDelete.quantidade_em_uso > 0 && (
-                <div className="p-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-semibold">
+                <div className="p-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 font-semibold">
                   Atenção: Existem {licenseToDelete.quantidade_em_uso} máquina(s) vinculadas a este serial.
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-6 py-3 border-t border-[#1E2636] bg-[#0E131B]">
+            <div className="flex items-center justify-end gap-2 px-6 py-3 border-t border-border-subtle bg-app">
               <button
                 type="button"
                 onClick={() => setLicenseToDelete(null)}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 font-semibold hover:text-white hover:bg-[#222B3D] transition-colors text-xs cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-border-medium bg-elevated text-gray-700 dark:text-slate-300 font-semibold hover:text-fg hover:bg-border-subtle transition-colors text-xs cursor-pointer"
               >
                 Cancelar
               </button>

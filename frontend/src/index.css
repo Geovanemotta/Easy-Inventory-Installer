@@ -33,7 +33,7 @@
   --border-focus: var(--color-orange-500);
   
   /* Textos com alto contraste para fundo claro */
-  --text-primary: #000000;        /* Quase preto para textos principais (excelente leitura) */
+  --text-primary: #0f0f0f;        /* Quase preto para textos principais (excelente leitura) */
   --text-secondary: #3b3c3d;      /* Cinza médio para subtítulos e dados secundários */
   --text-muted: #9fa0a1;          /* Cinza claro para placeholders e ícones inativos */
   

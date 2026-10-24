@@ -96,7 +96,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
   if (loading && assets.length === 0) {
     return (
-      <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-12 text-center text-slate-400 shadow-xs">
+      <div className="rounded-xl border border-border-subtle bg-surface p-12 text-center text-fg-secondary shadow-xs">
         <div className="h-7 w-7 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mx-auto mb-3" />
         <span className="text-xs">Carregando ativos de rede...</span>
       </div>
@@ -105,10 +105,10 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
   if (assets.length === 0) {
     return (
-      <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-12 text-center text-slate-400 shadow-xs">
-        <Network className="h-8 w-8 mx-auto text-slate-500 mb-2" />
-        <h4 className="text-sm font-semibold text-slate-200">Nenhum ativo de rede encontrado</h4>
-        <p className="text-xs text-slate-400 mt-1">
+      <div className="rounded-xl border border-border-subtle bg-surface p-12 text-center text-fg-secondary shadow-xs">
+        <Network className="h-8 w-8 mx-auto text-fg-muted mb-2" />
+        <h4 className="text-sm font-semibold text-fg">Nenhum ativo de rede encontrado</h4>
+        <p className="text-xs text-fg-secondary mt-1">
           Ajuste os filtros de pesquisa ou cadastre novos equipamentos de rede.
         </p>
       </div>
@@ -120,7 +120,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
     return (
       <ArrowUpDown
         className={`h-3 w-3 shrink-0 transition-colors ${
-          isSorted ? 'text-orange-400' : 'text-slate-600 group-hover/th:text-slate-400'
+          isSorted ? 'text-orange-400' : 'text-fg-muted group-hover/th:text-fg-secondary'
         } ${isSorted && !sortAsc ? 'rotate-180' : ''}`}
       />
     );
@@ -129,24 +129,24 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
   return (
     <div className="space-y-3">
       {/* Tabela Principal Compacta */}
-      <div className="rounded-xl border border-[#1E2636] bg-[#121721] shadow-xs overflow-hidden flex flex-col">
+      <div className="rounded-xl border border-border-subtle bg-surface shadow-xs overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-[#1E2636] bg-[#0E131B] text-[11px] font-semibold uppercase tracking-wider text-slate-400 select-none">
+              <tr className="border-b border-border-subtle bg-app text-[11px] font-semibold uppercase tracking-wider text-fg-secondary select-none">
                 {isAdmin && (
                   <th className="py-2.5 px-3 w-8 text-center whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={isAllSelected}
                       onChange={onToggleSelectAll}
-                      className="h-3.5 w-3.5 rounded border-[#263044] bg-[#181F2E] text-orange-500 focus:ring-orange-500 cursor-pointer"
+                      className="h-3.5 w-3.5 rounded border-border-medium bg-elevated text-orange-500 focus:ring-orange-500 cursor-pointer"
                     />
                   </th>
                 )}
                 {/* 1. FILIAL */}
                 <th
-                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                     sortField === 'filial' ? 'text-orange-400 font-bold' : ''
                   }`}
                   onClick={() => onSort('filial')}
@@ -159,7 +159,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
                 {/* 2. IP */}
                 <th
-                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                     sortField === 'ip' ? 'text-orange-400 font-bold' : ''
                   }`}
                   onClick={() => onSort('ip')}
@@ -172,7 +172,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
                 {/* 3. TIPO */}
                 <th
-                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                     sortField === 'tipo' ? 'text-orange-400 font-bold' : ''
                   }`}
                   onClick={() => onSort('tipo')}
@@ -185,7 +185,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
                 {/* 4. NOME DO EQUIPAMENTO */}
                 <th
-                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                     sortField === 'nome' ? 'text-orange-400 font-bold' : ''
                   }`}
                   onClick={() => onSort('nome')}
@@ -198,7 +198,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
                 {/* 5. PATRIMÔNIO */}
                 <th
-                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                     sortField === 'patrimonio' ? 'text-orange-400 font-bold' : ''
                   }`}
                   onClick={() => onSort('patrimonio')}
@@ -217,7 +217,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
                 {/* 8. STATUS */}
                 <th
-                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-[#181F2E]/60 transition-colors group/th ${
+                  className={`py-2.5 px-3 whitespace-nowrap cursor-pointer hover:bg-elevated/60 transition-colors group/th ${
                     sortField === 'status' ? 'text-orange-400 font-bold' : ''
                   }`}
                   onClick={() => onSort('status')}
@@ -232,7 +232,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                 <th className="py-2.5 px-3 text-right whitespace-nowrap">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1E2636] font-medium">
+            <tbody className="divide-y divide-border-subtle font-medium">
               {assets.map((asset, idx) => {
                 const Icon = getTipoIcon(asset.tipo);
                 const isSelected = asset.id ? selectedIds.has(asset.id) : false;
@@ -272,8 +272,8 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                       isSelected
                         ? 'bg-orange-500/10'
                         : isLivre
-                        ? 'bg-amber-500/5 hover:bg-amber-500/10 text-slate-400 cursor-default'
-                        : 'hover:bg-[#181F2E]/90'
+                        ? 'bg-amber-500/5 hover:bg-amber-500/10 text-fg-secondary cursor-default'
+                        : 'hover:bg-elevated/90'
                     }`}
                     title={isLivre ? 'Endereço IP livre na faixa' : 'Clique para abrir detalhes desta máquina / ativo'}
                   >
@@ -288,7 +288,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => onToggleSelect(asset.id!)}
-                            className="h-3.5 w-3.5 rounded border-[#263044] bg-[#181F2E] text-orange-500 focus:ring-orange-500 cursor-pointer"
+                            className="h-3.5 w-3.5 rounded border-border-medium bg-elevated text-orange-500 focus:ring-orange-500 cursor-pointer"
                           />
                         ) : null}
                       </td>
@@ -296,7 +296,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
 
                     {/* 1. FILIAL */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
-                      <span className="inline-flex items-center rounded-md bg-[#181F2E] border border-[#263044] px-2 py-0.5 text-xs font-semibold text-slate-300 font-sans">
+                      <span className="inline-flex items-center rounded-md bg-elevated border border-border-medium px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-slate-300 font-sans">
                         {filialDisplay}
                       </span>
                     </td>
@@ -305,17 +305,17 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                     <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs tabular-nums">
                       {asset.ip ? (
                         <div className="flex items-center gap-1">
-                          <span className={isBench ? 'font-bold text-orange-400' : 'text-slate-100'}>
+                          <span className={isBench ? 'font-bold text-orange-400' : 'text-fg'}>
                             {asset.ip}
                           </span>
                           <button
                             type="button"
                             onClick={(e) => copy(asset.ip!, `ip_${asset.id ?? asset.ip}`, 'IP', e)}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-white transition-opacity cursor-pointer shrink-0"
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-fg-secondary hover:text-fg transition-opacity cursor-pointer shrink-0"
                             title="Copiar IP"
                           >
                             {copiedKey === `ip_${asset.id ?? asset.ip}` ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
@@ -327,21 +327,21 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-500 font-mono">—</span>
+                        <span className="text-fg-muted font-mono">—</span>
                       )}
                     </td>
 
                     {/* 3. TIPO */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
                       {isLivre ? (
-                        <span className="text-slate-500 font-mono pl-1">—</span>
+                        <span className="text-fg-muted font-mono pl-1">—</span>
                       ) : isEstacao ? (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-300 border border-blue-500/30">
-                          <Monitor className="h-3 w-3 text-blue-400" />
+                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                          <Monitor className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                           <span>Estação</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-[#181F2E] px-2 py-0.5 text-[11px] font-semibold text-slate-300 border border-[#263044]">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-elevated px-2 py-0.5 text-[11px] font-semibold text-gray-700 dark:text-slate-300 border border-border-medium">
                           <Icon className="h-3 w-3 text-orange-400" />
                           <span>{asset.tipo || '—'}</span>
                         </span>
@@ -351,11 +351,11 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                     {/* 4. NOME DO EQUIPAMENTO */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <strong className={`group-hover:text-orange-400 transition-colors ${isLivre ? 'text-slate-400 italic' : 'text-slate-100'}`}>
+                        <strong className={`group-hover:text-orange-400 transition-colors ${isLivre ? 'text-fg-secondary italic' : 'text-fg'}`}>
                           {asset.nome || '—'}
                         </strong>
                         {subtitulo && !isLivre && (
-                          <span className="text-[10px] text-slate-400 font-normal truncate max-w-xs">
+                          <span className="text-[10px] text-fg-secondary font-normal truncate max-w-xs">
                             {subtitulo}
                           </span>
                         )}
@@ -374,34 +374,34 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                           <button
                             type="button"
                             onClick={(e) => copy(asset.patrimonio!, `pat_${asset.id ?? asset.patrimonio}`, 'Patrimônio', e)}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 text-orange-300 hover:text-white transition-opacity cursor-pointer shrink-0"
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-orange-600 dark:text-orange-300 hover:text-fg transition-opacity cursor-pointer shrink-0"
                             title="Copiar Patrimônio"
                           >
                             {copiedKey === `pat_${asset.id ?? asset.patrimonio}` ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
                           </button>
                         </div>
                       ) : (
-                        <span className="text-slate-500 italic text-xs font-mono">—</span>
+                        <span className="text-fg-muted italic text-xs font-mono">—</span>
                       )}
                     </td>
 
                     {/* 6. MAC */}
-                    <td className="py-2.5 px-3 whitespace-nowrap font-mono tabular-nums text-xs text-slate-300">
+                    <td className="py-2.5 px-3 whitespace-nowrap font-mono tabular-nums text-xs text-gray-700 dark:text-slate-300">
                       <div className="flex items-center gap-1">
                         <span>{formatarMac(asset.mac)}</span>
                         {asset.mac && (
                           <button
                             type="button"
                             onClick={(e) => copy(asset.mac!, `mac_${asset.id ?? asset.mac}`, 'MAC', e)}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-white transition-opacity cursor-pointer shrink-0"
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-fg-secondary hover:text-fg transition-opacity cursor-pointer shrink-0"
                             title="Copiar MAC"
                           >
                             {copiedKey === `mac_${asset.id ?? asset.mac}` ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
@@ -414,13 +414,13 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                     <td className="py-2.5 px-3 whitespace-nowrap">
                       {asset.vlan || asset.faixa_nome ? (
                         <span
-                          className="inline-flex items-center rounded bg-[#181F2E] px-2 py-0.5 text-[11px] font-semibold text-slate-300 border border-[#263044] truncate max-w-[150px]"
+                          className="inline-flex items-center rounded bg-elevated px-2 py-0.5 text-[11px] font-semibold text-gray-700 dark:text-slate-300 border border-border-medium truncate max-w-[150px]"
                           title={asset.faixa_nome || asset.vlan || ''}
                         >
                           {asset.vlan || asset.faixa_nome}
                         </span>
                       ) : (
-                        <span className="text-slate-500 font-mono">—</span>
+                        <span className="text-fg-muted font-mono">—</span>
                       )}
                     </td>
 
@@ -429,17 +429,17 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                       {isLivre ? (
                         asset.status_online === true ? (
                           <span
-                            className="inline-flex items-center gap-1.5 font-semibold text-amber-400 cursor-help"
+                            className="inline-flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400 cursor-help"
                             title={`Alerta: IP sem cadastro respondendo na rede${asset.tempo_resposta_ms != null ? ` (${asset.tempo_resposta_ms}ms)` : ''}`}
                           >
                             <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
                             {asset.tempo_resposta_ms != null && (
-                              <span className="font-mono tabular-nums text-[11px] text-amber-300 font-semibold">{asset.tempo_resposta_ms}ms</span>
+                              <span className="font-mono tabular-nums text-[11px] text-amber-700 dark:text-amber-300 font-semibold">{asset.tempo_resposta_ms}ms</span>
                             )}
                           </span>
                         ) : (
                           <span
-                            className="inline-flex items-center text-rose-400 cursor-help"
+                            className="inline-flex items-center text-rose-600 dark:text-rose-400 cursor-help"
                             title="IP Livre - Sem resposta de rede (desocupado)"
                           >
                             <span className="h-2 w-2 rounded-full bg-rose-500 shrink-0" />
@@ -447,27 +447,27 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                         )
                       ) : asset.status_online === true ? (
                         <span
-                          className="inline-flex items-center gap-1.5 font-semibold text-emerald-400 cursor-help"
+                          className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 cursor-help"
                           title={`Online${asset.tempo_resposta_ms != null ? ` (${asset.tempo_resposta_ms}ms)` : ''}`}
                         >
                           <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
                           {asset.tempo_resposta_ms != null && (
-                            <span className="font-mono tabular-nums text-[11px] text-emerald-300 font-semibold">{asset.tempo_resposta_ms}ms</span>
+                            <span className="font-mono tabular-nums text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold">{asset.tempo_resposta_ms}ms</span>
                           )}
                         </span>
                       ) : asset.status_online === false ? (
                         <span
-                          className="inline-flex items-center text-rose-400 cursor-help"
+                          className="inline-flex items-center text-rose-600 dark:text-rose-400 cursor-help"
                           title="Offline - Sem resposta de ping"
                         >
                           <span className="h-2 w-2 rounded-full bg-rose-500 shrink-0" />
                         </span>
                       ) : (
                         <span
-                          className="inline-flex items-center text-slate-500 cursor-help"
+                          className="inline-flex items-center text-fg-muted cursor-help"
                           title="Não testado recentemente"
                         >
-                          <span className="h-2 w-2 rounded-full bg-slate-600 shrink-0" />
+                          <span className="h-2 w-2 rounded-full bg-fg-muted shrink-0" />
                         </span>
                       )}
                     </td>
@@ -483,10 +483,10 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                             type="button"
                             onClick={() => onPing(asset)}
                             disabled={isPinging}
-                            className="rounded p-1.5 text-slate-400 hover:bg-orange-500/15 hover:text-orange-400 transition-colors disabled:opacity-50 cursor-pointer"
+                            className="rounded p-1.5 text-fg-secondary hover:bg-orange-500/15 hover:text-orange-400 transition-colors disabled:opacity-50 cursor-pointer"
                             title={isLivre ? 'Testar se IP está realmente livre (Ping)' : 'Testar Conectividade (Ping)'}
                           >
-                            <Zap className={`h-3.5 w-3.5 ${isPinging ? 'animate-pulse text-amber-400' : ''}`} />
+                            <Zap className={`h-3.5 w-3.5 ${isPinging ? 'animate-pulse text-amber-600 dark:text-amber-400' : ''}`} />
                           </button>
                         )}
 
@@ -495,7 +495,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                             <button
                               type="button"
                               onClick={() => onEdit(asset)}
-                              className="rounded p-1.5 text-slate-400 hover:bg-orange-500/15 hover:text-orange-400 transition-colors cursor-pointer"
+                              className="rounded p-1.5 text-fg-secondary hover:bg-orange-500/15 hover:text-orange-400 transition-colors cursor-pointer"
                               title="Editar Ativo"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
@@ -504,7 +504,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
                             <button
                               type="button"
                               onClick={() => onDelete(asset)}
-                              className="rounded p-1.5 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
+                              className="rounded p-1.5 text-fg-secondary hover:bg-rose-500/20 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                               title="Excluir Ativo"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -522,7 +522,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
       </div>
 
       {/* Controles de Paginação */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 px-1">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-fg-secondary px-1">
         <div className="flex items-center gap-2">
           <span>Exibindo</span>
           <SelectDropdown
@@ -536,7 +536,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
             className="w-36"
             triggerClassName="py-1 text-xs"
           />
-          <span>de <strong className="text-white font-mono tabular-nums">{totalItems}</strong> ativo(s)</span>
+          <span>de <strong className="text-fg font-mono tabular-nums">{totalItems}</strong> ativo(s)</span>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -544,13 +544,13 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
             type="button"
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
-            className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 font-semibold text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer"
+            className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg disabled:opacity-40 transition-colors cursor-pointer"
           >
             <ChevronLeft className="h-4 w-4" />
             <span>Anterior</span>
           </button>
 
-          <span className="px-2 font-mono font-bold text-slate-200 tabular-nums">
+          <span className="px-2 font-mono font-bold text-fg tabular-nums">
             {page} / {totalPages}
           </span>
 
@@ -558,7 +558,7 @@ export const NetworkAssetsTable: React.FC<NetworkAssetsTableProps> = ({
             type="button"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
-            className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 font-semibold text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer"
+            className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg disabled:opacity-40 transition-colors cursor-pointer"
           >
             <span>Próxima</span>
             <ChevronRight className="h-4 w-4" />

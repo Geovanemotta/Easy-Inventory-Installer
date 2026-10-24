@@ -468,8 +468,8 @@ export const NetworkAssetsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl border border-slate-700 animate-slide-up">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-surface text-fg text-xs font-semibold shadow-xl border border-border-medium animate-slide-up">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -477,11 +477,11 @@ export const NetworkAssetsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+          <h1 className="text-xl font-bold text-fg flex items-center gap-2.5">
             <Layers className="h-6 w-6 text-orange-400" />
             Ativos de Rede &amp; Conectividade
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-fg-secondary mt-1">
             Gestão integrada de impressoras, switches, roteadores, APs Wi-Fi, balanças, mapa de IPs e testes de ping
           </p>
         </div>
@@ -514,16 +514,16 @@ export const NetworkAssetsPage: React.FC = () => {
           className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
             showKpis
               ? 'bg-orange-500/15 border-orange-500/30 text-orange-400 hover:bg-orange-500/25'
-              : 'border-[#263044] bg-[#181F2E] text-slate-300 hover:bg-[#263044] hover:text-white'
+              : 'border-border-medium bg-elevated text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg'
           }`}
           title="Exibir ou ocultar resumo e indicadores"
         >
           <BarChart3 className="h-3.5 w-3.5 text-orange-400" />
           <span>{showKpis ? 'Ocultar Indicadores' : 'Exibir Indicadores'}</span>
           {showKpis ? (
-            <ChevronUp className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronUp className="h-3.5 w-3.5 text-fg-secondary" />
           ) : (
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown className="h-3.5 w-3.5 text-fg-secondary" />
           )}
         </button>
       </div>
@@ -563,7 +563,7 @@ export const NetworkAssetsPage: React.FC = () => {
       {selectedIds.size > 0 && (
         <div className="flex items-center justify-between p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-xs shadow-xs animate-in fade-in">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-orange-300">
+            <span className="font-bold text-orange-600 dark:text-orange-300">
               {selectedIds.size} {selectedIds.size === 1 ? 'ativo selecionado' : 'ativos selecionados'}
             </span>
           </div>
@@ -572,7 +572,7 @@ export const NetworkAssetsPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
-              className="px-3 py-1.5 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-lg border border-border-medium bg-elevated text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors cursor-pointer"
             >
               Desmarcar todos
             </button>

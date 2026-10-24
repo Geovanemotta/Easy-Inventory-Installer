@@ -229,7 +229,7 @@ export default function RemoteAccessPage() {
     <div className="space-y-6">
       {/* Toast Notificação */}
       {toastMsg && (
-        <div className="fixed bottom-4 right-4 z-50 rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-xs font-semibold text-white shadow-xl animate-in fade-in">
+        <div className="fixed bottom-4 right-4 z-50 rounded-xl bg-surface border border-border-medium px-4 py-3 text-xs font-semibold text-fg shadow-xl animate-in fade-in">
           {toastMsg}
         </div>
       )}
@@ -237,17 +237,17 @@ export default function RemoteAccessPage() {
       {/* Cabeçalho Padronizado no estilo Obsidian & Amber */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+          <h1 className="text-xl font-bold text-fg flex items-center gap-2.5">
             <Radio className="h-6 w-6 text-orange-400" />
             Acesso Remoto &amp; Suporte
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-fg-secondary mt-0.5">
             Controle remoto cooperativo, transferência de arquivos e terminal nativo via MeshCentral e RustDesk
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
-          <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+          <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             MeshCentral Online
           </span>
@@ -257,7 +257,7 @@ export default function RemoteAccessPage() {
               href={meshUrlBase}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#222B3D] hover:text-white transition-all shadow-xs"
+              className="flex items-center gap-1.5 rounded-lg border border-border-medium bg-elevated px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-all shadow-xs"
               title="Abrir o painel administrativo do servidor MeshCentral"
             >
               <ExternalLink className="h-3.5 w-3.5 text-orange-400" />
@@ -268,22 +268,22 @@ export default function RemoteAccessPage() {
       </div>
 
       {/* Barra de Filtros e Busca */}
-      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-[#1E2636] bg-[#121721] p-3 shadow-xs">
+      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border-subtle bg-surface p-3 shadow-xs">
         {/* Campo de Busca */}
         <div className="relative min-w-[200px] flex-1">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fg-secondary" />
           <input
             type="text"
             placeholder="Buscar por hostname, IP, usuário ou loja..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-1.5 pl-8 pr-7 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+            className="w-full rounded-lg border border-border-medium bg-elevated py-1.5 pl-8 pr-7 text-xs text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 cursor-pointer"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-fg-secondary hover:text-fg p-0.5 cursor-pointer"
               title="Limpar busca"
             >
               <X className="h-3 w-3" />
@@ -344,17 +344,17 @@ export default function RemoteAccessPage() {
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="h-48 animate-pulse rounded-xl border border-[#1E2636] bg-[#121721] p-4"
+              className="h-48 animate-pulse rounded-xl border border-border-subtle bg-surface p-4"
             />
           ))}
         </div>
       ) : devices.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#1E2636] bg-[#121721] py-16 text-center">
-          <Monitor className="mb-3 h-10 w-10 text-slate-600" />
-          <h3 className="text-sm font-semibold text-slate-200">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface py-16 text-center">
+          <Monitor className="mb-3 h-10 w-10 text-fg-muted" />
+          <h3 className="text-sm font-semibold text-fg">
             Nenhuma máquina encontrada
           </h3>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-fg-secondary">
             Tente ajustar os filtros de busca ou filial para encontrar os dispositivos desejados.
           </p>
         </div>
@@ -379,26 +379,26 @@ export default function RemoteAccessPage() {
 
       {/* Controles de Paginação Padronizados */}
       {totalItems > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#1E2636] pt-4 text-xs text-slate-400">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle pt-4 text-xs text-fg-secondary">
           <div className="flex items-center gap-3">
             <div>
               Exibindo{' '}
-              <span className="font-semibold text-white font-mono tabular-nums">
+              <span className="font-semibold text-fg font-mono tabular-nums">
                 {startIndex + 1}
               </span>{' '}
               a{' '}
-              <span className="font-semibold text-white font-mono tabular-nums">
+              <span className="font-semibold text-fg font-mono tabular-nums">
                 {endIndex}
               </span>{' '}
               de{' '}
-              <span className="font-semibold text-white font-mono tabular-nums">
+              <span className="font-semibold text-fg font-mono tabular-nums">
                 {totalItems}
               </span>{' '}
               estações
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="text-slate-400">Por página:</span>
+              <span className="text-fg-secondary">Por página:</span>
               <div className="w-28 shrink-0">
                 <SelectDropdown
                   value={String(pageSize)}
@@ -416,20 +416,20 @@ export default function RemoteAccessPage() {
                 type="button"
                 disabled={currentPage <= 1 || loading}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-3.5 w-3.5" /> Anterior
               </button>
 
-              <span className="px-2 font-medium text-slate-300 font-mono tabular-nums">
-                Página <strong className="font-semibold text-white">{currentPage}</strong> de {totalPages}
+              <span className="px-2 font-medium text-gray-700 dark:text-slate-300 font-mono tabular-nums">
+                Página <strong className="font-semibold text-fg">{currentPage}</strong> de {totalPages}
               </span>
 
               <button
                 type="button"
                 disabled={currentPage >= totalPages || loading}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:bg-[#263044] hover:text-white disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
                 Próxima <ChevronRight className="h-3.5 w-3.5" />
               </button>

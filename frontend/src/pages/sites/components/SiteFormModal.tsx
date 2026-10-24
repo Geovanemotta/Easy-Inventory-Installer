@@ -115,20 +115,20 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className="w-full max-w-lg rounded-2xl bg-[#121721] shadow-2xl border border-[#1E2636] overflow-hidden text-xs animate-in zoom-in-95 duration-150"
+        className="w-full max-w-lg rounded-2xl bg-surface shadow-2xl border border-border-subtle overflow-hidden text-xs animate-in zoom-in-95 duration-150"
         role="dialog"
       >
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-app">
           <div className="flex items-center gap-2.5">
             <div className="rounded-xl bg-orange-500/15 border border-orange-500/30 p-2 text-orange-400">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-bold text-fg">
                 {site ? `Editar Filial: ${site.code} - ${site.name}` : 'Cadastrar Nova Filial / Loja'}
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-fg-secondary">
                 Configure os dados cadastrais e identificadores de hostname da unidade
               </p>
             </div>
@@ -136,7 +136,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
+            className="rounded-lg p-1 text-fg-secondary hover:bg-elevated hover:text-fg transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -145,8 +145,8 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="rounded-xl bg-rose-500/15 border border-rose-500/30 p-3.5 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-150">
-              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="rounded-xl bg-rose-500/15 border border-rose-500/30 p-3.5 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-150">
+              <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div className="leading-relaxed font-medium">
                 {error}
               </div>
@@ -155,7 +155,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-semibold text-slate-300 mb-1">
+              <label className="block font-semibold text-gray-700 dark:text-slate-300 mb-1">
                 Código da Loja <span className="text-orange-400">*</span>
               </label>
               <input
@@ -163,14 +163,14 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
                 placeholder="Ex: 01, CB04, MATRIZ"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 font-mono font-bold text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 font-mono font-bold text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none transition-colors"
                 required
               />
-              <span className="text-[10px] text-slate-500 mt-0.5 block">Ex: 01, CB01, CD</span>
+              <span className="text-[10px] text-fg-muted mt-0.5 block">Ex: 01, CB01, CD</span>
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300 mb-1">
+              <label className="block font-semibold text-gray-700 dark:text-slate-300 mb-1">
                 Nome da Filial <span className="text-orange-400">*</span>
               </label>
               <input
@@ -178,13 +178,13 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
                 placeholder="Ex: Giassi Criciúma Centro"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none font-medium transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none font-medium transition-colors"
                 required
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300 mb-1">
+              <label className="block font-semibold text-gray-700 dark:text-slate-300 mb-1">
                 Circuito do Firewall
               </label>
               <input
@@ -192,9 +192,9 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
                 placeholder="Ex: giassi-lj19"
                 value={circuito}
                 onChange={(e) => setCircuito(e.target.value)}
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white font-mono placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg font-mono placeholder:text-fg-muted focus:border-orange-500 focus:outline-none transition-colors"
               />
-              <span className="text-[10px] text-slate-500 mt-0.5 block">Reserva de IP/MAC</span>
+              <span className="text-[10px] text-fg-muted mt-0.5 block">Reserva de IP/MAC</span>
             </div>
           </div>
 
@@ -204,23 +204,23 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
               id="site-active-check"
               checked={active}
               onChange={(e) => setActive(e.target.checked)}
-              className="h-4 w-4 rounded border-[#263044] bg-[#181F2E] text-orange-500 focus:ring-orange-500 cursor-pointer"
+              className="h-4 w-4 rounded border-border-medium bg-elevated text-orange-500 focus:ring-orange-500 cursor-pointer"
             />
-            <label htmlFor="site-active-check" className="font-semibold text-slate-300 cursor-pointer">
+            <label htmlFor="site-active-check" className="font-semibold text-gray-700 dark:text-slate-300 cursor-pointer">
               Filial Operacional e Ativa
             </label>
           </div>
 
           {/* Padrões de Nomenclatura / Hostnames */}
-          <div className="pt-2 border-t border-[#1E2636] space-y-2">
+          <div className="pt-2 border-t border-border-subtle space-y-2">
             <div className="flex items-center justify-between">
-              <label className="font-semibold text-slate-300 flex items-center gap-1.5">
+              <label className="font-semibold text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
                 <Tag className="h-3.5 w-3.5 text-orange-400" />
                 Padrões de Nomenclatura (Hostnames)
               </label>
-              <span className="text-[10px] text-slate-500">Reconhecimento automático</span>
+              <span className="text-[10px] text-fg-muted">Reconhecimento automático</span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-fg-secondary">
               Prefixos de hostname ou tags usados para vincular estações automaticamente a esta filial (ex: LJ01, CB01, LJ01*).
             </p>
 
@@ -236,12 +236,12 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
                     handleAddTag();
                   }
                 }}
-                className="flex-1 rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-1.5 font-mono text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
+                className="flex-1 rounded-lg border border-border-medium bg-elevated px-3 py-1.5 font-mono text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none transition-colors"
               />
               <button
                 type="button"
                 onClick={() => handleAddTag()}
-                className="flex items-center gap-1 rounded-lg bg-[#181F2E] hover:bg-[#222B3D] border border-[#263044] px-3 py-1.5 font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="flex items-center gap-1 rounded-lg bg-elevated hover:bg-border-subtle border border-border-medium px-3 py-1.5 font-semibold text-gray-700 dark:text-slate-300 hover:text-fg transition-colors cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" /> Adicionar
               </button>
@@ -259,7 +259,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
                       key={sug}
                       type="button"
                       onClick={() => handleAddTag(sug)}
-                      className="inline-flex items-center gap-1 rounded-md bg-[#181F2E] px-2 py-0.5 text-[10px] font-mono font-semibold text-orange-400 border border-orange-500/40 hover:bg-orange-500/20 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-md bg-elevated px-2 py-0.5 text-[10px] font-mono font-semibold text-orange-400 border border-orange-500/40 hover:bg-orange-500/20 transition-colors cursor-pointer"
                     >
                       <span>+ {sug}</span>
                     </button>
@@ -269,9 +269,9 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
             )}
 
             {/* Tags Atuais */}
-            <div className="min-h-[42px] rounded-lg border border-[#1E2636] bg-[#0B0E14] p-2 flex flex-wrap gap-1.5">
+            <div className="min-h-[42px] rounded-lg border border-border-subtle bg-app p-2 flex flex-wrap gap-1.5">
               {identifiers.length === 0 ? (
-                <span className="text-slate-500 italic text-[11px] self-center">
+                <span className="text-fg-muted italic text-[11px] self-center">
                   Nenhum padrão cadastrado. Digite acima ou selecione uma sugestão.
                 </span>
               ) : (
@@ -284,7 +284,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(ident)}
-                      className="text-orange-400/70 hover:text-orange-300 transition-colors cursor-pointer"
+                      className="text-orange-400/70 hover:text-orange-600 dark:hover:text-orange-300 transition-colors cursor-pointer"
                       title={`Remover ${ident}`}
                     >
                       <X className="h-3 w-3" />
@@ -296,12 +296,12 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
           </div>
 
           {/* Botões do Rodapé */}
-          <div className="pt-3 border-t border-[#1E2636] flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-border-subtle flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-2 font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
+              className="rounded-lg border border-border-medium bg-elevated px-4 py-2 font-semibold text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle transition-colors cursor-pointer"
             >
               Cancelar
             </button>

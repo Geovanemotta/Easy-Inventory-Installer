@@ -114,18 +114,18 @@ export const NetworkAssetFilters: React.FC<NetworkAssetFiltersProps> = ({
   ];
 
   return (
-    <div className="rounded-xl border border-[#1E2636] bg-[#121721] p-3 shadow-xs">
+    <div className="rounded-xl border border-border-subtle bg-surface p-3 shadow-xs">
       {/* Barra de Filtros e Ações em Linha Única Horizontal no Desktop */}
       <div className="flex flex-wrap lg:flex-nowrap items-center gap-2.5 w-full">
         {/* 1. Busca com Debounce (flex-1 min-w-[180px]) */}
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fg-secondary" />
           <input
             type="text"
             placeholder="Buscar nome, IP, MAC, patrimônio..."
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-1.5 pl-8 pr-7 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+            className="w-full rounded-lg border border-border-medium bg-elevated py-1.5 pl-8 pr-7 text-xs text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
           />
           {localSearch && (
             <button
@@ -134,7 +134,7 @@ export const NetworkAssetFilters: React.FC<NetworkAssetFiltersProps> = ({
                 setLocalSearch('');
                 onSearchChange('');
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 cursor-pointer"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-fg-secondary hover:text-fg p-0.5 cursor-pointer"
               title="Limpar busca"
             >
               <X className="h-3 w-3" />
@@ -195,7 +195,7 @@ export const NetworkAssetFilters: React.FC<NetworkAssetFiltersProps> = ({
             type="button"
             onClick={onResetFilters}
             title="Limpar todos os filtros"
-            className="flex items-center gap-1.5 bg-[#181F2E] hover:bg-[#222B3D] text-slate-300 border border-[#263044] px-3 py-2 rounded-lg text-xs font-medium shrink-0 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 bg-elevated hover:bg-border-subtle text-gray-700 dark:text-slate-300 border border-border-medium px-3 py-2 rounded-lg text-xs font-medium shrink-0 transition-colors cursor-pointer"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Limpar</span>
@@ -209,20 +209,20 @@ export const NetworkAssetFilters: React.FC<NetworkAssetFiltersProps> = ({
               <button
                 type="button"
                 onClick={onOpenScan}
-                className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors shadow-xs cursor-pointer"
+                className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors shadow-xs cursor-pointer"
                 title="Testar conectividade (Ping) em lote"
               >
-                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                <Zap className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                 <span className="hidden sm:inline">Varredura</span>
               </button>
 
               <button
                 type="button"
                 onClick={onOpenImport}
-                className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors shadow-xs cursor-pointer"
+                className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors shadow-xs cursor-pointer"
                 title="Importar ativos via planilha CSV"
               >
-                <Upload className="h-3.5 w-3.5 text-emerald-400" />
+                <Upload className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span className="hidden sm:inline">Importar</span>
               </button>
             </>
@@ -231,7 +231,7 @@ export const NetworkAssetFilters: React.FC<NetworkAssetFiltersProps> = ({
           <button
             type="button"
             onClick={onExportCSV}
-            className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-[#263044] hover:text-white transition-colors shadow-xs cursor-pointer"
+            className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors shadow-xs cursor-pointer"
             title="Exportar ativos filtrados para CSV"
           >
             <Download className="h-3.5 w-3.5 text-orange-400" />

@@ -35,29 +35,29 @@ const TIPO_STYLES: Record<
   aplicativo: {
     label: 'Aplicativo',
     bg: 'bg-blue-500/15',
-    text: 'text-blue-400',
+    text: 'text-blue-600 dark:text-blue-400',
     border: 'border-blue-500/30',
     icon: AppWindow,
   },
   agente: {
     label: 'Agente',
     bg: 'bg-purple-500/15',
-    text: 'text-purple-400',
+    text: 'text-purple-600 dark:text-purple-400',
     border: 'border-purple-500/30',
     icon: ShieldAlert,
   },
   runtime: {
     label: 'Runtime',
     bg: 'bg-amber-500/15',
-    text: 'text-amber-400',
+    text: 'text-amber-600 dark:text-amber-400',
     border: 'border-amber-500/30',
     icon: Terminal,
   },
   ferramenta: {
     label: 'Ferramenta',
-    bg: 'bg-slate-500/15',
-    text: 'text-slate-400',
-    border: 'border-slate-500/30',
+    bg: 'bg-elevated',
+    text: 'text-fg-secondary',
+    border: 'border-border-medium/30',
     icon: Wrench,
   },
 };
@@ -83,9 +83,9 @@ export const AppsTable: React.FC<AppsTableProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="bg-[#121721] rounded-xl border border-[#1E2636] p-8 text-center shadow-sm">
+      <div className="bg-surface rounded-xl border border-border-subtle p-8 text-center shadow-sm">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent" />
-        <p className="mt-2 text-xs font-medium text-slate-400">
+        <p className="mt-2 text-xs font-medium text-fg-secondary">
           Carregando catálogo de softwares...
         </p>
       </div>
@@ -94,10 +94,10 @@ export const AppsTable: React.FC<AppsTableProps> = ({
 
   if (items.length === 0) {
     return (
-      <div className="bg-[#121721] rounded-xl border border-[#1E2636] p-12 text-center shadow-sm space-y-2">
-        <Package className="h-10 w-10 text-slate-600 mx-auto" />
-        <h4 className="text-sm font-bold text-white">Nenhum software encontrado</h4>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+      <div className="bg-surface rounded-xl border border-border-subtle p-12 text-center shadow-sm space-y-2">
+        <Package className="h-10 w-10 text-fg-muted mx-auto" />
+        <h4 className="text-sm font-bold text-fg">Nenhum software encontrado</h4>
+        <p className="text-xs text-fg-secondary max-w-sm mx-auto">
           Tente ajustar os filtros de categoria, plataforma, loja ou alterar os termos da busca.
         </p>
       </div>
@@ -109,11 +109,11 @@ export const AppsTable: React.FC<AppsTableProps> = ({
   const endIndex = Math.min(startIndex + items.length, totalItems);
 
   return (
-    <div className="bg-[#121721] rounded-xl border border-[#1E2636] shadow-sm overflow-hidden">
+    <div className="bg-surface rounded-xl border border-border-subtle shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-[#1E2636] bg-[#0E131B] text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <tr className="border-b border-border-subtle bg-app text-[11px] font-bold uppercase tracking-wider text-fg-secondary">
               <th className="py-3 px-4">Software / Pacote</th>
               <th className="py-3 px-4">Categoria</th>
               <th className="py-3 px-4">Versão Mais Recente (Parque)</th>
@@ -121,13 +121,13 @@ export const AppsTable: React.FC<AppsTableProps> = ({
               <th className="py-3 px-4 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1A2230] text-xs">
+          <tbody className="divide-y divide-border-subtle text-xs">
             {items.map((item) => {
               const tipoInfo = TIPO_STYLES[item.tipo] || {
                 label: item.tipo,
-                bg: 'bg-slate-500/15',
-                text: 'text-slate-400',
-                border: 'border-slate-500/30',
+                bg: 'bg-elevated',
+                text: 'text-fg-secondary',
+                border: 'border-border-medium/30',
                 icon: Package,
               };
               const TipoIcon = tipoInfo.icon;
@@ -142,20 +142,20 @@ export const AppsTable: React.FC<AppsTableProps> = ({
                   className={`group cursor-pointer transition-colors ${
                     isSelected
                       ? 'bg-orange-500/10 hover:bg-orange-500/15'
-                      : 'hover:bg-[#181F2E]/90'
+                      : 'hover:bg-elevated/90'
                   }`}
                 >
                   {/* Nome e Identificador */}
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-[#181F2E] border border-[#263044] text-slate-400 group-hover:border-orange-500/40 group-hover:text-orange-400 transition-colors shrink-0">
+                      <div className="p-2 rounded-lg bg-elevated border border-border-medium text-fg-secondary group-hover:border-orange-500/40 group-hover:text-orange-400 transition-colors shrink-0">
                         <Package className="h-4 w-4" />
                       </div>
                       <div>
-                        <div className="font-semibold text-white group-hover:text-orange-400 transition-colors">
+                        <div className="font-semibold text-fg group-hover:text-orange-400 transition-colors">
                           {item.nome}
                         </div>
-                        <div className="text-[11px] font-mono text-slate-400 truncate max-w-xs">
+                        <div className="text-[11px] font-mono text-fg-secondary truncate max-w-xs">
                           {item.identifier}
                         </div>
                       </div>
@@ -176,11 +176,11 @@ export const AppsTable: React.FC<AppsTableProps> = ({
                   <td className="py-3 px-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-slate-200 bg-[#181F2E] px-2 py-0.5 rounded border border-[#263044]">
+                        <span className="font-mono text-xs font-bold text-fg bg-elevated px-2 py-0.5 rounded border border-border-medium">
                           {versaoRecente ? `v${versaoRecente}` : 'N/D'}
                         </span>
                         {isAppOrAgent && versaoRecente && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
                             <ShieldCheck className="h-3 w-3" />
                             Mais recente
                           </span>
@@ -191,22 +191,22 @@ export const AppsTable: React.FC<AppsTableProps> = ({
                         {isAppOrAgent ? (
                           <>
                             {item.total_versoes > 1 ? (
-                              <span className="text-amber-400 font-medium">
+                              <span className="text-amber-600 dark:text-amber-400 font-medium">
                                 {item.total_versoes} versões distintas no parque
                               </span>
                             ) : (
-                              <span className="text-slate-500">Versão uniforme</span>
+                              <span className="text-fg-muted">Versão uniforme</span>
                             )}
 
                             {item.total_desatualizadas !== undefined && item.total_desatualizadas > 0 && (
-                              <span className="text-rose-400 font-semibold flex items-center gap-0.5">
+                              <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-0.5">
                                 <AlertTriangle className="h-2.5 w-2.5" />
                                 {item.total_desatualizadas} desatualizada{item.total_desatualizadas !== 1 ? 's' : ''}
                               </span>
                             )}
                           </>
                         ) : (
-                          <span className="text-slate-500">
+                          <span className="text-fg-muted">
                             {item.total_versoes > 1
                               ? `${item.total_versoes} versões instaladas`
                               : 'Versão uniforme'}
@@ -220,24 +220,24 @@ export const AppsTable: React.FC<AppsTableProps> = ({
                   <td className="py-3 px-4 min-w-[200px]">
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-white tabular-nums">
+                        <span className="font-bold text-fg tabular-nums">
                           {item.total_instalacoes.toLocaleString('pt-BR')}{' '}
-                          <span className="text-[11px] font-normal text-slate-400">
+                          <span className="text-[11px] font-normal text-fg-secondary">
                             máquina{item.total_instalacoes !== 1 ? 's' : ''}
                           </span>
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-400 tabular-nums">
+                        <span className="text-[11px] font-semibold text-fg-secondary tabular-nums">
                           {item.percentual_parque}%
                         </span>
                       </div>
-                      <div className="w-full bg-[#181F2E] border border-[#263044] rounded-full h-1.5 overflow-hidden">
+                      <div className="w-full bg-elevated border border-border-medium rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
                             item.percentual_parque > 50
                               ? 'bg-orange-500'
                               : item.percentual_parque > 15
                               ? 'bg-amber-500'
-                              : 'bg-slate-500'
+                              : 'bg-fg-muted'
                           }`}
                           style={{ width: `${Math.min(item.percentual_parque, 100)}%` }}
                         />
@@ -268,22 +268,22 @@ export const AppsTable: React.FC<AppsTableProps> = ({
       </div>
 
       {/* Barra de Paginação Padrão */}
-      <div className="flex flex-col sm:flex-row items-center justify-between border-t border-[#1E2636] px-4 py-3 bg-[#0E131B] text-xs text-slate-400 gap-3">
+      <div className="flex flex-col sm:flex-row items-center justify-between border-t border-border-subtle px-4 py-3 bg-app text-xs text-fg-secondary gap-3">
         <div className="flex items-center gap-3">
           <div>
             Exibindo{' '}
-            <span className="font-semibold text-white">
+            <span className="font-semibold text-fg">
               {totalItems === 0 ? 0 : startIndex + 1}
             </span>{' '}
             a{' '}
-            <span className="font-semibold text-white">
+            <span className="font-semibold text-fg">
               {endIndex}
             </span>{' '}
-            de <span className="font-semibold text-white">{totalItems}</span> softwares
+            de <span className="font-semibold text-fg">{totalItems}</span> softwares
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-400">Por página:</span>
+            <span className="text-fg-secondary">Por página:</span>
             <div className="w-20">
               <SelectDropdown
                 value={String(perPage)}
@@ -300,19 +300,19 @@ export const AppsTable: React.FC<AppsTableProps> = ({
             type="button"
             onClick={() => onPageChange(Math.max(1, safePage - 1))}
             disabled={safePage <= 1}
-            className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:text-white hover:bg-[#222B3D] disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-default"
+            className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-default"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Anterior
           </button>
           <span>
-            Página <strong className="font-semibold text-white">{safePage}</strong> de{' '}
+            Página <strong className="font-semibold text-fg">{safePage}</strong> de{' '}
             {totalPages || 1}
           </span>
           <button
             type="button"
             onClick={() => onPageChange(Math.min(totalPages, safePage + 1))}
             disabled={safePage >= totalPages}
-            className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-slate-300 hover:text-white hover:bg-[#222B3D] disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-default"
+            className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-default"
           >
             Próxima <ChevronRight className="h-3.5 w-3.5" />
           </button>

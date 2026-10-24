@@ -96,14 +96,14 @@ export default function ActiveDirectoryPage() {
   // Trava para usuários que não são Superadministradores
   if (!loading && !isSuperAdmin) {
     return (
-      <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-[#1E2636] bg-[#121721] p-8 text-center shadow-xl">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-400 shadow-inner">
+      <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-border-subtle bg-surface p-8 text-center shadow-xl">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-inner">
           <AlertTriangle className="h-7 w-7" />
         </div>
-        <h2 className="text-base font-bold text-white">
+        <h2 className="text-base font-bold text-fg">
           Acesso Restrito a Administradores do Sistema
         </h2>
-        <p className="mt-2 max-w-md text-xs leading-relaxed text-slate-400">
+        <p className="mt-2 max-w-md text-xs leading-relaxed text-fg-secondary">
           O módulo de integração e mapeamento de grupos do Active Directory / LDAP exige privilégios de superadministrador. Entre em contato com a equipe de infraestrutura para solicitar permissão.
         </p>
       </div>
@@ -117,8 +117,8 @@ export default function ActiveDirectoryPage() {
         <div
           className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-semibold shadow-2xl border transition-all animate-in fade-in slide-in-from-bottom-2 duration-200 ${
             toastMsg.type === 'success'
-              ? 'bg-[#121721] border-emerald-500/40 text-emerald-400'
-              : 'bg-[#121721] border-rose-500/40 text-rose-400'
+              ? 'bg-surface border-emerald-500/40 text-emerald-600 dark:text-emerald-400'
+              : 'bg-surface border-rose-500/40 text-rose-600 dark:text-rose-400'
           }`}
         >
           <span className="h-2 w-2 rounded-full shrink-0 bg-current" />
@@ -133,24 +133,24 @@ export default function ActiveDirectoryPage() {
             <Sliders className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">
+            <h1 className="text-xl font-bold tracking-tight text-fg">
               Configurações do Sistema
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-fg-secondary">
               Gestão integrada de infraestrutura: Active Directory / LDAP, Autenticação 2FA/MFA e Servidor SMTP
             </p>
           </div>
         </div>
 
         {/* Seletor de Abas */}
-        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-[#1E2636] bg-[#121721] p-1.5 shadow-sm">
+        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border-subtle bg-surface p-1.5 shadow-sm">
           <button
             type="button"
             onClick={() => setActiveTab('connection')}
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'connection'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
+                : 'text-fg-secondary hover:text-fg hover:bg-elevated'
             }`}
           >
             <Network className="h-3.5 w-3.5" />
@@ -163,7 +163,7 @@ export default function ActiveDirectoryPage() {
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'mappings'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
+                : 'text-fg-secondary hover:text-fg hover:bg-elevated'
             }`}
           >
             <Users className="h-3.5 w-3.5" />
@@ -176,7 +176,7 @@ export default function ActiveDirectoryPage() {
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'simulator'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
+                : 'text-fg-secondary hover:text-fg hover:bg-elevated'
             }`}
           >
             <UserCheck className="h-3.5 w-3.5" />
@@ -189,7 +189,7 @@ export default function ActiveDirectoryPage() {
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'twoFactor'
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
+                : 'text-fg-secondary hover:text-fg hover:bg-elevated'
             }`}
           >
             <KeyRound className="h-3.5 w-3.5" />
@@ -201,8 +201,8 @@ export default function ActiveDirectoryPage() {
             onClick={() => setActiveTab('smtp')}
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'smtp'
-                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-bold'
-                : 'text-amber-400/80 hover:text-amber-300 hover:bg-[#181F2E]'
+                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                : 'text-fg-secondary hover:text-fg hover:bg-elevated'
             }`}
           >
             <Mail className="h-3.5 w-3.5" />
@@ -213,7 +213,7 @@ export default function ActiveDirectoryPage() {
 
       {/* Conteúdo da Aba */}
       {loading ? (
-        <div className="h-64 animate-pulse rounded-2xl border border-[#1E2636] bg-[#121721] p-6 shadow-sm" />
+        <div className="h-64 animate-pulse rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm" />
       ) : activeTab === 'connection' ? (
         <ADConnectionTab
           config={config}

@@ -27,18 +27,18 @@ export default function DonutChart({
   const activeSlice = activeLabel ? items.find((s) => s.label === activeLabel) : null
 
   return (
-    <div className="flex flex-col justify-between h-full rounded-xl border border-[#1E2636] bg-[#121721] p-5 shadow-sm transition-all hover:border-[#263044] select-none">
+    <div className="flex flex-col justify-between h-full rounded-xl border border-border-subtle bg-surface p-5 shadow-sm transition-all hover:border-border-medium select-none">
       <div className="mb-4 flex items-center justify-between shrink-0">
         <div>
-          <h3 className="text-sm font-bold text-slate-100">{title}</h3>
+          <h3 className="text-sm font-bold text-fg">{title}</h3>
           {subtitle && (
-            <p className="text-xs text-slate-400 mt-0.5 truncate">{subtitle}</p>
+            <p className="text-xs text-fg-secondary mt-0.5 truncate">{subtitle}</p>
           )}
         </div>
         <button
           type="button"
           onClick={() => setMode((m) => (m === 'pct' ? 'qtd' : 'pct'))}
-          className="rounded-md border border-[#263044] bg-[#181F2E] px-2 py-0.5 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-[#263044] hover:text-white cursor-pointer"
+          className="rounded-md border border-border-medium bg-elevated px-2 py-0.5 text-[10px] font-semibold text-gray-700 dark:text-slate-300 transition-colors hover:bg-border-subtle hover:text-fg cursor-pointer"
           title="Alternar entre percentual e quantidade"
         >
           {mode === 'pct' ? '%' : 'Qtd'}
@@ -59,8 +59,9 @@ export default function DonutChart({
                 cy="70"
                 r={R}
                 fill="none"
-                stroke="#1A2234"
+                stroke="currentColor"
                 strokeWidth="16"
+                className="text-border-medium"
               />
             ) : (
               items.map((slice, idx) => {
@@ -107,7 +108,7 @@ export default function DonutChart({
               y="66"
               textAnchor="middle"
               dominantBaseline="middle"
-              className="fill-white text-2xl font-extrabold font-mono tabular-nums tracking-tight pointer-events-none select-none transition-all"
+              className="fill-current text-fg text-2xl font-extrabold font-mono tabular-nums tracking-tight pointer-events-none select-none transition-all"
             >
               {activeSlice ? activeSlice.total : total}
             </text>
@@ -134,8 +135,8 @@ export default function DonutChart({
                 onClick={() => onItemClick && onItemClick(slice.label)}
                 className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1 text-left text-xs transition-colors cursor-pointer ${
                   isSelected
-                    ? 'bg-orange-500/15 font-semibold text-orange-300 ring-1 ring-orange-500/30 border border-orange-500/40'
-                    : 'text-slate-300 hover:bg-[#181F2E]'
+                    ? 'bg-orange-500/15 font-semibold text-orange-600 dark:text-orange-300 ring-1 ring-orange-500/30 border border-orange-500/40'
+                    : 'text-gray-700 dark:text-slate-300 hover:bg-elevated'
                 }`}
               >
                 <div className="flex min-w-0 items-center gap-2">
@@ -143,18 +144,18 @@ export default function DonutChart({
                     className="h-2.5 w-2.5 shrink-0 rounded-full shadow-xs"
                     style={{ backgroundColor: slice.color }}
                   />
-                  <span className="truncate text-slate-200" title={slice.label}>
+                  <span className="truncate text-fg" title={slice.label}>
                     {slice.label}
                   </span>
                 </div>
-                <span className="ml-2 shrink-0 font-medium text-slate-200 font-mono text-[11px] tabular-nums">
+                <span className="ml-2 shrink-0 font-medium text-fg font-mono text-[11px] tabular-nums">
                   {mode === 'pct' ? `${slice.percentual}%` : `${slice.total} (${slice.percentual}%)`}
                 </span>
               </button>
             )
           })}
           {items.length === 0 && (
-            <p className="text-center text-xs text-slate-500">Sem dados</p>
+            <p className="text-center text-xs text-fg-muted">Sem dados</p>
           )}
         </div>
       </div>

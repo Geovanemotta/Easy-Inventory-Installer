@@ -129,20 +129,20 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
 
         {/* Modal Window Obsidian & Amber */}
         <div
-          className="relative transform overflow-hidden rounded-2xl bg-[#121721] text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-[#1E2636]"
+          className="relative transform overflow-hidden rounded-2xl bg-surface text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-border-subtle"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-6 py-4 border-b border-[#1E2636] bg-[#0E131B] flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-border-subtle bg-app flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-orange-500/15 border border-orange-500/30 text-orange-400">
                 <Key className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-bold text-fg">
                   {currentKey ? `Alterar Licença de ${slotLabel}` : `Atribuir Licença de ${slotLabel}`}
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Alvo: <strong className="text-slate-200 font-semibold">{asset.nome}</strong> ({asset.ip || 'Sem IP'})
+                <p className="text-[11px] text-fg-secondary mt-0.5">
+                  Alvo: <strong className="text-fg font-semibold">{asset.nome}</strong> ({asset.ip || 'Sem IP'})
                 </p>
               </div>
             </div>
@@ -151,7 +151,7 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#181F2E] transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-fg-secondary hover:text-fg hover:bg-elevated transition-colors cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
@@ -159,21 +159,21 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs text-rose-300 flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Toggle Modo: Lote vs Avulso */}
-            <div className="flex rounded-xl bg-[#0B0E14] border border-[#1E2636] p-1 text-xs font-semibold">
+            <div className="flex rounded-xl bg-app border border-border-subtle p-1 text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setIsCustomMode(false)}
                 className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
                   !isCustomMode
-                    ? 'bg-[#181F2E] text-orange-400 border border-[#263044] shadow-xs font-bold'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-elevated text-orange-400 border border-border-medium shadow-xs font-bold'
+                    : 'text-fg-secondary hover:text-fg'
                 }`}
               >
                 Lotes Disponíveis ({availableList.length})
@@ -183,8 +183,8 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
                 onClick={() => setIsCustomMode(true)}
                 className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
                   isCustomMode
-                    ? 'bg-[#181F2E] text-orange-400 border border-[#263044] shadow-xs font-bold'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-elevated text-orange-400 border border-border-medium shadow-xs font-bold'
+                    : 'text-fg-secondary hover:text-fg'
                 }`}
               >
                 Digitar Chave Avulsa
@@ -193,17 +193,17 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
 
             {!isCustomMode ? (
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300 block">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
                   Selecione um lote cadastrado com licenças disponíveis:
                 </label>
 
                 {loading ? (
-                  <div className="p-8 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                  <div className="p-8 text-center text-xs text-fg-secondary flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-orange-400" />
                     <span>Carregando licenças disponíveis...</span>
                   </div>
                 ) : availableList.length === 0 ? (
-                  <div className="p-4 rounded-xl border border-[#1E2636] bg-[#0B0E14] text-center text-xs text-slate-400 space-y-2">
+                  <div className="p-4 rounded-xl border border-border-subtle bg-app text-center text-xs text-fg-secondary space-y-2">
                     <p>Nenhum lote com licenças disponíveis encontrado para esta filial/categoria.</p>
                     <button
                       type="button"
@@ -223,7 +223,7 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
                           className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                             isSelected
                               ? 'border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30'
-                              : 'border-[#1E2636] bg-[#181F2E] hover:border-[#263044]'
+                              : 'border-border-subtle bg-elevated hover:border-border-medium'
                           }`}
                         >
                           <input
@@ -236,25 +236,25 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-slate-100 truncate">
+                              <span className="text-xs font-bold text-fg truncate">
                                 {lic.software_nome}
                               </span>
                               <span
                                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                                   lic.quantidade_disponivel > 0
-                                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                                    : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                    : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
                                 }`}
                               >
                                 {lic.quantidade_disponivel} disp. ({lic.quantidade_em_uso}/
                                 {lic.quantidade_total})
                               </span>
                             </div>
-                            <span className="font-mono text-xs font-semibold text-slate-300 block mt-0.5">
+                            <span className="font-mono text-xs font-semibold text-gray-700 dark:text-slate-300 block mt-0.5">
                               {lic.chave}
                             </span>
                             {lic.site_nome && (
-                              <span className="text-[10px] text-slate-400 block mt-0.5">
+                              <span className="text-[10px] text-fg-secondary block mt-0.5">
                                 Filial: {lic.site_nome}
                               </span>
                             )}
@@ -267,7 +267,7 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
               </div>
             ) : (
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300 block">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
                   Chave do Produto (Serial / Product Key):
                 </label>
                 <input
@@ -277,21 +277,21 @@ export const AssignLicenseModal: React.FC<AssignLicenseModalProps> = ({
                   placeholder="Ex: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
                   value={customKey}
                   onChange={(e) => setCustomKey(formatarChaveInput(e.target.value))}
-                  className="w-full rounded-xl border border-[#263044] bg-[#181F2E] px-3.5 py-2.5 font-mono text-xs font-bold text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 uppercase tracking-wider"
+                  className="w-full rounded-xl border border-border-medium bg-elevated px-3.5 py-2.5 font-mono text-xs font-bold text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 uppercase tracking-wider"
                 />
-                <p className="text-[11px] text-slate-400 leading-normal">
+                <p className="text-[11px] text-fg-secondary leading-normal">
                   Insira o serial avulso (OEM, etiqueta de gabinete ou chave por volume). Limite máximo de 25 caracteres alfanuméricos formatados.
                 </p>
               </div>
             )}
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#1E2636]">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border-subtle">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={saving}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-[#181F2E] border border-[#263044] hover:bg-[#263044] hover:text-white transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-slate-300 bg-elevated border border-border-medium hover:bg-border-subtle hover:text-fg transition-colors cursor-pointer"
               >
                 Cancelar
               </button>

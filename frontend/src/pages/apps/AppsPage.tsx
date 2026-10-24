@@ -240,11 +240,11 @@ export const AppsPage: React.FC = () => {
       {/* Cabeçalho da Página Padronizado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+          <h1 className="text-xl font-bold text-fg flex items-center gap-2.5">
             <AppWindow className="h-6 w-6 text-orange-400" />
             Catálogo de Aplicativos &amp; Softwares
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-fg-secondary mt-0.5">
             Visão unificada de softwares, agentes, runtimes e ferramentas instaladas nas estações Linux e Windows
           </p>
         </div>

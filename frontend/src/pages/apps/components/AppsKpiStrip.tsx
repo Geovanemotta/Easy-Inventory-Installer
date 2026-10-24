@@ -48,7 +48,7 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
       sub: 'Pacotes em execução',
       icon: Layers,
       accentColor: '#3B82F6',
-      iconColor: 'text-blue-400',
+      iconColor: 'text-blue-600 dark:text-blue-400',
       isFilter: false,
     },
     {
@@ -58,7 +58,7 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
       sub: 'Browsers, ERP e Office',
       icon: AppWindow,
       accentColor: '#10B981',
-      iconColor: 'text-emerald-400',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
       isFilter: true,
     },
     {
@@ -68,7 +68,7 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
       sub: 'Inventário e AV',
       icon: ShieldAlert,
       accentColor: '#8B5CF6',
-      iconColor: 'text-purple-400',
+      iconColor: 'text-purple-600 dark:text-purple-400',
       isFilter: true,
     },
     {
@@ -78,7 +78,7 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
       sub: 'Clique p/ ver lista',
       icon: CheckCircle2,
       accentColor: '#06B6D4',
-      iconColor: 'text-cyan-400',
+      iconColor: 'text-cyan-600 dark:text-cyan-400',
       isFilter: false,
       isAction: true,
     },
@@ -89,7 +89,7 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
       sub: semAppsCount > 0 ? 'Clique p/ pendências' : '100% inventariada',
       icon: AlertTriangle,
       accentColor: semAppsCount > 0 ? '#EF4444' : '#64748B',
-      iconColor: semAppsCount > 0 ? 'text-rose-400' : 'text-slate-400',
+      iconColor: semAppsCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-fg-secondary',
       isFilter: false,
       isAction: true,
       hasWarningBadge: semAppsCount > 0,
@@ -126,8 +126,8 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
               isClickable ? 'cursor-pointer' : 'cursor-default'
             } ${
               isSelected
-                ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
-                : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+                ? 'border-orange-500 ring-1 ring-orange-500/30 bg-elevated'
+                : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
             }`}
           >
             {/* Linha de acento no topo do card */}
@@ -137,30 +137,30 @@ export const AppsKpiStrip: React.FC<AppsKpiStripProps> = ({
             />
 
             <div className="flex w-full items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-fg-secondary truncate">
                 {card.label}
               </span>
-              <div className={`p-1 rounded-md bg-[#181F2E] border border-[#1E2636] ${card.iconColor} group-hover:scale-105 transition-transform`}>
+              <div className={`p-1 rounded-md bg-elevated border border-border-subtle ${card.iconColor} group-hover:scale-105 transition-transform`}>
                 <Icon className="h-3.5 w-3.5" />
               </div>
             </div>
 
             <div className="my-1.5 flex items-baseline gap-2">
-              <span className={`text-2xl font-extrabold font-mono tabular-nums tracking-tight ${card.hasWarningBadge ? 'text-rose-400' : 'text-white'} group-hover:text-orange-400 transition-colors`}>
+              <span className={`text-2xl font-extrabold font-mono tabular-nums tracking-tight ${card.hasWarningBadge ? 'text-rose-600 dark:text-rose-400' : 'text-fg'} group-hover:text-orange-400 transition-colors`}>
                 {loading ? (
-                  <span className="inline-block w-12 h-6 bg-[#181F2E] rounded animate-pulse" />
+                  <span className="inline-block w-12 h-6 bg-elevated rounded animate-pulse" />
                 ) : (
                   card.valor.toLocaleString('pt-BR')
                 )}
               </span>
               {card.hasWarningBadge && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 animate-pulse">
                   Atenção
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+            <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
               <span
                 className="h-1.5 w-1.5 rounded-full shrink-0 shadow-xs"
                 style={{ backgroundColor: card.accentColor }}

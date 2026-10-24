@@ -178,7 +178,7 @@ export const SitesPage: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-[#0E131B] border border-[#263044] px-4 py-2.5 text-xs font-semibold text-white shadow-2xl animate-in slide-in-from-bottom duration-150">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-app border border-border-medium px-4 py-2.5 text-xs font-semibold text-fg shadow-2xl animate-in slide-in-from-bottom duration-150">
           <Sparkles className="h-4 w-4 text-orange-400" />
           <span>{toastMessage}</span>
         </div>
@@ -188,7 +188,7 @@ export const SitesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            <h1 className="text-xl font-bold tracking-tight text-fg flex items-center gap-2.5">
               <Building2 className="h-6 w-6 text-orange-400" />
               Lojas &amp; Filiais
             </h1>
@@ -196,7 +196,7 @@ export const SitesPage: React.FC = () => {
               {sites.length} unidades
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-fg-secondary mt-0.5">
             Mapeamento de unidades, faixas de IP/VLANs e regras de reconhecimento automático
           </p>
         </div>
@@ -205,7 +205,7 @@ export const SitesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleOpenRanges()}
-            className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 rounded-lg border border-border-medium bg-elevated px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle transition-colors cursor-pointer"
             title="Gerenciar faixas de IP e sub-redes (VLANs)"
           >
             <Network className="h-4 w-4 text-orange-400" />
@@ -218,7 +218,7 @@ export const SitesPage: React.FC = () => {
               setSimInitialHostname('');
               setSimModalOpen(true);
             }}
-            className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 rounded-lg border border-border-medium bg-elevated px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle transition-colors cursor-pointer"
             title="Testar como um hostname é reconhecido pelas regras"
           >
             <Search className="h-4 w-4 text-orange-400" />
@@ -229,7 +229,7 @@ export const SitesPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setReclassModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 rounded-lg border border-border-medium bg-elevated px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle transition-colors cursor-pointer"
               title="Reclassificar máquinas do parque conforme os padrões atuais"
             >
               <RefreshCw className="h-4 w-4 text-orange-400" />
@@ -254,86 +254,86 @@ export const SitesPage: React.FC = () => {
       {/* 2. Cards de Métricas e KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Lojas Cadastradas */}
-        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+        <div className="relative overflow-hidden rounded-xl border border-border-subtle bg-surface p-4 shadow-sm group hover:border-border-medium transition-all duration-200">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-orange-500 to-amber-500" />
           <div className="flex items-center gap-3.5">
             <div className="rounded-xl bg-orange-500/15 border border-orange-500/30 p-2.5 text-orange-400">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+              <div className="text-2xl font-bold font-mono text-fg tabular-nums">
                 {kpis?.total_sites ?? sites.length}
               </div>
-              <div className="text-xs font-medium text-slate-400">Lojas Cadastradas</div>
+              <div className="text-xs font-medium text-fg-secondary">Lojas Cadastradas</div>
             </div>
           </div>
         </div>
 
         {/* Card 2: Filiais Ativas */}
-        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+        <div className="relative overflow-hidden rounded-xl border border-border-subtle bg-surface p-4 shadow-sm group hover:border-border-medium transition-all duration-200">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500" />
           <div className="flex items-center gap-3.5">
-            <div className="rounded-xl bg-emerald-500/15 border border-emerald-500/30 p-2.5 text-emerald-400">
+            <div className="rounded-xl bg-emerald-500/15 border border-emerald-500/30 p-2.5 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+              <div className="text-2xl font-bold font-mono text-fg tabular-nums">
                 {kpis?.active_sites ?? sites.filter((s) => s.active).length}
               </div>
-              <div className="text-xs font-medium text-slate-400">Filiais Ativas</div>
+              <div className="text-xs font-medium text-fg-secondary">Filiais Ativas</div>
             </div>
           </div>
         </div>
 
         {/* Card 3: Estações Atribuídas */}
-        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+        <div className="relative overflow-hidden rounded-xl border border-border-subtle bg-surface p-4 shadow-sm group hover:border-border-medium transition-all duration-200">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500" />
           <div className="flex items-center gap-3.5">
-            <div className="rounded-xl bg-blue-500/15 border border-blue-500/30 p-2.5 text-blue-400">
+            <div className="rounded-xl bg-blue-500/15 border border-blue-500/30 p-2.5 text-blue-600 dark:text-blue-400">
               <Monitor className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+              <div className="text-2xl font-bold font-mono text-fg tabular-nums">
                 {kpis?.total_devices ?? sites.reduce((acc, s) => acc + (s.devices_count || 0), 0)}
               </div>
-              <div className="text-xs font-medium text-slate-400">Estações Atribuídas</div>
+              <div className="text-xs font-medium text-fg-secondary">Estações Atribuídas</div>
             </div>
           </div>
         </div>
 
         {/* Card 4: Ativos de Rede */}
-        <div className="relative overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] p-4 shadow-sm group hover:border-[#263044] transition-all duration-200">
+        <div className="relative overflow-hidden rounded-xl border border-border-subtle bg-surface p-4 shadow-sm group hover:border-border-medium transition-all duration-200">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 to-yellow-500" />
           <div className="flex items-center gap-3.5">
-            <div className="rounded-xl bg-amber-500/15 border border-amber-500/30 p-2.5 text-amber-400">
+            <div className="rounded-xl bg-amber-500/15 border border-amber-500/30 p-2.5 text-amber-600 dark:text-amber-400">
               <Radio className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-2xl font-bold font-mono text-white tabular-nums">
+              <div className="text-2xl font-bold font-mono text-fg tabular-nums">
                 {kpis?.total_network_assets ?? sites.reduce((acc, s) => acc + (s.network_assets_count || 0), 0)}
               </div>
-              <div className="text-xs font-medium text-slate-400">Ativos de Rede</div>
+              <div className="text-xs font-medium text-fg-secondary">Ativos de Rede</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* 3. Barra de Busca e Filtros */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#121721] p-3 rounded-xl border border-[#1E2636] shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface p-3 rounded-xl border border-border-subtle shadow-sm">
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
           <input
             type="text"
             placeholder="Pesquisar por código (ex: 01, CB01), nome ou padrão (ex: LJ01)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-[#263044] bg-[#181F2E] pl-9 pr-8 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none transition-colors"
+            className="w-full rounded-lg border border-border-medium bg-elevated pl-9 pr-8 py-2 text-xs text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none transition-colors"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-white rounded cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-fg-secondary hover:text-fg rounded cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -345,7 +345,7 @@ export const SitesPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="flex items-center gap-1.5 py-2 px-3 text-xs font-semibold text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 py-2 px-3 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-fg bg-elevated hover:bg-border-subtle rounded-lg border border-border-medium transition-colors cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>Limpar</span>
@@ -365,7 +365,7 @@ export const SitesPage: React.FC = () => {
             type="button"
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-1.5 rounded-lg border border-[#263044] bg-[#181F2E] px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-border-medium bg-elevated px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle transition-colors cursor-pointer disabled:opacity-50"
             title="Recarregar lista"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -420,47 +420,47 @@ export const SitesPage: React.FC = () => {
       {siteToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
           <div
-            className="w-full max-w-md rounded-2xl bg-[#121721] shadow-2xl border border-[#1E2636] overflow-hidden text-xs animate-in zoom-in-95 duration-150"
+            className="w-full max-w-md rounded-2xl bg-surface shadow-2xl border border-border-subtle overflow-hidden text-xs animate-in zoom-in-95 duration-150"
             role="dialog"
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2636] bg-[#0E131B]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-app">
               <div className="flex items-center gap-2.5">
-                <div className="rounded-xl bg-rose-500/15 border border-rose-500/30 p-2 text-rose-400">
+                <div className="rounded-xl bg-rose-500/15 border border-rose-500/30 p-2 text-rose-600 dark:text-rose-400">
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Excluir / Desativar Filial</h3>
-                  <p className="text-[11px] text-slate-400">Confirmação de segurança</p>
+                  <h3 className="text-sm font-bold text-fg">Excluir / Desativar Filial</h3>
+                  <p className="text-[11px] text-fg-secondary">Confirmação de segurança</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSiteToDelete(null)}
-                className="rounded-lg p-1 text-slate-400 hover:text-white hover:bg-[#181F2E] transition-colors cursor-pointer"
+                className="rounded-lg p-1 text-fg-secondary hover:text-fg hover:bg-elevated transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-3">
-              <p className="text-slate-300 text-xs leading-relaxed">
+              <p className="text-gray-700 dark:text-slate-300 text-xs leading-relaxed">
                 Deseja realmente excluir ou desativar a filial{' '}
-                <strong className="text-white font-mono bg-[#181F2E] px-2 py-0.5 rounded border border-[#263044]">
+                <strong className="text-fg font-mono bg-elevated px-2 py-0.5 rounded border border-border-medium">
                   {siteToDelete.code} - {siteToDelete.name}
                 </strong>
                 ?
               </p>
-              <p className="text-slate-400 text-[11px]">
+              <p className="text-fg-secondary text-[11px]">
                 Se a filial possuir estações ou sub-redes vinculadas, ela será desativada para manter o histórico de auditoria.
               </p>
             </div>
 
-            <div className="px-6 py-3 border-t border-[#1E2636] bg-[#0E131B] flex justify-end gap-2">
+            <div className="px-6 py-3 border-t border-border-subtle bg-app flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setSiteToDelete(null)}
                 disabled={isDeleting}
-                className="rounded-lg border border-[#263044] bg-[#181F2E] px-4 py-2 font-semibold text-slate-300 hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
+                className="rounded-lg border border-border-medium bg-elevated px-4 py-2 font-semibold text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle transition-colors cursor-pointer"
               >
                 Cancelar
               </button>

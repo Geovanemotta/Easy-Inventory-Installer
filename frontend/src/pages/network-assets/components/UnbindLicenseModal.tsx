@@ -55,20 +55,20 @@ export const UnbindLicenseModal: React.FC<UnbindLicenseModalProps> = ({
 
         {/* Modal Window Obsidian & Rose */}
         <div
-          className="relative transform overflow-hidden rounded-2xl bg-[#121721] text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-[#1E2636] animate-in zoom-in-95 duration-150"
+          className="relative transform overflow-hidden rounded-2xl bg-surface text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-border-subtle animate-in zoom-in-95 duration-150"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-[#1E2636] bg-[#0E131B] flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-border-subtle bg-app flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
+              <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400">
                 <Key className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-bold text-fg">
                   Desvincular Licença de {slotLabel}
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-[11px] text-fg-secondary mt-0.5">
                   Confirmação de liberação de serial
                 </p>
               </div>
@@ -78,7 +78,7 @@ export const UnbindLicenseModal: React.FC<UnbindLicenseModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#181F2E] transition-colors cursor-pointer disabled:opacity-50"
+              className="p-1.5 rounded-lg text-fg-secondary hover:text-fg hover:bg-elevated transition-colors cursor-pointer disabled:opacity-50"
             >
               <X className="h-4 w-4" />
             </button>
@@ -87,44 +87,44 @@ export const UnbindLicenseModal: React.FC<UnbindLicenseModalProps> = ({
           {/* Body Content */}
           <div className="p-6 space-y-4">
             {/* Target & Key Details Box */}
-            <div className="rounded-xl border border-[#1E2636] bg-[#0B0E14] p-3.5 space-y-2">
-              <div className="text-xs text-slate-400 flex items-center justify-between">
+            <div className="rounded-xl border border-border-subtle bg-app p-3.5 space-y-2">
+              <div className="text-xs text-fg-secondary flex items-center justify-between">
                 <span>Equipamento alvo:</span>
-                <span className="text-[11px] font-mono text-slate-400">{targetIp || 'Sem IP'}</span>
+                <span className="text-[11px] font-mono text-fg-secondary">{targetIp || 'Sem IP'}</span>
               </div>
-              <div className="text-sm font-bold text-white font-mono">
+              <div className="text-sm font-bold text-fg font-mono">
                 {targetName}
               </div>
 
-              <div className="pt-2 border-t border-[#1E2636] space-y-1">
-                <span className="text-[11px] text-slate-400 block">
+              <div className="pt-2 border-t border-border-subtle space-y-1">
+                <span className="text-[11px] text-fg-secondary block">
                   Chave a ser desvinculada ({slotLabel}):
                 </span>
-                <div className="font-mono text-xs font-bold text-orange-400 bg-[#181F2E] px-2.5 py-1.5 rounded-lg border border-[#263044] tracking-wider select-all break-all">
+                <div className="font-mono text-xs font-bold text-orange-400 bg-elevated px-2.5 py-1.5 rounded-lg border border-border-medium tracking-wider select-all break-all">
                   {currentKey}
                 </div>
               </div>
             </div>
 
             {/* Warning Box */}
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300 space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-amber-400">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300 space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                 <span>Liberação de Licença</span>
               </div>
-              <p className="text-amber-300/90 leading-relaxed text-[11px]">
+              <p className="text-amber-700/90 dark:text-amber-300/90 leading-relaxed text-[11px]">
                 Ao desvincular, a chave retornará ao estoque de licenças disponíveis do sistema e a máquina ficará sem serial de {slotLabel} associado.
               </p>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-2.5 px-6 py-3.5 border-t border-[#1E2636] bg-[#0E131B]">
+          <div className="flex items-center justify-end gap-2.5 px-6 py-3.5 border-t border-border-subtle bg-app">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-[#181F2E] border border-[#263044] hover:bg-[#263044] hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-slate-300 bg-elevated border border-border-medium hover:bg-border-subtle hover:text-fg disabled:opacity-50 transition-colors cursor-pointer"
             >
               Cancelar
             </button>

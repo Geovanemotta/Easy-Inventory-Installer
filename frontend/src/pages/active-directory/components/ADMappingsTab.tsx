@@ -156,13 +156,13 @@ export default function ADMappingsTab({
   return (
     <div className="space-y-6 text-xs">
       {/* 1. Grupos Superadministradores */}
-      <div className="rounded-2xl border border-[#1E2636] bg-[#121721] p-5 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-border-subtle bg-surface p-5 shadow-sm space-y-4">
         <div>
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <h3 className="text-sm font-bold text-fg flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-orange-400" />
             Grupos Superadministradores (Acesso Total)
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-fg-secondary mt-0.5">
             Membros destes grupos no Active Directory recebem automaticamente privilégios de superadmin global
           </p>
         </div>
@@ -171,14 +171,14 @@ export default function ADMappingsTab({
           {config.superadmin_groups.map((grp) => (
             <span
               key={grp}
-              className="flex items-center gap-1.5 rounded-lg border border-orange-500/30 bg-[#181F2E] px-3 py-1.5 text-xs font-mono font-semibold text-orange-400 shadow-xs"
+              className="flex items-center gap-1.5 rounded-lg border border-orange-500/30 bg-elevated px-3 py-1.5 text-xs font-mono font-semibold text-orange-400 shadow-xs"
             >
               <ShieldCheck className="h-3.5 w-3.5 text-orange-500 shrink-0" />
               <span>{grp}</span>
               <button
                 type="button"
                 onClick={() => handleRemoveSuperGroup(grp)}
-                className="ml-1 text-slate-400 hover:text-rose-400 transition-colors"
+                className="ml-1 text-fg-secondary hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                 title="Remover grupo superadmin"
               >
                 <X className="h-3.5 w-3.5" />
@@ -198,7 +198,7 @@ export default function ADMappingsTab({
                   handleAddSuperGroup()
                 }
               }}
-              className="rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-1.5 text-xs font-medium text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
+              className="rounded-lg border border-border-medium bg-elevated px-3 py-1.5 text-xs font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
             />
             <button
               type="button"
@@ -213,27 +213,27 @@ export default function ADMappingsTab({
       </div>
 
       {/* 2. Mapeamento de Grupos para Lojas e Perfis */}
-      <div className="rounded-2xl border border-[#1E2636] bg-[#121721] p-5 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1E2636] pb-4">
+      <div className="rounded-2xl border border-border-subtle bg-surface p-5 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle pb-4">
           <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-bold text-fg flex items-center gap-2">
               <Users className="h-4 w-4 text-orange-400" />
               Mapeamentos de Grupos do AD para Lojas e Perfis
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-fg-secondary mt-0.5">
               Associe grupos de segurança do domínio a perfis operacionais e lojas autorizadas
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-2 h-3.5 w-3.5 text-slate-400" />
+              <Search className="absolute left-3 top-2 h-3.5 w-3.5 text-fg-secondary" />
               <input
                 type="text"
                 placeholder="Filtrar vínculos..."
                 value={filterSearch}
                 onChange={(e) => setFilterSearch(e.target.value)}
-                className="w-48 sm:w-60 rounded-lg border border-[#263044] bg-[#181F2E] pl-8 pr-3 py-1.5 text-xs font-medium text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
+                className="w-48 sm:w-60 rounded-lg border border-border-medium bg-elevated pl-8 pr-3 py-1.5 text-xs font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
               />
             </div>
             <button
@@ -248,7 +248,7 @@ export default function ADMappingsTab({
         </div>
 
         {mappingsEntries.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-500">
+          <div className="py-12 text-center text-xs text-fg-muted">
             Nenhum vínculo de grupo cadastrado até o momento.
           </div>
         ) : (
@@ -263,20 +263,20 @@ export default function ADMappingsTab({
               return (
                 <div
                   key={grp}
-                  className="flex flex-col justify-between rounded-xl border border-[#1E2636] bg-[#181F2E]/60 p-4 transition-all hover:bg-[#181F2E] hover:border-[#263044] hover:shadow-md"
+                  className="flex flex-col justify-between rounded-xl border border-border-subtle bg-elevated/60 p-4 transition-all hover:bg-elevated hover:border-border-medium hover:shadow-md"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <span className="font-mono text-xs font-bold text-white break-all">
+                      <span className="font-mono text-xs font-bold text-fg break-all">
                         {grp}
                       </span>
                       <span
                         className={`rounded-md px-2 py-0.5 text-[10px] font-bold border shrink-0 ${
                           role === 'operador_matriz'
-                            ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+                            ? 'bg-purple-500/15 border-purple-500/30 text-purple-700 dark:text-purple-300'
                             : role === 'admin'
-                            ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                            : 'bg-blue-500/15 border-blue-500/30 text-blue-400'
+                            ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                            : 'bg-blue-500/15 border-blue-500/30 text-blue-600 dark:text-blue-400'
                         }`}
                       >
                         {ROLE_LABELS[role] || role}
@@ -284,14 +284,14 @@ export default function ADMappingsTab({
                     </div>
 
                     <div className="mt-3">
-                      <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+                      <span className="text-[10px] uppercase tracking-wider font-semibold text-fg-secondary">
                         Lojas Vinculadas:
                       </span>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {mappedSites.map((s, idx) => (
                           <span
                             key={idx}
-                            className="rounded bg-[#121721] border border-[#263044] px-1.5 py-0.5 text-[10px] font-mono text-slate-300"
+                            className="rounded bg-surface border border-border-medium px-1.5 py-0.5 text-[10px] font-mono text-gray-700 dark:text-slate-300"
                           >
                             {s}
                           </span>
@@ -300,19 +300,19 @@ export default function ADMappingsTab({
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-end gap-3 border-t border-[#1E2636] pt-2.5">
+                  <div className="mt-4 flex items-center justify-end gap-3 border-t border-border-subtle pt-2.5">
                     <button
                       type="button"
                       onClick={() => handleEditMapping(grp, data)}
-                      className="flex items-center gap-1 text-xs font-medium text-orange-400 hover:text-orange-300 transition-colors"
+                      className="flex items-center gap-1 text-xs font-medium text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 transition-colors"
                     >
                       <Edit3 className="h-3 w-3" /> Editar
                     </button>
-                    <span className="text-[#263044]">•</span>
+                    <span className="text-border-medium">•</span>
                     <button
                       type="button"
                       onClick={() => handleDeleteMapping(grp)}
-                      className="flex items-center gap-1 text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors"
+                      className="flex items-center gap-1 text-xs font-medium text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition-colors"
                     >
                       <Trash2 className="h-3 w-3" /> Excluir
                     </button>
@@ -327,16 +327,16 @@ export default function ADMappingsTab({
       {/* 3. Modal de Criação/Edição de Vínculo */}
       {editorOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-xl rounded-2xl border border-[#1E2636] bg-[#121721] p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#1E2636] pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="w-full max-w-xl rounded-2xl border border-border-subtle bg-surface p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <h3 className="text-sm font-bold text-fg flex items-center gap-2">
                 <Users className="h-4 w-4 text-orange-400" />
                 {editingGroupName ? `Editar Vínculo: ${editingGroupName}` : 'Novo Vínculo de Grupo AD'}
               </h3>
               <button
                 type="button"
                 onClick={() => setEditorOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors"
+                className="rounded-lg p-1 text-fg-secondary hover:bg-elevated hover:text-fg transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -345,7 +345,7 @@ export default function ADMappingsTab({
             <div className="space-y-4">
               {/* Seleção do Grupo */}
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-300">
+                <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-slate-300">
                   Nome do Grupo no Active Directory *
                 </label>
                 <input
@@ -353,12 +353,12 @@ export default function ADMappingsTab({
                   placeholder="Digite ou selecione abaixo..."
                   value={targetGroup}
                   onChange={(e) => setTargetGroup(e.target.value)}
-                  className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-xs font-mono font-medium text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-xs font-mono font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
                 />
 
                 {/* Busca dinâmica no AD */}
-                <div className="mt-2 rounded-xl border border-[#263044] bg-[#181F2E]/60 p-3 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <div className="mt-2 rounded-xl border border-border-medium bg-elevated/60 p-3 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-fg-secondary">
                     <span>Grupos no servidor AD:</span>
                     <button
                       type="button"
@@ -379,7 +379,7 @@ export default function ADMappingsTab({
                         setAdSearchTerm(e.target.value)
                         loadGroupsFromAD(e.target.value)
                       }}
-                      className="w-full rounded-lg border border-[#263044] bg-[#121721] px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none"
+                      className="w-full rounded-lg border border-border-medium bg-surface px-2.5 py-1.5 text-xs text-fg placeholder-fg-muted focus:border-orange-500 focus:outline-none"
                     />
                   </div>
 
@@ -389,14 +389,14 @@ export default function ADMappingsTab({
                         key={g.name}
                         type="button"
                         onClick={() => setTargetGroup(g.name)}
-                        className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-300 hover:bg-[#20293A] hover:text-white transition-colors"
+                        className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors"
                       >
                         <span className="font-mono font-medium">{g.name}</span>
-                        <span className="text-[10px] text-slate-500 truncate max-w-[200px]">{g.description || ''}</span>
+                        <span className="text-[10px] text-fg-muted truncate max-w-[200px]">{g.description || ''}</span>
                       </button>
                     ))}
                     {adGroups.length === 0 && !loadingAdGroups && (
-                      <p className="text-center text-[11px] text-slate-500 py-2">
+                      <p className="text-center text-[11px] text-fg-muted py-2">
                         Nenhum grupo listado (conecte o AD para carregar automaticamente).
                       </p>
                     )}
@@ -406,7 +406,7 @@ export default function ADMappingsTab({
 
               {/* Perfil / Role */}
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-300">
+                <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-slate-300">
                   Perfil de Acesso (Role) *
                 </label>
                 <SelectDropdown
@@ -421,10 +421,10 @@ export default function ADMappingsTab({
               {/* Seleção de Lojas */}
               {targetRole !== 'operador_matriz' && (
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">
+                  <label className="mb-1 block text-xs font-semibold text-gray-700 dark:text-slate-300">
                     Lojas e Filiais Permitidas
                   </label>
-                  <div className="max-h-40 overflow-y-auto rounded-xl border border-[#263044] bg-[#181F2E]/60 p-2.5 custom-scrollbar">
+                  <div className="max-h-40 overflow-y-auto rounded-xl border border-border-medium bg-elevated/60 p-2.5 custom-scrollbar">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {sites.map((s) => {
                         const isChecked = targetSites.includes(s.code) || targetSites.includes(s.name)
@@ -433,19 +433,19 @@ export default function ADMappingsTab({
                             key={s.id}
                             className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs transition-colors ${
                               isChecked
-                                ? 'bg-orange-500/15 border-orange-500/30 font-semibold text-orange-300'
-                                : 'border-transparent text-slate-300 hover:bg-[#20293A]'
+                                ? 'bg-orange-500/15 border-orange-500/30 font-semibold text-orange-600 dark:text-orange-300'
+                                : 'border-transparent text-gray-700 dark:text-slate-300 hover:bg-border-subtle'
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={isChecked}
                               onChange={() => toggleSite(s.code)}
-                              className="h-3.5 w-3.5 rounded border-[#263044] bg-[#121721] text-orange-500 focus:ring-orange-500"
+                              className="h-3.5 w-3.5 rounded border-border-medium bg-surface text-orange-500 focus:ring-orange-500"
                             />
                             <span className="truncate">
                               {cleanSiteName(s.name, s.code)}{' '}
-                              <span className="font-mono text-[10px] text-slate-400">({s.code})</span>
+                              <span className="font-mono text-[10px] text-fg-secondary">({s.code})</span>
                             </span>
                           </label>
                         )
@@ -456,11 +456,11 @@ export default function ADMappingsTab({
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-[#1E2636] pt-4">
+            <div className="flex items-center justify-end gap-2 border-t border-border-subtle pt-4">
               <button
                 type="button"
                 onClick={() => setEditorOpen(false)}
-                className="rounded-xl border border-[#263044] bg-[#181F2E] px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-[#20293A] hover:text-white transition-colors"
+                className="rounded-xl border border-border-medium bg-elevated px-4 py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg transition-colors"
               >
                 Cancelar
               </button>
@@ -479,7 +479,7 @@ export default function ADMappingsTab({
       )}
 
       {/* Botão de Salvar Alterações Globais */}
-      <div className="flex justify-end border-t border-[#1E2636] pt-4">
+      <div className="flex justify-end border-t border-border-subtle pt-4">
         <button
           type="button"
           onClick={onSave}

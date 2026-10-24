@@ -19,14 +19,14 @@ export default function EmbeddedSessionModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 backdrop-blur-xs sm:p-4 animate-in fade-in duration-200">
       <div
-        className={`flex flex-col overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] shadow-2xl transition-all ${
+        className={`flex flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-2xl transition-all ${
           isFullscreen
             ? 'fixed inset-0 h-full w-full rounded-none border-0'
             : 'h-[calc(100vh-2rem)] max-h-[92vh] w-[95vw] max-w-7xl overflow-hidden'
         }`}
       >
         {/* Cabeçalho da Janela de Sessão */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1E2636] bg-[#0E131B] px-4 py-2.5 shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle bg-app px-4 py-2.5 shrink-0">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 rounded-lg bg-orange-500/15 border border-orange-500/30 px-2.5 py-1 text-xs font-bold text-orange-400">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -34,14 +34,14 @@ export default function EmbeddedSessionModal({
             </span>
 
             {/* Abas Internas de Modo */}
-            <div className="flex rounded-lg bg-[#181F2E] p-0.5 border border-[#263044] shadow-2xs">
+            <div className="flex rounded-lg bg-elevated p-0.5 border border-border-medium shadow-2xs">
               <button
                 type="button"
                 onClick={() => onChangeMode('desktop')}
                 className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
                   session.tab === 'desktop'
                     ? 'bg-orange-500 text-white shadow-xs'
-                    : 'text-slate-400 hover:text-white hover:bg-[#222B3D]'
+                    : 'text-fg-secondary hover:text-fg hover:bg-border-subtle'
                 }`}
                 title="Área de Trabalho Remota (Desktop)"
               >
@@ -59,7 +59,7 @@ export default function EmbeddedSessionModal({
                 className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
                   session.tab === 'files'
                     ? 'bg-orange-500 text-white shadow-xs'
-                    : 'text-slate-400 hover:text-white hover:bg-[#222B3D]'
+                    : 'text-fg-secondary hover:text-fg hover:bg-border-subtle'
                 }`}
                 title="Transferência de Arquivos & Pastas"
               >
@@ -75,7 +75,7 @@ export default function EmbeddedSessionModal({
                 className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
                   session.tab === 'terminal'
                     ? 'bg-orange-500 text-white shadow-xs'
-                    : 'text-slate-400 hover:text-white hover:bg-[#222B3D]'
+                    : 'text-fg-secondary hover:text-fg hover:bg-border-subtle'
                 }`}
                 title="Prompt Shell / CMD / PowerShell"
               >
@@ -93,7 +93,7 @@ export default function EmbeddedSessionModal({
             <button
               type="button"
               onClick={onOpenExternal}
-              className="flex items-center gap-1 rounded-lg border border-[#263044] bg-[#181F2E] px-2.5 py-1 text-xs font-medium text-slate-300 hover:bg-[#222B3D] hover:text-white shadow-2xs transition-colors cursor-pointer"
+              className="flex items-center gap-1 rounded-lg border border-border-medium bg-elevated px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg shadow-2xs transition-colors cursor-pointer"
               title="Abrir sessão em nova aba do navegador"
             >
               <svg className="h-3.5 w-3.5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,7 +105,7 @@ export default function EmbeddedSessionModal({
             <button
               type="button"
               onClick={() => setIsFullscreen((prev) => !prev)}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-[#181F2E] hover:text-white transition-colors cursor-pointer"
+              className="rounded-lg p-1.5 text-fg-secondary hover:bg-elevated hover:text-fg transition-colors cursor-pointer"
               title={isFullscreen ? 'Restaurar janela' : 'Maximizar'}
             >
               {isFullscreen ? (
@@ -122,7 +122,7 @@ export default function EmbeddedSessionModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
+              className="rounded-lg p-1.5 text-fg-secondary hover:bg-rose-500/20 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
               title="Fechar janela de controle remoto"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,20 +143,20 @@ export default function EmbeddedSessionModal({
         </div>
 
         {/* Rodapé com Dica de SSL Autoassinado */}
-        <div className="flex items-center justify-between border-t border-[#1E2636] bg-[#0E131B] px-4 py-2 text-[11px] text-slate-400 shrink-0">
+        <div className="flex items-center justify-between border-t border-border-subtle bg-app px-4 py-2 text-[11px] text-fg-secondary shrink-0">
           <div className="flex items-center gap-1.5 truncate">
             <span>💡 Bloqueio de conexão interna?</span>
             <a
               href={session.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-orange-400 underline hover:text-orange-300"
+              className="font-semibold text-orange-400 underline hover:text-orange-600 dark:hover:text-orange-300"
             >
               Clique aqui para aceitar o certificado SSL do MeshCentral
             </a>
             <span>ou utilize o botão Nova Aba.</span>
           </div>
-          <span className="shrink-0 font-mono text-[10px] text-slate-500">Porta 4443</span>
+          <span className="shrink-0 font-mono text-[10px] text-fg-muted">Porta 4443</span>
         </div>
       </div>
     </div>

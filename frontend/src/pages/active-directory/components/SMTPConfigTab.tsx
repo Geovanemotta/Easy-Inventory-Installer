@@ -130,30 +130,30 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
 
   if (loading) {
     return (
-      <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-[#1E2636] bg-[#121721] p-12">
+      <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-border-subtle bg-surface p-12">
         <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 text-xs text-slate-300">
+    <div className="space-y-6 text-xs text-gray-700 dark:text-slate-300">
       {/* Banner Informativo */}
-      <div className="flex items-center justify-between rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-[#121721] to-[#121721] p-5 shadow-sm">
+      <div className="flex items-center justify-between rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-surface to-surface p-5 shadow-sm">
         <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/15 text-amber-400 shrink-0">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
             <Mail className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">
+            <h3 className="text-sm font-bold text-fg">
               Servidor SMTP &amp; E-mail Padrão da Operadora
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-fg-secondary mt-0.5">
               Configure o relay de e-mail corporativo para automatizar o envio de reservas de IP/MAC no Firewall durante a homologação
             </p>
           </div>
         </div>
-        <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[11px] font-bold text-amber-300">
+        <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[11px] font-bold text-amber-700 dark:text-amber-300">
           <Server className="h-3 w-3" />
           Relay de Firewall
         </span>
@@ -161,22 +161,22 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Bloco 1: Conexão e Credenciais */}
-        <div className="rounded-2xl border border-[#1E2636] bg-[#121721] p-6 shadow-sm space-y-5">
-          <div className="flex items-center justify-between border-b border-[#1E2636] pb-3">
-            <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-wider">
-              <Server className="h-4 w-4 text-amber-400" />
+        <div className="rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+            <div className="flex items-center gap-2 text-fg font-bold text-xs uppercase tracking-wider">
+              <Server className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               Parâmetros de Conexão SMTP
             </div>
             {/* Presets rápidos */}
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-slate-500 font-semibold mr-1">Presets:</span>
+              <span className="text-[10px] text-fg-muted font-semibold mr-1">Presets:</span>
               <button
                 type="button"
                 onClick={() => setPreset('relay25')}
                 className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors cursor-pointer border ${
                   config.smtp_port === 25 && !config.use_tls && !config.use_ssl
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : 'bg-[#181F2E] text-slate-400 border-[#263044] hover:text-white'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40'
+                    : 'bg-elevated text-fg-secondary border-border-medium hover:text-fg'
                 }`}
               >
                 Porta 25 (Relay)
@@ -186,8 +186,8 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 onClick={() => setPreset('starttls587')}
                 className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors cursor-pointer border ${
                   config.smtp_port === 587 && config.use_tls
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : 'bg-[#181F2E] text-slate-400 border-[#263044] hover:text-white'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40'
+                    : 'bg-elevated text-fg-secondary border-border-medium hover:text-fg'
                 }`}
               >
                 Porta 587 (TLS)
@@ -197,8 +197,8 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 onClick={() => setPreset('ssl465')}
                 className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors cursor-pointer border ${
                   config.smtp_port === 465 && config.use_ssl
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : 'bg-[#181F2E] text-slate-400 border-[#263044] hover:text-white'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40'
+                    : 'bg-elevated text-fg-secondary border-border-medium hover:text-fg'
                 }`}
               >
                 Porta 465 (SSL)
@@ -208,8 +208,8 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="sm:col-span-3">
-              <label className="block text-slate-300 font-semibold mb-1">
-                Servidor Host SMTP <span className="text-amber-400">*</span>
+              <label className="block text-gray-700 dark:text-slate-300 font-semibold mb-1">
+                Servidor Host SMTP <span className="text-amber-600 dark:text-amber-400">*</span>
               </label>
               <input
                 type="text"
@@ -217,13 +217,13 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 value={config.smtp_host}
                 onChange={(e) => setConfig({ ...config, smtp_host: e.target.value })}
                 required
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white font-mono placeholder:text-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg font-mono placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">
-                Porta SMTP <span className="text-amber-400">*</span>
+              <label className="block text-gray-700 dark:text-slate-300 font-semibold mb-1">
+                Porta SMTP <span className="text-amber-600 dark:text-amber-400">*</span>
               </label>
               <input
                 type="number"
@@ -231,14 +231,14 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 value={config.smtp_port}
                 onChange={(e) => setConfig({ ...config, smtp_port: parseInt(e.target.value, 10) || 25 })}
                 required
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white font-mono placeholder:text-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg font-mono placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">
+              <label className="block text-gray-700 dark:text-slate-300 font-semibold mb-1">
                 Usuário / Conta de Serviço (Opcional)
               </label>
               <input
@@ -246,18 +246,18 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 placeholder="Ex: inventario@empresa.com.br (deixe vazio para relay anônimo)"
                 value={config.smtp_user || ''}
                 onChange={(e) => setConfig({ ...config, smtp_user: e.target.value })}
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white placeholder:text-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
               />
-              <span className="text-[10px] text-slate-500 mt-0.5 block">
+              <span className="text-[10px] text-fg-muted mt-0.5 block">
                 Necessário apenas se o servidor SMTP exigir autenticação
               </span>
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 flex items-center justify-between">
+              <label className="block text-gray-700 dark:text-slate-300 font-semibold mb-1 flex items-center justify-between">
                 <span>Senha de Autenticação (Opcional)</span>
                 {config.has_smtp_password && (
-                  <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" /> Senha cadastrada
                   </span>
                 )}
@@ -268,23 +268,23 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                   placeholder={config.has_smtp_password ? '•••••••• (Preencha para alterar)' : 'Senha do usuário SMTP'}
                   value={config.smtp_password || ''}
                   onChange={(e) => setConfig({ ...config, smtp_password: e.target.value })}
-                  className="w-full rounded-lg border border-[#263044] bg-[#181F2E] pl-9 pr-3 py-2 text-white placeholder:text-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-border-medium bg-elevated pl-9 pr-3 py-2 text-fg placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
                 />
-                <KeyRound className="h-4 w-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <KeyRound className="h-4 w-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
           </div>
 
           {/* Opções de Segurança / Criptografia */}
-          <div className="pt-2 border-t border-[#1E2636] flex flex-wrap items-center gap-6">
+          <div className="pt-2 border-t border-border-subtle flex flex-wrap items-center gap-6">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={config.use_tls}
                 onChange={(e) => setConfig({ ...config, use_tls: e.target.checked, use_ssl: e.target.checked ? false : config.use_ssl })}
-                className="h-4 w-4 rounded border-[#263044] bg-[#181F2E] text-amber-500 focus:ring-amber-500 cursor-pointer"
+                className="h-4 w-4 rounded border-border-medium bg-elevated text-amber-500 focus:ring-amber-500 cursor-pointer"
               />
-              <span className="text-slate-200 font-medium">Habilitar STARTTLS (porta 587)</span>
+              <span className="text-fg font-medium">Habilitar STARTTLS (porta 587)</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -292,24 +292,24 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 type="checkbox"
                 checked={config.use_ssl}
                 onChange={(e) => setConfig({ ...config, use_ssl: e.target.checked, use_tls: e.target.checked ? false : config.use_tls })}
-                className="h-4 w-4 rounded border-[#263044] bg-[#181F2E] text-amber-500 focus:ring-amber-500 cursor-pointer"
+                className="h-4 w-4 rounded border-border-medium bg-elevated text-amber-500 focus:ring-amber-500 cursor-pointer"
               />
-              <span className="text-slate-200 font-medium">Habilitar SSL Direto (porta 465)</span>
+              <span className="text-fg font-medium">Habilitar SSL Direto (porta 465)</span>
             </label>
           </div>
         </div>
 
         {/* Bloco 2: E-mail Padrão da Operadora e Modelo */}
-        <div className="rounded-2xl border border-[#1E2636] bg-[#121721] p-6 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-wider border-b border-[#1E2636] pb-3">
-            <Shield className="h-4 w-4 text-amber-400" />
+        <div className="rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 text-fg font-bold text-xs uppercase tracking-wider border-b border-border-subtle pb-3">
+            <Shield className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             E-mail Padrão da Operadora &amp; Assunto do Chamado
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">
-                E-mail Padrão da Operadora do Firewall <span className="text-amber-400">*</span>
+              <label className="block text-gray-700 dark:text-slate-300 font-semibold mb-1">
+                E-mail Padrão da Operadora do Firewall <span className="text-amber-600 dark:text-amber-400">*</span>
               </label>
               <input
                 type="email"
@@ -317,15 +317,15 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 value={config.default_operator_email}
                 onChange={(e) => setConfig({ ...config, default_operator_email: e.target.value })}
                 required
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white placeholder:text-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
               />
-              <span className="text-[10px] text-slate-500 mt-1 block">
+              <span className="text-[10px] text-fg-muted mt-1 block">
                 Este e-mail virá pré-preenchido no modal de homologação ao solicitar reserva de IP/MAC
               </span>
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">
+              <label className="block text-gray-700 dark:text-slate-300 font-semibold mb-1">
                 Prefixo do Assunto do E-mail
               </label>
               <input
@@ -333,9 +333,9 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 placeholder="Ex: Reserva de IP/MAC - Firewall"
                 value={config.default_subject_prefix}
                 onChange={(e) => setConfig({ ...config, default_subject_prefix: e.target.value })}
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white placeholder:text-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
               />
-              <span className="text-[10px] text-slate-500 mt-1 block">
+              <span className="text-[10px] text-fg-muted mt-1 block">
                 O assunto final conterá: [Prefixo] - [Circuito da Loja] - [IP]
               </span>
             </div>
@@ -343,7 +343,7 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
         </div>
 
         {/* Bloco 3: Barra de Ações e Teste de Envio */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 rounded-2xl border border-[#1E2636] bg-[#121721] p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 rounded-2xl border border-border-subtle bg-surface p-5 shadow-sm">
           {/* Seção de Teste de Envio */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
             <div className="relative min-w-[240px] flex-1 max-w-sm">
@@ -352,14 +352,14 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
                 placeholder="E-mail destinatário para teste..."
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
-                className="w-full rounded-lg border border-[#263044] bg-[#181F2E] px-3 py-2 text-white placeholder:text-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-border-medium bg-elevated px-3 py-2 text-fg placeholder:text-fg-muted focus:border-amber-500 focus:outline-none transition-colors"
               />
             </div>
             <button
               type="button"
               onClick={handleTest}
               disabled={testing || !config.smtp_host}
-              className="flex items-center justify-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 font-semibold text-amber-300 hover:bg-amber-500/20 disabled:opacity-50 transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 disabled:opacity-50 transition-colors cursor-pointer"
             >
               {testing ? (
                 <>
@@ -379,16 +379,16 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-2.5 font-bold text-slate-950 shadow-md shadow-amber-500/20 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 px-6 py-2.5 font-bold text-white shadow-md shadow-orange-500/20 disabled:opacity-50 transition-all cursor-pointer"
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
                 <span>Gravando Configurações...</span>
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 text-slate-950" />
+                <Save className="h-4 w-4 text-white" />
                 <span>Salvar Configurações SMTP</span>
               </>
             )}
@@ -401,14 +401,14 @@ export default function SMTPConfigTab({ onShowToast, currentUserEmail }: SMTPCon
         <div
           className={`rounded-xl border p-4 flex items-start gap-3 transition-all animate-in fade-in duration-150 ${
             testResult.success
-              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
-              : 'border-rose-500/40 bg-rose-500/10 text-rose-300'
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+              : 'border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300'
           }`}
         >
           {testResult.success ? (
-            <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
           ) : (
-            <AlertCircle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
           )}
           <div className="space-y-1">
             <h5 className="font-bold">

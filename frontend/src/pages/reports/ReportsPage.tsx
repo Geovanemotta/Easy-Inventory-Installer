@@ -211,24 +211,24 @@ export default function ReportsPage() {
       {/* Cabeçalho da Página com Abas Padronizadas */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
+          <h1 className="text-xl font-bold text-fg flex items-center gap-2.5">
             <BarChart3 className="h-6 w-6 text-orange-400" />
             Relatórios &amp; Indicadores Analíticos
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-fg-secondary mt-0.5">
             Consolidação em tempo real de hardware, software, licenças e conformidade
           </p>
         </div>
 
         {/* Seletor de Abas em Obsidian & Amber */}
-        <div className="flex rounded-lg border border-[#1E2636] bg-[#121721] p-1 shadow-xs">
+        <div className="flex rounded-lg border border-border-subtle bg-surface p-1 shadow-xs">
           <button
             type="button"
             onClick={() => setActiveTab('charts')}
             className={`flex items-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'charts'
                 ? 'bg-orange-500 text-white shadow-xs'
-                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
+                : 'text-fg-secondary hover:text-fg hover:bg-elevated'
             }`}
           >
             <PieChart className="h-4 w-4" />
@@ -240,7 +240,7 @@ export default function ReportsPage() {
             className={`flex items-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'analytics'
                 ? 'bg-orange-500 text-white shadow-xs'
-                : 'text-slate-400 hover:text-white hover:bg-[#181F2E]'
+                : 'text-fg-secondary hover:text-fg hover:bg-elevated'
             }`}
           >
             <BarChart3 className="h-4 w-4" />
@@ -250,7 +250,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Barra de Filtros Superior */}
-      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-[#1E2636] bg-[#121721] p-3 shadow-xs">
+      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border-subtle bg-surface p-3 shadow-xs">
         {activeTab === 'analytics' && (
           <div className="w-52 shrink-0">
             <SelectDropdown
@@ -299,7 +299,7 @@ export default function ReportsPage() {
 
         {activeTab === 'analytics' && (
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fg-secondary" />
             <input
               type="text"
               placeholder="Buscar valor ou hostname (ex.: Core i5, 16 GB, DESKTOP-J2VG15L)..."
@@ -309,7 +309,7 @@ export default function ReportsPage() {
                 setGrupoSelecionado(null)
                 setPage(1)
               }}
-              className="w-full rounded-lg border border-[#263044] bg-[#181F2E] py-1.5 pl-8 pr-7 text-xs text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+              className="w-full rounded-lg border border-border-medium bg-elevated py-1.5 pl-8 pr-7 text-xs text-fg placeholder:text-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
             />
             {search && (
               <button
@@ -319,7 +319,7 @@ export default function ReportsPage() {
                   setGrupoSelecionado(null)
                   setPage(1)
                 }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-fg-secondary hover:text-fg p-0.5 cursor-pointer"
                 title="Limpar busca"
               >
                 <X className="h-3 w-3" />
@@ -334,7 +334,7 @@ export default function ReportsPage() {
             type="button"
             onClick={handleResetFilters}
             title="Limpar todos os filtros"
-            className="flex items-center gap-1.5 bg-[#181F2E] hover:bg-[#222B3D] text-slate-300 border border-[#263044] px-3 py-2 rounded-lg text-xs font-medium shrink-0 transition-colors cursor-pointer ml-auto"
+            className="flex items-center gap-1.5 bg-elevated hover:bg-border-subtle text-gray-700 dark:text-slate-300 border border-border-medium px-3 py-2 rounded-lg text-xs font-medium shrink-0 transition-colors cursor-pointer ml-auto"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Limpar</span>

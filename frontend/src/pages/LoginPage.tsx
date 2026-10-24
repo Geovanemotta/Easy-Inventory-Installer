@@ -13,6 +13,8 @@ import {
   Copy,
   Check,
   ShieldCheck,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { copyToClipboard } from '@/utils/clipboard';
 
@@ -164,10 +166,30 @@ export const LoginPage: React.FC = () => {
     setTimeout(() => setCopiedSecret(false), 1500);
   };
 
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const toggleTheme = () => {
+    const next = !isDark;
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    setIsDark(next);
+  };
+
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#080A0F] p-4 overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center bg-app p-4 overflow-hidden">
+      {/* Botão de Alternar Tema no topo direito */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          className="flex items-center justify-center rounded-xl border border-border-medium bg-surface/80 backdrop-blur-md p-2.5 text-fg-secondary hover:bg-elevated hover:text-orange-500 hover:border-orange-500/40 transition-colors shadow-sm cursor-pointer"
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+      </div>
+
       {/* Brilho radial sutil âmbar de fundo */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(249,115,22,0.12),rgba(11,14,20,0.8)_60%,#080A0F_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(249,115,22,0.08),rgba(241,245,249,0.7)_60%,#F8FAFC_100%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(249,115,22,0.12),rgba(11,14,20,0.8)_60%,#080A0F_100%)]" />
 
       {/* Grid de padrão sutil no fundo */}
       <div
@@ -178,14 +200,14 @@ export const LoginPage: React.FC = () => {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#1E2636] bg-[#121721] p-8 shadow-2xl backdrop-blur-md">
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-border-subtle bg-surface p-8 shadow-2xl backdrop-blur-md">
         {/* Cabeçalho */}
         <div className="mb-6 text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10 text-orange-400 font-bold text-2xl mb-3 shadow-lg shadow-orange-500/10">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-2xl mb-3 shadow-lg shadow-orange-500/10">
             GI
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-white">Giassi Inventory V2</h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <h2 className="text-xl font-bold tracking-tight text-fg">Giassi Inventory V2</h2>
+          <p className="mt-1 text-xs text-fg-secondary">
             {step === 'credentials' && 'Acesse com suas credenciais para gerenciar o parque computacional'}
             {step === 'challenge_2fa' && 'Confirmação de Segurança em Duas Etapas'}
             {step === 'setup_2fa' && 'Configuração Obrigatória do Autenticador (2FA)'}
@@ -194,8 +216,8 @@ export const LoginPage: React.FC = () => {
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-rose-500/30 bg-[#181F2E] p-3 text-xs text-rose-400 shadow-sm animate-in fade-in duration-150">
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+          <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-rose-500/30 bg-elevated p-3 text-xs text-rose-600 dark:text-rose-400 shadow-sm animate-in fade-in duration-150">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
             <span>{error}</span>
           </div>
         )}
@@ -206,11 +228,11 @@ export const LoginPage: React.FC = () => {
         {step === 'credentials' && (
           <form onSubmit={handleCredentialsSubmit} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Usuário / Rede
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-fg-muted">
                   <UserIcon className="h-4 w-4" />
                 </span>
                 <input
@@ -222,17 +244,17 @@ export const LoginPage: React.FC = () => {
                   disabled={loading}
                   autoComplete="username"
                   required
-                  className="w-full rounded-xl border border-[#263044] bg-[#181F2E] py-2.5 pl-9 pr-3 text-xs font-medium text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
+                  className="w-full rounded-xl border border-border-medium bg-elevated py-2.5 pl-9 pr-3 text-xs font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Senha
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-fg-muted">
                   <Lock className="h-4 w-4" />
                 </span>
                 <input
@@ -246,12 +268,12 @@ export const LoginPage: React.FC = () => {
                   disabled={loading}
                   autoComplete="current-password"
                   required
-                  className="w-full rounded-xl border border-[#263044] bg-[#181F2E] py-2.5 pl-9 pr-10 text-xs font-medium text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
+                  className="w-full rounded-xl border border-border-medium bg-elevated py-2.5 pl-9 pr-10 text-xs font-medium text-fg placeholder-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-fg-muted hover:text-fg transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -259,20 +281,20 @@ export const LoginPage: React.FC = () => {
               </div>
 
               {capsLockActive && (
-                <p className="mt-1.5 text-xs text-amber-400 font-medium flex items-center gap-1">
+                <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
                   <span>⚠️</span> Caps Lock ativado
                 </p>
               )}
             </div>
 
             <div className="flex items-center">
-              <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none hover:text-slate-300 transition-colors">
+              <label className="flex items-center gap-2 text-xs text-fg-secondary cursor-pointer select-none hover:text-gray-700 dark:hover:text-slate-300 transition-colors">
                 <input
                   type="checkbox"
                   checked={rememberUser}
                   onChange={(e) => setRememberUser(e.target.checked)}
                   disabled={loading}
-                  className="rounded border-[#263044] bg-[#181F2E] text-orange-500 focus:ring-orange-500"
+                  className="rounded border-border-medium bg-elevated text-orange-500 focus:ring-orange-500"
                 />
                 Lembrar meu usuário neste navegador
               </label>
@@ -281,7 +303,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-[#181F2E] disabled:text-slate-600 disabled:border disabled:border-[#263044] disabled:cursor-not-allowed"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-elevated disabled:text-fg-muted disabled:border disabled:border-border-medium disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               <span>{loading ? 'Autenticando...' : 'Entrar no Painel'}</span>
@@ -294,7 +316,7 @@ export const LoginPage: React.FC = () => {
         {/* ============================================================== */}
         {step === 'challenge_2fa' && (
           <form onSubmit={handle2FASubmit} className="space-y-4">
-            <div className="rounded-xl border border-orange-500/20 bg-[#181F2E] p-3.5 text-xs text-slate-300">
+            <div className="rounded-xl border border-orange-500/20 bg-elevated p-3.5 text-xs text-gray-700 dark:text-slate-300">
               <div className="flex items-center gap-1.5 font-bold text-orange-400 mb-1">
                 <ShieldCheck className="h-4 w-4 text-orange-400" />
                 Autenticador Requerido
@@ -303,11 +325,11 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Código de Verificação (6 dígitos)
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-fg-muted">
                   <Shield className="h-4 w-4" />
                 </span>
                 <input
@@ -321,7 +343,7 @@ export const LoginPage: React.FC = () => {
                   placeholder="000000"
                   disabled={loading}
                   required
-                  className="w-full text-center tracking-[0.4em] text-xl font-mono font-bold rounded-xl border border-[#263044] bg-[#181F2E] py-3 pl-9 pr-3 text-white placeholder-slate-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
+                  className="w-full text-center tracking-[0.4em] text-xl font-mono font-bold rounded-xl border border-border-medium bg-elevated py-3 pl-9 pr-3 text-fg placeholder-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
                 />
               </div>
             </div>
@@ -329,7 +351,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || totpCode.length !== 6}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-[#181F2E] disabled:text-slate-600 disabled:border disabled:border-[#263044] disabled:cursor-not-allowed"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-elevated disabled:text-fg-muted disabled:border disabled:border-border-medium disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               <span>{loading ? 'Validando...' : 'Confirmar Acesso'}</span>
@@ -339,7 +361,7 @@ export const LoginPage: React.FC = () => {
               type="button"
               onClick={handleBackToCredentials}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors pt-1"
+              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-fg-secondary hover:text-fg transition-colors pt-1"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Voltar para o login
             </button>
@@ -351,7 +373,7 @@ export const LoginPage: React.FC = () => {
         {/* ============================================================== */}
         {step === 'setup_2fa' && (
           <form onSubmit={handle2FASubmit} className="space-y-4">
-            <div className="rounded-xl border border-orange-500/20 bg-[#181F2E] p-3.5 text-xs text-slate-300">
+            <div className="rounded-xl border border-orange-500/20 bg-elevated p-3.5 text-xs text-gray-700 dark:text-slate-300">
               <div className="flex items-center gap-1.5 font-bold text-orange-400 mb-1">
                 <ShieldCheck className="h-4 w-4 text-orange-400" />
                 Configuração Obrigatória
@@ -361,7 +383,7 @@ export const LoginPage: React.FC = () => {
 
             {/* QR Code */}
             {qrCodeUrl && (
-              <div className="flex justify-center p-4 bg-white rounded-xl border border-[#1E2636] shadow-inner">
+              <div className="flex justify-center p-4 bg-white rounded-xl border border-border-subtle shadow-inner">
                 <img
                   src={qrCodeUrl}
                   alt="QR Code de 2FA"
@@ -372,18 +394,18 @@ export const LoginPage: React.FC = () => {
 
             {/* Chave manual */}
             {secretKey && (
-              <div className="rounded-xl border border-[#263044] bg-[#181F2E] p-3 text-xs">
-                <div className="text-slate-400 mb-1 text-[11px]">Ou digite a chave manualmente:</div>
-                <div className="flex items-center justify-between gap-2 font-mono font-bold text-white">
+              <div className="rounded-xl border border-border-medium bg-elevated p-3 text-xs">
+                <div className="text-fg-secondary mb-1 text-[11px]">Ou digite a chave manualmente:</div>
+                <div className="flex items-center justify-between gap-2 font-mono font-bold text-fg">
                   <span className="truncate text-orange-400">{secretKey}</span>
                   <button
                     type="button"
                     onClick={handleCopySecret}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#121721] border border-[#263044] text-slate-300 hover:bg-[#20293A] hover:text-white text-[11px] transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-border-medium text-gray-700 dark:text-slate-300 hover:bg-border-subtle hover:text-fg text-[11px] transition-colors"
                   >
                     {copiedSecret ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-400" /> Copiado
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" /> Copiado
                       </>
                     ) : (
                       <>
@@ -396,7 +418,7 @@ export const LoginPage: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Digite o código de 6 dígitos gerado:
               </label>
               <input
@@ -410,14 +432,14 @@ export const LoginPage: React.FC = () => {
                 placeholder="000000"
                 disabled={loading}
                 required
-                className="w-full text-center tracking-[0.4em] text-xl font-mono font-bold rounded-xl border border-[#263044] bg-[#181F2E] py-3 px-3 text-white placeholder-slate-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
+                className="w-full text-center tracking-[0.4em] text-xl font-mono font-bold rounded-xl border border-border-medium bg-elevated py-3 px-3 text-fg placeholder-fg-muted focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || totpCode.length !== 6}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-[#181F2E] disabled:text-slate-600 disabled:border disabled:border-[#263044] disabled:cursor-not-allowed"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-xs font-semibold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 disabled:bg-elevated disabled:text-fg-muted disabled:border disabled:border-border-medium disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               <span>{loading ? 'Ativando...' : 'Concluir e Acessar'}</span>
@@ -427,7 +449,7 @@ export const LoginPage: React.FC = () => {
               type="button"
               onClick={handleBackToCredentials}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors pt-1"
+              className="flex w-full items-center justify-center gap-1.5 text-xs font-medium text-fg-secondary hover:text-fg transition-colors pt-1"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Cancelar e voltar
             </button>
@@ -435,7 +457,7 @@ export const LoginPage: React.FC = () => {
         )}
 
         {/* Rodapé simples de segurança */}
-        <div className="mt-6 border-t border-[#1E2636] pt-4 text-center text-[11px] text-slate-500">
+        <div className="mt-6 border-t border-border-subtle pt-4 text-center text-[11px] text-fg-muted">
           Autenticação corporativa protegida com criptografia ponta a ponta
         </div>
       </div>

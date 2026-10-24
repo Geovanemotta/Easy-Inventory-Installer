@@ -93,17 +93,17 @@ export const AppsFilters: React.FC<AppsFiltersProps> = ({
   );
 
   return (
-    <div className="bg-[#121721] rounded-xl border border-[#1E2636] p-3 shadow-sm space-y-3">
+    <div className="bg-surface rounded-xl border border-border-subtle p-3 shadow-sm space-y-3">
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Campo de Busca */}
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
           <input
             type="text"
             placeholder="Buscar por nome do aplicativo, navegador, pacote..."
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-[#263044] bg-[#181F2E] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-border-medium bg-elevated text-fg placeholder:text-fg-muted focus:outline-none focus:border-orange-500 transition-colors"
           />
           {localSearch && (
             <button
@@ -112,7 +112,7 @@ export const AppsFilters: React.FC<AppsFiltersProps> = ({
                 setLocalSearch('');
                 onSearchChange('');
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-white rounded cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-fg-secondary hover:text-fg rounded cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -165,7 +165,7 @@ export const AppsFilters: React.FC<AppsFiltersProps> = ({
                 }}
                 disabled={loading}
                 title="Limpar todos os filtros"
-                className="flex items-center gap-1.5 py-2 px-3 text-xs font-semibold text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 py-2 px-3 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-fg bg-elevated hover:bg-border-subtle rounded-lg border border-border-medium transition-colors cursor-pointer"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Limpar</span>
@@ -177,7 +177,7 @@ export const AppsFilters: React.FC<AppsFiltersProps> = ({
               onClick={onRefresh}
               disabled={loading}
               title="Atualizar catálogo"
-              className="p-2 text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors disabled:opacity-50 cursor-pointer"
+              className="p-2 text-gray-700 dark:text-slate-300 hover:text-fg bg-elevated hover:bg-border-subtle rounded-lg border border-border-medium transition-colors disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -186,9 +186,9 @@ export const AppsFilters: React.FC<AppsFiltersProps> = ({
               type="button"
               onClick={onExportCsv}
               disabled={loading || totalFiltered === 0}
-              className="flex items-center gap-1.5 py-2 px-3 text-xs font-medium text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] rounded-lg border border-[#263044] transition-colors disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 py-2 px-3 text-xs font-medium text-gray-700 dark:text-slate-300 hover:text-fg bg-elevated hover:bg-border-subtle rounded-lg border border-border-medium transition-colors disabled:opacity-50 cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5 text-slate-400" />
+              <Download className="h-3.5 w-3.5 text-fg-secondary" />
               <span>Exportar CSV</span>
             </button>
           </div>
@@ -196,11 +196,11 @@ export const AppsFilters: React.FC<AppsFiltersProps> = ({
       </div>
 
       {/* Barra de Status e Contagem */}
-      <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-[#1E2636]">
+      <div className="flex items-center justify-between text-xs text-fg-secondary pt-2 border-t border-border-subtle">
         <div className="flex items-center gap-2 flex-wrap">
-          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
+          <SlidersHorizontal className="h-3.5 w-3.5 text-fg-muted" />
           <span>
-            Exibindo <strong className="text-white font-semibold">{totalFiltered}</strong> software{totalFiltered !== 1 ? 's' : ''} no catálogo
+            Exibindo <strong className="text-fg font-semibold">{totalFiltered}</strong> software{totalFiltered !== 1 ? 's' : ''} no catálogo
           </span>
           {categoria !== 'todas' && categoria !== '' && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-500/15 text-orange-400 border border-orange-500/30">
@@ -208,31 +208,31 @@ export const AppsFilters: React.FC<AppsFiltersProps> = ({
               <button
                 type="button"
                 onClick={() => onCategoriaChange('todas')}
-                className="hover:text-white cursor-pointer ml-0.5"
+                className="hover:text-fg cursor-pointer ml-0.5"
               >
                 &times;
               </button>
             </span>
           )}
           {plataforma !== 'todas' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/30">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30">
               Plataforma: {plataforma}
               <button
                 type="button"
                 onClick={() => onPlataformaChange('todas')}
-                className="hover:text-white cursor-pointer ml-0.5"
+                className="hover:text-fg cursor-pointer ml-0.5"
               >
                 &times;
               </button>
             </span>
           )}
           {siteId && siteId !== 'todos' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
               Loja filtrada
               <button
                 type="button"
                 onClick={() => onSiteChange('todos')}
-                className="hover:text-white cursor-pointer ml-0.5"
+                className="hover:text-fg cursor-pointer ml-0.5"
               >
                 &times;
               </button>

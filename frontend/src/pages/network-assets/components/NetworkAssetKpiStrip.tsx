@@ -46,23 +46,23 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
         }}
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isTodosActive
-            ? 'border-orange-500 ring-1 ring-orange-500/30 bg-[#181F2E]'
-            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            ? 'border-orange-500 ring-1 ring-orange-500/30 bg-elevated'
+            : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
         }`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F97316]" />
         <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-fg-secondary">
             Total Ativos
           </span>
-          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-orange-400 group-hover:scale-105 transition-transform">
+          <div className="p-1 rounded-md bg-elevated border border-border-subtle text-orange-400 group-hover:scale-105 transition-transform">
             <Layers className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-white group-hover:text-orange-400 transition-colors">
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-fg group-hover:text-orange-400 transition-colors">
           {kpis?.total ?? 0}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
           {testados > 0 ? `${testados} testados` : 'Cadastrados'}
         </div>
       </button>
@@ -80,23 +80,23 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
         }}
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isOnlineActive
-            ? 'border-emerald-500 ring-1 ring-emerald-500/30 bg-[#181F2E]'
-            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            ? 'border-emerald-500 ring-1 ring-emerald-500/30 bg-elevated'
+            : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
         }`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#10B981]" />
         <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400/90">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/90 dark:text-emerald-400/90">
             Online
           </span>
-          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-emerald-400 group-hover:scale-105 transition-transform">
+          <div className="p-1 rounded-md bg-elevated border border-border-subtle text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform">
             <CheckCircle2 className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-emerald-400 group-hover:text-emerald-300 transition-colors">
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
           {kpis?.online ?? 0}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
           {testados > 0
             ? `${Math.round(((kpis?.online ?? 0) / testados) * 100)}% dos testados`
             : 'Respondendo ping'}
@@ -116,23 +116,23 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
         }}
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isOfflineActive
-            ? 'border-rose-500 ring-1 ring-rose-500/30 bg-[#181F2E]'
-            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            ? 'border-rose-500 ring-1 ring-rose-500/30 bg-elevated'
+            : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
         }`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F43F5E]" />
         <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400/90">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600/90 dark:text-rose-400/90">
             Offline
           </span>
-          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-rose-400 group-hover:scale-105 transition-transform">
+          <div className="p-1 rounded-md bg-elevated border border-border-subtle text-rose-600 dark:text-rose-400 group-hover:scale-105 transition-transform">
             <XCircle className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-rose-400 group-hover:text-rose-300 transition-colors">
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-rose-600 dark:text-rose-400 group-hover:text-rose-700 dark:group-hover:text-rose-300 transition-colors">
           {kpis?.offline ?? 0}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
           {testados > 0
             ? `${Math.round(((kpis?.offline ?? 0) / testados) * 100)}% dos testados`
             : 'Sem resposta'}
@@ -152,23 +152,23 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
         }}
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isNaoTestadoActive
-            ? 'border-slate-400 ring-1 ring-slate-400/30 bg-[#181F2E]'
-            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            ? 'border-border-medium ring-1 ring-border-medium bg-elevated'
+            : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
         }`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#64748B]" />
         <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-fg-secondary">
             Não Testados
           </span>
-          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-slate-400 group-hover:scale-105 transition-transform">
+          <div className="p-1 rounded-md bg-elevated border border-border-subtle text-fg-secondary group-hover:scale-105 transition-transform">
             <HelpCircle className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-300 group-hover:text-white transition-colors">
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-gray-700 dark:text-slate-300 group-hover:text-fg transition-colors">
           {kpis?.nao_testado ?? 0}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
           Aguardando scan
         </div>
       </button>
@@ -186,23 +186,23 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
         }}
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isImpressorasActive
-            ? 'border-amber-500 ring-1 ring-amber-500/30 bg-[#181F2E]'
-            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            ? 'border-amber-500 ring-1 ring-amber-500/30 bg-elevated'
+            : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
         }`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F59E0B]" />
         <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600/90 dark:text-amber-400/90">
             Impressoras
           </span>
-          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-amber-400 group-hover:scale-105 transition-transform">
+          <div className="p-1 rounded-md bg-elevated border border-border-subtle text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
             <Printer className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-amber-400 group-hover:text-amber-300 transition-colors">
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-amber-600 dark:text-amber-400 group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">
           {kpis?.impressoras ?? 0}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
           Térmicas / Laser
         </div>
       </button>
@@ -220,23 +220,23 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
         }}
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isRedeActive
-            ? 'border-indigo-500 ring-1 ring-indigo-500/30 bg-[#181F2E]'
-            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            ? 'border-indigo-500 ring-1 ring-indigo-500/30 bg-elevated'
+            : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
         }`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#6366F1]" />
         <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400/90">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600/90 dark:text-indigo-400/90">
             Switches &amp; Rede
           </span>
-          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-indigo-400 group-hover:scale-105 transition-transform">
+          <div className="p-1 rounded-md bg-elevated border border-border-subtle text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
             <Radio className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-indigo-400 group-hover:text-indigo-300 transition-colors">
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
           {kpis?.switches ?? 0}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
           Ativos L2 / L3
         </div>
       </button>
@@ -254,23 +254,23 @@ export const NetworkAssetKpiStrip: React.FC<NetworkAssetKpiStripProps> = ({
         }}
         className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all overflow-hidden cursor-pointer ${
           isWifiActive
-            ? 'border-cyan-500 ring-1 ring-cyan-500/30 bg-[#181F2E]'
-            : 'border-[#1E2636] bg-[#121721] bg-gradient-to-b from-[#181F2E]/40 to-[#121721] hover:border-[#263044] hover:bg-[#181F2E]/70'
+            ? 'border-cyan-500 ring-1 ring-cyan-500/30 bg-elevated'
+            : 'border-border-subtle bg-surface bg-gradient-to-b from-elevated/40 to-surface hover:border-border-medium hover:bg-elevated/70'
         }`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#06B6D4]" />
         <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400/90">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-600/90 dark:text-cyan-400/90">
             Access Points
           </span>
-          <div className="p-1 rounded-md bg-[#181F2E] border border-[#1E2636] text-cyan-400 group-hover:scale-105 transition-transform">
+          <div className="p-1 rounded-md bg-elevated border border-border-subtle text-cyan-600 dark:text-cyan-400 group-hover:scale-105 transition-transform">
             <Wifi className="h-3.5 w-3.5" />
           </div>
         </div>
-        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-cyan-400 group-hover:text-cyan-300 transition-colors">
+        <div className="my-1.5 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400 group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition-colors">
           {kpis?.aps ?? 0}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-secondary truncate">
           Pontos Wi-Fi
         </div>
       </button>

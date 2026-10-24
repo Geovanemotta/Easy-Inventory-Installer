@@ -36,19 +36,19 @@ export default function RemoteDeviceCard({
   }
 
   const secondaryBtn =
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#263044] bg-[#181F2E] hover:bg-[#222B3D] text-slate-300 hover:text-white transition-colors cursor-pointer'
+    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border-medium bg-elevated hover:bg-border-subtle text-gray-700 dark:text-slate-300 hover:text-fg transition-colors cursor-pointer'
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-[#1E2636] bg-[#121721] shadow-xs transition-all hover:border-[#2E3B52]">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-xs transition-all hover:border-border-medium">
       {/* Faixa superior indicando status */}
-      <div className={`h-0.5 w-full ${isOnline ? 'bg-emerald-500/60' : 'bg-[#263044]'}`} />
+      <div className={`h-0.5 w-full ${isOnline ? 'bg-emerald-500/60' : 'bg-border-subtle'}`} />
 
       {/* Topo do Card: SO, Hostname, IP e Status */}
       <div className="flex items-center gap-3 px-4 pt-3.5 pb-3">
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold font-mono ${
             isWin
-              ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
               : 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
           }`}
         >
@@ -57,12 +57,12 @@ export default function RemoteDeviceCard({
 
         <div className="min-w-0 flex-1">
           <h3
-            className="truncate text-sm font-bold text-white group-hover:text-orange-400 transition-colors"
+            className="truncate text-sm font-bold text-fg group-hover:text-orange-400 transition-colors"
             title={device.hostname}
           >
             {device.hostname}
           </h3>
-          <p className="truncate font-mono text-[11px] text-slate-400 tabular-nums">
+          <p className="truncate font-mono text-[11px] text-fg-secondary tabular-nums">
             {device.ip || 'Sem IP'}
           </p>
         </div>
@@ -70,13 +70,13 @@ export default function RemoteDeviceCard({
         <span
           className={`flex shrink-0 items-center gap-1.5 self-start rounded-full px-2 py-0.5 text-[10px] font-bold ${
             isOnline
-              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-              : 'bg-[#181F2E] text-slate-400 border border-[#263044]'
+              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+              : 'bg-elevated text-fg-secondary border border-border-medium'
           }`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'
+              isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-fg-muted'
             }`}
           />
           {isOnline ? 'Online' : 'Offline'}
@@ -84,35 +84,35 @@ export default function RemoteDeviceCard({
       </div>
 
       {/* Metadados: Filial, Patrimônio e RustDesk */}
-      <div className="mx-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#263044] bg-[#263044] text-[11px]">
-        <div className="min-w-0 bg-[#181F2E] px-2.5 py-1.5">
-          <span className="block text-[10px] uppercase tracking-wide text-slate-500">Filial</span>
-          <p className="truncate font-medium text-slate-300" title={device.loja || '-'}>
+      <div className="mx-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border-medium bg-border-subtle text-[11px]">
+        <div className="min-w-0 bg-elevated px-2.5 py-1.5">
+          <span className="block text-[10px] uppercase tracking-wide text-fg-muted">Filial</span>
+          <p className="truncate font-medium text-gray-700 dark:text-slate-300" title={device.loja || '-'}>
             {device.loja || '-'}
           </p>
         </div>
-        <div className="min-w-0 bg-[#181F2E] px-2.5 py-1.5">
-          <span className="block text-[10px] uppercase tracking-wide text-slate-500">Patrimônio</span>
-          <p className="truncate font-mono text-slate-300 tabular-nums" title={device.patrimonio || '-'}>
+        <div className="min-w-0 bg-elevated px-2.5 py-1.5">
+          <span className="block text-[10px] uppercase tracking-wide text-fg-muted">Patrimônio</span>
+          <p className="truncate font-mono text-gray-700 dark:text-slate-300 tabular-nums" title={device.patrimonio || '-'}>
             {device.patrimonio || '-'}
           </p>
         </div>
 
         {device.rustdesk_id && (
-          <div className="col-span-2 flex items-center justify-between gap-2 bg-[#181F2E] px-2.5 py-1.5">
-            <span className="text-[10px] uppercase tracking-wide text-slate-500">RustDesk</span>
+          <div className="col-span-2 flex items-center justify-between gap-2 bg-elevated px-2.5 py-1.5">
+            <span className="text-[10px] uppercase tracking-wide text-fg-muted">RustDesk</span>
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="truncate font-mono text-[11px] font-bold text-slate-200 tabular-nums">
+              <span className="truncate font-mono text-[11px] font-bold text-fg tabular-nums">
                 {device.rustdesk_id}
               </span>
               <button
                 type="button"
                 onClick={handleCopyRustDesk}
-                className="rounded p-0.5 text-slate-400 hover:text-white transition-opacity opacity-0 group-hover:opacity-100 cursor-pointer"
+                className="rounded p-0.5 text-fg-secondary hover:text-fg transition-opacity opacity-0 group-hover:opacity-100 cursor-pointer"
                 title="Copiar ID do RustDesk"
               >
                 {copiedRustdesk ? (
-                  <Check className="h-3 w-3 text-emerald-400" />
+                  <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                 ) : (
                   <Copy className="h-3 w-3" />
                 )}

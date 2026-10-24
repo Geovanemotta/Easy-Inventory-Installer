@@ -34,59 +34,59 @@ export const NetworkAssetScanModal: React.FC<NetworkAssetScanModalProps> = ({
         />
 
         {/* Modal Window Obsidian & Amber */}
-        <div className="relative transform overflow-hidden rounded-2xl bg-[#121721] text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-[#1E2636]">
+        <div className="relative transform overflow-hidden rounded-2xl bg-surface text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-border-subtle">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 rounded-xl bg-orange-500/15 border border-orange-500/30 text-orange-400">
                 <Zap className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-fg">
                   Testar Conectividade em Lote
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-fg-secondary">
                   Disparo de teste ICMP (Ping) em tempo real
                 </p>
               </div>
             </div>
 
-            <p className="text-sm text-slate-300 mb-4 leading-relaxed">
+            <p className="text-sm text-gray-700 dark:text-slate-300 mb-4 leading-relaxed">
               Será disparado um teste de conectividade ICMP para{' '}
-              <strong className="text-white font-bold font-mono tabular-nums">{targetCount} equipamentos</strong> com
+              <strong className="text-fg font-bold font-mono tabular-nums">{targetCount} equipamentos</strong> com
               endereço IP válido.
             </p>
 
             {/* Context Details */}
-            <div className="rounded-xl bg-[#181F2E] border border-[#263044] p-3.5 space-y-2 mb-4 text-xs">
-              <div className="flex items-center gap-2 font-semibold text-slate-200">
+            <div className="rounded-xl bg-elevated border border-border-medium p-3.5 space-y-2 mb-4 text-xs">
+              <div className="flex items-center gap-2 font-semibold text-fg">
                 <Info className="h-4 w-4 text-orange-400 shrink-0" />
                 <span>Alvo da Varredura:</span>
               </div>
-              <ul className="space-y-1 text-slate-300 pl-6 list-disc">
+              <ul className="space-y-1 text-gray-700 dark:text-slate-300 pl-6 list-disc">
                 <li>
-                  Equipamentos com IP: <strong className="text-white font-mono">{targetCount}</strong>
+                  Equipamentos com IP: <strong className="text-fg font-mono">{targetCount}</strong>
                 </li>
                 {siteName && (
                   <li>
-                    Filial: <strong className="text-slate-100">{siteName}</strong>
+                    Filial: <strong className="text-fg">{siteName}</strong>
                   </li>
                 )}
                 {tipo && tipo !== 'todos' && (
                   <li>
-                    Tipo de Ativo: <strong className="text-slate-100">{tipo}</strong>
+                    Tipo de Ativo: <strong className="text-fg">{tipo}</strong>
                   </li>
                 )}
                 {search && (
                   <li>
-                    Filtro de Busca: <strong className="text-slate-100">&ldquo;{search}&rdquo;</strong>
+                    Filtro de Busca: <strong className="text-fg">&ldquo;{search}&rdquo;</strong>
                   </li>
                 )}
               </ul>
             </div>
 
             {targetCount > 50 && (
-              <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3 flex items-start gap-2 text-xs text-amber-300 mb-4">
-                <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3 flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300 mb-4">
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <span>
                   Para evitar tráfego de rede concorrente excessivo, recomenda-se filtrar por filial
                   ou tipo antes de executar testes com mais de 50 equipamentos.
@@ -95,12 +95,12 @@ export const NetworkAssetScanModal: React.FC<NetworkAssetScanModalProps> = ({
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#1E2636]">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border-subtle">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={scanning}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-[#181F2E] border border-[#263044] hover:bg-[#263044] hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-slate-300 bg-elevated border border-border-medium hover:bg-border-subtle hover:text-fg transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancelar
               </button>

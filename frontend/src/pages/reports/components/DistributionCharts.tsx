@@ -18,11 +18,11 @@ export default function DistributionCharts({
         {Array.from({ length: 7 }).map((_, i) => (
           <div
             key={i}
-            className="flex h-64 animate-pulse flex-col rounded-xl border border-[#1E2636] bg-[#121721] p-5 shadow-sm"
+            className="flex h-64 animate-pulse flex-col rounded-xl border border-border-subtle bg-surface p-5 shadow-sm"
           >
-            <div className="mb-4 h-4 w-32 rounded bg-[#181F2E]" />
+            <div className="mb-4 h-4 w-32 rounded bg-elevated" />
             <div className="flex flex-1 items-center justify-center">
-              <div className="h-32 w-32 rounded-full border-4 border-[#181F2E]" />
+              <div className="h-32 w-32 rounded-full border-4 border-border-medium" />
             </div>
           </div>
         ))}
@@ -32,7 +32,7 @@ export default function DistributionCharts({
 
   if (!data) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-[#1E2636] bg-[#121721] text-sm text-slate-500">
+      <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-border-subtle bg-surface text-sm text-fg-muted">
         Nenhum dado estatístico disponível no momento.
       </div>
     )

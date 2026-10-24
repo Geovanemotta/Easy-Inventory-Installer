@@ -6,7 +6,6 @@ import {
   Download,
   Copy,
   Check,
-  Building2,
   Terminal,
   Zap,
   AlertTriangle,
@@ -165,17 +164,17 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
         onClick={onClose}
       >
         <div
-          className="w-full max-w-3xl bg-[#121721] h-full shadow-2xl flex flex-col border-l border-[#1E2636] animate-in slide-in-from-right duration-200 cursor-default"
+          className="w-full max-w-3xl bg-surface h-full shadow-2xl flex flex-col border-l border-border-subtle animate-in slide-in-from-right duration-200 cursor-default"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Cabeçalho do Drawer */}
-          <div className="px-6 py-4 border-b border-[#1E2636] bg-[#0E131B] flex items-center justify-between shrink-0">
+          <div className="px-6 py-4 border-b border-border-subtle bg-app flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div
                 className={`p-2.5 rounded-xl shadow-sm border ${
                   isSemApps
-                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                    : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                    ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                    : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                 }`}
               >
                 {isSemApps ? (
@@ -186,7 +185,7 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-bold text-fg">
                     {isSemApps
                       ? 'Máquinas sem Inventário de Aplicativos'
                       : 'Máquinas com Inventário de Aplicativos'}
@@ -194,14 +193,14 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                       isSemApps
-                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                        : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                        : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                     }`}
                   >
                     {isSemApps ? 'Pendente' : 'Ativas'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-fg-secondary mt-0.5">
                   {isSemApps
                     ? 'Estações de trabalho ativas que ainda não possuem nenhum software registrado.'
                     : 'Estações de trabalho com catálogo de softwares e pacotes sincronizado.'}
@@ -214,10 +213,10 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
                 type="button"
                 onClick={handleExportCsv}
                 disabled={devices.length === 0}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-[#181F2E] hover:bg-[#222B3D] border border-[#263044] rounded-lg shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-fg bg-elevated hover:bg-border-subtle border border-border-medium rounded-lg shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
                 title="Exportar máquinas para planilha CSV"
               >
-                <Download className="h-3.5 w-3.5 text-slate-400" />
+                <Download className="h-3.5 w-3.5 text-fg-secondary" />
                 <span>Exportar</span>
               </button>
 
@@ -234,7 +233,7 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 text-slate-400 hover:text-white hover:bg-[#181F2E] rounded-lg transition-colors cursor-pointer"
+                className="p-2 text-fg-secondary hover:text-fg hover:bg-elevated rounded-lg transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -242,9 +241,9 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
           </div>
 
           {/* Barra de Busca e Ação de Instalação */}
-          <div className="p-4 border-b border-[#1E2636] bg-[#121721] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          <div className="p-4 border-b border-border-subtle bg-surface flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-fg-muted" />
               <input
                 type="text"
                 placeholder="Buscar por hostname, IP, filial ou sistema..."
@@ -253,7 +252,7 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
                   setSearchTerm(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-[#263044] bg-[#181F2E] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-border-medium bg-elevated text-fg placeholder:text-fg-muted focus:outline-none focus:border-orange-500 transition-colors"
               />
             </div>
 
@@ -270,15 +269,25 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
             )}
           </div>
 
+          {/* Cabeçalho Discreto das Colunas */}
+          <div className="px-4 pt-3 pb-1 bg-app border-b border-border-subtle/50 shrink-0">
+            <div className="grid grid-cols-[1.4fr_1fr_1fr_90px] items-center gap-4 px-4 py-1.5 border border-transparent text-[10px] font-bold text-fg-secondary uppercase tracking-wider select-none">
+              <span>Máquina</span>
+              <span>Endereço IP</span>
+              <span>Sistema Operacional</span>
+              <span className="text-right">Ação</span>
+            </div>
+          </div>
+
           {/* Lista de Máquinas */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2.5 bg-[#0B0E14]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-app">
             {loading ? (
-              <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
+              <div className="py-12 flex flex-col items-center justify-center text-fg-secondary gap-2">
                 <div className="animate-spin h-7 w-7 border-2 border-orange-500 border-t-transparent rounded-full" />
                 <span className="text-xs font-medium">Carregando lista de máquinas...</span>
               </div>
             ) : devices.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
+              <div className="py-12 text-center text-fg-secondary text-xs">
                 {searchTerm
                   ? 'Nenhuma máquina corresponde aos critérios de busca.'
                   : isSemApps
@@ -289,109 +298,72 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
               devices.map((dev) => {
                 const isLinux = (dev.familia_so || dev.sistema || '').toLowerCase().includes('linux');
                 const canSsh = isLinux && Boolean(dev.ip);
-                const filialBadge = dev.loja
-                  ? dev.loja.replace(/^\[([^\]]+)\]\s*\1$/i, '$1').replace(/^\[([^\]]+)\]\s*/, '').trim().toUpperCase()
-                  : null;
                 const soName = dev.so_formatado || dev.sistema || dev.familia_so || (isLinux ? 'Linux' : 'Windows');
 
                 return (
                   <div
                     key={dev.id}
-                    className="px-3.5 py-2.5 bg-[#121721] rounded-lg border border-[#1E2636] hover:border-orange-500/40 hover:bg-[#181F2E]/80 transition-all flex items-center justify-between gap-3 text-xs group"
+                    className="grid grid-cols-[1.4fr_1fr_1fr_90px] items-center gap-4 px-4 py-2.5 bg-surface rounded-lg border border-border-subtle hover:border-orange-500/40 hover:bg-elevated transition-all text-xs group"
                   >
-                    <div className="flex items-center gap-2.5 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
-                      {/* Hostname com link direto */}
+                    {/* Coluna 1: Nome da Máquina (hostname) */}
+                    <div className="min-w-0">
                       <button
                         type="button"
                         onClick={() => handleGoToDevice(dev.hostname)}
                         title="Clique para abrir e filtrar esta máquina na tela de Estações"
-                        className="font-bold text-white hover:text-orange-400 hover:underline cursor-pointer truncate max-w-[140px] shrink-0 text-left transition-colors"
+                        className="font-semibold text-fg hover:text-orange-500 hover:underline cursor-pointer truncate block w-full text-left transition-colors"
                       >
                         {dev.hostname}
                       </button>
+                    </div>
 
-                      {/* Filial Badge Curto */}
-                      {filialBadge && (
-                        <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#181F2E] text-slate-300 border border-[#263044] shrink-0"
-                          title={dev.loja || filialBadge}
-                        >
-                          <Building2 className="h-2.5 w-2.5 text-slate-400" />
-                          {filialBadge}
-                        </span>
-                      )}
-
-                      {/* IP em destaque claro com JetBrains Mono e botão copiar no hover */}
+                    {/* Coluna 2: IP (ip) em fonte mono com botão copiar no hover */}
+                    <div className="min-w-0 flex items-center">
                       {dev.ip ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold bg-[#181F2E] text-slate-300 border border-[#263044] shrink-0">
+                        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-fg">
                           <span>{dev.ip}</span>
                           <button
                             type="button"
                             onClick={(e) => handleCopy(dev.ip!, 'IP', e)}
                             title="Copiar IP"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-slate-400 hover:text-white cursor-pointer"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-fg-secondary hover:text-fg cursor-pointer rounded"
                           >
                             {copiedIp === dev.ip ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
                           </button>
                         </span>
                       ) : (
-                        <span className="text-slate-500 font-mono text-[11px] shrink-0">Sem IP</span>
+                        <span className="text-fg-muted font-mono text-[11px]">Sem IP</span>
                       )}
+                    </div>
 
-                      {/* SO Normalizado */}
+                    {/* Coluna 3: Sistema Operacional (so) */}
+                    <div className="min-w-0">
                       <span
-                        className="text-slate-400 text-[11px] truncate max-w-[160px] shrink-0 font-medium"
+                        className="text-fg-secondary text-xs truncate block font-medium"
                         title={soName}
                       >
                         {soName}
                       </span>
-
-                      {/* Status / Alerta de Sem Aplicativos */}
-                      {isSemApps ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
-                          <AlertTriangle className="h-3 w-3" />
-                          0 softwares
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
-                          <CheckCircle2 className="h-3 w-3" />
-                          {dev.status || 'Ativa'}
-                        </span>
-                      )}
                     </div>
 
-                    {/* Ações */}
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {canSsh && (
+                    {/* Coluna 4: Botão >_ SSH (Linux) ou espaço reservado alinhado */}
+                    <div className="justify-self-end flex items-center justify-end">
+                      {canSsh ? (
                         <button
                           type="button"
                           onClick={() => setSshTarget(dev)}
-                          className="inline-flex items-center gap-1 rounded-md bg-orange-500/15 text-orange-400 border border-orange-500/30 hover:bg-orange-500/25 px-2 py-1 text-[11px] font-semibold transition-colors shadow-sm cursor-pointer"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500/15 text-orange-500 dark:text-orange-400 border border-orange-500/30 hover:bg-orange-500/25 px-2.5 py-1 text-[11px] font-semibold transition-colors shadow-xs cursor-pointer"
                           title={`Acesso Rápido via Terminal SSH em ${dev.hostname}`}
                         >
-                          <Terminal className="h-3 w-3 text-orange-400" />
+                          <Terminal className="h-3 w-3 text-orange-500 dark:text-orange-400" />
                           <span>&gt;_ SSH</span>
                         </button>
-                      )}
-
-                      {isSemApps && isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => setIsInstallModalOpen(true)}
-                          className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 px-2 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
-                          title="Instalar agente nesta máquina"
-                        >
-                          <Zap className="h-3 w-3 text-amber-400" />
-                          <span>Instalar</span>
-                        </button>
-                      )}
-
-                      {!canSsh && !(isSemApps && isAdmin) && (
-                        <span className="w-14 text-center text-slate-600 text-xs select-none">&mdash;</span>
+                      ) : (
+                        <span className="inline-block w-8 text-center text-fg-muted text-xs select-none">&mdash;</span>
                       )}
                     </div>
                   </div>
@@ -401,22 +373,22 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
           </div>
 
           {/* Rodapé com Paginação */}
-          <div className="px-6 py-3 border-t border-[#1E2636] bg-[#0E131B] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3 shrink-0">
+          <div className="px-6 py-3 border-t border-border-subtle bg-app flex flex-col sm:flex-row items-center justify-between text-xs text-fg-secondary gap-3 shrink-0">
             <div className="flex items-center gap-3">
               <span>
                 Exibindo{' '}
-                <strong className="text-white font-semibold">
+                <strong className="text-fg font-semibold">
                   {totalCount === 0 ? 0 : (pagination.page - 1) * pagination.per_page + 1}
                 </strong>{' '}
                 a{' '}
-                <strong className="text-white font-semibold">
+                <strong className="text-fg font-semibold">
                   {Math.min(pagination.page * pagination.per_page, totalCount)}
                 </strong>{' '}
-                de <strong className="text-white font-semibold">{totalCount}</strong> máquinas
+                de <strong className="text-fg font-semibold">{totalCount}</strong> máquinas
               </span>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-400 text-[11px]">Por pág:</span>
+                <span className="text-fg-secondary text-[11px]">Por pág:</span>
                 <div className="w-20">
                   <SelectDropdown
                     value={String(perPage)}
@@ -436,13 +408,13 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={pagination.page <= 1}
-                className="p-1 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 hover:text-white hover:bg-[#222B3D] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                className="p-1 rounded-lg border border-border-medium bg-elevated text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 title="Página anterior"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
 
-              <span className="px-2 text-xs font-bold text-white">
+              <span className="px-2 text-xs font-bold text-fg">
                 {pagination.page} / {pagination.total_pages || 1}
               </span>
 
@@ -450,7 +422,7 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
                 type="button"
                 onClick={() => setPage((p) => Math.min(pagination.total_pages || 1, p + 1))}
                 disabled={pagination.page >= (pagination.total_pages || 1)}
-                className="p-1 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 hover:text-white hover:bg-[#222B3D] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                className="p-1 rounded-lg border border-border-medium bg-elevated text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 title="Próxima página"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -459,7 +431,7 @@ export const DevicesWithoutAppsDrawer: React.FC<DevicesWithoutAppsDrawerProps> =
               <button
                 type="button"
                 onClick={onClose}
-                className="ml-2 px-3 py-1 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 hover:text-white hover:bg-[#222B3D] font-semibold transition-colors cursor-pointer"
+                className="ml-2 px-3 py-1 rounded-lg border border-border-medium bg-elevated text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle font-semibold transition-colors cursor-pointer"
               >
                 Fechar
               </button>

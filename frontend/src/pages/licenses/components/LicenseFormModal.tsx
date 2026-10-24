@@ -178,18 +178,18 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-      <div className="bg-[#121721] rounded-2xl border border-[#1E2636] shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-surface rounded-2xl border border-border-subtle shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Cabeçalho */}
-        <div className="px-6 py-4 border-b border-[#1E2636] bg-[#0E131B] flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-border-subtle bg-app flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-orange-500/15 border border-orange-500/30 text-orange-400">
               <KeyRound className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-fg">
                 {editingLicense ? 'Editar Lote de Licença' : 'Cadastrar Nova Licença'}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-fg-secondary">
                 Gerencie lotes, seriais OEM/Volume e notas fiscais
               </p>
             </div>
@@ -197,7 +197,7 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-[#181F2E] rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-fg-secondary hover:text-fg hover:bg-elevated rounded-lg transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -206,7 +206,7 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
           {error && (
-            <div className="p-3.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-medium flex items-center gap-2">
+            <div className="p-3.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 font-medium flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -214,7 +214,7 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
 
           {/* Categoria */}
           <div className="space-y-1.5">
-            <label className="font-bold text-slate-300 block">Categoria do Software</label>
+            <label className="font-bold text-gray-700 dark:text-slate-300 block">Categoria do Software</label>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { id: 'windows', label: 'Windows OS' },
@@ -228,7 +228,7 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
                   className={`py-2 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                     categoria === c.id
                       ? 'bg-orange-500/15 border-orange-500/40 text-orange-400 shadow-sm'
-                      : 'border-[#263044] bg-[#181F2E] text-slate-300 hover:text-white hover:bg-[#222B3D]'
+                      : 'border-border-medium bg-elevated text-gray-700 dark:text-slate-300 hover:text-fg hover:bg-border-subtle'
                   }`}
                 >
                   {c.label}
@@ -240,7 +240,7 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
           {/* Software / Edição */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-300 block">Nome do Software / Edição <span className="text-orange-400">*</span></label>
+              <label className="font-bold text-gray-700 dark:text-slate-300 block">Nome do Software / Edição <span className="text-orange-400">*</span></label>
               <button
                 type="button"
                 onClick={() => setCustomSoftware(!customSoftware)}
@@ -257,7 +257,7 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
                 placeholder="Ex: Windows 11 Enterprise LTSC, AutoCAD 2024..."
                 value={softwareNome}
                 onChange={(e) => setSoftwareNome(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-white placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-border-medium bg-elevated text-fg placeholder:text-fg-muted focus:outline-none focus:border-orange-500 transition-colors"
               />
             ) : (
               <SelectDropdown
@@ -271,21 +271,21 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
 
           {/* Chave Serial */}
           <div className="space-y-1.5">
-            <label className="font-bold text-slate-300 block">Chave do Produto (Serial) <span className="text-orange-400">*</span></label>
+            <label className="font-bold text-gray-700 dark:text-slate-300 block">Chave do Produto (Serial) <span className="text-orange-400">*</span></label>
             <input
               type="text"
               required
               placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
               value={chave}
               onChange={(e) => handleChaveChange(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-white placeholder:text-slate-500 focus:outline-none focus:border-orange-500 font-mono tracking-wider text-sm font-semibold uppercase transition-colors"
+              className="w-full px-3 py-2 rounded-lg border border-border-medium bg-elevated text-fg placeholder:text-fg-muted focus:outline-none focus:border-orange-500 font-mono tracking-wider text-sm font-semibold uppercase transition-colors"
             />
           </div>
 
           {/* Tipo e Quantidade */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 block">Tipo de Licença</label>
+              <label className="font-bold text-gray-700 dark:text-slate-300 block">Tipo de Licença</label>
               <SelectDropdown
                 value={tipoLicenca}
                 onChange={setTipoLicenca}
@@ -295,21 +295,21 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 block">Quantidade de Ativações <span className="text-orange-400">*</span></label>
+              <label className="font-bold text-gray-700 dark:text-slate-300 block">Quantidade de Ativações <span className="text-orange-400">*</span></label>
               <input
                 type="number"
                 min={editingLicense?.quantidade_em_uso || 1}
                 required
                 value={quantidadeTotal}
                 onChange={(e) => setQuantidadeTotal(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-white focus:outline-none focus:border-orange-500 font-semibold transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-border-medium bg-elevated text-fg focus:outline-none focus:border-orange-500 font-semibold transition-colors"
               />
             </div>
           </div>
 
           {/* Filial / Loja */}
           <div className="space-y-1.5">
-            <label className="font-bold text-slate-300 block">Filial Vinculada</label>
+            <label className="font-bold text-gray-700 dark:text-slate-300 block">Filial Vinculada</label>
             <SelectDropdown
               value={siteId}
               onChange={setSiteId}
@@ -321,46 +321,46 @@ export const LicenseFormModal: React.FC<LicenseFormModalProps> = ({
           {/* NF e Data de Aquisição */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 block">Nota Fiscal (Opcional)</label>
+              <label className="font-bold text-gray-700 dark:text-slate-300 block">Nota Fiscal (Opcional)</label>
               <input
                 type="text"
                 placeholder="Ex: NF-14920"
                 value={notaFiscal}
                 onChange={(e) => setNotaFiscal(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-white placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-border-medium bg-elevated text-fg placeholder:text-fg-muted focus:outline-none focus:border-orange-500 transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 block">Data de Aquisição</label>
+              <label className="font-bold text-gray-700 dark:text-slate-300 block">Data de Aquisição</label>
               <input
                 type="date"
                 value={dataAquisicao}
                 onChange={(e) => setDataAquisicao(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-white focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-border-medium bg-elevated text-fg focus:outline-none focus:border-orange-500 transition-colors"
               />
             </div>
           </div>
 
           {/* Observações */}
           <div className="space-y-1.5">
-            <label className="font-bold text-slate-300 block">Observações (Opcional)</label>
+            <label className="font-bold text-gray-700 dark:text-slate-300 block">Observações (Opcional)</label>
             <textarea
               rows={2}
               placeholder="Ex: Adquirido via Dell, contrato corporativo anual..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-white placeholder:text-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+              className="w-full px-3 py-2 rounded-lg border border-border-medium bg-elevated text-fg placeholder:text-fg-muted focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
 
           {/* Botões de Ação */}
-          <div className="pt-3 border-t border-[#1E2636] flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-border-subtle flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 py-2 rounded-lg border border-[#263044] bg-[#181F2E] text-slate-300 font-semibold hover:text-white hover:bg-[#222B3D] transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-lg border border-border-medium bg-elevated text-gray-700 dark:text-slate-300 font-semibold hover:text-fg hover:bg-border-subtle transition-colors cursor-pointer"
             >
               Cancelar
             </button>
