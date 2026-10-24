@@ -39,7 +39,7 @@ function updateMeshConfig() {
     if (!data.domains) data.domains = {};
     if (data.domains['']) {
       if (hasCert) {
-        data.domains[''].certUrl = 'file:///opt/meshcentral/meshcentral-data/server.crt';
+        data.domains[''].certUrl = 'file:///opt/meshcentral/certs/server.crt';
       } else {
         delete data.domains[''].certUrl;
       }
@@ -51,7 +51,7 @@ function updateMeshConfig() {
     }
     if (data.domains.local) {
       if (hasCert) {
-        data.domains.local.certUrl = 'file:///opt/meshcentral/meshcentral-data/server.crt';
+        data.domains.local.certUrl = 'file:///opt/meshcentral/certs/server.crt';
       } else {
         delete data.domains.local.certUrl;
       }

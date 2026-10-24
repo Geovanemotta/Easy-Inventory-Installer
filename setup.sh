@@ -313,6 +313,17 @@ sync_meshcentral_host() {
 
 # Inicializa ou atualiza containers Docker aproveitando imagens locais se disponíveis
 start_or_update_containers() {
+    # Garante que o diretório de certificados exista e remove eventuais diretórios espúrios criados pelo Docker
+    mkdir -p nginx/certs
+    if [ -d "nginx/certs/server.crt" ]; then
+        echo " [*] Removendo diretório espúrio 'nginx/certs/server.crt' criado por bind mount antigo..."
+        rm -rf "nginx/certs/server.crt"
+    fi
+    if [ -d "nginx/certs/server.key" ]; then
+        echo " [*] Removendo diretório espúrio 'nginx/certs/server.key' criado por bind mount antigo..."
+        rm -rf "nginx/certs/server.key"
+    fi
+
     local NEED_BUILD=false
     local IMAGES_EXIST=false
 

@@ -6,7 +6,7 @@
 
 ## ⚡ Destaques da Plataforma
 
-* **Multiplataforma:** Coleta completa em sistemas operacionais **Windows** (10, 11 e Server) e **Linux** (Ubuntu, Debian, Zorin, etc.).
+* **Multiplataforma:** Coleta completa em sistemas operacionais **Windows** (10, 11 e Server) e **Linux** (Qualquer base Ubuntu/Debian/Mint/POP/etc.).
 * **Zero-Touch Deploy:** Instalação dos agentes via script em linha única no terminal ou PowerShell, ou agendamento diário via Cron / GPO.
 * **Auditoria de Hardware Drift:** Histórico automático de alterações de hardware com alertas imediatos para trocas de peças (RAM, CPU, Placa-mãe).
 * **Gestão de Armazenamento:** Monitoramento de uso de discos com alerta de > 75% e análise detalhada das pastas de usuários locais.
@@ -22,8 +22,8 @@ Apenas o **Docker** precisa estar instalado no servidor:
 
 ```bash
 # Clone ou descompacte o projeto:
-git clone https://github.com/Geovanemotta/Easy-Inventory-Installer.git inventory-app
-cd inventory-app
+git clone https://github.com/Geovanemotta/ZenithMap-Installer.git ZenithMap
+cd ZenithMap
 
 # Execute o instalador interativo:
 chmod +x setup.sh

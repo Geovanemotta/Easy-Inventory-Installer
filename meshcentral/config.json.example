@@ -43,7 +43,7 @@
       ],
       "userNameIsEmail": false,
       "hideMeshCentral": false,
-      "certUrl": "file:///opt/meshcentral/meshcentral-data/server.crt"
+      "certUrl": "file:///opt/meshcentral/certs/server.crt"
     },
     "local": {
       "siteStyle": 2,

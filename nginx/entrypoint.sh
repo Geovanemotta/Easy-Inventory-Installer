@@ -5,6 +5,17 @@ CERT_DIR="/etc/nginx/certs"
 CERT_FILE="${CERT_DIR}/server.crt"
 KEY_FILE="${CERT_DIR}/server.key"
 
+# Se o Docker acidentalmente criou server.crt ou server.key como pasta (bind-mount fantasma), remove
+if [ -d "$CERT_FILE" ]; then
+    echo "[!] Detectado diretório fantasma em $CERT_FILE. Removendo pasta..."
+    rm -rf "$CERT_FILE"
+fi
+
+if [ -d "$KEY_FILE" ]; then
+    echo "[!] Detectado diretório fantasma em $KEY_FILE. Removendo pasta..."
+    rm -rf "$KEY_FILE"
+fi
+
 # Se o certificado ou a chave não existirem, gera um certificado auto-assinado com SAN (IP / DNS)
 if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ]; then
     HOST="${SERVER_HOST:-localhost}"
@@ -28,8 +39,10 @@ if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ]; then
         -keyout "$KEY_FILE" \
         -out "$CERT_FILE" \
         -subj "/C=BR/O=ZenithMap/OU=TI/CN=${HOST}" \
-        -addext "subjectAltName = ${SAN}" \
-        2>/dev/null
+        -addext "subjectAltName = ${SAN}"
+
+    chmod 644 "$CERT_FILE" 2>/dev/null || true
+    chmod 600 "$KEY_FILE" 2>/dev/null || true
 
     echo "[+] Certificado gerado com sucesso para $HOST (SAN: $SAN)!"
     echo "[i] Para instalar o certificado oficial da empresa:"

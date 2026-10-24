@@ -53,7 +53,7 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
         if "" in domains:
             domains[""]["ignoreAgentHashCheck"] = True
             if has_cert:
-                domains[""]["certUrl"] = "file:///opt/meshcentral/meshcentral-data/server.crt"
+                domains[""]["certUrl"] = "file:///opt/meshcentral/certs/server.crt"
             else:
                 domains[""].pop("certUrl", None)
             # No MeshCentral, o dominio default "" NUNCA pode ter o campo "dns"
@@ -65,7 +65,7 @@ def update_meshcentral_config(base_dir: Path, server_host: str, port: int):
 
         if "local" in domains:
             if has_cert:
-                domains["local"]["certUrl"] = "file:///opt/meshcentral/meshcentral-data/server.crt"
+                domains["local"]["certUrl"] = "file:///opt/meshcentral/certs/server.crt"
             else:
                 domains["local"].pop("certUrl", None)
             domains["local"].pop("dns", None)

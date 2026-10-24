@@ -329,6 +329,17 @@ fi
 # ------------------------------------------------------------------------------
 echo -e "${YELLOW}[3/5] Atualizando containers Docker e aplicando alterações...${NC}"
 
+# Garante que o diretório de certificados exista e remove eventuais diretórios espúrios criados pelo Docker
+mkdir -p nginx/certs
+if [ -d "nginx/certs/server.crt" ]; then
+    echo " [*] Removendo diretório espúrio 'nginx/certs/server.crt' criado por bind mount antigo..."
+    rm -rf "nginx/certs/server.crt"
+fi
+if [ -d "nginx/certs/server.key" ]; then
+    echo " [*] Removendo diretório espúrio 'nginx/certs/server.key' criado por bind mount antigo..."
+    rm -rf "nginx/certs/server.key"
+fi
+
 IMAGES_EXIST=false
 if docker inspect zenithmap-backend &>/dev/null && docker inspect zenithmap-nginx &>/dev/null && docker inspect zenithmap-frontend &>/dev/null; then
     IMAGES_EXIST=true

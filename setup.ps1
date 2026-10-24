@@ -221,6 +221,14 @@ if (Test-Path "frontend/dist/index.html") {
 # 6. Inicialização dos Containers
 Write-Host "[5/6] Construindo e iniciando containers Docker..." -ForegroundColor Yellow
 
+New-Item -ItemType Directory -Force -Path "nginx/certs" | Out-Null
+if (Test-Path "nginx/certs/server.crt" -PathType Container) {
+    Remove-Item -Recurse -Force "nginx/certs/server.crt"
+}
+if (Test-Path "nginx/certs/server.key" -PathType Container) {
+    Remove-Item -Recurse -Force "nginx/certs/server.key"
+}
+
 $existingVol = docker volume ls -q 2>$null | Select-String -Pattern "zenithmap_pgdata|postgres_data"
 if ($existingVol) {
     Write-Host " [!] Foi detectado um volume de banco de dados pré-existente." -ForegroundColor Yellow
